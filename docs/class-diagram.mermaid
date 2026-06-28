@@ -1,0 +1,194 @@
+classDiagram
+    class Repository {
+        +String id
+        +String name
+        +String icon
+        +String color
+        +bool isArchived
+        +DateTime createdAt
+        +DateTime updatedAt
+        +copyWith()
+        +toJson()
+    }
+
+    class Branch {
+        +String id
+        +String repositoryId
+        +String name
+        +String? parentBranchId
+        +bool isMain
+        +String color
+        +DateTime createdAt
+        +DateTime updatedAt
+        +copyWith()
+        +toJson()
+    }
+
+    class Task {
+        +String id
+        +String branchId
+        +String title
+        +String? description
+        +TaskStatus status
+        +Priority priority
+        +DateTime? dueDate
+        +DateTime? completedAt
+        +String? parentTaskId
+        +int sortOrder
+        +DateTime createdAt
+        +DateTime updatedAt
+        +copyWith()
+        +toJson()
+    }
+
+    class Commit {
+        +String id
+        +String taskId
+        +String branchId
+        +String message
+        +CommitType type
+        +DateTime createdAt
+        +copyWith()
+        +toJson()
+    }
+
+    class IRepositoryRepository {
+        <<interface>>
+        +getAll() Future~List~Repository~~
+        +getById(String id) Future~Repository?~
+        +create(Repository repository) Future~Repository~
+        +update(Repository repository) Future~Repository~
+        +delete(String id) Future~void~
+        +restore(String id) Future~void~
+    }
+
+    class IBranchRepository {
+        <<interface>>
+        +getAll() Future~List~Branch~~
+        +getByRepositoryId(String repositoryId) Future~List~Branch~~
+        +getById(String id) Future~Branch?~
+        +create(Branch branch) Future~Branch~
+        +update(Branch branch) Future~Branch~
+        +delete(String id) Future~void~
+    }
+
+    class ITaskRepository {
+        <<interface>>
+        +getAll() Future~List~Task~~
+        +getByBranchId(String branchId) Future~List~Task~~
+        +getById(String id) Future~Task?~
+        +create(Task task) Future~Task~
+        +update(Task task) Future~Task~
+        +delete(String id) Future~void~
+        +search(String query) Future~List~Task~~
+        +searchInRepository(String repositoryId, String query) Future~List~Task~~
+    }
+
+    class ICommitRepository {
+        <<interface>>
+        +getByTaskId(String taskId) Future~List~Commit~~
+        +getByBranchId(String branchId) Future~List~Commit~~
+        +create(Commit commit) Future~Commit~
+    }
+
+    class LocalRepositoryRepository {
+        -AppDatabase _db
+        +getAll() Future~List~Repository~~
+        +getById(String id) Future~Repository?~
+        +create(Repository repository) Future~Repository~
+        +update(Repository repository) Future~Repository~
+        +delete(String id) Future~void~
+        +restore(String id) Future~void~
+    }
+
+    class LocalBranchRepository {
+        -AppDatabase _db
+        +getAll() Future~List~Branch~~
+        +getByRepositoryId(String repositoryId) Future~List~Branch~~
+        +getById(String id) Future~Branch?~
+        +create(Branch branch) Future~Branch~
+        +update(Branch branch) Future~Branch~
+        +delete(String id) Future~void~
+    }
+
+    class LocalTaskRepository {
+        -AppDatabase _db
+        +getAll() Future~List~Task~~
+        +getByBranchId(String branchId) Future~List~Task~~
+        +getById(String id) Future~Task?~
+        +create(Task task) Future~Task~
+        +update(Task task) Future~Task~
+        +delete(String id) Future~void~
+        +search(String query) Future~List~Task~~
+        +searchInRepository(String repositoryId, String query) Future~List~Task~~
+    }
+
+    class LocalCommitRepository {
+        -AppDatabase _db
+        +getByTaskId(String taskId) Future~List~Commit~~
+        +getByBranchId(String branchId) Future~List~Commit~~
+        +create(Commit commit) Future~Commit~
+    }
+
+    class AppDatabase {
+        +RepositoryDao repositoryDao
+        +BranchDao branchDao
+        +TaskDao taskDao
+        +CommitDao commitDao
+    }
+
+    class RepositoryDao {
+        +getAll() Future~List~RepositoryData~~
+        +getById(String id) Future~RepositoryData?~
+        +insert(RepositoryData repository) Future~void~
+        +update(RepositoryData repository) Future~void~
+        +delete(String id) Future~void~
+    }
+
+    class BranchDao {
+        +getAll() Future~List~BranchData~~
+        +getByRepositoryId(String repositoryId) Future~List~BranchData~~
+        +getById(String id) Future~BranchData?~
+        +insert(BranchData branch) Future~void~
+        +update(BranchData branch) Future~void~
+        +delete(String id) Future~void~
+    }
+
+    class TaskDao {
+        +getAll() Future~List~TaskData~~
+        +getByBranchId(String branchId) Future~List~TaskData~~
+        +getById(String id) Future~TaskData?~
+        +insert(TaskData task) Future~void~
+        +update(TaskData task) Future~void~
+        +delete(String id) Future~void~
+        +search(String query) Future~List~TaskData~~
+        +searchInRepository(String repositoryId, String query) Future~List~TaskData~~
+    }
+
+    class CommitDao {
+        +getByTaskId(String taskId) Future~List~CommitData~~
+        +getByBranchId(String branchId) Future~List~CommitData~~
+        +insert(CommitData commit) Future~void~
+    }
+
+    class TaskStateMachine {
+        +canTransition(TaskStatus from, TaskStatus to) bool
+        +transition(TaskStatus from, TaskStatus to) TaskStatus
+    }
+
+    IRepositoryRepository <|.. LocalRepositoryRepository
+    IBranchRepository <|.. LocalBranchRepository
+    ITaskRepository <|.. LocalTaskRepository
+    ICommitRepository <|.. LocalCommitRepository
+
+    LocalRepositoryRepository --> AppDatabase
+    LocalBranchRepository --> AppDatabase
+    LocalTaskRepository --> AppDatabase
+    LocalCommitRepository --> AppDatabase
+
+    AppDatabase --> RepositoryDao
+    AppDatabase --> BranchDao
+    AppDatabase --> TaskDao
+    AppDatabase --> CommitDao
+
+    TaskStateMachine --> Task

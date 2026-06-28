@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant main as main.dart
+    participant di as DI Container
+    participant db as AppDatabase
+    participant app as App Widget
+    participant router as GoRouter
+
+    main->>di: configureDependencies()
+    di->>db: 初始化 AppDatabase
+    db-->>di: 注册为单例
+    main->>di: 注册所有 Repository、UseCase、Service
+    main->>app: runApp(App())
+    app->>router: 初始化 GoRouter
+    router-->>app: 返回路由配置
+    app->>app: 构建 MaterialApp.router()
+    app-->>main: 显示应用

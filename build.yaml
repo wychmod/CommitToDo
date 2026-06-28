@@ -1,0 +1,21 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          generate_connect_constructor: true
+          sqlite_modules:
+            - json1
+            - fts5
+
+      riverpod_generator:
+        options:
+          emit_hash: false
+
+      injectable_generator:
+        options:
+          auto_register: true
+          prefer_relative_imports: true
+          extension_for:
+            - StateNotifier
+            - ChangeNotifier

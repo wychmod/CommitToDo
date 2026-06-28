@@ -1,0 +1,62 @@
+import 'package:flutter/material.dart';
+
+import '../../../core/theme/colors.dart';
+import '../../../core/theme/dimensions.dart';
+import '../../../core/theme/typography.dart';
+import '../../../domain/entities/branch.dart';
+import 'branch_indicator.dart';
+
+/// 分支列表
+class BranchList extends StatelessWidget {
+  const BranchList({
+    super.key,
+    required this.branches,
+    this.activeBranchId,
+    this.onBranchTap,
+    this.onBranchLongPress,
+    this.scrollDirection = Axis.horizontal,
+  });
+
+  final List<Branch> branches;
+  final String? activeBranchId;
+  final ValueChanged<Branch>? onBranchTap;
+  final ValueChanged<Branch>? onBranchLongPress;
+  final Axis scrollDirection;
+
+  @override
+  Widget build(BuildContext context) {
+    if (branches.isEmpty) {
+      return const Center(
+        child: Text(
+          '暂无分支',
+          style: TextStyle(
+            color: AppColors.textTertiary,
+            fontSize: AppTypography.sm,
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: scrollDirection == Axis.horizontal ? 36 : null,
+      child: ListView.separated(
+        scrollDirection: scrollDirection,
+        shrinkWrap: scrollDirection == Axis.vertical,
+        physics: const BouncingScrollPhysics(),
+        itemCount: branches.length,
+        separatorBuilder: (_, __) => const SizedBox(
+          width: AppDimensions.sm,
+          height: AppDimensions.sm,
+        ),
+        itemBuilder: (context, index) {
+          final branch = branches[index];
+          return BranchIndicator(
+            branch: branch,
+            isActive: branch.id == activeBranchId,
+            onTap: () => onBranchTap?.call(branch),
+          );
+        },
+      ),
+    );
+  }
+}
