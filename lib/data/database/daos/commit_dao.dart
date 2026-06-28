@@ -35,6 +35,6 @@ class CommitDao extends DatabaseAccessor<AppDatabase>
 
   /// 插入提交
   Future<void> insert(CommitData commit) async {
-    into(commits).insert(commit);
+    await into(commits).insert(commit);
   }
 }

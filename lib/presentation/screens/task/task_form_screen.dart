@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/di/injection_container.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
+import '../../../domain/usecases/task/create_task_usecase.dart';
+import '../../providers/repository_providers.dart';
 import '../../widgets/common/app_bar_widget.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/task/task_form.dart';
-import '../repository/repository_notifier.dart';
 import 'task_notifier.dart';
 
 /// 任务表单页（新建/编辑）
@@ -56,16 +58,44 @@ class TaskFormScreen extends ConsumerWidget {
           priority,
           dueDate,
         }) async {
-          // 使用 repository notifier 创建任务
-          // branchId 来自路由参数
-          // 这里简化处理，实际需要通过 DI 获取
-          if (context.mounted) {
-            AppToast.show(
-              context,
-              message: '任务创建成功',
-              variant: ToastVariant.success,
+          if (branchId.isEmpty) {
+            if (context.mounted) {
+              AppToast.show(
+                context,
+                message: '缺少分支信息，无法创建任务',
+                variant: ToastVariant.error,
+              );
+            }
+            return;
+          }
+
+          try {
+            final createTaskUseCase = getIt<CreateTaskUseCase>();
+            await createTaskUseCase.execute(
+              branchId: branchId,
+              title: title,
+              description: description,
+              priority: priority,
+              dueDate: dueDate,
             );
-            context.pop();
+
+            // 刷新仓库详情页的任务列表
+            ref.invalidate(repositoryNotifierProvider);            if (context.mounted) {
+              AppToast.show(
+                context,
+                message: '任务创建成功',
+                variant: ToastVariant.success,
+              );
+              context.pop();
+            }
+          } catch (e) {
+            if (context.mounted) {
+              AppToast.show(
+                context,
+                message: '创建失败：$e',
+                variant: ToastVariant.error,
+              );
+            }
           }
         },
       ),

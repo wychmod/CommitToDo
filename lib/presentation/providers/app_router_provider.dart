@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/app_icons.dart';
+import '../../core/theme/colors.dart';
+import '../../core/theme/dimensions.dart';
+import '../../core/theme/typography.dart';
 import '../screens/graph/git_graph_screen.dart';
 import '../screens/heatmap/heatmap_screen.dart';
 import '../screens/home/home_screen.dart';
@@ -108,18 +112,162 @@ class AppScaffold extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
+  static const double _desktopBreakpoint = 840;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: BottomNavWidget(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (index) {
-          navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth >= _desktopBreakpoint;
+        if (isDesktop) {
+          // 桌面端：侧边导航 + 主内容区
+          return Scaffold(
+            body: Row(
+              children: [
+                _SideNav(
+                  currentIndex: navigationShell.currentIndex,
+                  onTap: (index) {
+                    navigationShell.goBranch(
+                      index,
+                      initialLocation:
+                          index == navigationShell.currentIndex,
+                    );
+                  },
+                ),
+                const VerticalDivider(
+                  width: 1,
+                  color: AppColors.borderSubtle,
+                ),
+                Expanded(child: navigationShell),
+              ],
+            ),
           );
-        },
+        }
+
+        // 移动端：底部导航
+        return Scaffold(
+          body: navigationShell,
+          bottomNavigationBar: BottomNavWidget(
+            currentIndex: navigationShell.currentIndex,
+            onTap: (index) {
+              navigationShell.goBranch(
+                index,
+                initialLocation:
+                    index == navigationShell.currentIndex,
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// 桌面端侧边导航
+class _SideNav extends StatelessWidget {
+  const _SideNav({
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  static const _items = [
+    (AppIconName.repository, '仓库'),
+    (AppIconName.heatmap, '热力图'),
+    (AppIconName.graph, '图形'),
+    (AppIconName.settings, '设置'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 200,
+      color: AppColors.bgBase,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(AppDimensions.lg),
+              child: Text(
+                'Commit',
+                style: TextStyle(
+                  fontFamily: AppTypography.headingFont,
+                  fontSize: AppTypography.xl,
+                  fontWeight: AppTypography.semiBold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            for (var i = 0; i < _items.length; i++)
+              _SideNavItem(
+                icon: _items[i].$1,
+                label: _items[i].$2,
+                isActive: currentIndex == i,
+                onTap: () => onTap(i),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SideNavItem extends StatelessWidget {
+  const _SideNavItem({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final AppIconName icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? AppColors.primary : AppColors.textSecondary;
+    return Semantics(
+      button: true,
+      selected: isActive,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.lg,
+            vertical: AppDimensions.md,
+          ),
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(
+                width: 3,
+                color: isActive ? AppColors.primary : Colors.transparent,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              AppIcon(icon, size: 20, color: color),
+              const SizedBox(width: AppDimensions.md),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: AppTypography.bodyFont,
+                  fontSize: AppTypography.base,
+                  fontWeight: isActive
+                      ? AppTypography.medium
+                      : AppTypography.regular,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

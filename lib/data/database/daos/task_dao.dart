@@ -44,7 +44,7 @@ class TaskDao extends DatabaseAccessor<AppDatabase>
 
   /// 插入任务
   Future<void> insert(TaskData task) async {
-    into(tasks).insert(task);
+    await into(tasks).insert(task);
   }
 
   /// 更新任务

@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/di/injection_container.dart';
-import '../../domain/entities/repository.dart';
-import '../../domain/repositories/i_repository_repository.dart';
-import '../../domain/repositories/i_branch_repository.dart';
 import '../../domain/entities/branch.dart';
+import '../../domain/entities/repository.dart';
+import '../../domain/repositories/i_branch_repository.dart';
+import '../../domain/repositories/i_repository_repository.dart';
+import '../screens/repository/repository_notifier.dart';
+import '../screens/repository/repository_state.dart';
 
 /// 仓库仓储 Provider
 final repositoryRepositoryProvider =
@@ -41,4 +43,10 @@ final repositoryBranchesProvider =
     final repo = ref.read(branchRepositoryProvider);
     return await repo.getByRepositoryId(repositoryId);
   },
+);
+
+/// 仓库详情页 Notifier Provider（统一入口，供详情页与任务表单刷新）
+final repositoryNotifierProvider = StateNotifierProvider
+    .family<RepositoryNotifier, RepositoryScreenState, String>(
+  (ref, repositoryId) => RepositoryNotifier(repositoryId),
 );

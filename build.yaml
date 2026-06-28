@@ -8,14 +8,7 @@ targets:
             - json1
             - fts5
 
-      riverpod_generator:
-        options:
-          emit_hash: false
-
-      injectable_generator:
-        options:
-          auto_register: true
-          prefer_relative_imports: true
-          extension_for:
-            - StateNotifier
-            - ChangeNotifier
+# 注意：本项目 DI 与状态管理已改为手写实现（见
+# lib/core/di/injection_container.dart 与各 *_notifier.dart），
+# 不再使用 injectable_generator / riverpod_generator 代码生成，
+# 因此此处不再配置这两个 builder。

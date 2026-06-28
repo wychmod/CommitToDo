@@ -6,6 +6,7 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
+import '../../providers/repository_providers.dart';
 import '../../widgets/branch/branch_list.dart';
 import '../../widgets/common/app_bar_widget.dart';
 import '../../widgets/common/app_dialog.dart';
@@ -14,7 +15,7 @@ import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/task/task_list.dart';
-import 'repository_notifier.dart';
+import 'repository_state.dart';
 
 /// 仓库详情页
 class RepositoryScreen extends ConsumerWidget {

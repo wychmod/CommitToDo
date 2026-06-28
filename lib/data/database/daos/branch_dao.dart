@@ -44,7 +44,7 @@ class BranchDao extends DatabaseAccessor<AppDatabase>
 
   /// 插入分支
   Future<void> insert(BranchData branch) async {
-    into(branches).insert(branch);
+    await into(branches).insert(branch);
   }
 
   /// 更新分支

@@ -107,6 +107,19 @@ class TaskNotifier extends StateNotifier<TaskDetailState> {
     }
   }
 
+  /// 重新打开任务（将已完成/已取消任务置为待办）
+  Future<void> reopenTask() async {
+    try {
+      await _updateTaskUseCase.execute(
+        id: _taskId,
+        status: TaskStatus.todo,
+      );
+      await loadData();
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
   Future<void> deleteTask() async {
     try {
       await _deleteTaskUseCase.execute(_taskId);

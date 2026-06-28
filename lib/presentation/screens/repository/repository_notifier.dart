@@ -9,8 +9,8 @@ import '../../../domain/repositories/i_repository_repository.dart';
 import '../../../domain/repositories/i_task_repository.dart';
 import '../../../domain/usecases/branch/create_branch_usecase.dart';
 import '../../../domain/usecases/branch/merge_branch_usecase.dart';
-import '../../../domain/usecases/task/create_task_usecase.dart';
 import '../../../domain/usecases/task/complete_task_usecase.dart';
+import '../../../domain/usecases/task/create_task_usecase.dart';
 import '../../../domain/usecases/task/delete_task_usecase.dart';
 import 'repository_state.dart';
 
@@ -175,9 +175,3 @@ class RepositoryNotifier
     }
   }
 }
-
-/// 仓库详情页 Notifier Provider
-final repositoryNotifierProvider = StateNotifierProvider
-    .family<RepositoryNotifier, RepositoryScreenState, String>(
-  (ref, repositoryId) => RepositoryNotifier(repositoryId),
-);

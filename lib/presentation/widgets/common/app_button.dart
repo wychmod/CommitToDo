@@ -68,10 +68,10 @@ class AppButton extends StatelessWidget {
 
   Color get _foregroundColor {
     return switch (variant) {
-      ButtonVariant.primary => AppColors.textPrimary,
+      ButtonVariant.primary => Colors.white,
       ButtonVariant.secondary => AppColors.textPrimary,
       ButtonVariant.ghost => AppColors.textSecondary,
-      ButtonVariant.danger => AppColors.textPrimary,
+      ButtonVariant.danger => Colors.white,
     };
   }
 

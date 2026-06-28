@@ -7,6 +7,7 @@ import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../widgets/common/app_bar_widget.dart';
+import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_dialog.dart';
 import '../../widgets/common/app_input.dart';
 import '../../widgets/common/app_toast.dart';
@@ -64,40 +65,43 @@ class HomeScreen extends ConsumerWidget {
 
     if (state.repositories.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const AppIcon(
-              AppIcons.repositoryOpen,
-              size: 64,
-              color: AppColors.textTertiary,
-            ),
-            const SizedBox(height: AppDimensions.base),
-            const Text(
-              '开始你的第一个仓库',
-              style: TextStyle(
-                fontFamily: AppTypography.headingFont,
-                fontSize: AppTypography.xl,
-                fontWeight: AppTypography.semiBold,
-                color: AppColors.textPrimary,
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const AppIcon(
+                AppIcons.repositoryOpen,
+                size: 64,
+                color: AppColors.textTertiary,
               ),
-            ),
-            const SizedBox(height: AppDimensions.sm),
-            const Text(
-              '像管理代码一样管理你的任务',
-              style: TextStyle(
-                fontSize: AppTypography.sm,
-                color: AppColors.textSecondary,
+              const SizedBox(height: AppDimensions.base),
+              const Text(
+                '开始你的第一个仓库',
+                style: TextStyle(
+                  fontFamily: AppTypography.headingFont,
+                  fontSize: AppTypography.xl,
+                  fontWeight: AppTypography.semiBold,
+                  color: AppColors.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: AppDimensions.xl),
-            ElevatedButton.icon(
-              onPressed: () =>
-                  _showCreateDialog(context, ref),
-              icon: const AppIcon(AppIcons.add),
-              label: const Text('创建仓库'),
-            ),
-          ],
+              const SizedBox(height: AppDimensions.sm),
+              const Text(
+                '像管理代码一样管理你的任务',
+                style: TextStyle(
+                  fontSize: AppTypography.sm,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppDimensions.xl),
+              AppButton(
+                text: '创建仓库',
+                icon: AppIcons.add,
+                onPressed: () =>
+                    _showCreateDialog(context, ref),
+              ),
+            ],
+          ),
         ),
       );
     }

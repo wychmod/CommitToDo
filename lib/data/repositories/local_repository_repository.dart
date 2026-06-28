@@ -28,23 +28,24 @@ class LocalRepositoryRepository implements IRepositoryRepository {
     final id = const Uuid().v4();
     final now = DateTime.now();
 
-    // 插入仓库
-    await _db.repositoryDao.insert(
-      repository.copyWith(id: id).toData(),
-    );
+    // 仓库与 main 分支必须原子写入，避免出现无主分支的仓库
+    await _db.transaction(() async {
+      await _db.repositoryDao.insert(
+        repository.copyWith(id: id).toData(),
+      );
 
-    // 自动创建 main 分支
-    await _db.branchDao.insert(
-      BranchData(
-        id: const Uuid().v4(),
-        repositoryId: id,
-        name: 'main',
-        isMain: true,
-        isDeleted: false,
-        createdAt: now,
-        updatedAt: now,
-      ),
-    );
+      await _db.branchDao.insert(
+        BranchData(
+          id: const Uuid().v4(),
+          repositoryId: id,
+          name: 'main',
+          isMain: true,
+          isDeleted: false,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    });
 
     return repository.copyWith(id: id);
   }

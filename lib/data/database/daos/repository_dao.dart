@@ -32,7 +32,7 @@ class RepositoryDao extends DatabaseAccessor<AppDatabase>
 
   /// 插入仓库
   Future<void> insert(RepositoryData repository) async {
-    into(repositories).insert(repository);
+    await into(repositories).insert(repository);
   }
 
   /// 更新仓库

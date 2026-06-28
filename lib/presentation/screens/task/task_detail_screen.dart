@@ -321,12 +321,14 @@ class TaskDetailScreen extends ConsumerWidget {
                     ? AppIcons.undo
                     : AppIcons.checkCircle,
                 onPressed: () {
-                  ref
-                      .read(
-                        taskNotifierProvider(taskId)
-                            .notifier,
-                      )
-                      .completeTask();
+                  final notifier = ref.read(
+                    taskNotifierProvider(taskId).notifier,
+                  );
+                  if (state.task!.isCompleted) {
+                    notifier.reopenTask();
+                  } else {
+                    notifier.completeTask();
+                  }
                 },
                 variant: state.task!.isCompleted
                     ? ButtonVariant.secondary
