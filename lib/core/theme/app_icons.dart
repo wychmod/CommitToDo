@@ -39,6 +39,9 @@ enum AppIconName {
   zoomIn,
   zoomOut,
   reset,
+  gitBranch,
+  gitCommit,
+  gitMerge,
 }
 
 /// 应用图标系统。
@@ -82,6 +85,9 @@ class AppIcons {
   static const AppIconName zoomIn = AppIconName.zoomIn;
   static const AppIconName zoomOut = AppIconName.zoomOut;
   static const AppIconName reset = AppIconName.reset;
+  static const AppIconName gitBranch = AppIconName.gitBranch;
+  static const AppIconName gitCommit = AppIconName.gitCommit;
+  static const AppIconName gitMerge = AppIconName.gitMerge;
 }
 
 /// 统一 Heroicons SVG 图标组件。
@@ -153,6 +159,9 @@ class AppIcon extends StatelessWidget {
       AppIconName.zoomIn => '<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.2-5.2m0 0A7.5 7.5 0 1 0 5.2 5.2a7.5 7.5 0 0 0 10.6 10.6ZM10.5 7.5v6m3-3h-6" />',
       AppIconName.zoomOut => '<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.2-5.2m0 0A7.5 7.5 0 1 0 5.2 5.2a7.5 7.5 0 0 0 10.6 10.6ZM7.5 10.5h6" />',
       AppIconName.reset => '<path stroke-linecap="round" stroke-linejoin="round" d="M16.02 9.35h4.13V5.22M19.6 9.2A8.25 8.25 0 1 0 21 13.8" />',
+      AppIconName.gitBranch => '<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5ZM7.5 7.5a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5ZM16.5 7.5a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5ZM7.5 16.5v-9m9 0c0 4.5-9 3-9 9" />',
+      AppIconName.gitCommit => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3 12h6m6 0h6" />',
+      AppIconName.gitMerge => '<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5ZM7.5 16.5V7.5m0 0a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Zm0 0c0 3 6 3 9 6" />',
     };
 
     return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">$path</svg>';

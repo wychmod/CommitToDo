@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection_container.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../domain/usecases/task/create_task_usecase.dart';
 import '../../providers/repository_providers.dart';
@@ -27,7 +26,7 @@ class TaskFormScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isEditing = taskId != null;
-    dynamic taskState;
+    TaskDetailState? taskState;
 
     if (isEditing) {
       taskState = ref.watch(taskNotifierProvider(taskId!));
@@ -49,7 +48,7 @@ class TaskFormScreen extends ConsumerWidget {
     WidgetRef ref,
   ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.base),
+      padding: const EdgeInsets.all(AppDimensions.md),
       child: TaskForm(
         isEditing: false,
         onSubmit: ({
@@ -80,7 +79,8 @@ class TaskFormScreen extends ConsumerWidget {
             );
 
             // 刷新仓库详情页的任务列表
-            ref.invalidate(repositoryNotifierProvider);            if (context.mounted) {
+            ref.invalidate(repositoryNotifierProvider);
+            if (context.mounted) {
               AppToast.show(
                 context,
                 message: '任务创建成功',
@@ -120,7 +120,7 @@ class TaskFormScreen extends ConsumerWidget {
     final task = taskState.task!;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.base),
+      padding: const EdgeInsets.all(AppDimensions.md),
       child: TaskForm(
         isEditing: true,
         initialTitle: task.title,

@@ -13,8 +13,8 @@ class HeatmapCalendar extends StatelessWidget {
     required this.data,
     this.startDate,
     this.endDate,
-    this.cellSize = 14.0,
-    this.cellGap = 3.0,
+    this.cellSize = AppConstants.heatmapCellSize,
+    this.cellGap = AppConstants.heatmapCellGap,
   });
 
   /// 数据: {日期 -> 完成任务数}
@@ -63,14 +63,12 @@ class HeatmapCalendar extends StatelessWidget {
                 for (final label in ['一', '二', '三', '四', '五', '六', '日'])
                   SizedBox(
                     height: cellSize + cellGap,
-                    width: 24,
+                    width: AppDimensions.lg,
                     child: Center(
                       child: Text(
                         label,
-                        style: const TextStyle(
-                          fontFamily: AppTypography.monoFont,
-                          fontSize: 10,
-                          color: AppColors.textTertiary,
+                        style: AppTypography.monoSmStyle.copyWith(
+                          color: AppColors.inkSubtle,
                         ),
                       ),
                     ),
@@ -94,18 +92,14 @@ class HeatmapCalendar extends StatelessWidget {
                         children: [
                           for (final day in week)
                             Padding(
-                              padding: EdgeInsets.only(
-                                bottom: cellGap,
-                              ),
+                              padding: EdgeInsets.only(bottom: cellGap),
                               child: HeatmapCell(
                                 count: day.count,
                                 size: cellSize,
                               ),
                             ),
                           // 补齐不足7天的行
-                          for (var i = week.length;
-                              i < 7;
-                              i++)
+                          for (var i = week.length; i < 7; i++)
                             SizedBox(
                               width: cellSize,
                               height: cellSize + cellGap,
@@ -126,11 +120,10 @@ class HeatmapCalendar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
+            Text(
               '少',
-              style: TextStyle(
-                fontSize: 10,
-                color: AppColors.textTertiary,
+              style: AppTypography.captionStyle.copyWith(
+                color: AppColors.inkSubtle,
               ),
             ),
             const SizedBox(width: AppDimensions.xs),
@@ -142,22 +135,21 @@ class HeatmapCalendar extends StatelessWidget {
               AppColors.heatmapLevel4,
             ])
               Container(
-                width: 10,
-                height: 10,
+                height: AppDimensions.sm - AppDimensions.micro,
+                width: AppDimensions.sm - AppDimensions.micro,
                 margin: const EdgeInsets.symmetric(
-                  horizontal: 1,
+                  horizontal: AppDimensions.micro / 2,
                 ),
                 decoration: BoxDecoration(
                   color: color,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusXs),
                 ),
               ),
             const SizedBox(width: AppDimensions.xs),
-            const Text(
+            Text(
               '多',
-              style: TextStyle(
-                fontSize: 10,
-                color: AppColors.textTertiary,
+              style: AppTypography.captionStyle.copyWith(
+                color: AppColors.inkSubtle,
               ),
             ),
           ],

@@ -7,6 +7,8 @@ import '../../../core/theme/typography.dart';
 import 'app_button.dart';
 
 /// 错误组件
+///
+/// 对齐 `docs/DESIGN.md` §7.14。error 色图标 + body 文案 + button-secondary 重试。
 class AppErrorWidget extends StatelessWidget {
   const AppErrorWidget({
     super.key,
@@ -27,26 +29,22 @@ class AppErrorWidget extends StatelessWidget {
           children: [
             const AppIcon(
               AppIcons.error,
-              size: 48,
+              size: AppDimensions.xxl,
               color: AppColors.error,
             ),
-            const SizedBox(height: AppDimensions.base),
+            const SizedBox(height: AppDimensions.md),
             Text(
               '出错了',
-              style: const TextStyle(
-                fontFamily: AppTypography.headingFont,
-                fontSize: AppTypography.xl,
-                fontWeight: AppTypography.semiBold,
-                color: AppColors.textPrimary,
+              style: AppTypography.headlineStyle.copyWith(
+                fontSize: AppTypography.cardTitle,
               ),
             ),
             const SizedBox(height: AppDimensions.sm),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: AppTypography.sm,
-                color: AppColors.textSecondary,
+              style: AppTypography.bodySmStyle.copyWith(
+                color: AppColors.inkMuted,
               ),
             ),
             if (onRetry != null) ...[

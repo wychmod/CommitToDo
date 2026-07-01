@@ -14,6 +14,10 @@ enum ToastVariant {
 }
 
 /// 通用 Toast
+///
+/// 对齐 `docs/DESIGN.md` §7.13。
+/// - 底 surface3、`radiusMd`(8)、padding 12/16、左侧 3px 语义色条、bodySm。
+/// - 底部浮出动画。
 class AppToast {
   AppToast._();
 
@@ -65,7 +69,7 @@ class _ToastWidgetState extends State<_ToastWidget>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  Color get _iconColor {
+  Color get _accentColor {
     return switch (widget.variant) {
       ToastVariant.success => AppColors.success,
       ToastVariant.error => AppColors.error,
@@ -90,8 +94,7 @@ class _ToastWidgetState extends State<_ToastWidget>
       duration: AppDimensions.animNormal,
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1)
-        .animate(_controller);
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(_controller);
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 1),
       end: Offset.zero,
@@ -110,10 +113,14 @@ class _ToastWidgetState extends State<_ToastWidget>
 
   @override
   Widget build(BuildContext context) {
+    // 底部留出底部导航栏高度 + 间距，避免遮挡导航。
+    final bottomInset = AppDimensions.navItemHeight +
+        AppDimensions.lg +
+        AppDimensions.sm;
     return Positioned(
-      bottom: 100,
-      left: 40,
-      right: 40,
+      bottom: bottomInset,
+      left: AppDimensions.lg,
+      right: AppDimensions.lg,
       child: SlideTransition(
         position: _slideAnimation,
         child: FadeTransition(
@@ -122,13 +129,18 @@ class _ToastWidgetState extends State<_ToastWidget>
             color: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.base,
-                vertical: AppDimensions.md,
+                horizontal: AppDimensions.md,
+                vertical: AppDimensions.sm,
               ),
               decoration: BoxDecoration(
-                color: AppColors.bgOverlay,
-                borderRadius: BorderRadius.circular(
-                  AppDimensions.radiusMd,
+                color: AppColors.surface3,
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.radiusMd),
+                border: Border(
+                  left: BorderSide(
+                    color: _accentColor,
+                    width: AppDimensions.priorityStripWidth,
+                  ),
                 ),
               ),
               child: Row(
@@ -136,16 +148,15 @@ class _ToastWidgetState extends State<_ToastWidget>
                 children: [
                   AppIcon(
                     _icon,
-                    size: 20,
-                    color: _iconColor,
+                    size: AppDimensions.iconMd,
+                    color: _accentColor,
                   ),
                   const SizedBox(width: AppDimensions.sm),
                   Expanded(
                     child: Text(
                       widget.message,
-                      style: const TextStyle(
-                        fontSize: AppTypography.base,
-                        color: AppColors.textPrimary,
+                      style: AppTypography.bodySmStyle.copyWith(
+                        color: AppColors.ink,
                       ),
                     ),
                   ),

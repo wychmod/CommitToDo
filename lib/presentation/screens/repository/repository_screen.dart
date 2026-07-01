@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
-import '../../../core/theme/typography.dart';
 import '../../providers/repository_providers.dart';
 import '../../widgets/branch/branch_list.dart';
 import '../../widgets/common/app_bar_widget.dart';
@@ -39,7 +38,7 @@ class RepositoryScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const AppIcon(AppIcons.add),
-            color: AppColors.textSecondary,
+            color: AppColors.inkMuted,
             onPressed: () {
               context.push(
                 '/task-form?branchId=${repoState.activeBranchId ?? ''}',
@@ -66,7 +65,7 @@ class RepositoryScreen extends ConsumerWidget {
         // 分支选择栏
         Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.base,
+            horizontal: AppDimensions.md,
             vertical: AppDimensions.sm,
           ),
           child: Row(
@@ -86,31 +85,30 @@ class RepositoryScreen extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(width: AppDimensions.sm),
+              const SizedBox(width: AppDimensions.xs),
               Semantics(
                 button: true,
                 label: '新建分支',
                 child: InkWell(
-                  onTap: () =>
-                      _showCreateBranchDialog(context, ref),
+                  onTap: () => _showCreateBranchDialog(context, ref),
                   borderRadius: BorderRadius.circular(
                     AppDimensions.radiusSm,
                   ),
                   child: Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(
+                      AppDimensions.xs - AppDimensions.micro,
+                    ),
                     decoration: BoxDecoration(
-                      color: AppColors.bgElevated,
+                      color: AppColors.surface1,
                       borderRadius: BorderRadius.circular(
                         AppDimensions.radiusSm,
                       ),
-                      border: Border.all(
-                        color: AppColors.borderDefault,
-                      ),
+                      border: Border.all(color: AppColors.hairlineStrong),
                     ),
                     child: const AppIcon(
                       AppIcons.add,
-                      size: 16,
-                      color: AppColors.textSecondary,
+                      size: AppDimensions.iconSm,
+                      color: AppColors.inkMuted,
                     ),
                   ),
                 ),
@@ -123,6 +121,7 @@ class RepositoryScreen extends ConsumerWidget {
         Expanded(
           child: RefreshIndicator(
             color: AppColors.primary,
+            backgroundColor: AppColors.surface1,
             onRefresh: () => ref
                 .read(
                   repositoryNotifierProvider(
@@ -130,47 +129,26 @@ class RepositoryScreen extends ConsumerWidget {
                   ).notifier,
                 )
                 .loadData(),
-            child: state.tasks.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AppIcon(
-                          AppIcons.checkCircleOutline,
-                          size: 48,
-                          color: AppColors.textTertiary,
-                        ),
-                        SizedBox(
-                          height: AppDimensions.base,
-                        ),
-                        Text(
-                          '暂无任务，点击右上角添加',
-                          style: TextStyle(
-                            color: AppColors.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.base,
-                    ),
-                    child: TaskList(
-                      tasks: state.tasks,
-                      onTaskTap: (task) {
-                        context.push('/task/${task.id}');
-                      },
-                      onTaskLongPress: (task) {
-                        _showTaskActions(
-                          context,
-                          ref,
-                          task.id,
-                          task.title,
-                        );
-                      },
-                    ),
-                  ),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.md,
+              ),
+              child: TaskList(
+                tasks: state.tasks,
+                onTaskTap: (task) {
+                  context.push('/task/${task.id}');
+                },
+                onTaskLongPress: (task) {
+                  _showTaskActions(
+                    context,
+                    ref,
+                    task.id,
+                    task.title,
+                  );
+                },
+              ),
+            ),
           ),
         ),
       ],
@@ -232,7 +210,7 @@ class RepositoryScreen extends ConsumerWidget {
   ) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.bgElevated,
+      backgroundColor: AppColors.surface1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimensions.radiusXl),

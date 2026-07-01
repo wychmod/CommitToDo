@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -28,13 +28,27 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: const AppBarWidget(title: '设置'),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppDimensions.base),
+        padding: const EdgeInsets.all(AppDimensions.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 展示面头部
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: AppColors.primaryGradient,
+              ).createShader(bounds),
+              child: Text(
+                '偏好',
+                style: AppTypography.displayMdStyle.copyWith(
+                  color: AppColors.onPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppDimensions.xl),
+
             // 外观设置
             _buildSectionTitle('外观'),
-            const SizedBox(height: AppDimensions.sm),
+            const SizedBox(height: AppDimensions.xs),
             _buildSettingsGroup([
               _SettingsItem(
                 icon: AppIcons.darkMode,
@@ -52,7 +66,7 @@ class SettingsScreen extends ConsumerWidget {
 
             // 数据设置
             _buildSectionTitle('数据'),
-            const SizedBox(height: AppDimensions.sm),
+            const SizedBox(height: AppDimensions.xs),
             _buildSettingsGroup([
               _SettingsItem(
                 icon: AppIcons.upload,
@@ -84,7 +98,7 @@ class SettingsScreen extends ConsumerWidget {
 
             // 通知设置
             _buildSectionTitle('通知'),
-            const SizedBox(height: AppDimensions.sm),
+            const SizedBox(height: AppDimensions.xs),
             _buildSettingsGroup([
               _SettingsItem(
                 icon: AppIcons.notifications,
@@ -102,10 +116,8 @@ class SettingsScreen extends ConsumerWidget {
                 title: '提前提醒时间',
                 trailing: Text(
                   '${settings.reminderHours} 小时',
-                  style: const TextStyle(
-                    fontFamily: AppTypography.monoFont,
-                    fontSize: AppTypography.sm,
-                    color: AppColors.textSecondary,
+                  style: AppTypography.monoSmStyle.copyWith(
+                    color: AppColors.inkMuted,
                   ),
                 ),
                 onTap: () {
@@ -117,17 +129,15 @@ class SettingsScreen extends ConsumerWidget {
 
             // 关于
             _buildSectionTitle('关于'),
-            const SizedBox(height: AppDimensions.sm),
+            const SizedBox(height: AppDimensions.xs),
             _buildSettingsGroup([
               _SettingsItem(
                 icon: AppIcons.info,
                 title: '版本',
-                trailing: const Text(
+                trailing: Text(
                   'v1.0.0',
-                  style: TextStyle(
-                    fontFamily: AppTypography.monoFont,
-                    fontSize: AppTypography.sm,
-                    color: AppColors.textSecondary,
+                  style: AppTypography.monoSmStyle.copyWith(
+                    color: AppColors.inkMuted,
                   ),
                 ),
               ),
@@ -161,11 +171,8 @@ class SettingsScreen extends ConsumerWidget {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        fontFamily: AppTypography.monoFont,
-        fontSize: AppTypography.sm,
-        fontWeight: AppTypography.medium,
-        color: AppColors.textTertiary,
+      style: AppTypography.eyebrowStyle.copyWith(
+        color: AppColors.inkSubtle,
       ),
     );
   }
@@ -173,10 +180,9 @@ class SettingsScreen extends ConsumerWidget {
   Widget _buildSettingsGroup(List<Widget> items) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.bgElevated,
-        borderRadius: BorderRadius.circular(
-          AppDimensions.radiusMd,
-        ),
+        color: AppColors.surface1,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Column(
         children: [
@@ -184,7 +190,7 @@ class SettingsScreen extends ConsumerWidget {
             items[i],
             if (i < items.length - 1)
               const Divider(
-                color: AppColors.bgBase,
+                color: AppColors.hairline,
                 height: 1,
                 thickness: 1,
               ),
@@ -197,7 +203,7 @@ class SettingsScreen extends ConsumerWidget {
   void _showExportSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.bgElevated,
+      backgroundColor: AppColors.surface1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimensions.radiusXl),
@@ -253,10 +259,8 @@ class SettingsScreen extends ConsumerWidget {
         child: SingleChildScrollView(
           child: SelectableText(
             content,
-            style: const TextStyle(
-              fontFamily: AppTypography.monoFont,
-              fontSize: AppTypography.xs,
-              color: AppColors.textSecondary,
+            style: AppTypography.monoSmStyle.copyWith(
+              color: AppColors.inkMuted,
             ),
           ),
         ),
@@ -311,7 +315,7 @@ class SettingsScreen extends ConsumerWidget {
   ) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.bgElevated,
+      backgroundColor: AppColors.surface1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimensions.radiusXl),
@@ -325,8 +329,8 @@ class SettingsScreen extends ConsumerWidget {
               ListTile(
                 title: Text(
                   '$hours 小时',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: AppTypography.bodyStyle.copyWith(
+                    color: AppColors.ink,
                   ),
                 ),
                 onTap: () {
@@ -342,7 +346,6 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 }
-
 class _ExportTile extends StatelessWidget {
   const _ExportTile({
     required this.label,
@@ -363,7 +366,7 @@ class _ExportTile extends StatelessWidget {
       ),
       title: Text(
         label,
-        style: const TextStyle(color: AppColors.textPrimary),
+        style: AppTypography.bodyStyle.copyWith(color: AppColors.ink),
       ),
       onTap: () async {
         Navigator.pop(context);
@@ -422,7 +425,6 @@ class _ExportTile extends StatelessWidget {
     };
   }
 }
-
 /// 设置项
 class _SettingsItem extends StatelessWidget {
   const _SettingsItem({
@@ -445,25 +447,23 @@ class _SettingsItem extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          height: 56,
+          height: AppDimensions.navItemHeight + AppDimensions.xs,
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.base,
+            horizontal: AppDimensions.md,
           ),
           child: Row(
             children: [
               AppIcon(
                 icon,
-                size: 20,
-                color: AppColors.textSecondary,
+                size: AppDimensions.iconMd,
+                color: AppColors.inkMuted,
               ),
               const SizedBox(width: AppDimensions.md),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontFamily: AppTypography.bodyFont,
-                    fontSize: AppTypography.base,
-                    color: AppColors.textPrimary,
+                  style: AppTypography.bodyStyle.copyWith(
+                    color: AppColors.ink,
                   ),
                 ),
               ),
@@ -471,8 +471,8 @@ class _SettingsItem extends StatelessWidget {
               if (onTap != null && trailing == null)
                 const AppIcon(
                   AppIcons.chevronRight,
-                  size: 20,
-                  color: AppColors.textTertiary,
+                  size: AppDimensions.iconMd,
+                  color: AppColors.inkSubtle,
                 ),
             ],
           ),

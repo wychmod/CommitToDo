@@ -4,6 +4,7 @@
 
 - 基于 `CLAUDE.md`、`docs/PRD.md`、`docs/system_design.md`、`docs/UI_DESIGN.md` 对当前 Flutter 项目做了实现一致性审计与二轮优化。
 - 已推进用户指定的 P0/P1 项：测试补齐、Material Icons 替换、数据导出落盘、搜索历史持久化、Git Graph 缩放控制。
+- 已按 `docs/DESIGN.md` 与 `docs/DESIGN.migration-plan.md` 继续推进 Linear-inspired Developer Dark 像素级 UI 改造，重点覆盖 token、通用组件、搜索、首页仓库网格、热力图、Git Graph 与任务详情提交行。
 - 已继续尝试执行 Drift 代码生成前置检查，但当前环境仍未发现 `flutter` / `dart` 命令，无法真实运行 `build_runner`、`analyze`、`test`。
 
 ## 主要发现
@@ -33,6 +34,29 @@
 - 核心交互组件
   - `RepositoryCard`、`TaskCard`、`BranchIndicator`、`BottomNavWidget`、`AppCard`、搜索页、设置项、Git Graph 缩放按钮、任务表单优先级/日期选择、仓库分支新增按钮等改为 `Semantics` + `InkWell`。
   - 当前搜索 `GestureDetector` 已无匹配。
+
+### 1.1 DESIGN.md UI 改造进展
+
+- `lib/core/theme/colors.dart`
+  - 补齐 `canvas / surface1..4 / hairline* / ink* / inverse* / overlay / primaryGradient / light*` token。
+  - 旧 `bg* / text* / border*` 别名已加 `@Deprecated` 过渡标记。
+- `lib/core/theme/typography.dart`
+  - 补齐 display/headline/card/body/button/eyebrow/mono 层级和 letterSpacing。
+  - 标题字体族对齐 IBM Plex Sans，mono 继续用于 branch/hash/label。
+- `lib/core/theme/dimensions.dart`
+  - 补齐 4px spacing、radius、touch target、breakpoint、icon size、card border 工厂。
+- `lib/presentation/widgets/common/*`
+  - `AppButton` 改为 `Semantics + InkWell` 管理 hover/pressed/focus。
+  - `AppInput` 支持 validator/focusNode，并用外层 50% focus ring。
+  - `AppCard` 增加 task/repository/feature 工厂。
+- `lib/presentation/screens/search/search_screen.dart`
+  - 改为统一 `AppInput`、commit-row 风格历史项、`TaskCard` 搜索结果。
+- `lib/presentation/screens/home/home_screen.dart`
+  - 空状态升级为展示面 hero card；仓库列表使用最大 1280px 内容宽度与响应式网格。
+- `lib/presentation/widgets/heatmap/*`、`lib/presentation/screens/graph/*`
+  - 热力图 hover 边框、tooltip、图例 token 化；Git Graph 节点改为 ring 风格，缩放控件移入画布右下角。
+- `lib/presentation/screens/task/task_detail_screen.dart`
+  - 提交历史改为 `commit-row` 风格：hash、message、time 三段式布局。
 
 ### 2. 数据一致性与业务闭环
 
@@ -99,6 +123,8 @@
 | Material Icons 搜索 | 通过 | `Icons.` / `IconData` 无匹配 |
 | 错误替换搜索 | 通过 | `AppAppIcon` / `AppAppIcons` / `checkCircle_outline` 无匹配 |
 | GestureDetector 搜索 | 通过 | 当前 `lib/**/*.dart` 无匹配 |
+| UI token 残留扫描 | 通过 | `presentation` 无 `Color(0x...)`、旧 `AppColors.bg/text/border`、旧 `AppTypography.base/sm`、`AppDimensions.base` |
+| Git diff 空白检查 | 通过 | `git diff --check` 无错误，仅有 LF→CRLF 工作区提示 |
 | 测试执行 | 未完成 | 受 Flutter/Dart 工具链缺失阻塞 |
 | 静态分析 | 未完成 | 受 Flutter/Dart 工具链缺失阻塞 |
 

@@ -1,8 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
-import 'dart:ui';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 
 /// Git Graph 节点数据
@@ -20,6 +22,15 @@ class CommitNode {
   final String message;
   final int column;
   final List<CommitNode> parents;
+
+  /// 节点按 id 判等，避免重新构建列表时 `indexOf(parent)` 失败。
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CommitNode && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 /// Git Graph 绘制器
@@ -36,9 +47,14 @@ class GitGraphPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final nodeRadius = AppConstants.graphNodeRadius;
+    const nodeRadius = AppDimensions.dotMd;
     final rowHeight = AppConstants.graphRowHeight;
     final columnWidth = AppConstants.graphColumnWidth;
+
+    // 预建 id → index 索引，O(1) 查父节点行号。
+    final indexById = <String, int>{
+      for (var i = 0; i < nodes.length; i++) nodes[i].id: i,
+    };
 
     for (var i = 0; i < nodes.length; i++) {
       final node = nodes[i];
@@ -47,8 +63,8 @@ class GitGraphPainter extends CustomPainter {
 
       // 绘制连接线
       for (final parent in node.parents) {
-        final parentIndex = nodes.indexOf(parent);
-        if (parentIndex >= 0) {
+        final parentIndex = indexById[parent.id];
+        if (parentIndex != null && parentIndex >= 0) {
           final parentX =
               parent.column * columnWidth + nodeRadius + 10;
           final parentY =
@@ -56,7 +72,7 @@ class GitGraphPainter extends CustomPainter {
 
           final linePaint = Paint()
             ..color = branchColors[node.branchId] ??
-                AppColors.textTertiary
+                AppColors.inkSubtle
             ..strokeWidth = 2
             ..style = PaintingStyle.stroke;
 
@@ -76,20 +92,29 @@ class GitGraphPainter extends CustomPainter {
       }
 
       // 绘制节点
-      final nodeColor = branchColors[node.branchId] ??
-          AppColors.textTertiary;
+      final isMerge = node.parents.length > 1;
+      final nodeColor = isMerge
+          ? AppColors.primary
+          : branchColors[node.branchId] ??
+          AppColors.inkSubtle;
       final nodePaint = Paint()..color = nodeColor;
+      final innerPaint = Paint()..color = AppColors.canvas;
 
       canvas.drawCircle(
         Offset(x, y),
         nodeRadius,
         nodePaint,
       );
+      canvas.drawCircle(
+        Offset(x, y),
+        nodeRadius - AppDimensions.priorityStripWidth,
+        innerPaint,
+      );
 
       // 选中状态：外圈描边
       if (node.id == selectedNodeId) {
         final borderPaint = Paint()
-          ..color = AppColors.textPrimary
+          ..color = AppColors.ink
           ..strokeWidth = 2
           ..style = PaintingStyle.stroke;
         canvas.drawCircle(
@@ -102,10 +127,8 @@ class GitGraphPainter extends CustomPainter {
       // 绘制提交信息
       final textSpan = TextSpan(
         text: _truncateMessage(node.message, 40),
-        style: const TextStyle(
-          fontFamily: AppTypography.monoFont,
-          fontSize: AppTypography.sm,
-          color: AppColors.textSecondary,
+        style: AppTypography.monoSmStyle.copyWith(
+          color: AppColors.inkMuted,
         ),
       );
       final textPainter = TextPainter(

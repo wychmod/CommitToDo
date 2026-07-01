@@ -26,12 +26,11 @@ class BranchList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (branches.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           '暂无分支',
-          style: TextStyle(
-            color: AppColors.textTertiary,
-            fontSize: AppTypography.sm,
+          style: AppTypography.bodySmStyle.copyWith(
+            color: AppColors.inkSubtle,
           ),
         ),
       );
@@ -44,14 +43,15 @@ class BranchList extends StatelessWidget {
         shrinkWrap: scrollDirection == Axis.vertical,
         physics: const BouncingScrollPhysics(),
         itemCount: branches.length,
-        separatorBuilder: (_, __) => const SizedBox(
-          width: AppDimensions.sm,
-          height: AppDimensions.sm,
+        separatorBuilder: (_, __) => SizedBox(
+          width: AppDimensions.xs,
+          height: AppDimensions.xs,
         ),
         itemBuilder: (context, index) {
           final branch = branches[index];
           return BranchIndicator(
             branch: branch,
+            colorIndex: index,
             isActive: branch.id == activeBranchId,
             onTap: () => onBranchTap?.call(branch),
           );

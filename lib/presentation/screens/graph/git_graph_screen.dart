@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -17,7 +17,6 @@ class GitGraphScreen extends ConsumerStatefulWidget {
   ConsumerState<GitGraphScreen> createState() =>
       _GitGraphScreenState();
 }
-
 class _GitGraphScreenState
     extends ConsumerState<GitGraphScreen> {
   static const double _minScale = 0.5;
@@ -116,53 +115,78 @@ class _GitGraphScreenState
 
     return Column(
       children: [
-        // 缩放控制
+        // 展示面标题
         Padding(
-          padding: const EdgeInsets.all(AppDimensions.base),
+          padding: const EdgeInsets.fromLTRB(
+            AppDimensions.md,
+            AppDimensions.md,
+            AppDimensions.md,
+            AppDimensions.sm,
+          ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              _buildZoomButton(AppIcons.zoomOut, _zoomOut),
-              const SizedBox(width: AppDimensions.sm),
-              Text(
-                '${(_scale * 100).toInt()}%',
-                style: const TextStyle(
-                  fontFamily: AppTypography.monoFont,
-                  fontSize: AppTypography.sm,
-                  color: AppColors.textSecondary,
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: AppColors.primaryGradient,
+                ).createShader(bounds),
+                child: Text(
+                  'Git Graph',
+                  style: AppTypography.displayMdStyle.copyWith(
+                    color: AppColors.onPrimary,
+                  ),
                 ),
               ),
-              const SizedBox(width: AppDimensions.sm),
-              _buildZoomButton(AppIcons.zoomIn, _zoomIn),
-              const SizedBox(width: AppDimensions.sm),
-              _buildZoomButton(AppIcons.reset, _resetZoom),
             ],
           ),
         ),
 
         // Graph 区域
         Expanded(
-          child: InteractiveViewer(
-            transformationController: _transformationController,
-            boundaryMargin: const EdgeInsets.all(100),
-            minScale: _minScale,
-            maxScale: _maxScale,
-            onInteractionUpdate: (details) {
-              setState(() {
-                _scale = _transformationController.value
-                    .getMaxScaleOnAxis()
-                    .clamp(_minScale, _maxScale);
-              });
-            },
-            child: CustomPaint(
-              painter: GitGraphPainter(
-                nodes: nodes,
-                branchColors: branchColors,
-                selectedNodeId: _selectedNodeId,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.md,
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(AppDimensions.lg),
+              decoration: BoxDecoration(
+                color: AppColors.canvas,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+                border: Border.all(color: AppColors.hairline),
               ),
-              size: Size(
-                400,
-                nodes.length * AppConstants.graphRowHeight + 20,
+              child: Stack(
+                children: [
+                  InteractiveViewer(
+                    transformationController: _transformationController,
+                    boundaryMargin: const EdgeInsets.all(
+                      AppDimensions.section + AppDimensions.xxs,
+                    ),
+                    minScale: _minScale,
+                    maxScale: _maxScale,
+                    onInteractionUpdate: (details) {
+                      setState(() {
+                        _scale = _transformationController.value
+                            .getMaxScaleOnAxis()
+                            .clamp(_minScale, _maxScale);
+                      });
+                    },
+                    child: CustomPaint(
+                      painter: GitGraphPainter(
+                        nodes: nodes,
+                        branchColors: branchColors,
+                        selectedNodeId: _selectedNodeId,
+                      ),
+                      size: Size(
+                        400,
+                        nodes.length * AppConstants.graphRowHeight + 20,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: _buildZoomControls(),
+                  ),
+                ],
               ),
             ),
           ),
@@ -204,25 +228,49 @@ class _GitGraphScreenState
       },
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
         child: Container(
-          width: 40,
-          height: 40,
+          width: AppDimensions.graphControlSize,
+          height: AppDimensions.graphControlSize,
           decoration: BoxDecoration(
-            color: AppColors.bgElevated,
-            borderRadius: BorderRadius.circular(
-              AppDimensions.radiusMd,
-            ),
-            border: Border.all(
-              color: AppColors.borderDefault,
-            ),
+            color: AppColors.surface1,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.hairline),
           ),
           child: AppIcon(
             icon,
-            size: 20,
-            color: AppColors.textPrimary,
+            size: AppDimensions.iconSm,
+            color: AppColors.ink,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildZoomControls() {
+    return Container(
+      padding: const EdgeInsets.all(AppDimensions.xs),
+      decoration: BoxDecoration(
+        color: AppColors.surface1,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+        border: Border.all(color: AppColors.hairline),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildZoomButton(AppIcons.zoomOut, _zoomOut),
+          const SizedBox(width: AppDimensions.xs),
+          Text(
+            '${(_scale * 100).toInt()}%',
+            style: AppTypography.monoSmStyle.copyWith(
+              color: AppColors.inkMuted,
+            ),
+          ),
+          const SizedBox(width: AppDimensions.xs),
+          _buildZoomButton(AppIcons.zoomIn, _zoomIn),
+          const SizedBox(width: AppDimensions.xs),
+          _buildZoomButton(AppIcons.reset, _resetZoom),
+        ],
       ),
     );
   }
@@ -234,11 +282,11 @@ class _GitGraphScreenState
     );
 
     return Container(
-      padding: const EdgeInsets.all(AppDimensions.base),
+      padding: const EdgeInsets.all(AppDimensions.md),
       decoration: const BoxDecoration(
-        color: AppColors.bgElevated,
+        color: AppColors.surface1,
         border: Border(
-          top: BorderSide(color: AppColors.borderSubtle),
+          top: BorderSide(color: AppColors.hairline),
         ),
       ),
       child: Column(
@@ -247,20 +295,16 @@ class _GitGraphScreenState
         children: [
           Text(
             '提交: ${selected.message}',
-            style: const TextStyle(
-              fontFamily: AppTypography.bodyFont,
-              fontSize: AppTypography.base,
+            style: AppTypography.bodyStyle.copyWith(
               fontWeight: AppTypography.medium,
-              color: AppColors.textPrimary,
+              color: AppColors.ink,
             ),
           ),
           const SizedBox(height: AppDimensions.xs),
           Text(
             '分支: ${selected.branchId}',
-            style: const TextStyle(
-              fontFamily: AppTypography.monoFont,
-              fontSize: AppTypography.sm,
-              color: AppColors.textSecondary,
+            style: AppTypography.monoSmStyle.copyWith(
+              color: AppColors.inkMuted,
             ),
           ),
         ],

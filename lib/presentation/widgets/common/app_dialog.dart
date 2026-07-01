@@ -6,18 +6,22 @@ import '../../../core/theme/typography.dart';
 import 'app_button.dart';
 
 /// 通用弹窗
-class AppDialog extends StatelessWidget {
+///
+/// 对齐 `docs/DESIGN.md` §7.12。
+/// - 底 surface1、`radiusXl`(16)、padding 24、1px hairlineStrong、遮罩 overlay@50%。
+/// - 标题 headline；按钮组右对齐（secondary 左、primary 右）。
+class AppDialog<T> extends StatelessWidget {
   const AppDialog({
     super.key,
     required this.title,
     this.content,
     this.actions,
-    this.maxWidth = 400,
+    this.maxWidth = 420,
   });
 
   final String title;
   final Widget? content;
-  final List<DialogAction>? actions;
+  final List<DialogAction<T>>? actions;
   final double maxWidth;
 
   /// 显示弹窗的静态方法
@@ -25,11 +29,12 @@ class AppDialog extends StatelessWidget {
     BuildContext context, {
     required String title,
     Widget? content,
-    List<DialogAction>? actions,
+    List<DialogAction<T>>? actions,
   }) {
     return showDialog<T>(
       context: context,
-      builder: (context) => AppDialog(
+      barrierColor: AppColors.overlay,
+      builder: (context) => AppDialog<T>(
         title: title,
         content: content,
         actions: actions,
@@ -40,56 +45,41 @@ class AppDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: AppColors.bgElevated,
+      backgroundColor: AppColors.surface1,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(
-          AppDimensions.radiusXl,
-        ),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+        side: const BorderSide(color: AppColors.hairlineStrong),
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.xl),
+          padding: const EdgeInsets.all(AppDimensions.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 标题
-              Text(
-                title,
-                style: const TextStyle(
-                  fontFamily: AppTypography.headingFont,
-                  fontSize: AppTypography.xl,
-                  fontWeight: AppTypography.semiBold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
+              Text(title, style: AppTypography.headlineStyle),
               if (content != null) ...[
-                const SizedBox(height: AppDimensions.base),
+                const SizedBox(height: AppDimensions.md),
                 DefaultTextStyle(
-                  style: const TextStyle(
-                    fontSize: AppTypography.base,
-                    color: AppColors.textSecondary,
+                  style: AppTypography.bodyStyle.copyWith(
+                    color: AppColors.inkMuted,
                   ),
                   child: content!,
                 ),
               ],
               if (actions != null && actions!.isNotEmpty) ...[
-                const SizedBox(height: AppDimensions.xl),
+                const SizedBox(height: AppDimensions.lg),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     for (var i = 0; i < actions!.length; i++) ...[
-                      if (i > 0)
-                        const SizedBox(
-                          width: AppDimensions.md,
-                        ),
+                      if (i > 0) const SizedBox(width: AppDimensions.xs),
                       AppButton(
                         text: actions![i].text,
                         onPressed: () {
-                          Navigator.of(context).pop(
-                            actions![i].value,
-                          );
+                          Navigator.of(context).pop(actions![i].value);
                           actions![i].onPressed?.call();
                         },
                         variant: actions![i].variant,

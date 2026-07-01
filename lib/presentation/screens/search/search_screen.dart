@@ -7,7 +7,9 @@ import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../widgets/common/app_bar_widget.dart';
+import '../../widgets/common/app_input.dart';
 import '../../widgets/common/loading_widget.dart';
+import '../../widgets/task/task_card.dart';
 import 'search_notifier.dart';
 
 /// 搜索页
@@ -15,8 +17,7 @@ class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  ConsumerState<SearchScreen> createState() =>
-      _SearchScreenState();
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
@@ -26,7 +27,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    _focusNode.requestFocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
   }
 
   @override
@@ -38,25 +41,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final searchState =
-        ref.watch(searchNotifierProvider);
+    final searchState = ref.watch(searchNotifierProvider);
 
     return Scaffold(
       appBar: AppBarWidget(
-        title: '',
+        title: '搜索',
         showBack: true,
         actions: [
           TextButton(
-            onPressed: () {
-              ref
-                  .read(searchNotifierProvider.notifier)
-                  .clearResults();
-              _searchController.clear();
-            },
-            child: const Text(
+            onPressed: _clearSearch,
+            child: Text(
               '取消',
-              style: TextStyle(
-                color: AppColors.textSecondary,
+              style: AppTypography.buttonStyle.copyWith(
+                color: AppColors.inkMuted,
               ),
             ),
           ),
@@ -64,243 +61,246 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ),
       body: Column(
         children: [
-          // 搜索输入框
           Padding(
-            padding: const EdgeInsets.all(
-              AppDimensions.base,
-            ),
-            child: TextField(
+            padding: const EdgeInsets.all(AppDimensions.md),
+            child: AppInput(
               controller: _searchController,
               focusNode: _focusNode,
-              onChanged: (value) {
-                ref
-                    .read(searchNotifierProvider.notifier)
-                    .search(value);
-              },
-              style: const TextStyle(
-                fontFamily: AppTypography.bodyFont,
-                fontSize: AppTypography.base,
-                color: AppColors.textPrimary,
+              hint: '搜索任务...',
+              prefixIcon: const AppIcon(
+                AppIcons.search,
+                color: AppColors.inkSubtle,
+                size: AppDimensions.iconMd,
               ),
-              decoration: InputDecoration(
-                hintText: '搜索任务...',
-                hintStyle: const TextStyle(
-                  color: AppColors.textTertiary,
+              onChanged: (value) {
+                ref.read(searchNotifierProvider.notifier).search(value);
+              },
+            ),
+          ),
+          Expanded(child: _buildBody(context, searchState)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, SearchState state) {
+    if (state.query.isEmpty) {
+      return _buildHistory(state.history);
+    }
+
+    if (state.isLoading) {
+      return const LoadingWidget();
+    }
+
+    if (state.results.isEmpty) {
+      return _SearchEmptyState(query: state.query);
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        0,
+        AppDimensions.md,
+        AppDimensions.md,
+      ),
+      itemCount: state.results.length,
+      separatorBuilder: (_, __) => const SizedBox(height: AppDimensions.xs),
+      itemBuilder: (context, index) {
+        final task = state.results[index];
+        return TaskCard(
+          task: task,
+          onTap: () => context.push('/task/${task.id}'),
+        );
+      },
+    );
+  }
+
+  Widget _buildHistory(List<String> history) {
+    if (history.isEmpty) {
+      return const _SearchIdleState();
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        0,
+        AppDimensions.md,
+        AppDimensions.md,
+      ),
+      itemCount: history.length + 1,
+      separatorBuilder: (_, __) => const Divider(color: AppColors.hairline),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return _HistoryHeader(onClear: () {
+            ref.read(searchNotifierProvider.notifier).clearHistory();
+          });
+        }
+
+        final term = history[index - 1];
+        return _HistoryRow(
+          term: term,
+          onTap: () {
+            _searchController.text = term;
+            ref.read(searchNotifierProvider.notifier).search(term);
+          },
+        );
+      },
+    );
+  }
+
+  void _clearSearch() {
+    ref.read(searchNotifierProvider.notifier).clearResults();
+    _searchController.clear();
+    _focusNode.requestFocus();
+  }
+}
+
+class _HistoryHeader extends StatelessWidget {
+  const _HistoryHeader({required this.onClear});
+
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimensions.xs),
+      child: Row(
+        children: [
+          Text(
+            '最近搜索',
+            style: AppTypography.eyebrowStyle.copyWith(
+              color: AppColors.inkSubtle,
+            ),
+          ),
+          const Spacer(),
+          Semantics(
+            button: true,
+            label: '清除搜索历史',
+            child: InkWell(
+              onTap: onClear,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.xs,
+                  vertical: AppDimensions.xxs,
                 ),
-                prefixIcon: const AppIcon(
-                  AppIcons.search,
-                  color: AppColors.textTertiary,
-                  size: 20,
-                ),
-                filled: true,
-                fillColor: AppColors.bgOverlay,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppDimensions.radiusFull,
+                child: Text(
+                  '清除',
+                  style: AppTypography.buttonStyle.copyWith(
+                    color: AppColors.primary,
                   ),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.base,
-                  vertical: AppDimensions.md,
                 ),
               ),
             ),
           ),
-
-          // 搜索历史
-          if (searchState.query.isEmpty &&
-              searchState.history.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.base,
-              ),
-              child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    '最近搜索',
-                    style: TextStyle(
-                      fontFamily: AppTypography.monoFont,
-                      fontSize: AppTypography.sm,
-                      color: AppColors.textTertiary,
-                    ),
-                  ),
-                  Semantics(
-                    button: true,
-                    label: '清除搜索历史',
-                    child: InkWell(
-                      onTap: () => ref
-                          .read(searchNotifierProvider
-                              .notifier)
-                          .clearHistory(),
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.radiusSm,
-                      ),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Text(
-                          '清除',
-                          style: TextStyle(
-                            fontSize: AppTypography.sm,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppDimensions.sm),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.base,
-              ),
-              child: Wrap(
-                spacing: AppDimensions.sm,
-                runSpacing: AppDimensions.sm,
-                children: [
-                  for (final term in searchState.history)
-                    Semantics(
-                      button: true,
-                      label: '搜索 $term',
-                      child: InkWell(
-                        onTap: () {
-                          _searchController.text = term;
-                          ref
-                              .read(searchNotifierProvider
-                                  .notifier)
-                              .search(term);
-                        },
-                        borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusFull,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.md,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.bgElevated,
-                            borderRadius:
-                                BorderRadius.circular(
-                              AppDimensions.radiusFull,
-                            ),
-                          ),
-                          child: Text(
-                            term,
-                            style: const TextStyle(
-                              fontSize: AppTypography.sm,
-                              color:
-                                  AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-
-          // 搜索结果
-          if (searchState.query.isNotEmpty) ...[
-            if (searchState.isLoading)
-              const Expanded(
-                child: LoadingWidget(),
-              )
-            else if (searchState.results.isEmpty)
-              const Expanded(
-                child: Center(
-                  child: Text(
-                    '未找到匹配的任务',
-                    style: TextStyle(
-                      color: AppColors.textTertiary,
-                    ),
-                  ),
-                ),
-              )
-            else
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(
-                    AppDimensions.base,
-                  ),
-                  itemCount: searchState.results.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(
-                    height: AppDimensions.sm,
-                  ),
-                  itemBuilder: (context, index) {
-                    final task =
-                        searchState.results[index];
-                    return Semantics(
-                      button: true,
-                      label: '打开任务 ${task.title}',
-                      child: InkWell(
-                        onTap: () =>
-                            context.push('/task/${task.id}'),
-                        borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusMd,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.all(
-                            AppDimensions.md,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.bgElevated,
-                            borderRadius:
-                                BorderRadius.circular(
-                              AppDimensions.radiusMd,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                task.title,
-                                style: const TextStyle(
-                                  fontSize:
-                                      AppTypography.base,
-                                  fontWeight:
-                                      AppTypography.medium,
-                                  color:
-                                      AppColors.textPrimary,
-                                ),
-                              ),
-                              if (task.description !=
-                                  null) ...[
-                                const SizedBox(
-                                  height:
-                                      AppDimensions.xs,
-                                ),
-                                Text(
-                                  task.description!,
-                                  maxLines: 2,
-                                  overflow:
-                                      TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize:
-                                        AppTypography.sm,
-                                    color: AppColors
-                                        .textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-          ],
         ],
+      ),
+    );
+  }
+}
+
+class _HistoryRow extends StatelessWidget {
+  const _HistoryRow({
+    required this.term,
+    required this.onTap,
+  });
+
+  final String term;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '搜索 $term',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXs),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppDimensions.md),
+          child: Row(
+            children: [
+              const AppIcon(
+                AppIcons.gitCommit,
+                size: AppDimensions.iconSm,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: AppDimensions.md),
+              Expanded(
+                child: Text(
+                  term,
+                  style: AppTypography.bodyStyle.copyWith(
+                    color: AppColors.ink,
+                  ),
+                ),
+              ),
+              Text(
+                'history',
+                style: AppTypography.monoSmStyle.copyWith(
+                  color: AppColors.inkSubtle,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchIdleState extends StatelessWidget {
+  const _SearchIdleState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.xxl),
+        child: Text(
+          '输入关键词搜索任务',
+          style: AppTypography.bodyStyle.copyWith(
+            color: AppColors.inkSubtle,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchEmptyState extends StatelessWidget {
+  const _SearchEmptyState({required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.xxl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppIcon(
+              AppIcons.search,
+              size: AppDimensions.xxl,
+              color: AppColors.inkSubtle,
+            ),
+            const SizedBox(height: AppDimensions.md),
+            Text(
+              '未找到匹配的任务',
+              style: AppTypography.cardTitleStyle.copyWith(
+                color: AppColors.ink,
+              ),
+            ),
+            const SizedBox(height: AppDimensions.xs),
+            Text(
+              query,
+              style: AppTypography.monoSmStyle.copyWith(
+                color: AppColors.inkSubtle,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -7,6 +7,9 @@ import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 
 /// 自定义 AppBar
+///
+/// 对齐 `docs/DESIGN.md` §7.10。
+/// - 底 canvas、底部 1px hairline、elevation 0、高度 56。
 class AppBarWidget extends StatelessWidget
     implements PreferredSizeWidget {
   const AppBarWidget({
@@ -24,7 +27,7 @@ class AppBarWidget extends StatelessWidget
 
   @override
   Size get preferredSize => Size.fromHeight(
-        kToolbarHeight + (bottom?.preferredSize.height ?? 0),
+        56 + (bottom?.preferredSize.height ?? 0),
       );
 
   @override
@@ -34,23 +37,25 @@ class AppBarWidget extends StatelessWidget
           ? IconButton(
               icon: const AppIcon(AppIcons.back),
               onPressed: () => context.pop(),
-              color: AppColors.textSecondary,
+              color: AppColors.inkMuted,
             )
           : null,
       title: Text(
         title,
-        style: const TextStyle(
-          fontFamily: AppTypography.headingFont,
-          fontSize: AppTypography.xl,
+        style: AppTypography.headlineStyle.copyWith(
+          fontSize: AppTypography.cardTitle,
           fontWeight: AppTypography.semiBold,
-          color: AppColors.textPrimary,
         ),
       ),
       actions: actions,
       bottom: bottom,
-      backgroundColor: AppColors.bgBase,
+      backgroundColor: AppColors.canvas,
       elevation: 0,
       scrolledUnderElevation: 0,
+      toolbarHeight: 56,
+      shape: const Border(
+        bottom: BorderSide(color: AppColors.hairline, width: 1),
+      ),
     );
   }
 }

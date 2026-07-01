@@ -1,8 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
-import 'dart:ui';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/dimensions.dart';
 
 /// 热力图绘制器
 class HeatmapPainter extends CustomPainter {
@@ -26,7 +28,7 @@ class HeatmapPainter extends CustomPainter {
     var currentDate = _startOfWeek(startDate);
     var weekIndex = 0;
 
-    while (currentDate.isBefore(endDate)) {
+    while (!currentDate.isAfter(endDate)) {
       for (var dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
         final day = currentDate.add(
           Duration(days: dayOfWeek),
@@ -39,7 +41,7 @@ class HeatmapPainter extends CustomPainter {
 
         final rect = RRect.fromRectAndRadius(
           Rect.fromLTWH(x, y, cellSize, cellSize),
-          const Radius.circular(3),
+          const Radius.circular(AppDimensions.radiusXs),
         );
 
         final paint = Paint()

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,14 +30,13 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const AppIcon(AppIcons.search),
-            color: AppColors.textSecondary,
+            color: AppColors.inkMuted,
             onPressed: () => context.push('/search'),
           ),
           IconButton(
             icon: const AppIcon(AppIcons.add),
-            color: AppColors.textSecondary,
-            onPressed: () =>
-                _showCreateDialog(context, ref),
+            color: AppColors.inkMuted,
+            onPressed: () => _showCreateDialog(context, ref),
           ),
         ],
       ),
@@ -64,62 +63,34 @@ class HomeScreen extends ConsumerWidget {
     }
 
     if (state.repositories.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const AppIcon(
-                AppIcons.repositoryOpen,
-                size: 64,
-                color: AppColors.textTertiary,
-              ),
-              const SizedBox(height: AppDimensions.base),
-              const Text(
-                '开始你的第一个仓库',
-                style: TextStyle(
-                  fontFamily: AppTypography.headingFont,
-                  fontSize: AppTypography.xl,
-                  fontWeight: AppTypography.semiBold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: AppDimensions.sm),
-              const Text(
-                '像管理代码一样管理你的任务',
-                style: TextStyle(
-                  fontSize: AppTypography.sm,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppDimensions.xl),
-              AppButton(
-                text: '创建仓库',
-                icon: AppIcons.add,
-                onPressed: () =>
-                    _showCreateDialog(context, ref),
-              ),
-            ],
-          ),
-        ),
+      return _HomeEmptyState(
+        onCreate: () => _showCreateDialog(context, ref),
       );
     }
 
     return RefreshIndicator(
       color: AppColors.primary,
+      backgroundColor: AppColors.surface1,
       onRefresh: () => ref
           .read(homeNotifierProvider.notifier)
           .loadRepositories(),
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.base),
-        child: RepositoryList(
-          repositories: state.repositories,
-          onRepositoryTap: (repo) {
-            context.push('/repository/${repo.id}');
-          },
-          onRepositoryLongPress: (repo) =>
-              _showDeleteDialog(context, ref, repo.id),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppDimensions.md),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: AppDimensions.contentMaxWidth,
+            ),
+            child: RepositoryList(
+              repositories: state.repositories,
+              onRepositoryTap: (repo) {
+                context.push('/repository/${repo.id}');
+              },
+              onRepositoryLongPress: (repo) =>
+                  _showDeleteDialog(context, ref, repo.id),
+            ),
+          ),
         ),
       ),
     );
@@ -203,6 +174,100 @@ class HomeScreen extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+}
+class _HomeEmptyState extends StatelessWidget {
+  const _HomeEmptyState({required this.onCreate});
+
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < AppDimensions.mobileBreakpoint;
+        return Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(
+              isMobile ? AppDimensions.lg : AppDimensions.xxl,
+            ),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 640),
+              padding: EdgeInsets.all(
+                isMobile ? AppDimensions.xl : AppDimensions.xxl,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.canvas,
+                borderRadius: BorderRadius.circular(
+                  AppDimensions.radiusXxl,
+                ),
+                border: AppDimensions.cardBorder(),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: isMobile
+                        ? AppDimensions.xxl + AppDimensions.md
+                        : AppDimensions.xxl + AppDimensions.xl,
+                    height: isMobile
+                        ? AppDimensions.xxl + AppDimensions.md
+                        : AppDimensions.xxl + AppDimensions.xl,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: AppColors.primaryGradient,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusXl,
+                      ),
+                    ),
+                    child: Center(
+                      child: AppIcon(
+                        AppIcons.repositoryOpen,
+                        size: isMobile
+                            ? AppDimensions.xl
+                            : AppDimensions.repositoryIconBox,
+                        color: AppColors.onPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppDimensions.lg),
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: AppColors.primaryGradient,
+                    ).createShader(bounds),
+                    child: Text(
+                      '开始你的第一个仓库',
+                      style: (isMobile
+                              ? AppTypography.displayMdStyle
+                              : AppTypography.displayXlStyle)
+                          .copyWith(color: AppColors.onPrimary),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: AppDimensions.sm),
+                  Text(
+                    '像管理代码一样管理你的任务',
+                    style: AppTypography.subheadStyle.copyWith(
+                      color: AppColors.inkMuted,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppDimensions.xl),
+                  AppButton(
+                    text: '创建仓库',
+                    icon: AppIcons.add,
+                    onPressed: onCreate,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

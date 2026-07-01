@@ -38,14 +38,14 @@ class TaskDetailScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const AppIcon(AppIcons.edit),
-            color: AppColors.textSecondary,
+            color: AppColors.inkMuted,
             onPressed: () {
               context.push('/task-form?taskId=$taskId');
             },
           ),
           IconButton(
             icon: const AppIcon(AppIcons.more),
-            color: AppColors.textSecondary,
+            color: AppColors.inkMuted,
             onPressed: () =>
                 _showMoreActions(context, ref),
           ),
@@ -70,10 +70,12 @@ class TaskDetailScreen extends ConsumerWidget {
     }
 
     if (state.task == null) {
-      return const Center(
+      return Center(
         child: Text(
           '任务不存在',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: AppTypography.bodyStyle.copyWith(
+            color: AppColors.inkMuted,
+          ),
         ),
       );
     }
@@ -82,26 +84,24 @@ class TaskDetailScreen extends ConsumerWidget {
     final commits = state.commits;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.base),
+      padding: const EdgeInsets.all(AppDimensions.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 标题
           Text(
             task.title,
-            style: const TextStyle(
-              fontFamily: AppTypography.bodyFont,
-              fontSize: AppTypography.xxl,
+            style: AppTypography.headlineStyle.copyWith(
               fontWeight: AppTypography.medium,
-              color: AppColors.textPrimary,
+              color: AppColors.ink,
             ),
           ),
           const SizedBox(height: AppDimensions.md),
 
           // 标签行
           Wrap(
-            spacing: AppDimensions.sm,
-            runSpacing: AppDimensions.sm,
+            spacing: AppDimensions.xs,
+            runSpacing: AppDimensions.xs,
             children: [
               // 优先级
               AppBadge(
@@ -121,7 +121,7 @@ class TaskDetailScreen extends ConsumerWidget {
                   label: task.dueDate!.relativeTime,
                   color: task.isOverdue
                       ? AppColors.error
-                      : AppColors.textTertiary,
+                      : AppColors.inkSubtle,
                   variant: BadgeVariant.outlined,
                 ),
             ],
@@ -132,12 +132,11 @@ class TaskDetailScreen extends ConsumerWidget {
               task.description!.isNotEmpty) ...[
             const SizedBox(height: AppDimensions.xl),
             _buildSectionTitle('描述'),
-            const SizedBox(height: AppDimensions.sm),
+            const SizedBox(height: AppDimensions.xs),
             Text(
               task.description!,
-              style: const TextStyle(
-                fontSize: AppTypography.base,
-                color: AppColors.textSecondary,
+              style: AppTypography.bodyStyle.copyWith(
+                color: AppColors.inkMuted,
                 height: 1.6,
               ),
             ),
@@ -146,15 +145,9 @@ class TaskDetailScreen extends ConsumerWidget {
           // 信息区域
           const SizedBox(height: AppDimensions.xl),
           _buildSectionTitle('信息'),
-          const SizedBox(height: AppDimensions.sm),
-          _buildInfoRow(
-            '创建时间',
-            task.createdAt.toDateTimeStr,
-          ),
-          _buildInfoRow(
-            '更新时间',
-            task.updatedAt.toDateTimeStr,
-          ),
+          const SizedBox(height: AppDimensions.xs),
+          _buildInfoRow('创建时间', task.createdAt.toDateTimeStr),
+          _buildInfoRow('更新时间', task.updatedAt.toDateTimeStr),
           if (task.completedAt != null)
             _buildInfoRow(
               '完成时间',
@@ -164,10 +157,8 @@ class TaskDetailScreen extends ConsumerWidget {
           // 提交历史
           if (commits.isNotEmpty) ...[
             const SizedBox(height: AppDimensions.xl),
-            _buildSectionTitle(
-              '提交历史 (${commits.length})',
-            ),
-            const SizedBox(height: AppDimensions.sm),
+            _buildSectionTitle('提交历史 (${commits.length})'),
+            const SizedBox(height: AppDimensions.xs),
             _buildCommitTimeline(commits),
           ],
         ],
@@ -180,16 +171,13 @@ class TaskDetailScreen extends ConsumerWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontFamily: AppTypography.monoFont,
-            fontSize: AppTypography.sm,
-            fontWeight: AppTypography.medium,
-            color: AppColors.textTertiary,
+          style: AppTypography.eyebrowStyle.copyWith(
+            color: AppColors.inkSubtle,
           ),
         ),
         const SizedBox(width: AppDimensions.sm),
         const Expanded(
-          child: Divider(color: AppColors.borderSubtle),
+          child: Divider(color: AppColors.hairline),
         ),
       ],
     );
@@ -198,26 +186,25 @@ class TaskDetailScreen extends ConsumerWidget {
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(
-        bottom: AppDimensions.sm,
+        bottom: AppDimensions.xs,
       ),
       child: Row(
         children: [
           SizedBox(
-            width: 80,
+            width: AppDimensions.xxl + AppDimensions.xl,
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: AppTypography.sm,
-                color: AppColors.textTertiary,
+              style: AppTypography.monoSmStyle.copyWith(
+                color: AppColors.inkSubtle,
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: AppTypography.sm,
-                color: AppColors.textSecondary,
+              style: AppTypography.monoSmStyle.copyWith(
+                color: AppColors.inkMuted,
+                fontWeight: AppTypography.regular,
               ),
             ),
           ),
@@ -231,64 +218,7 @@ class TaskDetailScreen extends ConsumerWidget {
   ) {
     return Column(
       children: [
-        for (var i = 0; i < commits.length; i++) ...[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 时间线指示器
-              Column(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  if (i < commits.length - 1)
-                    Container(
-                      width: 2,
-                      height: 32,
-                      color: AppColors.borderSubtle,
-                    ),
-                ],
-              ),
-              const SizedBox(width: AppDimensions.md),
-
-              // 内容
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      commits[i].message,
-                      style: const TextStyle(
-                        fontSize: AppTypography.sm,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: AppDimensions.xxs,
-                    ),
-                    Text(
-                      commits[i]
-                          .createdAt
-                          .relativeTime,
-                      style: const TextStyle(
-                        fontSize: AppTypography.xs,
-                        color: AppColors.textTertiary,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: AppDimensions.sm,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        for (final commit in commits) _CommitRow(commit: commit),
       ],
     );
   }
@@ -301,11 +231,11 @@ class TaskDetailScreen extends ConsumerWidget {
     if (state.task == null) return null;
 
     return Container(
-      padding: const EdgeInsets.all(AppDimensions.base),
+      padding: const EdgeInsets.all(AppDimensions.md),
       decoration: const BoxDecoration(
-        color: AppColors.bgBase,
+        color: AppColors.canvas,
         border: Border(
-          top: BorderSide(color: AppColors.borderSubtle),
+          top: BorderSide(color: AppColors.hairline),
         ),
       ),
       child: SafeArea(
@@ -358,7 +288,7 @@ class TaskDetailScreen extends ConsumerWidget {
   ) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.bgElevated,
+      backgroundColor: AppColors.surface1,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimensions.radiusXl),
@@ -442,5 +372,63 @@ class TaskDetailScreen extends ConsumerWidget {
       TaskStatus.done => AppColors.statusDone,
       TaskStatus.cancelled => AppColors.statusCancelled,
     };
+  }
+}
+
+class _CommitRow extends StatelessWidget {
+  const _CommitRow({required this.commit});
+
+  final entity.Commit commit;
+
+  @override
+  Widget build(BuildContext context) {
+    final hash = commit.id.length > 7
+        ? commit.id.substring(0, 7)
+        : commit.id;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: AppDimensions.md),
+      decoration: const BoxDecoration(
+        color: AppColors.canvas,
+        border: Border(
+          bottom: BorderSide(color: AppColors.hairline),
+        ),
+      ),
+      child: Row(
+        children: [
+          const AppIcon(
+            AppIcons.gitCommit,
+            size: AppDimensions.iconSm,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: AppDimensions.sm),
+          Text(
+            hash,
+            style: AppTypography.monoSmStyle.copyWith(
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: AppDimensions.md),
+          Expanded(
+            child: Text(
+              commit.message,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.bodyStyle.copyWith(
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppDimensions.md),
+          Text(
+            commit.createdAt.relativeTime,
+            style: AppTypography.monoSmStyle.copyWith(
+              color: AppColors.inkSubtle,
+              fontWeight: AppTypography.regular,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

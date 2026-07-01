@@ -1,25 +1,51 @@
 import 'package:flutter/widgets.dart';
 
 /// 字体系统常量
+///
+/// 对齐 `docs/DESIGN.md` §3。
+/// - 标题 + 正文：IBM Plex Sans（单一连续声音）
+/// - branch name / commit id / label / 等宽技术标签：JetBrains Mono
+///
+/// 字距（letterSpacing）是 Linear 高级感的核心来源：display 激进负字距，
+/// eyebrow 正字距，body 持平。
 class AppTypography {
   AppTypography._();
 
   // ─── 字体族 ───
-  static const String headingFont = 'JetBrains Mono';
   static const String bodyFont = 'IBM Plex Sans';
+  static const String headingFont = bodyFont;
   static const String monoFont = 'JetBrains Mono';
 
-  // ─── 字体大小 ───
-  static const double xs = 11.0;
-  static const double sm = 13.0;
-  static const double base = 15.0;
-  static const double lg = 17.0;
-  static const double xl = 20.0;
-  static const double xxl = 24.0;
-  static const double xxxl = 32.0;
+  // ─── 字体大小（DESIGN.md §3.2，13 档）───
+  static const double displayXl = 48.0;
+  static const double displayLg = 40.0;
+  static const double displayMd = 32.0;
+  static const double headline = 24.0;
+  static const double cardTitle = 17.0;
+  static const double subhead = 20.0;
+  static const double bodyLg = 17.0;
+  static const double body = 15.0;
+  static const double bodySm = 13.0;
+  static const double caption = 11.0;
+  static const double button = 14.0;
+  static const double eyebrow = 12.0;
+  static const double mono = 13.0;
+  static const double monoSm = 11.0;
+
+  // ─── 字距（DESIGN.md §3.3，关键）───
+  static const double trackingDisplayXl = -2.0;
+  static const double trackingDisplayLg = -1.5;
+  static const double trackingDisplayMd = -1.0;
+  static const double trackingHeadline = -0.6;
+  static const double trackingCardTitle = -0.4;
+  static const double trackingSubhead = -0.2;
+  static const double trackingBodyLg = -0.1;
+  static const double trackingBody = -0.05;
+  static const double trackingEyebrow = 0.4;
 
   // ─── 行高 ───
   static const double lineHeightTight = 1.2;
+  static const double lineHeightDisplay = 1.1;
   static const double lineHeightNormal = 1.5;
   static const double lineHeightRelaxed = 1.75;
 
@@ -30,60 +56,182 @@ class AppTypography {
   static const FontWeight semiBold = FontWeight.w600;
   static const FontWeight bold = FontWeight.w700;
 
-  // ─── 预设样式 ───
-  static const TextStyle pageTitle = TextStyle(
-    fontFamily: headingFont,
-    fontSize: xxxl,
-    fontWeight: bold,
-    height: lineHeightTight,
-  );
+  // ─── 预设样式（DESIGN.md §3.2，含字距）───
 
-  static const TextStyle sectionTitle = TextStyle(
-    fontFamily: headingFont,
-    fontSize: xxl,
+  /// 首页空状态大标题、Git Graph 主标题（移动端缩到 32px）。
+  static const TextStyle displayXlStyle = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: displayXl,
     fontWeight: semiBold,
-    height: lineHeightTight,
+    height: 1.05,
+    letterSpacing: trackingDisplayXl,
   );
 
-  static const TextStyle cardTitle = TextStyle(
+  /// 页面主标题。
+  static const TextStyle displayLgStyle = TextStyle(
     fontFamily: bodyFont,
-    fontSize: lg,
-    fontWeight: medium,
-    height: lineHeightNormal,
+    fontSize: displayLg,
+    fontWeight: semiBold,
+    height: 1.10,
+    letterSpacing: trackingDisplayLg,
   );
 
-  static const TextStyle body = TextStyle(
+  /// 区块大标题。
+  static const TextStyle displayMdStyle = TextStyle(
     fontFamily: bodyFont,
-    fontSize: base,
-    fontWeight: regular,
-    height: lineHeightNormal,
+    fontSize: displayMd,
+    fontWeight: semiBold,
+    height: 1.15,
+    letterSpacing: trackingDisplayMd,
   );
 
-  static const TextStyle bodySmall = TextStyle(
+  /// 页面标题、卡片组标题。
+  static const TextStyle headlineStyle = TextStyle(
     fontFamily: bodyFont,
-    fontSize: sm,
-    fontWeight: regular,
-    height: lineHeightNormal,
+    fontSize: headline,
+    fontWeight: semiBold,
+    height: 1.20,
+    letterSpacing: trackingHeadline,
   );
 
-  static const TextStyle label = TextStyle(
-    fontFamily: monoFont,
-    fontSize: xs,
+  /// 任务卡标题、仓库卡标题。
+  static const TextStyle cardTitleStyle = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: cardTitle,
     fontWeight: medium,
-    height: lineHeightTight,
+    height: 1.25,
+    letterSpacing: trackingCardTitle,
   );
 
-  static const TextStyle branchName = TextStyle(
-    fontFamily: monoFont,
-    fontSize: sm,
-    fontWeight: medium,
-    height: lineHeightTight,
-  );
-
-  static const TextStyle code = TextStyle(
-    fontFamily: monoFont,
-    fontSize: sm,
+  /// 引导正文。
+  static const TextStyle subheadStyle = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: subhead,
     fontWeight: regular,
-    height: lineHeightNormal,
+    height: 1.40,
+    letterSpacing: trackingSubhead,
   );
+
+  /// 重要正文。
+  static const TextStyle bodyLgStyle = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: bodyLg,
+    fontWeight: regular,
+    height: 1.50,
+    letterSpacing: trackingBodyLg,
+  );
+
+  /// 默认正文。
+  static const TextStyle bodyStyle = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: body,
+    fontWeight: regular,
+    height: 1.50,
+    letterSpacing: trackingBody,
+  );
+
+  /// 卡片正文、footer。
+  static const TextStyle bodySmStyle = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: bodySm,
+    fontWeight: regular,
+    height: 1.50,
+    letterSpacing: 0,
+  );
+
+  /// caption、meta、状态。
+  static const TextStyle captionStyle = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: caption,
+    fontWeight: regular,
+    height: 1.40,
+    letterSpacing: 0,
+  );
+
+  /// 所有按钮标签。
+  static const TextStyle buttonStyle = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: button,
+    fontWeight: medium,
+    height: 1.20,
+    letterSpacing: 0,
+  );
+
+  /// 区块 eyebrow（正字距，标记分类）。
+  static const TextStyle eyebrowStyle = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: eyebrow,
+    fontWeight: medium,
+    height: 1.30,
+    letterSpacing: trackingEyebrow,
+  );
+
+  /// branch name / commit id / label（JetBrains Mono）。
+  static const TextStyle monoStyle = TextStyle(
+    fontFamily: monoFont,
+    fontSize: mono,
+    fontWeight: medium,
+    height: 1.50,
+    letterSpacing: 0,
+  );
+
+  /// 小号等宽标签、时间戳（JetBrains Mono）。
+  static const TextStyle monoSmStyle = TextStyle(
+    fontFamily: monoFont,
+    fontSize: monoSm,
+    fontWeight: medium,
+    height: 1.40,
+    letterSpacing: 0,
+  );
+
+  // ════════════════════════════════════════════════════════════════
+  // 旧别名兼容层（逐步迁移后可移除）
+  // ════════════════════════════════════════════════════════════════
+
+  // ─── 字体大小（旧）───
+  @Deprecated('Use AppTypography.caption instead.')
+  static const double xs = caption; // 11
+
+  @Deprecated('Use AppTypography.bodySm instead.')
+  static const double sm = bodySm; // 13
+
+  @Deprecated('Use AppTypography.body instead.')
+  static const double base = body; // 15
+
+  @Deprecated('Use AppTypography.cardTitle or bodyLg instead.')
+  static const double lg = cardTitle; // 17
+
+  @Deprecated('Use AppTypography.subhead instead.')
+  static const double xl = subhead; // 20（保留原 xl=20 语义）
+
+  @Deprecated('Use AppTypography.headline instead.')
+  static const double xxl = headline; // 24
+
+  @Deprecated('Use AppTypography.displayMd instead.')
+  static const double xxxl = displayMd; // 32
+
+  // ─── 预设样式（旧）───
+  @Deprecated('Use AppTypography.displayMdStyle instead.')
+  static const TextStyle pageTitle = displayMdStyle;
+
+  @Deprecated('Use AppTypography.headlineStyle instead.')
+  static const TextStyle sectionTitle = headlineStyle;
+
+  @Deprecated('Use AppTypography.cardTitleStyle instead.')
+  static const TextStyle cardTitleLegacy = cardTitleStyle;
+
+  @Deprecated('Use AppTypography.bodyStyle instead.')
+  static const TextStyle bodyText = bodyStyle;
+
+  @Deprecated('Use AppTypography.bodySmStyle instead.')
+  static const TextStyle bodySmall = bodySmStyle;
+
+  @Deprecated('Use AppTypography.monoSmStyle instead.')
+  static const TextStyle label = monoSmStyle;
+
+  /// 分支名（JetBrains Mono）。
+  static const TextStyle branchName = monoStyle;
+
+  /// 代码片段（JetBrains Mono）。
+  static const TextStyle code = monoStyle;
 }

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/dimensions.dart';
+import '../../../core/theme/typography.dart';
 
 /// 加载组件
+///
+/// 对齐 `docs/DESIGN.md` §7.14。primary 环形进度，居中。
 class LoadingWidget extends StatelessWidget {
   const LoadingWidget({
     super.key,
@@ -28,12 +32,11 @@ class LoadingWidget extends StatelessWidget {
             ),
           ),
           if (message != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDimensions.md),
             Text(
               message!,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
+              style: AppTypography.bodySmStyle.copyWith(
+                color: AppColors.inkMuted,
               ),
             ),
           ],

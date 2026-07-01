@@ -136,7 +136,7 @@ class AppScaffold extends StatelessWidget {
                 ),
                 const VerticalDivider(
                   width: 1,
-                  color: AppColors.borderSubtle,
+                  color: AppColors.hairline,
                 ),
                 Expanded(child: navigationShell),
               ],
@@ -183,21 +183,18 @@ class _SideNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 200,
-      color: AppColors.bgBase,
+      width: AppDimensions.sideNavWidth,
+      color: AppColors.canvas,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(AppDimensions.lg),
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.lg),
               child: Text(
                 'Commit',
-                style: TextStyle(
-                  fontFamily: AppTypography.headingFont,
-                  fontSize: AppTypography.xl,
-                  fontWeight: AppTypography.semiBold,
-                  color: AppColors.textPrimary,
+                style: AppTypography.headlineStyle.copyWith(
+                  color: AppColors.ink,
                 ),
               ),
             ),
@@ -230,7 +227,7 @@ class _SideNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? AppColors.primary : AppColors.textSecondary;
+    final color = isActive ? AppColors.primary : AppColors.inkMuted;
     return Semantics(
       button: true,
       selected: isActive,
@@ -245,20 +242,18 @@ class _SideNavItem extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(
               left: BorderSide(
-                width: 3,
+                width: AppDimensions.priorityStripWidth,
                 color: isActive ? AppColors.primary : Colors.transparent,
               ),
             ),
           ),
           child: Row(
             children: [
-              AppIcon(icon, size: 20, color: color),
+              AppIcon(icon, size: AppDimensions.iconMd, color: color),
               const SizedBox(width: AppDimensions.md),
               Text(
                 label,
-                style: TextStyle(
-                  fontFamily: AppTypography.bodyFont,
-                  fontSize: AppTypography.base,
+                style: AppTypography.bodyStyle.copyWith(
                   fontWeight: isActive
                       ? AppTypography.medium
                       : AppTypography.regular,

@@ -6,7 +6,6 @@ import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/utils/validators.dart';
 import '../../../domain/entities/enums.dart';
-import '../common/app_badge.dart';
 import '../common/app_button.dart';
 import '../common/app_input.dart';
 
@@ -80,7 +79,9 @@ class _TaskFormState extends State<TaskForm> {
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.dark(
               primary: AppColors.primary,
-              surface: AppColors.bgElevated,
+              onPrimary: AppColors.onPrimary,
+              surface: AppColors.surface1,
+              onSurface: AppColors.ink,
             ),
           ),
           child: child!,
@@ -120,7 +121,7 @@ class _TaskFormState extends State<TaskForm> {
             validator: Validators.validateTaskTitle,
             autofocus: true,
           ),
-          const SizedBox(height: AppDimensions.base),
+          const SizedBox(height: AppDimensions.md),
 
           // 描述输入
           AppInput(
@@ -130,19 +131,16 @@ class _TaskFormState extends State<TaskForm> {
             maxLines: 4,
             validator: Validators.validateTaskDescription,
           ),
-          const SizedBox(height: AppDimensions.base),
+          const SizedBox(height: AppDimensions.md),
 
-          // 优先级选择
-          const Text(
+          // 优先级选择（segmented，DESIGN.md §7.2）
+          Text(
             '优先级',
-            style: TextStyle(
-              fontFamily: AppTypography.bodyFont,
-              fontSize: AppTypography.sm,
-              fontWeight: AppTypography.medium,
-              color: AppColors.textSecondary,
+            style: AppTypography.eyebrowStyle.copyWith(
+              color: AppColors.inkMuted,
             ),
           ),
-          const SizedBox(height: AppDimensions.sm),
+          const SizedBox(height: AppDimensions.xs),
           Row(
             children: [
               for (final p in Priority.values) ...[
@@ -151,42 +149,52 @@ class _TaskFormState extends State<TaskForm> {
                   selected: _priority == p,
                   label: '${p.label}优先级',
                   child: InkWell(
-                    onTap: () =>
-                        setState(() => _priority = p),
+                    onTap: () => setState(() => _priority = p),
                     borderRadius: BorderRadius.circular(
-                      AppDimensions.radiusMd,
+                      AppDimensions.radiusPill,
                     ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.md,
-                        vertical: AppDimensions.sm,
+                        horizontal: AppDimensions.sm + 2,
+                        vertical: AppDimensions.xs - AppDimensions.micro,
                       ),
                       margin: const EdgeInsets.only(
-                        right: AppDimensions.sm,
+                        right: AppDimensions.xs,
                       ),
                       decoration: BoxDecoration(
                         color: _priority == p
-                            ? _priorityColor(p).withAlpha(26)
-                            : AppColors.bgElevated,
+                            ? AppColors.surface2
+                            : AppColors.canvas,
                         borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusMd,
+                          AppDimensions.radiusPill,
                         ),
                         border: Border.all(
                           color: _priority == p
                               ? _priorityColor(p)
-                              : AppColors.borderDefault,
+                              : AppColors.hairline,
                         ),
                       ),
-                      child: Text(
-                        p.label,
-                        style: TextStyle(
-                          color: _priority == p
-                              ? _priorityColor(p)
-                              : AppColors.textSecondary,
-                          fontWeight: _priority == p
-                              ? AppTypography.medium
-                              : AppTypography.regular,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: AppDimensions.dotSm,
+                            height: AppDimensions.dotSm,
+                            decoration: BoxDecoration(
+                              color: _priorityColor(p),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: AppDimensions.xxs),
+                          Text(
+                            p.label,
+                            style: AppTypography.monoSmStyle.copyWith(
+                              color: _priority == p
+                                  ? AppColors.ink
+                                  : AppColors.inkSubtle,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -194,19 +202,16 @@ class _TaskFormState extends State<TaskForm> {
               ],
             ],
           ),
-          const SizedBox(height: AppDimensions.base),
+          const SizedBox(height: AppDimensions.md),
 
           // 截止日期选择
-          const Text(
+          Text(
             '截止日期（可选）',
-            style: TextStyle(
-              fontFamily: AppTypography.bodyFont,
-              fontSize: AppTypography.sm,
-              fontWeight: AppTypography.medium,
-              color: AppColors.textSecondary,
+            style: AppTypography.eyebrowStyle.copyWith(
+              color: AppColors.inkMuted,
             ),
           ),
-          const SizedBox(height: AppDimensions.sm),
+          const SizedBox(height: AppDimensions.xs),
           Semantics(
             button: true,
             label: _dueDate != null
@@ -219,34 +224,32 @@ class _TaskFormState extends State<TaskForm> {
               ),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.base,
-                  vertical: AppDimensions.md,
+                  horizontal: AppDimensions.sm,
+                  vertical: AppDimensions.sm + AppDimensions.micro,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.bgSurface,
+                  color: AppColors.surface1,
                   borderRadius: BorderRadius.circular(
                     AppDimensions.radiusMd,
                   ),
-                  border: Border.all(
-                    color: AppColors.borderDefault,
-                  ),
+                  border: Border.all(color: AppColors.hairlineStrong),
                 ),
                 child: Row(
                   children: [
                     const AppIcon(
                       AppIcons.calendar,
-                      size: 16,
-                      color: AppColors.textTertiary,
+                      size: AppDimensions.iconSm,
+                      color: AppColors.inkSubtle,
                     ),
-                    const SizedBox(width: AppDimensions.sm),
+                    const SizedBox(width: AppDimensions.xs),
                     Text(
                       _dueDate != null
                           ? '${_dueDate!.year}-${_dueDate!.month.toString().padLeft(2, '0')}-${_dueDate!.day.toString().padLeft(2, '0')}'
                           : '选择截止日期',
-                      style: TextStyle(
+                      style: AppTypography.bodyStyle.copyWith(
                         color: _dueDate != null
-                            ? AppColors.textPrimary
-                            : AppColors.textTertiary,
+                            ? AppColors.ink
+                            : AppColors.inkSubtle,
                       ),
                     ),
                     const Spacer(),
@@ -255,18 +258,16 @@ class _TaskFormState extends State<TaskForm> {
                         button: true,
                         label: '清除截止日期',
                         child: InkWell(
-                          onTap: () => setState(
-                            () => _dueDate = null,
-                          ),
+                          onTap: () => setState(() => _dueDate = null),
                           borderRadius: BorderRadius.circular(
                             AppDimensions.radiusFull,
                           ),
                           child: const Padding(
-                            padding: EdgeInsets.all(4),
+                            padding: EdgeInsets.all(AppDimensions.xxs),
                             child: AppIcon(
                               AppIcons.close,
-                              size: 16,
-                              color: AppColors.textTertiary,
+                              size: AppDimensions.iconSm,
+                              color: AppColors.inkSubtle,
                             ),
                           ),
                         ),

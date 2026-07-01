@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/colors.dart';
@@ -70,24 +70,36 @@ class HeatmapScreen extends ConsumerWidget {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.base),
+      padding: const EdgeInsets.all(AppDimensions.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 展示面标题
+          ShaderMask(
+            shaderCallback: (bounds) => const LinearGradient(
+              colors: AppColors.primaryGradient,
+            ).createShader(bounds),
+            child: Text(
+              '贡献热力图',
+              style: AppTypography.displayMdStyle.copyWith(
+                color: AppColors.onPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.xl),
+
           // 统计卡片
           _buildStatsRow(today, thisWeek, totalCompleted, streak),
           const SizedBox(height: AppDimensions.xl),
 
           // 热力图
-          const Text(
+          Text(
             '过去一年',
-            style: TextStyle(
-              fontFamily: AppTypography.monoFont,
-              fontSize: AppTypography.sm,
-              color: AppColors.textTertiary,
+            style: AppTypography.eyebrowStyle.copyWith(
+              color: AppColors.inkSubtle,
             ),
           ),
-          const SizedBox(height: AppDimensions.sm),
+          const SizedBox(height: AppDimensions.xs),
           HeatmapCalendar(data: data),
         ],
       ),
@@ -100,61 +112,75 @@ class HeatmapScreen extends ConsumerWidget {
     int total,
     int streak,
   ) {
-    return Row(
-      children: [
-        _StatCard(label: '今日', value: '$today'),
-        const SizedBox(width: AppDimensions.sm),
-        _StatCard(label: '本周', value: '$thisWeek'),
-        const SizedBox(width: AppDimensions.sm),
-        _StatCard(label: '总计', value: '$total'),
-        const SizedBox(width: AppDimensions.sm),
-        _StatCard(label: '连续', value: '${streak}天'),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= AppDimensions.mobileBreakpoint
+            ? 4
+            : 2;
+        final width = (constraints.maxWidth -
+                AppDimensions.sm * (columns - 1)) /
+            columns;
+
+        return Wrap(
+          spacing: AppDimensions.sm,
+          runSpacing: AppDimensions.sm,
+          children: [
+            _StatCard(label: '今日', value: '$today', width: width),
+            _StatCard(label: '本周', value: '$thisWeek', width: width),
+            _StatCard(label: '总计', value: '$total', width: width),
+            _StatCard(label: '连续', value: '${streak}天', width: width),
+          ],
+        );
+      },
     );
   }
 }
-
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.label,
     required this.value,
+    required this.width,
   });
 
   final String label;
   final String value;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return SizedBox(
+      width: width,
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.md),
         decoration: BoxDecoration(
-          color: AppColors.bgElevated,
-          borderRadius: BorderRadius.circular(
-            AppDimensions.radiusMd,
-          ),
-          border: Border.all(
-            color: AppColors.borderSubtle,
+          color: AppColors.surface1,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          border: Border(
+            top: const BorderSide(color: AppColors.edgeHighlight, width: 1),
+            left: const BorderSide(color: AppColors.hairline, width: 1),
+            right: const BorderSide(color: AppColors.hairline, width: 1),
+            bottom: const BorderSide(color: AppColors.hairline, width: 1),
           ),
         ),
         child: Column(
           children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontFamily: AppTypography.monoFont,
-                fontSize: AppTypography.xxl,
-                fontWeight: AppTypography.bold,
-                color: AppColors.primary,
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: AppColors.primaryGradient,
+              ).createShader(bounds),
+              child: Text(
+                value,
+                style: AppTypography.displayMdStyle.copyWith(
+                  color: AppColors.onPrimary,
+                  fontWeight: AppTypography.bold,
+                ),
               ),
             ),
             const SizedBox(height: AppDimensions.xxs),
             Text(
               label,
-              style: const TextStyle(
-                fontFamily: AppTypography.bodyFont,
-                fontSize: AppTypography.xs,
-                color: AppColors.textSecondary,
+              style: AppTypography.captionStyle.copyWith(
+                color: AppColors.inkMuted,
               ),
             ),
           ],
