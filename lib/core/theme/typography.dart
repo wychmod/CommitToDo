@@ -16,6 +16,29 @@ class AppTypography {
   static const String headingFont = bodyFont;
   static const String monoFont = 'JetBrains Mono';
 
+  /// 正文字体 fallback（DESIGN.md §3.1）。
+  static const List<String> bodyFontFallback = [
+    '-apple-system',
+    'system-ui',
+    'Segoe UI',
+    'Roboto',
+    'Helvetica Neue',
+    'Arial',
+    'sans-serif',
+  ];
+
+  /// 等宽字体 fallback（DESIGN.md §3.1）。
+  static const List<String> monoFontFallback = [
+    'ui-monospace',
+    'SF Mono',
+    'Menlo',
+    'Monaco',
+    'Consolas',
+    'Liberation Mono',
+    'Courier New',
+    'monospace',
+  ];
+
   // ─── 字体大小（DESIGN.md §3.2，13 档）───
   static const double displayXl = 48.0;
   static const double displayLg = 40.0;
@@ -61,6 +84,7 @@ class AppTypography {
   /// 首页空状态大标题、Git Graph 主标题（移动端缩到 32px）。
   static const TextStyle displayXlStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: displayXl,
     fontWeight: semiBold,
     height: 1.05,
@@ -70,6 +94,7 @@ class AppTypography {
   /// 页面主标题。
   static const TextStyle displayLgStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: displayLg,
     fontWeight: semiBold,
     height: 1.10,
@@ -79,6 +104,7 @@ class AppTypography {
   /// 区块大标题。
   static const TextStyle displayMdStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: displayMd,
     fontWeight: semiBold,
     height: 1.15,
@@ -88,6 +114,7 @@ class AppTypography {
   /// 页面标题、卡片组标题。
   static const TextStyle headlineStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: headline,
     fontWeight: semiBold,
     height: 1.20,
@@ -97,6 +124,7 @@ class AppTypography {
   /// 任务卡标题、仓库卡标题。
   static const TextStyle cardTitleStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: cardTitle,
     fontWeight: medium,
     height: 1.25,
@@ -106,6 +134,7 @@ class AppTypography {
   /// 引导正文。
   static const TextStyle subheadStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: subhead,
     fontWeight: regular,
     height: 1.40,
@@ -115,6 +144,7 @@ class AppTypography {
   /// 重要正文。
   static const TextStyle bodyLgStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: bodyLg,
     fontWeight: regular,
     height: 1.50,
@@ -124,6 +154,7 @@ class AppTypography {
   /// 默认正文。
   static const TextStyle bodyStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: body,
     fontWeight: regular,
     height: 1.50,
@@ -133,6 +164,7 @@ class AppTypography {
   /// 卡片正文、footer。
   static const TextStyle bodySmStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: bodySm,
     fontWeight: regular,
     height: 1.50,
@@ -142,6 +174,7 @@ class AppTypography {
   /// caption、meta、状态。
   static const TextStyle captionStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: caption,
     fontWeight: regular,
     height: 1.40,
@@ -151,6 +184,7 @@ class AppTypography {
   /// 所有按钮标签。
   static const TextStyle buttonStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: button,
     fontWeight: medium,
     height: 1.20,
@@ -160,6 +194,7 @@ class AppTypography {
   /// 区块 eyebrow（正字距，标记分类）。
   static const TextStyle eyebrowStyle = TextStyle(
     fontFamily: bodyFont,
+    fontFamilyFallback: bodyFontFallback,
     fontSize: eyebrow,
     fontWeight: medium,
     height: 1.30,
@@ -169,6 +204,7 @@ class AppTypography {
   /// branch name / commit id / label（JetBrains Mono）。
   static const TextStyle monoStyle = TextStyle(
     fontFamily: monoFont,
+    fontFamilyFallback: monoFontFallback,
     fontSize: mono,
     fontWeight: medium,
     height: 1.50,
@@ -178,6 +214,7 @@ class AppTypography {
   /// 小号等宽标签、时间戳（JetBrains Mono）。
   static const TextStyle monoSmStyle = TextStyle(
     fontFamily: monoFont,
+    fontFamilyFallback: monoFontFallback,
     fontSize: monoSm,
     fontWeight: medium,
     height: 1.40,

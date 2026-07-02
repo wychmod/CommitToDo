@@ -403,6 +403,7 @@ class _CommitRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.md),
       decoration: BoxDecoration(
         color: colors.canvas,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXs),
         border: Border(
           bottom: BorderSide(color: colors.hairline),
         ),

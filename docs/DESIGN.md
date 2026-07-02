@@ -65,7 +65,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 | `{colors.surface-1}` | `#1E293B` | 默认卡片、面板、列表项底 |
 | `{colors.surface-2}` | `#334155` | 高亮卡片、hover 卡片、status badge 底、选中态 |
 | `{colors.surface-3}` | `#475569` | 子导航、下拉菜单、最深浮层 |
-| `{colors.surface-4}` | `#64748B` | bg-level-3 极少使用 |
+| `{colors.surface-4}` | `#64748B` | surface-3 更深一阶，极少使用 |
 
 ### 2.3 Hairline Borders
 | Token | Hex | 用途 |
@@ -89,6 +89,8 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 | `{colors.warning}` | `#F59E0B` | 中优先级、警告 |
 | `{colors.error}` | `#EF4444` | 高优先级、错误、删除 |
 | `{colors.info}` | `#3B82F6` | 进行中状态、信息 |
+
+> 代码中为 hover/轻态保留了浅色变体：`success-light` `#34D399`、`warning-light` `#FBBF24`、`error-light` `#F87171`，用于按钮悬停等需要更亮语义色的场景，未在基础 token 表重复列出。
 
 ### 2.6 Priority（优先级色）
 | Token | Hex | 用途 |
@@ -261,7 +263,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 - 底 `{colors.surface-1}`、字 `{colors.ink}`、`{typography.body}`、`{rounded.lg}`、padding 16。1px `{colors.hairline}`。
 - 左侧 3px 优先级色条（`{colors.priority-*}`）。
 - 标题 `{typography.card-title}`；meta（分支名/截止日）`{typography.mono-sm}` + `{colors.ink-subtle}`。
-- 右侧 status pill（见 7.7）。
+- 右侧 status pill（见 7.5）。
 - hover → lift 到 `{colors.surface-2}` + 1px `{colors.hairline-strong}`。
 
 **`repository-card`** — 仓库项。
@@ -402,11 +404,12 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 
 ### 9.4 Light Mode（可选，系统跟随）
 浅色模式作为可选项保留（settings 已支持 ThemeMode 切换）。token 映射：
-- canvas `#F8FAFC`、surface-1 `#FFFFFF`、surface-2 `#F1F5F9`、surface-3 `#E2E8F0`。
-- ink `#0F172A`、ink-muted `#475569`、ink-subtle `#64748B`。
-- hairline `#E2E8F0`、hairline-strong `#CBD5E1`。
+- canvas `#F8FAFC`、surface-1 `#FFFFFF`、surface-2 `#F1F5F9`、surface-3 `#E2E8F0`、surface-4 `#CBD5E1`。
+- ink `#0F172A`、ink-muted `#475569`、ink-subtle `#64748B`、ink-tertiary `#94A3B8`。
+- hairline `#E2E8F0`、hairline-strong `#CBD5E1`、hairline-tertiary `#94A3B8`。
 - accent / semantic / heatmap / branchColors 色值不变（仅 surface 系反转）。
 - 浅色模式**允许**轻微投影（`shadowSm`），深色模式不用。
+- 顶部边缘高光：深色为 `#FFFFFF @ 6%`；浅色背景已浅，改用 `#000000 @ 6%` 顶部微阴影达到同等「像素级边框」质感。
 
 ---
 
@@ -422,6 +425,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 - 卡片 rounded.lg 12px；按钮 rounded.md 8px；CTA 绝不 pill。
 - 深色面不用投影，靠 surface ladder + hairline。
 - 列表项用 task-card 规范（左侧 3px 优先级色条 + 右侧 status pill）。
+- 组件取色优先用 `AppThemeColors.of(context)`，保证浅色模式跟随主题，不直接写死 `AppColors.surface1`。
 ```
 
 颜色速查：canvas `#0F172A` · primary `#3B82F6` · success `#10B981` · error `#EF4444` · ink `#F1F5F9`。
@@ -451,3 +455,44 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 | 组件实现 | `lib/presentation/widgets/**` |
 
 > 当前 token 层与本文件存在差异（字距缺失、surface ladder 命名未对齐、圆角档位不全等），见配套《开发改动计划》逐项修正。
+
+---
+
+## 13. Page Composition Patterns
+
+Commit 的屏幕可归为五类构成模式。先选对模式，再套对应组件，可避免「把展示面样式错放到操作面」的常见问题。
+
+### 13.1 Hero Empty State（展示面）
+- **场景**：首屏无仓库、search 无结果、首次启动。
+- **结构**：垂直居中，`displayXl` 标题 + 蓝紫渐变装饰（`primaryGradient`）+ `inkMuted` 引导文 + `button-primary`。
+- **容器**：`empty-state-card`——canvas 底、`rounded.xxl`、padding 48。
+- **节奏**：标题 ↔ 引导文 `md`(16)；引导文 ↔ CTA `lg`(24)。
+
+### 13.2 Dense List（操作面）
+- **场景**：task list、repository list、search results、commit history。
+- **结构**：单列卡片列表，item 间距 `xs`(8)；卡片用 `task-card` / `repository-card` / `commit-row`。
+- **分组**：组标题用 `headline` + `eyebrow` 分类标记，组间距 `section`(96)（移动端 `xxl`(48)）。
+- **交互**：整卡 `InkWell` + hover lift；右滑/长按等手势不替代可见按钮。
+
+### 13.3 Data Canvas（数据面）
+- **场景**：heatmap、git graph。
+- **结构**：`displayMd` 区块标题 + `eyebrow` 分类；主体占满可用宽度，四周 `lg`(24) 留白。
+- **可视化**：热力图格子 `rounded.xs`(4) + `heatmapGap`(3)；Git Graph 容器 canvas 底 + `rounded.xl`(16) + padding 24。
+- **控件**：缩放/图例/筛选用 `button-secondary` 圆形或 `segmented`。
+
+### 13.4 Settings Stack（设置页）
+- **场景**：settings、about、data management。
+- **结构**：顶部展示面 header（`displayMd` + 渐变装饰），下方 `settings-row` 列表。
+- **行**：左图标（`iconMd`）+ 标题 `body` + 右侧 value `inkMuted` + chevron `inkSubtle`。
+- **分组**：同组行用 `surface1` 卡片包裹（`rounded.lg` + hairline），组间距 `lg`(24)。
+
+### 13.5 Detail Split（详情页）
+- **场景**：repository detail、task detail。
+- **桌面**：左主列表（`LayoutBuilder` 分配 1/3 ~ 1/2）+ 右详情侧栏（`surface1` 底、hairline 左分隔）。
+- **移动**：单栏，详情为独立 screen；AppBar 左侧返回按钮用 `button-tertiary`。
+- **内容**：标题 `headline`；meta 用 `mono-sm` + `inkSubtle`；操作按钮组右对齐（secondary + primary）。
+
+### 13.6 Do's & Don'ts for Pages
+- **Do**：展示面用 display + 渐变；操作面回归 body + 纯色；数据面密度优先。
+- **Don't**：把 hero 的大字距/渐变用到列表卡片；给列表卡片加投影；在数据面塞大段说明文字（用 tooltip/图例替代）。
+- **Don't**：在桌面端把详情页做成全屏弹窗，应保留列表上下文。

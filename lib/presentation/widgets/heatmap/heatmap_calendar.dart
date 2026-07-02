@@ -15,7 +15,7 @@ class HeatmapCalendar extends StatelessWidget {
     this.startDate,
     this.endDate,
     this.cellSize = AppConstants.heatmapCellSize,
-    this.cellGap = AppConstants.heatmapCellGap,
+    this.cellGap = AppDimensions.heatmapGap,
   });
 
   /// 数据: {日期 -> 完成任务数}

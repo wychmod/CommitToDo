@@ -13,7 +13,7 @@ class HeatmapPainter extends CustomPainter {
     required this.startDate,
     required this.endDate,
     this.cellSize = AppConstants.heatmapCellSize,
-    this.cellGap = AppConstants.heatmapCellGap,
+    this.cellGap = AppDimensions.heatmapGap,
   });
 
   final Map<DateTime, int> data;

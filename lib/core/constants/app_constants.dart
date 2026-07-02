@@ -29,9 +29,6 @@ class AppConstants {
   /// 热力图单元格大小
   static const double heatmapCellSize = 14.0;
 
-  /// 热力图单元格间距
-  static const double heatmapCellGap = 3.0;
-
   /// Git Graph 节点半径
   static const double graphNodeRadius = 6.0;
 

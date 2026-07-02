@@ -48,7 +48,7 @@ class AppColors {
   /// 子导航、下拉菜单、popover。
   static const Color surface3 = Color(0xFF475569);
 
-  /// bg-level-3，极少使用。
+  /// surface-3 更深一阶，极少使用。
   static const Color surface4 = Color(0xFF64748B);
 
   // ─── Hairline Borders（DESIGN.md §2.3）───
@@ -83,11 +83,21 @@ class AppColors {
   static const Color lightSurface1 = Color(0xFFFFFFFF);
   static const Color lightSurface2 = Color(0xFFF1F5F9);
   static const Color lightSurface3 = Color(0xFFE2E8F0);
+
+  /// 浅色模式 surface-4，对应深色 `surface4` 位置。
+  static const Color lightSurface4 = Color(0xFFCBD5E1);
+
   static const Color lightHairline = Color(0xFFE2E8F0);
   static const Color lightHairlineStrong = Color(0xFFCBD5E1);
+
+  /// 浅色模式三级边框，对应深色 `hairlineTertiary` 位置。
+  static const Color lightHairlineTertiary = Color(0xFF94A3B8);
   static const Color lightInk = Color(0xFF0F172A);
   static const Color lightInkMuted = Color(0xFF475569);
   static const Color lightInkSubtle = Color(0xFF64748B);
+
+  /// 浅色模式第四级文字，对应深色 `inkTertiary` 位置。
+  static const Color lightInkTertiary = Color(0xFF94A3B8);
 
   // ─── Overlay（DESIGN.md §2.11）───
   /// 模态遮罩，50% 黑。
@@ -177,5 +187,5 @@ class AppColors {
   static const Color borderDefault = hairlineStrong;
 
   @Deprecated('Use AppColors.primaryFocus instead.')
-  static const Color borderFocus = primary;
+  static const Color borderFocus = primaryFocus;
 }

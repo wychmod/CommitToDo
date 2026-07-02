@@ -72,7 +72,7 @@ ThemeData buildLightTheme() {
     inputDecorationTheme: _buildInputTheme(
       surface: _lightSurface1,
       hairline: _lightHairlineStrong,
-      ink: _lightInk,
+      inkMuted: _lightInkMuted,
       hint: _lightInkSubtle,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -100,18 +100,25 @@ ThemeData buildLightTheme() {
       thickness: 1,
       space: 1,
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: _lightCanvas,
       foregroundColor: _lightInk,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,
       toolbarHeight: 56,
+      titleTextStyle: AppTypography.bodySmStyle.copyWith(color: _lightInk),
+      toolbarTextStyle: AppTypography.bodySmStyle.copyWith(color: _lightInk),
+      shape: Border(
+        bottom: BorderSide(color: _lightHairline),
+      ),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: _lightCanvas,
       selectedItemColor: AppColors.primary,
       unselectedItemColor: _lightInkSubtle,
+      selectedLabelStyle: AppTypography.monoSmStyle,
+      unselectedLabelStyle: AppTypography.monoSmStyle,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
     ),
@@ -164,7 +171,7 @@ ThemeData buildDarkTheme() {
     inputDecorationTheme: _buildInputTheme(
       surface: _darkSurface1,
       hairline: _darkHairlineStrong,
-      ink: _darkInk,
+      inkMuted: _darkInkMuted,
       hint: _darkInkSubtle,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -192,18 +199,25 @@ ThemeData buildDarkTheme() {
       thickness: 1,
       space: 1,
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: _darkCanvas,
       foregroundColor: _darkInk,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,
       toolbarHeight: 56,
+      titleTextStyle: AppTypography.bodySmStyle.copyWith(color: _darkInk),
+      toolbarTextStyle: AppTypography.bodySmStyle.copyWith(color: _darkInk),
+      shape: Border(
+        bottom: BorderSide(color: _darkHairline),
+      ),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: _darkCanvas,
       selectedItemColor: AppColors.primary,
       unselectedItemColor: _darkInkSubtle,
+      selectedLabelStyle: AppTypography.monoSmStyle,
+      unselectedLabelStyle: AppTypography.monoSmStyle,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
     ),
@@ -241,7 +255,7 @@ TextTheme _buildTextTheme(Color ink, Color inkMuted, Color inkSubtle) {
 InputDecorationTheme _buildInputTheme({
   required Color surface,
   required Color hairline,
-  required Color ink,
+  required Color inkMuted,
   required Color hint,
 }) {
   final radius = BorderRadius.circular(AppDimensions.radiusMd);
@@ -270,10 +284,11 @@ InputDecorationTheme _buildInputTheme({
     ),
     contentPadding: const EdgeInsets.symmetric(
       horizontal: AppDimensions.sm,
-      vertical: AppDimensions.sm + 2,
+      vertical: AppDimensions.sm - 2,
     ),
     hintStyle: TextStyle(color: hint),
-    labelStyle: AppTypography.eyebrowStyle.copyWith(color: ink),
+    labelStyle: AppTypography.eyebrowStyle.copyWith(color: inkMuted),
+    floatingLabelStyle: AppTypography.eyebrowStyle.copyWith(color: inkMuted),
   );
 }
 

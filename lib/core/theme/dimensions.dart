@@ -24,8 +24,11 @@ class AppDimensions {
   @Deprecated('Use AppDimensions.md instead.')
   static const double base = md;
 
-  /// 2px 微间距（hairline gap、热力图格子 gap 等小于 4 的场景）。
+  /// 2px 微间距（hairline gap 等小于 4 的场景）。
   static const double micro = 2.0;
+
+  /// 热力图格子间隙（DESIGN.md §7.7，3px）。
+  static const double heatmapGap = 3.0;
 
   // ─── 触摸高度（DESIGN.md §9.2）───
   static const double tapTargetMin = 44.0;
@@ -107,10 +110,10 @@ class AppDimensions {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [AppColors.edgeHighlight, Color(0x00FFFFFF)],
-        stops: [0.0, 0.0],
+        stops: [0.0, 0.02],
       );
 
-  /// 带顶部微高光的卡片 BoxDecoration 边框组合。
+:  /// 统一 hairline 四边边框。顶部微高光请单独用 [topEdgeHighlightGradient] 叠加。
   static Border cardBorder({Color? color}) => Border(
         top: BorderSide(color: color ?? AppColors.hairline, width: 1),
         left: BorderSide(color: color ?? AppColors.hairline, width: 1),

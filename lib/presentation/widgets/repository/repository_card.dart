@@ -9,6 +9,7 @@ import '../../../core/theme/typography.dart';
 import '../../../domain/entities/branch.dart';
 import '../../../domain/entities/repository.dart';
 import '../common/app_badge.dart';
+import '../common/app_card.dart';
 
 /// 仓库卡片
 ///
@@ -42,107 +43,89 @@ class _RepositoryCardState extends State<RepositoryCard> {
   Widget build(BuildContext context) {
     final repo = widget.repository;
     final colors = AppThemeColors.of(context);
-    return Semantics(
-      button: widget.onTap != null,
-      label: '${repo.name}，${widget.taskCount} 个任务',
-      child: MouseRegion(
-        cursor: widget.onTap != null
-            ? SystemMouseCursors.click
-            : MouseCursor.defer,
-        onEnter: (_) => setState(() => _hovering = true),
-        onExit: (_) => setState(() => _hovering = false),
-        child: InkWell(
-          onTap: widget.onTap,
-          onLongPress: widget.onLongPress,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          child: AnimatedContainer(
-            duration: AppDimensions.animFast,
-            curve: AppDimensions.easeOutQuart,
-            padding: const EdgeInsets.all(AppDimensions.md),
-            decoration: BoxDecoration(
-              color: _hovering ? colors.surface2 : colors.surface1,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-              border: Border.all(
-                color: _hovering
-                    ? colors.hairlineStrong
-                    : colors.hairline,
-                width: 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return MouseRegion(
+      cursor: widget.onTap != null
+          ? SystemMouseCursors.click
+          : MouseCursor.defer,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: AppCard.repository(
+        onTap: widget.onTap,
+        onLongPress: widget.onLongPress,
+        semanticLabel: '${repo.name}，${widget.taskCount} 个任务',
+        lifted: _hovering,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: AppDimensions.repositoryIconBox,
-                      height: AppDimensions.repositoryIconBox,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(31),
-                        borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusSm,
-                        ),
-                      ),
-                      child: const Center(
-                        child: AppIcon(
-                          AppIcons.repository,
-                          size: AppDimensions.iconMd,
-                          color: AppColors.primary,
-                        ),
-                      ),
+                Container(
+                  width: AppDimensions.repositoryIconBox,
+                  height: AppDimensions.repositoryIconBox,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withAlpha(31),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusSm,
                     ),
-                    const SizedBox(width: AppDimensions.md),
-                    Expanded(
-                      child: Text(
-                        repo.name,
-                        style: AppTypography.cardTitleStyle.copyWith(
-                          color: colors.ink,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    AppBadge(
-                      label: '${widget.taskCount} 任务',
-                      color: AppColors.primary,
-                      variant: BadgeVariant.soft,
-                    ),
-                  ],
-                ),
-                if (widget.mainBranch != null) ...[
-                  const SizedBox(height: AppDimensions.sm),
-                  Row(
-                    children: [
-                      AppIcon(
-                        AppIcons.gitBranch,
-                        size: AppDimensions.iconXs,
-                        color: colors.inkSubtle,
-                      ),
-                      const SizedBox(width: AppDimensions.xxs),
-                      Text(
-                        widget.mainBranch!.name,
-                        style: AppTypography.monoSmStyle.copyWith(
-                          color: colors.inkSubtle,
-                        ),
-                      ),
-                      Text(
-                        ' · ',
-                        style: AppTypography.monoSmStyle.copyWith(
-                          color: colors.inkSubtle,
-                        ),
-                      ),
-                      Text(
-                        repo.updatedAt.relativeTime,
-                        style: AppTypography.monoSmStyle.copyWith(
-                          color: colors.inkSubtle,
-                        ),
-                      ),
-                    ],
                   ),
-                ],
+                  child: const Center(
+                    child: AppIcon(
+                      AppIcons.repository,
+                      size: AppDimensions.iconMd,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppDimensions.md),
+                Expanded(
+                  child: Text(
+                    repo.name,
+                    style: AppTypography.cardTitleStyle.copyWith(
+                      color: colors.ink,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                AppBadge(
+                  label: '${widget.taskCount} 任务',
+                  color: AppColors.primary,
+                  variant: BadgeVariant.soft,
+                ),
               ],
             ),
-          ),
+            if (widget.mainBranch != null) ...[
+              const SizedBox(height: AppDimensions.sm),
+              Row(
+                children: [
+                  AppIcon(
+                    AppIcons.gitBranch,
+                    size: AppDimensions.iconXs,
+                    color: colors.inkSubtle,
+                  ),
+                  const SizedBox(width: AppDimensions.xxs),
+                  Text(
+                    widget.mainBranch!.name,
+                    style: AppTypography.monoSmStyle.copyWith(
+                      color: colors.inkSubtle,
+                    ),
+                  ),
+                  Text(
+                    ' · ',
+                    style: AppTypography.monoSmStyle.copyWith(
+                      color: colors.inkSubtle,
+                    ),
+                  ),
+                  Text(
+                    repo.updatedAt.relativeTime,
+                    style: AppTypography.monoSmStyle.copyWith(
+                      color: colors.inkSubtle,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
         ),
       ),
     );

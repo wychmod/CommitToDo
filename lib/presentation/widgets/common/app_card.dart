@@ -15,6 +15,7 @@ class AppCard extends StatelessWidget {
     required this.child,
     this.onTap,
     this.onLongPress,
+    this.semanticLabel,
     this.padding = const EdgeInsets.all(AppDimensions.md),
     this.margin,
     this.lifted = false,
@@ -26,6 +27,7 @@ class AppCard extends StatelessWidget {
     required this.child,
     this.onTap,
     this.onLongPress,
+    this.semanticLabel,
     this.margin,
     this.lifted = false,
   })  : padding = const EdgeInsets.all(AppDimensions.md),
@@ -36,6 +38,7 @@ class AppCard extends StatelessWidget {
     required this.child,
     this.onTap,
     this.onLongPress,
+    this.semanticLabel,
     this.margin,
     this.lifted = false,
   })  : padding = const EdgeInsets.all(AppDimensions.md),
@@ -46,6 +49,7 @@ class AppCard extends StatelessWidget {
     required this.child,
     this.onTap,
     this.onLongPress,
+    this.semanticLabel,
     this.margin,
     this.lifted = false,
   })  : padding = const EdgeInsets.all(AppDimensions.lg),
@@ -54,6 +58,9 @@ class AppCard extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+
+  /// 语义标签，传入时作为 [Semantics.label] 包裹卡片。
+  final String? semanticLabel;
 
   /// 内边距。task/repository 卡 16，feature 卡 24。
   final EdgeInsetsGeometry padding;
@@ -110,6 +117,7 @@ class AppCard extends StatelessWidget {
     if (onTap != null || onLongPress != null) {
       return Semantics(
         button: true,
+        label: semanticLabel,
         child: InkWell(
           onTap: onTap,
           onLongPress: onLongPress,
