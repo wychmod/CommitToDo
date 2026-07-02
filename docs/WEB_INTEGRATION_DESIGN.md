@@ -1,7 +1,8 @@
 # Commit — Web 端接入设计方案
 
-**版本**: 1.0.0
+**版本**: 1.1.0
 **创建日期**: 2026-07-03
+**更新日期**: 2026-07-03 — v1.1 新增完整移动端适配策略（§8 重写）
 **状态**: 规划完成 — 已确认关键决策，待进入开发
 **关联文档**: `docs/PRD.md`、`docs/TECHNICAL.md`、`docs/system_design.md`、`docs/MULTI_PLATFORM_GUARDRAILS.md`、`docs/DESIGN.md`
 
@@ -27,6 +28,7 @@
 | 项目关系 | Monorepo 子目录，与 Flutter 项目并存 |
 | 本地存储 | Dexie.js (IndexedDB) |
 | UI 组件 | Headless (Radix UI) + Tailwind CSS |
+| 移动端适配 | Mobile-first 响应式，完整覆盖手机/平板/桌面，支持 PWA 安装 |
 | Git Graph | 见第 6 节详细比较与推荐 |
 
 ---
