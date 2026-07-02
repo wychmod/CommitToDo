@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -27,6 +28,7 @@ class TaskList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     if (tasks.isEmpty) {
       return _EmptyTaskState();
     }
@@ -73,12 +75,12 @@ class TaskList extends StatelessWidget {
                 Text(
                   '${entry.key.label} · ${entry.value.length}',
                   style: AppTypography.eyebrowStyle.copyWith(
-                    color: AppColors.inkSubtle,
+                    color: colors.inkSubtle,
                   ),
                 ),
                 const SizedBox(width: AppDimensions.sm),
-                const Expanded(
-                  child: Divider(color: AppColors.hairline),
+                Expanded(
+                  child: Divider(color: colors.hairline),
                 ),
               ],
             ),
@@ -102,36 +104,37 @@ class TaskList extends StatelessWidget {
 class _EmptyTaskState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDimensions.xl),
         child: Container(
           padding: const EdgeInsets.all(AppDimensions.xl),
           decoration: BoxDecoration(
-            color: AppColors.canvas,
+            color: colors.canvas,
             borderRadius: BorderRadius.circular(AppDimensions.radiusXxl),
-            border: AppDimensions.cardBorder(),
+            border: AppDimensions.cardBorder(color: colors.hairline),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const AppIcon(
+              AppIcon(
                 AppIcons.checkCircleOutline,
                 size: AppDimensions.xxl,
-                color: AppColors.inkSubtle,
+                color: colors.inkSubtle,
               ),
               const SizedBox(height: AppDimensions.md),
               Text(
                 '暂无任务',
                 style: AppTypography.cardTitleStyle.copyWith(
-                  color: AppColors.ink,
+                  color: colors.ink,
                 ),
               ),
               const SizedBox(height: AppDimensions.xs),
               Text(
                 '当前分支还没有待处理项',
                 style: AppTypography.bodySmStyle.copyWith(
-                  color: AppColors.inkMuted,
+                  color: colors.inkMuted,
                 ),
               ),
             ],

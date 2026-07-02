@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/extensions/date_extensions.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -57,6 +58,7 @@ class _TaskCardState extends State<TaskCard> {
   Widget build(BuildContext context) {
     final task = widget.task;
     final lifted = _hovering;
+    final colors = AppThemeColors.of(context);
 
     return Semantics(
       button: widget.onTap != null,
@@ -76,31 +78,13 @@ class _TaskCardState extends State<TaskCard> {
             curve: AppDimensions.easeOutQuart,
             padding: const EdgeInsets.all(AppDimensions.md),
             decoration: BoxDecoration(
-              color: lifted ? AppColors.surface2 : AppColors.surface1,
+              color: lifted ? colors.surface2 : colors.surface1,
               borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-              border: Border(
-                top: const BorderSide(
-                  color: AppColors.edgeHighlight,
-                  width: 1,
-                ),
-                left: BorderSide(
-                  color: lifted
-                      ? AppColors.hairlineStrong
-                      : AppColors.hairline,
-                  width: 1,
-                ),
-                right: BorderSide(
-                  color: lifted
-                      ? AppColors.hairlineStrong
-                      : AppColors.hairline,
-                  width: 1,
-                ),
-                bottom: BorderSide(
-                  color: lifted
-                      ? AppColors.hairlineStrong
-                      : AppColors.hairline,
-                  width: 1,
-                ),
+              border: Border.all(
+                color: lifted
+                    ? colors.hairlineStrong
+                    : colors.hairline,
+                width: 1,
               ),
             ),
             child: Row(
@@ -125,8 +109,8 @@ class _TaskCardState extends State<TaskCard> {
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.cardTitleStyle.copyWith(
                           color: task.isCompleted
-                              ? AppColors.inkSubtle
-                              : AppColors.ink,
+                              ? colors.inkSubtle
+                              : colors.ink,
                           decoration: task.isCompleted
                               ? TextDecoration.lineThrough
                               : null,
@@ -151,7 +135,7 @@ class _TaskCardState extends State<TaskCard> {
                               size: AppDimensions.iconXs,
                               color: task.isOverdue
                                   ? AppColors.error
-                                  : AppColors.inkSubtle,
+                                  : colors.inkSubtle,
                             ),
                             const SizedBox(width: AppDimensions.xxs),
                             Text(
@@ -159,7 +143,7 @@ class _TaskCardState extends State<TaskCard> {
                               style: AppTypography.monoSmStyle.copyWith(
                                 color: task.isOverdue
                                     ? AppColors.error
-                                    : AppColors.inkSubtle,
+                                    : colors.inkSubtle,
                               ),
                             ),
                           ],
@@ -168,10 +152,10 @@ class _TaskCardState extends State<TaskCard> {
                     ],
                   ),
                 ),
-                const AppIcon(
+                AppIcon(
                   AppIcons.chevronRight,
                   size: AppDimensions.iconMd,
-                  color: AppColors.inkSubtle,
+                  color: colors.inkSubtle,
                 ),
               ],
             ),
@@ -189,28 +173,29 @@ class _BranchChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.xs,
         vertical: AppDimensions.micro,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface2.withAlpha(128),
+        color: colors.surface2.withAlpha(128),
         borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const AppIcon(
+          AppIcon(
             AppIcons.gitBranch,
             size: AppDimensions.iconXs,
-            color: AppColors.inkMuted,
+            color: colors.inkMuted,
           ),
           const SizedBox(width: AppDimensions.xxs),
           Text(
             branchId,
             style: AppTypography.monoSmStyle.copyWith(
-              color: AppColors.inkSubtle,
+              color: colors.inkSubtle,
             ),
           ),
         ],

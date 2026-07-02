@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -89,27 +90,30 @@ class CountBadge extends StatelessWidget {
   const CountBadge({
     super.key,
     required this.label,
-    this.color = AppColors.inkMuted,
+    this.color,
   });
 
   final String label;
-  final Color color;
+
+  /// 文字色，默认取主题 inkMuted 以跟随浅/深模式。
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.xs,
         vertical: AppDimensions.micro,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface2,
+        color: colors.surface2,
         borderRadius: BorderRadius.circular(AppDimensions.radiusPill),
       ),
       child: Text(
         label,
         style: AppTypography.monoSmStyle.copyWith(
-          color: color,
+          color: color ?? colors.inkMuted,
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -74,7 +75,8 @@ class _AppButtonState extends State<AppButton> {
 
   double get _iconSize => _fontSize + 2;
 
-  Color _backgroundColor() {
+  Color _backgroundColor(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     final v = widget.variant;
     switch (v) {
       case ButtonVariant.primary:
@@ -82,10 +84,10 @@ class _AppButtonState extends State<AppButton> {
         if (_hovering) return AppColors.primaryHover;
         return AppColors.primary;
       case ButtonVariant.secondary:
-        if (_hovering) return AppColors.surface2;
-        return AppColors.surface1;
+        if (_hovering) return colors.surface2;
+        return colors.surface1;
       case ButtonVariant.tertiary:
-        return AppColors.canvas;
+        return colors.canvas;
       case ButtonVariant.danger:
         if (_hovering) return AppColors.errorLight;
         return AppColors.error;
@@ -95,23 +97,25 @@ class _AppButtonState extends State<AppButton> {
     }
   }
 
-  Color _foregroundColor() {
+  Color _foregroundColor(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     switch (widget.variant) {
       case ButtonVariant.primary:
       case ButtonVariant.danger:
         return AppColors.onPrimary;
       case ButtonVariant.secondary:
       case ButtonVariant.tertiary:
-        return AppColors.ink;
+        return colors.ink;
       case ButtonVariant.inverse:
         return AppColors.inverseInk;
     }
   }
 
-  Color? _borderColor() {
+  Color? _borderColor(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     switch (widget.variant) {
       case ButtonVariant.secondary:
-        return AppColors.hairline;
+        return colors.hairline;
       case ButtonVariant.primary:
       case ButtonVariant.tertiary:
       case ButtonVariant.danger:
@@ -120,16 +124,16 @@ class _AppButtonState extends State<AppButton> {
     }
   }
 
-  BorderSide? _borderSide() {
-    final c = _borderColor();
+  BorderSide? _borderSide(BuildContext context) {
+    final c = _borderColor(context);
     return c == null ? BorderSide.none : BorderSide(color: c);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null || widget.isLoading;
-    final bg = _backgroundColor();
-    final fg = _foregroundColor();
+    final bg = _backgroundColor(context);
+    final fg = _foregroundColor(context);
 
     return Semantics(
       button: true,
@@ -149,7 +153,7 @@ class _AppButtonState extends State<AppButton> {
           decoration: BoxDecoration(
             color: isDisabled ? bg.withAlpha(80) : bg,
             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            border: Border.fromBorderSide(_borderSide()),
+            border: Border.fromBorderSide(_borderSide(context)),
             boxShadow: _focused && !isDisabled
                 ? [
                     BoxShadow(

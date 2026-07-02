@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -44,12 +45,13 @@ class AppDialog<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Dialog(
-      backgroundColor: AppColors.surface1,
+      backgroundColor: colors.surface1,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-        side: const BorderSide(color: AppColors.hairlineStrong),
+        side: BorderSide(color: colors.hairlineStrong),
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
@@ -64,7 +66,7 @@ class AppDialog<T> extends StatelessWidget {
                 const SizedBox(height: AppDimensions.md),
                 DefaultTextStyle(
                   style: AppTypography.bodyStyle.copyWith(
-                    color: AppColors.inkMuted,
+                    color: colors.inkMuted,
                   ),
                   child: content!,
                 ),

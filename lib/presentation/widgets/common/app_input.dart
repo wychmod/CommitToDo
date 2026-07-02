@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -49,6 +50,7 @@ class AppInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     final hasError = errorText != null && errorText!.isNotEmpty;
 
     return Column(
@@ -59,7 +61,7 @@ class AppInput extends StatelessWidget {
           Text(
             label!,
             style: AppTypography.eyebrowStyle.copyWith(
-              color: AppColors.inkMuted,
+              color: colors.inkMuted,
             ),
           ),
           const SizedBox(height: AppDimensions.xs),
@@ -80,18 +82,19 @@ class AppInput extends StatelessWidget {
             keyboardType: keyboardType,
             maxLines: maxLines,
             style: AppTypography.bodyStyle.copyWith(
-              color: enabled ? AppColors.ink : AppColors.inkSubtle,
+              color: enabled ? colors.ink : colors.inkSubtle,
             ),
             cursorColor: AppColors.primary,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: AppTypography.bodyStyle.copyWith(
-                color: AppColors.inkSubtle,
+                color: colors.inkSubtle,
               ),
               prefixIcon: prefixIcon,
               suffixIcon: suffixIcon,
               filled: true,
-              fillColor: enabled ? AppColors.surface1 : AppColors.surface2,
+              fillColor:
+                  enabled ? colors.surface1 : colors.surface2,
               isDense: true,
               // 边框统一由 theme 的 inputDecorationTheme 提供基础态，
               // focus ring 由外层 _FocusRingField 包裹层绘制，避免双重覆盖。
@@ -163,9 +166,9 @@ class _FocusRingFieldState extends State<_FocusRingField> {
   void didUpdateWidget(covariant _FocusRingField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.focusNode != widget.focusNode) {
-      oldWidget.focusNode ?? _ownedFocusNode?.removeListener(
-        _handleFocusChange,
-      );
+      // focusNode 切换：先从旧 node 移除监听，再绑定新 node。
+      final oldNode = oldWidget.focusNode ?? _ownedFocusNode;
+      oldNode?.removeListener(_handleFocusChange);
       _ownedFocusNode?.dispose();
       _ownedFocusNode = null;
       _effective.addListener(_handleFocusChange);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -21,11 +22,12 @@ class BottomNavWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.canvas,
+      decoration: BoxDecoration(
+        color: colors.canvas,
         border: Border(
-          top: BorderSide(color: AppColors.hairline, width: 1),
+          top: BorderSide(color: colors.hairline, width: 1),
         ),
       ),
       child: SafeArea(
@@ -81,7 +83,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? AppColors.primary : AppColors.inkSubtle;
+    final colors = AppThemeColors.of(context);
+    final color = isActive ? AppColors.primary : colors.inkSubtle;
 
     return Semantics(
       button: true,

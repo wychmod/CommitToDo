@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 
@@ -66,9 +67,12 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = lifted ? AppColors.surface2 : AppColors.surface1;
-    final border = lifted ? AppColors.hairlineStrong : AppColors.hairline;
+    final colors = AppThemeColors.of(context);
+    final color = lifted ? colors.surface2 : colors.surface1;
+    final border = lifted ? colors.hairlineStrong : colors.hairline;
 
+    // 圆角矩形容器，先画统一 hairline 边框，再在顶部叠 1px edge highlight。
+    // 拆成两段避免 `Border` 四边在圆角交汇处与顶部高光混色断裂。
     final card = AnimatedContainer(
       duration: AppDimensions.animFast,
       curve: AppDimensions.easeOutQuart,
@@ -77,14 +81,30 @@ class AppCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(radius),
-        border: Border(
-          top: const BorderSide(color: AppColors.edgeHighlight, width: 1),
-          left: BorderSide(color: border, width: 1),
-          right: BorderSide(color: border, width: 1),
-          bottom: BorderSide(color: border, width: 1),
-        ),
+        border: Border.all(color: border, width: 1),
       ),
       child: child,
+    );
+
+    final withHighlight = Stack(
+      children: [
+        card,
+        Positioned(
+          left: 1,
+          right: 1,
+          top: 0,
+          height: 1,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.edgeHighlight,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(radius - 1),
+                topRight: Radius.circular(radius - 1),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
 
     if (onTap != null || onLongPress != null) {
@@ -94,11 +114,11 @@ class AppCard extends StatelessWidget {
           onTap: onTap,
           onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(radius),
-          child: card,
+          child: withHighlight,
         ),
       );
     }
 
-    return card;
+    return withHighlight;
   }
 }

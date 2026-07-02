@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -32,6 +33,7 @@ class HeatmapScreen extends ConsumerWidget {
   }
 
   Widget _buildContent(Map<DateTime, int> data) {
+    final colors = AppThemeColors.of(context);
     // 统计信息
     final totalCompleted = data.values.fold<int>(
       0,
@@ -96,7 +98,7 @@ class HeatmapScreen extends ConsumerWidget {
           Text(
             '过去一年',
             style: AppTypography.eyebrowStyle.copyWith(
-              color: AppColors.inkSubtle,
+              color: colors.inkSubtle,
             ),
           ),
           const SizedBox(height: AppDimensions.xs),
@@ -148,19 +150,15 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return SizedBox(
       width: width,
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.md),
         decoration: BoxDecoration(
-          color: AppColors.surface1,
+          color: colors.surface1,
           borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border(
-            top: const BorderSide(color: AppColors.edgeHighlight, width: 1),
-            left: const BorderSide(color: AppColors.hairline, width: 1),
-            right: const BorderSide(color: AppColors.hairline, width: 1),
-            bottom: const BorderSide(color: AppColors.hairline, width: 1),
-          ),
+          border: Border.all(color: colors.hairline, width: 1),
         ),
         child: Column(
           children: [
@@ -180,7 +178,7 @@ class _StatCard extends StatelessWidget {
             Text(
               label,
               style: AppTypography.captionStyle.copyWith(
-                color: AppColors.inkMuted,
+                color: colors.inkMuted,
               ),
             ),
           ],

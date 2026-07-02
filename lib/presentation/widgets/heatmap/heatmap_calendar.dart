@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -26,6 +27,7 @@ class HeatmapCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     final end = endDate ?? DateTime.now();
     final start = startDate ??
         end.subtract(
@@ -68,7 +70,7 @@ class HeatmapCalendar extends StatelessWidget {
                       child: Text(
                         label,
                         style: AppTypography.monoSmStyle.copyWith(
-                          color: AppColors.inkSubtle,
+                          color: colors.inkSubtle,
                         ),
                       ),
                     ),
@@ -123,7 +125,7 @@ class HeatmapCalendar extends StatelessWidget {
             Text(
               '少',
               style: AppTypography.captionStyle.copyWith(
-                color: AppColors.inkSubtle,
+                color: colors.inkSubtle,
               ),
             ),
             const SizedBox(width: AppDimensions.xs),
@@ -149,7 +151,7 @@ class HeatmapCalendar extends StatelessWidget {
             Text(
               '多',
               style: AppTypography.captionStyle.copyWith(
-                color: AppColors.inkSubtle,
+                color: colors.inkSubtle,
               ),
             ),
           ],

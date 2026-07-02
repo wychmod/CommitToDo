@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/extensions/date_extensions.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -40,6 +41,7 @@ class _RepositoryCardState extends State<RepositoryCard> {
   @override
   Widget build(BuildContext context) {
     final repo = widget.repository;
+    final colors = AppThemeColors.of(context);
     return Semantics(
       button: widget.onTap != null,
       label: '${repo.name}，${widget.taskCount} 个任务',
@@ -58,31 +60,13 @@ class _RepositoryCardState extends State<RepositoryCard> {
             curve: AppDimensions.easeOutQuart,
             padding: const EdgeInsets.all(AppDimensions.md),
             decoration: BoxDecoration(
-              color: _hovering ? AppColors.surface2 : AppColors.surface1,
+              color: _hovering ? colors.surface2 : colors.surface1,
               borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-              border: Border(
-                top: const BorderSide(
-                  color: AppColors.edgeHighlight,
-                  width: 1,
-                ),
-                left: BorderSide(
-                  color: _hovering
-                      ? AppColors.hairlineStrong
-                      : AppColors.hairline,
-                  width: 1,
-                ),
-                right: BorderSide(
-                  color: _hovering
-                      ? AppColors.hairlineStrong
-                      : AppColors.hairline,
-                  width: 1,
-                ),
-                bottom: BorderSide(
-                  color: _hovering
-                      ? AppColors.hairlineStrong
-                      : AppColors.hairline,
-                  width: 1,
-                ),
+              border: Border.all(
+                color: _hovering
+                    ? colors.hairlineStrong
+                    : colors.hairline,
+                width: 1,
               ),
             ),
             child: Column(
@@ -112,7 +96,7 @@ class _RepositoryCardState extends State<RepositoryCard> {
                       child: Text(
                         repo.name,
                         style: AppTypography.cardTitleStyle.copyWith(
-                          color: AppColors.ink,
+                          color: colors.ink,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -132,25 +116,25 @@ class _RepositoryCardState extends State<RepositoryCard> {
                       AppIcon(
                         AppIcons.gitBranch,
                         size: AppDimensions.iconXs,
-                        color: AppColors.inkSubtle,
+                        color: colors.inkSubtle,
                       ),
                       const SizedBox(width: AppDimensions.xxs),
                       Text(
                         widget.mainBranch!.name,
                         style: AppTypography.monoSmStyle.copyWith(
-                          color: AppColors.inkSubtle,
+                          color: colors.inkSubtle,
                         ),
                       ),
                       Text(
                         ' · ',
                         style: AppTypography.monoSmStyle.copyWith(
-                          color: AppColors.inkSubtle,
+                          color: colors.inkSubtle,
                         ),
                       ),
                       Text(
                         repo.updatedAt.relativeTime,
                         style: AppTypography.monoSmStyle.copyWith(
-                          color: AppColors.inkSubtle,
+                          color: colors.inkSubtle,
                         ),
                       ),
                     ],

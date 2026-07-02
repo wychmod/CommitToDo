@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_icons.dart';
+import '../../core/theme/app_theme_colors.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/dimensions.dart';
 import '../../core/theme/typography.dart';
@@ -116,6 +117,7 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= _desktopBreakpoint;
@@ -134,9 +136,9 @@ class AppScaffold extends StatelessWidget {
                     );
                   },
                 ),
-                const VerticalDivider(
+                VerticalDivider(
                   width: 1,
-                  color: AppColors.hairline,
+                  color: colors.hairline,
                 ),
                 Expanded(child: navigationShell),
               ],
@@ -182,9 +184,10 @@ class _SideNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Container(
       width: AppDimensions.sideNavWidth,
-      color: AppColors.canvas,
+      color: colors.canvas,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -194,7 +197,7 @@ class _SideNav extends StatelessWidget {
               child: Text(
                 'Commit',
                 style: AppTypography.headlineStyle.copyWith(
-                  color: AppColors.ink,
+                  color: colors.ink,
                 ),
               ),
             ),
@@ -227,7 +230,8 @@ class _SideNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? AppColors.primary : AppColors.inkMuted;
+    final colors = AppThemeColors.of(context);
+    final color = isActive ? AppColors.primary : colors.inkMuted;
     return Semantics(
       button: true,
       selected: isActive,

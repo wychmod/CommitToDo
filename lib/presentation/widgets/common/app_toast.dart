@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -113,6 +114,7 @@ class _ToastWidgetState extends State<_ToastWidget>
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     // 底部留出底部导航栏高度 + 间距，避免遮挡导航。
     final bottomInset = AppDimensions.navItemHeight +
         AppDimensions.lg +
@@ -133,7 +135,7 @@ class _ToastWidgetState extends State<_ToastWidget>
                 vertical: AppDimensions.sm,
               ),
               decoration: BoxDecoration(
-                color: AppColors.surface3,
+                color: colors.surface3,
                 borderRadius:
                     BorderRadius.circular(AppDimensions.radiusMd),
                 border: Border(
@@ -156,7 +158,7 @@ class _ToastWidgetState extends State<_ToastWidget>
                     child: Text(
                       widget.message,
                       style: AppTypography.bodySmStyle.copyWith(
-                        color: AppColors.ink,
+                        color: colors.ink,
                       ),
                     ),
                   ),

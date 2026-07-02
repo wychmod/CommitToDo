@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -65,6 +66,7 @@ class _TaskFormState extends State<TaskForm> {
   }
 
   Future<void> _selectDate() async {
+    final colors = AppThemeColors.of(context);
     final date = await showDatePicker(
       context: context,
       initialDate: _dueDate ?? DateTime.now(),
@@ -77,11 +79,11 @@ class _TaskFormState extends State<TaskForm> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.primary,
               onPrimary: AppColors.onPrimary,
-              surface: AppColors.surface1,
-              onSurface: AppColors.ink,
+              surface: colors.surface1,
+              onSurface: colors.ink,
             ),
           ),
           child: child!,
@@ -108,6 +110,7 @@ class _TaskFormState extends State<TaskForm> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Form(
       key: _formKey,
       child: Column(
@@ -137,7 +140,7 @@ class _TaskFormState extends State<TaskForm> {
           Text(
             '优先级',
             style: AppTypography.eyebrowStyle.copyWith(
-              color: AppColors.inkMuted,
+              color: colors.inkMuted,
             ),
           ),
           const SizedBox(height: AppDimensions.xs),
@@ -163,15 +166,15 @@ class _TaskFormState extends State<TaskForm> {
                       ),
                       decoration: BoxDecoration(
                         color: _priority == p
-                            ? AppColors.surface2
-                            : AppColors.canvas,
+                            ? colors.surface2
+                            : colors.canvas,
                         borderRadius: BorderRadius.circular(
                           AppDimensions.radiusPill,
                         ),
                         border: Border.all(
                           color: _priority == p
                               ? _priorityColor(p)
-                              : AppColors.hairline,
+                              : colors.hairline,
                         ),
                       ),
                       child: Row(
@@ -190,8 +193,8 @@ class _TaskFormState extends State<TaskForm> {
                             p.label,
                             style: AppTypography.monoSmStyle.copyWith(
                               color: _priority == p
-                                  ? AppColors.ink
-                                  : AppColors.inkSubtle,
+                                  ? colors.ink
+                                  : colors.inkSubtle,
                             ),
                           ),
                         ],
@@ -208,7 +211,7 @@ class _TaskFormState extends State<TaskForm> {
           Text(
             '截止日期（可选）',
             style: AppTypography.eyebrowStyle.copyWith(
-              color: AppColors.inkMuted,
+              color: colors.inkMuted,
             ),
           ),
           const SizedBox(height: AppDimensions.xs),
@@ -228,18 +231,18 @@ class _TaskFormState extends State<TaskForm> {
                   vertical: AppDimensions.sm + AppDimensions.micro,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surface1,
+                  color: colors.surface1,
                   borderRadius: BorderRadius.circular(
                     AppDimensions.radiusMd,
                   ),
-                  border: Border.all(color: AppColors.hairlineStrong),
+                  border: Border.all(color: colors.hairlineStrong),
                 ),
                 child: Row(
                   children: [
-                    const AppIcon(
+                    AppIcon(
                       AppIcons.calendar,
                       size: AppDimensions.iconSm,
-                      color: AppColors.inkSubtle,
+                      color: colors.inkSubtle,
                     ),
                     const SizedBox(width: AppDimensions.xs),
                     Text(
@@ -248,8 +251,8 @@ class _TaskFormState extends State<TaskForm> {
                           : '选择截止日期',
                       style: AppTypography.bodyStyle.copyWith(
                         color: _dueDate != null
-                            ? AppColors.ink
-                            : AppColors.inkSubtle,
+                            ? colors.ink
+                            : colors.inkSubtle,
                       ),
                     ),
                     const Spacer(),
@@ -262,12 +265,12 @@ class _TaskFormState extends State<TaskForm> {
                           borderRadius: BorderRadius.circular(
                             AppDimensions.radiusFull,
                           ),
-                          child: const Padding(
-                            padding: EdgeInsets.all(AppDimensions.xxs),
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppDimensions.xxs),
                             child: AppIcon(
                               AppIcons.close,
                               size: AppDimensions.iconSm,
-                              color: AppColors.inkSubtle,
+                              color: colors.inkSubtle,
                             ),
                           ),
                         ),

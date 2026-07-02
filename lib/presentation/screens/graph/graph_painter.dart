@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -38,11 +39,16 @@ class GitGraphPainter extends CustomPainter {
   GitGraphPainter({
     required this.nodes,
     required this.branchColors,
+    required this.themeColors,
     this.selectedNodeId,
   });
 
   final List<CommitNode> nodes;
   final Map<String, Color> branchColors;
+
+  /// 主题语义色（surface/ink/hairline），由调用方按浅/深模式传入，
+  /// 避免 painter 直接引用深色常量导致浅色模式配色错乱。
+  final AppThemeColors themeColors;
   final String? selectedNodeId;
 
   @override
@@ -72,7 +78,7 @@ class GitGraphPainter extends CustomPainter {
 
           final linePaint = Paint()
             ..color = branchColors[node.branchId] ??
-                AppColors.inkSubtle
+                themeColors.inkSubtle
             ..strokeWidth = 2
             ..style = PaintingStyle.stroke;
 
@@ -96,9 +102,9 @@ class GitGraphPainter extends CustomPainter {
       final nodeColor = isMerge
           ? AppColors.primary
           : branchColors[node.branchId] ??
-          AppColors.inkSubtle;
+          themeColors.inkSubtle;
       final nodePaint = Paint()..color = nodeColor;
-      final innerPaint = Paint()..color = AppColors.canvas;
+      final innerPaint = Paint()..color = themeColors.canvas;
 
       canvas.drawCircle(
         Offset(x, y),
@@ -114,7 +120,7 @@ class GitGraphPainter extends CustomPainter {
       // 选中状态：外圈描边
       if (node.id == selectedNodeId) {
         final borderPaint = Paint()
-          ..color = AppColors.ink
+          ..color = themeColors.ink
           ..strokeWidth = 2
           ..style = PaintingStyle.stroke;
         canvas.drawCircle(
@@ -128,7 +134,7 @@ class GitGraphPainter extends CustomPainter {
       final textSpan = TextSpan(
         text: _truncateMessage(node.message, 40),
         style: AppTypography.monoSmStyle.copyWith(
-          color: AppColors.inkMuted,
+          color: themeColors.inkMuted,
         ),
       );
       final textPainter = TextPainter(
@@ -158,6 +164,7 @@ class GitGraphPainter extends CustomPainter {
     covariant GitGraphPainter oldDelegate,
   ) {
     return nodes != oldDelegate.nodes ||
-        selectedNodeId != oldDelegate.selectedNodeId;
+        selectedNodeId != oldDelegate.selectedNodeId ||
+        themeColors != oldDelegate.themeColors;
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -37,14 +38,15 @@ class _HeatmapCellState extends State<HeatmapCell> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Tooltip(
       message: widget.count > 0 ? '${widget.count} 个任务完成' : '无数据',
       decoration: BoxDecoration(
-        color: AppColors.surface3,
+        color: colors.surface3,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXs),
       ),
       textStyle: AppTypography.captionStyle.copyWith(
-        color: AppColors.ink,
+        color: colors.ink,
       ),
       child: MouseRegion(
         onEnter: (_) => setState(() => _hovering = true),
@@ -58,8 +60,8 @@ class _HeatmapCellState extends State<HeatmapCell> {
             borderRadius: BorderRadius.circular(AppDimensions.radiusXs),
             border: Border.all(
               color: _hovering
-                  ? AppColors.hairlineStrong
-                  : AppColors.hairline,
+                  ? colors.hairlineStrong
+                  : colors.hairline,
               width: _hovering ? 1 : 0.5,
             ),
           ),

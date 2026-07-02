@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_theme_colors.dart';
 import 'colors.dart';
 import 'dimensions.dart';
 import 'typography.dart';
@@ -44,14 +45,22 @@ ThemeData buildLightTheme() {
       primary: AppColors.primary,
       onPrimary: AppColors.onPrimary,
       secondary: AppColors.primaryDark,
+      // surface ladder：surface=surface1，inverseSurface=surface2，
+      // 供组件层通过 `colorScheme.surface` 等取色以跟随浅/深模式。
       surface: _lightSurface1,
       onSurface: _lightInk,
+      inverseSurface: _lightSurface2,
+      onInverseSurface: _lightInkMuted,
+      tertiary: _lightSurface3,
       error: AppColors.error,
       onError: AppColors.onPrimary,
       outline: _lightHairlineStrong,
+      outlineVariant: _lightHairline,
+      scrim: AppColors.overlay,
     ),
     scaffoldBackgroundColor: _lightCanvas,
     textTheme: _buildTextTheme(_lightInk, _lightInkMuted, _lightInkSubtle),
+    extensions: const [AppThemeColors.light],
     cardTheme: CardThemeData(
       color: _lightSurface1,
       elevation: 0,
@@ -128,14 +137,22 @@ ThemeData buildDarkTheme() {
       primary: AppColors.primary,
       onPrimary: AppColors.onPrimary,
       secondary: AppColors.primaryLight,
+      // surface ladder：surface=surface1，inverseSurface=surface2，
+      // 供组件层通过 `colorScheme.surface` 等取色以跟随浅/深模式。
       surface: _darkSurface1,
       onSurface: _darkInk,
+      inverseSurface: AppColors.surface2,
+      onInverseSurface: AppColors.inkMuted,
+      tertiary: AppColors.surface3,
       error: AppColors.error,
       onError: AppColors.onPrimary,
       outline: _darkHairlineStrong,
+      outlineVariant: _darkHairline,
+      scrim: AppColors.overlay,
     ),
     scaffoldBackgroundColor: _darkCanvas,
     textTheme: _buildTextTheme(_darkInk, _darkInkMuted, _darkInkSubtle),
+    extensions: const [AppThemeColors.dark],
     cardTheme: CardThemeData(
       color: _darkSurface1,
       elevation: 0,

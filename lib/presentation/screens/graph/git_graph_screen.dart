@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -43,6 +44,7 @@ class _GitGraphScreenState
   }
 
   Widget _buildContent() {
+    final colors = AppThemeColors.of(context);
     // 示例节点数据
     final nodes = [
       CommitNode(
@@ -149,9 +151,9 @@ class _GitGraphScreenState
             child: Container(
               padding: const EdgeInsets.all(AppDimensions.lg),
               decoration: BoxDecoration(
-                color: AppColors.canvas,
+                color: colors.canvas,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-                border: Border.all(color: AppColors.hairline),
+                border: Border.all(color: colors.hairline),
               ),
               child: Stack(
                 children: [
@@ -173,6 +175,7 @@ class _GitGraphScreenState
                       painter: GitGraphPainter(
                         nodes: nodes,
                         branchColors: branchColors,
+                        themeColors: colors,
                         selectedNodeId: _selectedNodeId,
                       ),
                       size: Size(
@@ -218,6 +221,7 @@ class _GitGraphScreenState
     AppIconName icon,
     VoidCallback onPressed,
   ) {
+    final colors = AppThemeColors.of(context);
     return Semantics(
       button: true,
       label: switch (icon) {
@@ -233,14 +237,14 @@ class _GitGraphScreenState
           width: AppDimensions.graphControlSize,
           height: AppDimensions.graphControlSize,
           decoration: BoxDecoration(
-            color: AppColors.surface1,
+            color: colors.surface1,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.hairline),
+            border: Border.all(color: colors.hairline),
           ),
           child: AppIcon(
             icon,
             size: AppDimensions.iconSm,
-            color: AppColors.ink,
+            color: colors.ink,
           ),
         ),
       ),
@@ -248,12 +252,13 @@ class _GitGraphScreenState
   }
 
   Widget _buildZoomControls() {
+    final colors = AppThemeColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppDimensions.xs),
       decoration: BoxDecoration(
-        color: AppColors.surface1,
+        color: colors.surface1,
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-        border: Border.all(color: AppColors.hairline),
+        border: Border.all(color: colors.hairline),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -263,7 +268,7 @@ class _GitGraphScreenState
           Text(
             '${(_scale * 100).toInt()}%',
             style: AppTypography.monoSmStyle.copyWith(
-              color: AppColors.inkMuted,
+              color: colors.inkMuted,
             ),
           ),
           const SizedBox(width: AppDimensions.xs),
@@ -276,6 +281,7 @@ class _GitGraphScreenState
   }
 
   Widget _buildDetailPanel(List<CommitNode> nodes) {
+    final colors = AppThemeColors.of(context);
     final selected = nodes.firstWhere(
       (n) => n.id == _selectedNodeId,
       orElse: () => nodes.first,
@@ -283,10 +289,10 @@ class _GitGraphScreenState
 
     return Container(
       padding: const EdgeInsets.all(AppDimensions.md),
-      decoration: const BoxDecoration(
-        color: AppColors.surface1,
+      decoration: BoxDecoration(
+        color: colors.surface1,
         border: Border(
-          top: BorderSide(color: AppColors.hairline),
+          top: BorderSide(color: colors.hairline),
         ),
       ),
       child: Column(
@@ -297,14 +303,14 @@ class _GitGraphScreenState
             '提交: ${selected.message}',
             style: AppTypography.bodyStyle.copyWith(
               fontWeight: AppTypography.medium,
-              color: AppColors.ink,
+              color: colors.ink,
             ),
           ),
           const SizedBox(height: AppDimensions.xs),
           Text(
             '分支: ${selected.branchId}',
             style: AppTypography.monoSmStyle.copyWith(
-              color: AppColors.inkMuted,
+              color: colors.inkMuted,
             ),
           ),
         ],

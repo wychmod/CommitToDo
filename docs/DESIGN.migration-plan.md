@@ -26,61 +26,63 @@
 ### 1.1 `lib/core/theme/colors.dart`
 **现状问题**：命名是 `bgBase/bgElevated/bgOverlay` 等自定义名，与 DESIGN.md 的 `canvas/surface-1..4` ladder 不对齐；缺 `surface-4`、`hairline-strong/tertiary` 分级、`inverse-*`、`overlay`、`primary-gradient`、`on-primary`。
 
-**改动**：
-- [ ] 新增 ladder 语义常量（值复用现有，加别名映射 + 注释指向 DESIGN.md §2.2）：
+**改动**（已完成）：
+- [x] 新增 ladder 语义常量（值复用现有，加别名映射 + 注释指向 DESIGN.md §2.2）：
   - `canvas = bgBase (#0F172A)`
   - `surface1 = bgElevated (#1E293B)`
   - `surface2 = bgOverlay (#334155)`
   - `surface3 = #475569`（新增）
   - `surface4 = #64748B`（新增，复用 textTertiary 值）
-- [ ] hairline 三阶：`hairline = borderSubtle (#1E293B)`、`hairlineStrong = borderDefault (#334155)`、`hairlineTertiary = #475569`（新增）。
-- [ ] accent 补全：`onPrimary = #FFFFFF`、`primaryGradient = [Color(0xFF3B82F6), Color(0xFF8B5CF6)]`（LinearGradient stops）、`primaryFocus = #2563EB`（复用 primaryDark，加别名）。
-- [ ] inverse 系：`inverseCanvas = #FFFFFF`、`inverseInk = #0F172A`。
-- [ ] `overlay = Color(0x80000000)`（50% 黑）。
-- [ ] 顶部 edge-highlight：`edgeHighlight = Color(0x0FFFFFFF)`（6% 白）。
-- [ ] 保留旧别名（`bgBase` 等）标记 `@Deprecated`，指向新名，避免一次性全项目报错；后续阶段逐步迁移引用。
+- [x] hairline 三阶：`hairline = borderSubtle (#1E293B)`、`hairlineStrong = borderDefault (#334155)`、`hairlineTertiary = #475569`（新增）。
+- [x] accent 补全：`onPrimary = #FFFFFF`、`primaryGradient = [Color(0xFF3B82F6), Color(0xFF8B5CF6)]`（LinearGradient stops）、`primaryFocus = #2563EB`（复用 primaryDark，加别名）。
+- [x] inverse 系：`inverseCanvas = #FFFFFF`、`inverseInk = #0F172A`。
+- [x] `overlay = Color(0x80000000)`（50% 黑）。
+- [x] 顶部 edge-highlight：`edgeHighlight = Color(0x0FFFFFFF)`（6% 白）。
+- [x] 保留旧别名（`bgBase` 等）标记 `@Deprecated`，指向新名，避免一次性全项目报错；后续阶段逐步迁移引用。
 
 ### 1.2 `lib/core/theme/typography.dart`
 **现状问题**：仅 7 档字号、**完全无 letterSpacing**（DESIGN.md 的负字距是高级感核心）、无 display 层级、无 eyebrow/button/mono-sm 语义样式。
 
-**改动**：
-- [ ] 字号补齐到 13 档（DESIGN.md §3.2）：新增 `displayXl=48 / displayLg=40 / displayMd=32`，现有 `xxl=24→headline`、`lg=17→cardTitle/bodyLg`、`base=15→body`、`sm=13→bodySm/mono`、`xs=11→caption/monoSm`。新增 `button=14`、`subhead=20`、`eyebrow=12`。
-- [ ] **新增 letterSpacing 常量**（关键）：
+**改动**（已完成）：
+- [x] 字号补齐到 13 档（DESIGN.md §3.2）：新增 `displayXl=48 / displayLg=40 / displayMd=32`，现有 `xxl=24→headline`、`lg=17→cardTitle/bodyLg`、`base=15→body`、`sm=13→bodySm/mono`、`xs=11→caption/monoSm`。新增 `button=14`、`subhead=20`、`eyebrow=12`。
+- [x] **新增 letterSpacing 常量**（关键）：
   - `trackingDisplayXl = -2.0`、`trackingDisplayLg = -1.5`、`trackingDisplayMd = -1.0`、`trackingHeadline = -0.6`、`trackingCardTitle = -0.4`、`trackingBody = -0.05`、`trackingEyebrow = 0.4`。
-- [ ] 预设样式 `TextStyle` 全部补 `letterSpacing` 字段。
-- [ ] 新增预设：`displayXl/displayLg/displayMd`、`headline`、`subhead`、`bodyLg`、`button`、`eyebrow`、`monoSm`。
-- [ ] `mono` 样式明确用途注释：branch name / commit id / label。
-- [ ] 旧别名（`pageTitle/sectionTitle` 等）保留兼容，内部指向新预设。
+- [x] 预设样式 `TextStyle` 全部补 `letterSpacing` 字段（display/headline/cardTitle/subhead/bodyLg/body/eyebrow 走对应 tracking；bodySm/caption/button/mono/monoSm 显式 `letterSpacing: 0`，对齐「显式 > 隐式」）。
+- [x] 新增预设：`displayXl/displayLg/displayMd`、`headline`、`subhead`、`bodyLg`、`button`、`eyebrow`、`monoSm`。
+- [x] `mono` 样式明确用途注释：branch name / commit id / label。
+- [x] 旧别名（`pageTitle/sectionTitle` 等）保留兼容，内部指向新预设。
 
 ### 1.3 `lib/core/theme/dimensions.dart`
 **现状问题**：缺 `section(96)`、`radiusXxl(24)`、`pill` 与 `full` 语义混用、深色模式阴影策略未声明。
 
-**改动**：
-- [ ] 间距补 `section = 96.0`、补 `xxs=4`（当前 xxs=2 偏离 4px 网格，DESIGN.md base unit=4，需对齐——将 `xxs` 改 4，原 2 的引用改用内联或新增 `micro=2`）。
-- [ ] 圆角补 `radiusXxl = 24.0`；明确 `radiusPill = 999.0`（status/tab）、`radiusFull = 999.0`（头像/圆点）——值同但语义分离。
-- [ ] 阴影策略注释：深色模式禁用 `shadowMd/shadowLg`，改用 surface ladder + hairline；仅浅色模式用 `shadowSm`。新增 `edgeHighlight` Border 工厂方法（顶部 1px `edgeHighlight` 色）。
-- [ ] 触摸高度常量：`tapTargetMin = 44.0`、`navItemHeight = 48.0`、`ctaHeight = 40.0`。
+**改动**（已完成）：
+- [x] 间距补 `section = 96.0`；`xxs` 早已是 4（4px 网格），新增 `micro = 2.0` 承接小于 4 的场景（hairline gap、热力图 gap）。
+- [x] 圆角补 `radiusXxl = 24.0`；明确 `radiusPill = 999.0`（status/tab）、`radiusFull = 999.0`（头像/圆点）——值同但语义分离。
+- [x] 阴影策略注释：深色模式禁用 `shadowMd/shadowLg`，改用 surface ladder + hairline；仅浅色模式用 `shadowSm`。
+- [x] 触摸高度常量：`tapTargetMin = 44.0`、`navItemHeight = 48.0`、`ctaHeight = 40.0`。
+- [x] 顶部 edge highlight 工厂：`cardBorder({color})` 用统一 hairline 四边（顶部高光改由组件 `Stack` 单独叠 1px，避免圆角处混色断裂）；`topEdgeHighlightGradient()` 提供 gradient 备选。
 
 ### 1.4 `lib/core/theme/app_theme.dart`
 **现状问题**：light/dark 两个 ThemeData 内散落大量魔法色值（`#0F172A`/`#E2E8F0`/`#F8FAFC`/`#CBD5E1` 直写）；focus ring 缺 50% opacity；卡片圆角用 `radiusMd`(8) 而 DESIGN.md 规定 `radiusLg`(12)；无 surface ladder 注入。
 
-**改动**：
-- [ ] 所有魔法色值替换为 `AppColors.*` 引用（dark 用 canvas/surface1..3/hairline/ink；light 用 §9.4 浅色映射）。
-- [ ] `cardTheme` 圆角改 `radiusLg`(12)，边框改 `hairline`，elevation 0，补顶部 edge highlight（通过 `shape` + `border`）。
-- [ ] `inputDecorationTheme`：底 `surface1`、边框 `hairlineStrong`、focusedBorder 改 `2px primaryFocus`——但 Flutter `OutlineInputBorder` 不支持 opacity，需用 `focusedBorder` + `InputDecoration.focusColor` + `MaterialState` 层在 widget 侧补 50% outline（见阶段 2.4）。
-- [ ] `elevatedButtonTheme`：primary 底、`radiusMd`、padding 8/14、`button` 字号；新增 `OutlinedButtonTheme`（secondary 炭色）+ `TextButtonTheme`（tertiary）。
-- [ ] `bottomNavigationBarTheme`：选中 `primary`、未选中 `inkSubtle`、顶部 hairline 分隔（通过 `Border`）。
-- [ ] `appBarTheme`：底 `canvas`、底部 1px hairline、elevation 0、高度 56。
-- [ ] `dialogTheme`：底 `surface1`、`radiusXl`(16)、`hairlineStrong` 边。
-- [ ] `dividerTheme`：`hairline` 1px。
-- [ ] `textTheme` 全部用 `AppTypography.*` 预设（含 letterSpacing）。
+**改动**（已完成）：
+- [x] 所有魔法色值替换为 `AppColors.*` 引用（dark 用 canvas/surface1..3/hairline/ink；light 用 §9.4 浅色映射）。
+- [x] `cardTheme` 圆角改 `radiusLg`(12)，边框改 `hairline`，elevation 0。
+- [x] `inputDecorationTheme`：底 `surface1`、边框 `hairlineStrong`、focusedBorder 改 `2px primaryFocus@50%`（由 `_focusRingColor` 提供）。组件层 `AppInput` 不再覆盖 focusedBorder，统一交给 theme + 外层 `_FocusRingField` 包裹层。
+- [x] `elevatedButtonTheme`：primary 底、`radiusMd`、padding 8/14、`button` 字号；新增 `OutlinedButtonTheme`（secondary 炭色）+ `TextButtonTheme`（tertiary）。
+- [x] `bottomNavigationBarTheme`：选中 `primary`、未选中 `inkSubtle`、顶部 hairline 分隔（通过 `Border`）。
+- [x] `appBarTheme`：底 `canvas`、底部 1px hairline、elevation 0、高度 56。
+- [x] `dialogTheme`：底 `surface1`、`radiusXl`(16)、`hairlineStrong` 边。
+- [x] `dividerTheme`：`hairline` 1px。
+- [x] `textTheme` 全部用 `AppTypography.*` 预设（含 letterSpacing）。
+- [x] **新增 `AppThemeColors` ThemeExtension**（`lib/core/theme/app_theme_colors.dart`）：把 surface ladder / hairline / ink / edgeHighlight 作为主题扩展注入 light/dark ThemeData。组件层通过 `AppThemeColors.of(context)` 取色，确保浅色模式组件配色跟随主题，不再硬编码深色常量。
 
 ### 1.5 `lib/core/theme/app_icons.dart`
 **现状**：已有 Heroicons 枚举系统（`overview.md` 确认）。
-**改动**：
-- [ ] 审计图标尺寸是否对齐 DESIGN.md（图标默认 20、小图标 12-16、nav 图标 24）。
-- [ ] 补 Git 语义图标确认：`git-branch` / `git-commit` / `git-merge` / `git-fork`（若枚举缺）。
-- [ ] 无需大改，仅尺寸常量化到 `AppDimensions`。
+**改动**（已完成）：
+- [x] 审计图标尺寸是否对齐 DESIGN.md（图标默认 20、小图标 12-16、nav 图标 24）。
+- [x] 补 Git 语义图标确认：`git-branch` / `git-commit` / `git-merge` / `git-fork`（`git-fork` 复用 `fork`，枚举已含）。
+- [x] 无需大改，仅尺寸常量化到 `AppDimensions`。
 
 ---
 

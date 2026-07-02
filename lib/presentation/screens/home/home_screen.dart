@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -23,6 +24,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeNotifierProvider);
+    final colors = AppThemeColors.of(context);
 
     return Scaffold(
       appBar: AppBarWidget(
@@ -30,12 +32,12 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const AppIcon(AppIcons.search),
-            color: AppColors.inkMuted,
+            color: colors.inkMuted,
             onPressed: () => context.push('/search'),
           ),
           IconButton(
             icon: const AppIcon(AppIcons.add),
-            color: AppColors.inkMuted,
+            color: colors.inkMuted,
             onPressed: () => _showCreateDialog(context, ref),
           ),
         ],
@@ -70,7 +72,7 @@ class HomeScreen extends ConsumerWidget {
 
     return RefreshIndicator(
       color: AppColors.primary,
-      backgroundColor: AppColors.surface1,
+      backgroundColor: AppThemeColors.of(context).surface1,
       onRefresh: () => ref
           .read(homeNotifierProvider.notifier)
           .loadRepositories(),
@@ -184,6 +186,7 @@ class _HomeEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < AppDimensions.mobileBreakpoint;
@@ -198,11 +201,11 @@ class _HomeEmptyState extends StatelessWidget {
                 isMobile ? AppDimensions.xl : AppDimensions.xxl,
               ),
               decoration: BoxDecoration(
-                color: AppColors.canvas,
+                color: colors.canvas,
                 borderRadius: BorderRadius.circular(
                   AppDimensions.radiusXxl,
                 ),
-                border: AppDimensions.cardBorder(),
+                border: AppDimensions.cardBorder(color: colors.hairline),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -252,7 +255,7 @@ class _HomeEmptyState extends StatelessWidget {
                   Text(
                     '像管理代码一样管理你的任务',
                     style: AppTypography.subheadStyle.copyWith(
-                      color: AppColors.inkMuted,
+                      color: colors.inkMuted,
                     ),
                     textAlign: TextAlign.center,
                   ),

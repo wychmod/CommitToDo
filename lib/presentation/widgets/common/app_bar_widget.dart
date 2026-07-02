@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -32,12 +33,13 @@ class AppBarWidget extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return AppBar(
       leading: showBack
           ? IconButton(
               icon: const AppIcon(AppIcons.back),
               onPressed: () => context.pop(),
-              color: AppColors.inkMuted,
+              color: colors.inkMuted,
             )
           : null,
       title: Text(
@@ -49,12 +51,12 @@ class AppBarWidget extends StatelessWidget
       ),
       actions: actions,
       bottom: bottom,
-      backgroundColor: AppColors.canvas,
+      backgroundColor: colors.canvas,
       elevation: 0,
       scrolledUnderElevation: 0,
       toolbarHeight: 56,
-      shape: const Border(
-        bottom: BorderSide(color: AppColors.hairline, width: 1),
+      shape: Border(
+        bottom: BorderSide(color: colors.hairline, width: 1),
       ),
     );
   }

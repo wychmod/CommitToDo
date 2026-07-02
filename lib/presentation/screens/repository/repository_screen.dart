@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../providers/repository_providers.dart';
@@ -30,6 +31,7 @@ class RepositoryScreen extends ConsumerWidget {
     final repoState = ref.watch(
       repositoryNotifierProvider(repositoryId),
     );
+    final colors = AppThemeColors.of(context);
 
     return Scaffold(
       appBar: AppBarWidget(
@@ -38,7 +40,7 @@ class RepositoryScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const AppIcon(AppIcons.add),
-            color: AppColors.inkMuted,
+            color: colors.inkMuted,
             onPressed: () {
               context.push(
                 '/task-form?branchId=${repoState.activeBranchId ?? ''}',
@@ -56,6 +58,7 @@ class RepositoryScreen extends ConsumerWidget {
     WidgetRef ref,
     RepositoryScreenState state,
   ) {
+    final colors = AppThemeColors.of(context);
     if (state.isLoading && state.branches.isEmpty) {
       return const LoadingWidget(message: '加载中...');
     }
@@ -99,16 +102,16 @@ class RepositoryScreen extends ConsumerWidget {
                       AppDimensions.xs - AppDimensions.micro,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.surface1,
+                      color: colors.surface1,
                       borderRadius: BorderRadius.circular(
                         AppDimensions.radiusSm,
                       ),
-                      border: Border.all(color: AppColors.hairlineStrong),
+                      border: Border.all(color: colors.hairlineStrong),
                     ),
-                    child: const AppIcon(
+                    child: AppIcon(
                       AppIcons.add,
                       size: AppDimensions.iconSm,
-                      color: AppColors.inkMuted,
+                      color: colors.inkMuted,
                     ),
                   ),
                 ),
@@ -121,7 +124,7 @@ class RepositoryScreen extends ConsumerWidget {
         Expanded(
           child: RefreshIndicator(
             color: AppColors.primary,
-            backgroundColor: AppColors.surface1,
+            backgroundColor: colors.surface1,
             onRefresh: () => ref
                 .read(
                   repositoryNotifierProvider(
@@ -208,10 +211,11 @@ class RepositoryScreen extends ConsumerWidget {
     String taskId,
     String taskTitle,
   ) {
+    final colors = AppThemeColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface1,
-      shape: const RoundedRectangleBorder(
+      backgroundColor: colors.surface1,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimensions.radiusXl),
         ),

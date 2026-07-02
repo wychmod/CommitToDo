@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di/injection_container.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -24,6 +25,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
+    final colors = AppThemeColors.of(context);
 
     return Scaffold(
       appBar: const AppBarWidget(title: '设置'),
@@ -47,150 +49,165 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: AppDimensions.xl),
 
             // 外观设置
-            _buildSectionTitle('外观'),
+            _buildSectionTitle('外观', colors),
             const SizedBox(height: AppDimensions.xs),
-            _buildSettingsGroup([
-              _SettingsItem(
-                icon: AppIcons.darkMode,
-                title: '深色模式',
-                trailing: Switch(
-                  value: settings.isDarkMode,
-                  onChanged: (value) => ref
-                      .read(settingsProvider.notifier)
-                      .setDarkMode(value),
-                  activeColor: AppColors.primary,
+            _buildSettingsGroup(
+              [
+                _SettingsItem(
+                  icon: AppIcons.darkMode,
+                  title: '深色模式',
+                  trailing: Switch(
+                    value: settings.isDarkMode,
+                    onChanged: (value) => ref
+                        .read(settingsProvider.notifier)
+                        .setDarkMode(value),
+                    activeColor: AppColors.primary,
+                  ),
                 ),
-              ),
-            ]),
+              ],
+              colors,
+            ),
             const SizedBox(height: AppDimensions.xl),
 
             // 数据设置
-            _buildSectionTitle('数据'),
+            _buildSectionTitle('数据', colors),
             const SizedBox(height: AppDimensions.xs),
-            _buildSettingsGroup([
-              _SettingsItem(
-                icon: AppIcons.upload,
-                title: '导出数据',
-                onTap: () => _showExportSheet(context),
-              ),
-              _SettingsItem(
-                icon: AppIcons.download,
-                title: '导入数据',
-                onTap: () => _showComingSoon(
-                  context,
+            _buildSettingsGroup(
+              [
+                _SettingsItem(
+                  icon: AppIcons.upload,
+                  title: '导出数据',
+                  onTap: () => _showExportSheet(context),
+                ),
+                _SettingsItem(
+                  icon: AppIcons.download,
                   title: '导入数据',
-                  message: '导入会支持 JSON 备份文件，'
-                      '并在写入前做结构校验与重复数据确认。',
+                  onTap: () => _showComingSoon(
+                    context,
+                    title: '导入数据',
+                    message: '导入会支持 JSON 备份文件，'
+                        '并在写入前做结构校验与重复数据确认。',
+                  ),
                 ),
-              ),
-              _SettingsItem(
-                icon: AppIcons.deleteSweep,
-                title: '清除已删除项目',
-                onTap: () => _showComingSoon(
-                  context,
+                _SettingsItem(
+                  icon: AppIcons.deleteSweep,
                   title: '清除已删除项目',
-                  message: '清理入口会在数据层补齐永久删除用例后启用，'
-                      '避免绕过仓库与分支的级联规则。',
+                  onTap: () => _showComingSoon(
+                    context,
+                    title: '清除已删除项目',
+                    message: '清理入口会在数据层补齐永久删除用例后启用，'
+                        '避免绕过仓库与分支的级联规则。',
+                  ),
                 ),
-              ),
-            ]),
+              ],
+              colors,
+            ),
             const SizedBox(height: AppDimensions.xl),
 
             // 通知设置
-            _buildSectionTitle('通知'),
+            _buildSectionTitle('通知', colors),
             const SizedBox(height: AppDimensions.xs),
-            _buildSettingsGroup([
-              _SettingsItem(
-                icon: AppIcons.notifications,
-                title: '任务提醒',
-                trailing: Switch(
-                  value: settings.enableNotifications,
-                  onChanged: (value) => ref
-                      .read(settingsProvider.notifier)
-                      .setNotifications(value),
-                  activeColor: AppColors.primary,
-                ),
-              ),
-              _SettingsItem(
-                icon: AppIcons.timer,
-                title: '提前提醒时间',
-                trailing: Text(
-                  '${settings.reminderHours} 小时',
-                  style: AppTypography.monoSmStyle.copyWith(
-                    color: AppColors.inkMuted,
+            _buildSettingsGroup(
+              [
+                _SettingsItem(
+                  icon: AppIcons.notifications,
+                  title: '任务提醒',
+                  trailing: Switch(
+                    value: settings.enableNotifications,
+                    onChanged: (value) => ref
+                        .read(settingsProvider.notifier)
+                        .setNotifications(value),
+                    activeColor: AppColors.primary,
                   ),
                 ),
-                onTap: () {
-                  _showReminderTimePicker(context, ref);
-                },
-              ),
-            ]),
+                _SettingsItem(
+                  icon: AppIcons.timer,
+                  title: '提前提醒时间',
+                  trailing: Text(
+                    '${settings.reminderHours} 小时',
+                    style: AppTypography.monoSmStyle.copyWith(
+                      color: colors.inkMuted,
+                    ),
+                  ),
+                  onTap: () {
+                    _showReminderTimePicker(context, ref);
+                  },
+                ),
+              ],
+              colors,
+            ),
             const SizedBox(height: AppDimensions.xl),
 
             // 关于
-            _buildSectionTitle('关于'),
+            _buildSectionTitle('关于', colors),
             const SizedBox(height: AppDimensions.xs),
-            _buildSettingsGroup([
-              _SettingsItem(
-                icon: AppIcons.info,
-                title: '版本',
-                trailing: Text(
-                  'v1.0.0',
-                  style: AppTypography.monoSmStyle.copyWith(
-                    color: AppColors.inkMuted,
+            _buildSettingsGroup(
+              [
+                _SettingsItem(
+                  icon: AppIcons.info,
+                  title: '版本',
+                  trailing: Text(
+                    'v1.0.0',
+                    style: AppTypography.monoSmStyle.copyWith(
+                      color: colors.inkMuted,
+                    ),
                   ),
                 ),
-              ),
-              _SettingsItem(
-                icon: AppIcons.description,
-                title: '开源协议',
-                onTap: () => _showInfoDialog(
-                  context,
+                _SettingsItem(
+                  icon: AppIcons.description,
                   title: '开源协议',
-                  message: 'Commit 目前以内部项目方式维护。'
-                      '正式发布时会在这里展示完整的许可证文本。',
+                  onTap: () => _showInfoDialog(
+                    context,
+                    title: '开源协议',
+                    message: 'Commit 目前以内部项目方式维护。'
+                        '正式发布时会在这里展示完整的许可证文本。',
+                  ),
                 ),
-              ),
-              _SettingsItem(
-                icon: AppIcons.feedback,
-                title: '反馈建议',
-                onTap: () => _showInfoDialog(
-                  context,
+                _SettingsItem(
+                  icon: AppIcons.feedback,
                   title: '反馈建议',
-                  message: '可以先通过项目仓库或团队沟通渠道反馈问题。'
-                      '后续版本会接入专用反馈入口。',
+                  onTap: () => _showInfoDialog(
+                    context,
+                    title: '反馈建议',
+                    message: '可以先通过项目仓库或团队沟通渠道反馈问题。'
+                        '后续版本会接入专用反馈入口。',
+                  ),
                 ),
-              ),
-            ]),
+              ],
+              colors,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, AppThemeColors colors) {
     return Text(
       title,
       style: AppTypography.eyebrowStyle.copyWith(
-        color: AppColors.inkSubtle,
+        color: colors.inkSubtle,
       ),
     );
   }
 
-  Widget _buildSettingsGroup(List<Widget> items) {
+  Widget _buildSettingsGroup(
+    List<Widget> items,
+    AppThemeColors colors,
+  ) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface1,
+        color: colors.surface1,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        border: Border.all(color: AppColors.hairline),
+        border: Border.all(color: colors.hairline),
       ),
       child: Column(
         children: [
           for (var i = 0; i < items.length; i++) ...[
             items[i],
             if (i < items.length - 1)
-              const Divider(
-                color: AppColors.hairline,
+              Divider(
+                color: colors.hairline,
                 height: 1,
                 thickness: 1,
               ),
@@ -201,10 +218,11 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showExportSheet(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface1,
-      shape: const RoundedRectangleBorder(
+      backgroundColor: colors.surface1,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimensions.radiusXl),
         ),
@@ -251,6 +269,7 @@ class SettingsScreen extends ConsumerWidget {
     String title,
     String content,
   ) {
+    final colors = AppThemeColors.of(context);
     AppDialog.show<void>(
       context,
       title: title,
@@ -260,7 +279,7 @@ class SettingsScreen extends ConsumerWidget {
           child: SelectableText(
             content,
             style: AppTypography.monoSmStyle.copyWith(
-              color: AppColors.inkMuted,
+              color: colors.inkMuted,
             ),
           ),
         ),
@@ -313,10 +332,11 @@ class SettingsScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) {
+    final colors = AppThemeColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface1,
-      shape: const RoundedRectangleBorder(
+      backgroundColor: colors.surface1,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimensions.radiusXl),
         ),
@@ -330,7 +350,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: Text(
                   '$hours 小时',
                   style: AppTypography.bodyStyle.copyWith(
-                    color: AppColors.ink,
+                    color: colors.ink,
                   ),
                 ),
                 onTap: () {
@@ -359,6 +379,7 @@ class _ExportTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return ListTile(
       leading: const AppIcon(
         AppIcons.upload,
@@ -366,7 +387,7 @@ class _ExportTile extends StatelessWidget {
       ),
       title: Text(
         label,
-        style: AppTypography.bodyStyle.copyWith(color: AppColors.ink),
+        style: AppTypography.bodyStyle.copyWith(color: colors.ink),
       ),
       onTap: () async {
         Navigator.pop(context);
@@ -441,6 +462,7 @@ class _SettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Semantics(
       button: onTap != null,
       label: title,
@@ -456,23 +478,23 @@ class _SettingsItem extends StatelessWidget {
               AppIcon(
                 icon,
                 size: AppDimensions.iconMd,
-                color: AppColors.inkMuted,
+                color: colors.inkMuted,
               ),
               const SizedBox(width: AppDimensions.md),
               Expanded(
                 child: Text(
                   title,
                   style: AppTypography.bodyStyle.copyWith(
-                    color: AppColors.ink,
+                    color: colors.ink,
                   ),
                 ),
               ),
               if (trailing != null) trailing!,
               if (onTap != null && trailing == null)
-                const AppIcon(
+                AppIcon(
                   AppIcons.chevronRight,
                   size: AppDimensions.iconMd,
-                  color: AppColors.inkSubtle,
+                  color: colors.inkSubtle,
                 ),
             ],
           ),

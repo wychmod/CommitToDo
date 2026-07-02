@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/extensions/date_extensions.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -30,6 +31,7 @@ class TaskDetailScreen extends ConsumerWidget {
     final taskState = ref.watch(
       taskNotifierProvider(taskId),
     );
+    final colors = AppThemeColors.of(context);
 
     return Scaffold(
       appBar: AppBarWidget(
@@ -38,14 +40,14 @@ class TaskDetailScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const AppIcon(AppIcons.edit),
-            color: AppColors.inkMuted,
+            color: colors.inkMuted,
             onPressed: () {
               context.push('/task-form?taskId=$taskId');
             },
           ),
           IconButton(
             icon: const AppIcon(AppIcons.more),
-            color: AppColors.inkMuted,
+            color: colors.inkMuted,
             onPressed: () =>
                 _showMoreActions(context, ref),
           ),
@@ -74,7 +76,7 @@ class TaskDetailScreen extends ConsumerWidget {
         child: Text(
           '任务不存在',
           style: AppTypography.bodyStyle.copyWith(
-            color: AppColors.inkMuted,
+            color: AppThemeColors.of(context).inkMuted,
           ),
         ),
       );
@@ -82,6 +84,7 @@ class TaskDetailScreen extends ConsumerWidget {
 
     final task = state.task!;
     final commits = state.commits;
+    final colors = AppThemeColors.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppDimensions.md),
@@ -93,7 +96,7 @@ class TaskDetailScreen extends ConsumerWidget {
             task.title,
             style: AppTypography.headlineStyle.copyWith(
               fontWeight: AppTypography.medium,
-              color: AppColors.ink,
+              color: colors.ink,
             ),
           ),
           const SizedBox(height: AppDimensions.md),
@@ -121,7 +124,7 @@ class TaskDetailScreen extends ConsumerWidget {
                   label: task.dueDate!.relativeTime,
                   color: task.isOverdue
                       ? AppColors.error
-                      : AppColors.inkSubtle,
+                      : colors.inkSubtle,
                   variant: BadgeVariant.outlined,
                 ),
             ],
@@ -131,12 +134,12 @@ class TaskDetailScreen extends ConsumerWidget {
           if (task.description != null &&
               task.description!.isNotEmpty) ...[
             const SizedBox(height: AppDimensions.xl),
-            _buildSectionTitle('描述'),
+            _buildSectionTitle('描述', colors),
             const SizedBox(height: AppDimensions.xs),
             Text(
               task.description!,
               style: AppTypography.bodyStyle.copyWith(
-                color: AppColors.inkMuted,
+                color: colors.inkMuted,
                 height: 1.6,
               ),
             ),
@@ -144,46 +147,51 @@ class TaskDetailScreen extends ConsumerWidget {
 
           // 信息区域
           const SizedBox(height: AppDimensions.xl),
-          _buildSectionTitle('信息'),
+          _buildSectionTitle('信息', colors),
           const SizedBox(height: AppDimensions.xs),
-          _buildInfoRow('创建时间', task.createdAt.toDateTimeStr),
-          _buildInfoRow('更新时间', task.updatedAt.toDateTimeStr),
+          _buildInfoRow('创建时间', task.createdAt.toDateTimeStr, colors),
+          _buildInfoRow('更新时间', task.updatedAt.toDateTimeStr, colors),
           if (task.completedAt != null)
             _buildInfoRow(
               '完成时间',
               task.completedAt!.toDateTimeStr,
+              colors,
             ),
 
           // 提交历史
           if (commits.isNotEmpty) ...[
             const SizedBox(height: AppDimensions.xl),
-            _buildSectionTitle('提交历史 (${commits.length})'),
+            _buildSectionTitle('提交历史 (${commits.length})', colors),
             const SizedBox(height: AppDimensions.xs),
-            _buildCommitTimeline(commits),
+            _buildCommitTimeline(commits, colors),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, AppThemeColors colors) {
     return Row(
       children: [
         Text(
           title,
           style: AppTypography.eyebrowStyle.copyWith(
-            color: AppColors.inkSubtle,
+            color: colors.inkSubtle,
           ),
         ),
         const SizedBox(width: AppDimensions.sm),
-        const Expanded(
-          child: Divider(color: AppColors.hairline),
+        Expanded(
+          child: Divider(color: colors.hairline),
         ),
       ],
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    AppThemeColors colors,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(
         bottom: AppDimensions.xs,
@@ -195,7 +203,7 @@ class TaskDetailScreen extends ConsumerWidget {
             child: Text(
               label,
               style: AppTypography.monoSmStyle.copyWith(
-                color: AppColors.inkSubtle,
+                color: colors.inkSubtle,
               ),
             ),
           ),
@@ -203,7 +211,7 @@ class TaskDetailScreen extends ConsumerWidget {
             child: Text(
               value,
               style: AppTypography.monoSmStyle.copyWith(
-                color: AppColors.inkMuted,
+                color: colors.inkMuted,
                 fontWeight: AppTypography.regular,
               ),
             ),
@@ -215,10 +223,12 @@ class TaskDetailScreen extends ConsumerWidget {
 
   Widget _buildCommitTimeline(
     List<entity.Commit> commits,
+    AppThemeColors colors,
   ) {
     return Column(
       children: [
-        for (final commit in commits) _CommitRow(commit: commit),
+        for (final commit in commits)
+          _CommitRow(commit: commit, colors: colors),
       ],
     );
   }
@@ -229,13 +239,14 @@ class TaskDetailScreen extends ConsumerWidget {
     TaskDetailState state,
   ) {
     if (state.task == null) return null;
+    final colors = AppThemeColors.of(context);
 
     return Container(
       padding: const EdgeInsets.all(AppDimensions.md),
-      decoration: const BoxDecoration(
-        color: AppColors.canvas,
+      decoration: BoxDecoration(
+        color: colors.canvas,
         border: Border(
-          top: BorderSide(color: AppColors.hairline),
+          top: BorderSide(color: colors.hairline),
         ),
       ),
       child: SafeArea(
@@ -286,10 +297,11 @@ class TaskDetailScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) {
+    final colors = AppThemeColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface1,
-      shape: const RoundedRectangleBorder(
+      backgroundColor: colors.surface1,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimensions.radiusXl),
         ),
@@ -376,9 +388,10 @@ class TaskDetailScreen extends ConsumerWidget {
 }
 
 class _CommitRow extends StatelessWidget {
-  const _CommitRow({required this.commit});
+  const _CommitRow({required this.commit, required this.colors});
 
   final entity.Commit commit;
+  final AppThemeColors colors;
 
   @override
   Widget build(BuildContext context) {
@@ -388,10 +401,10 @@ class _CommitRow extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.md),
-      decoration: const BoxDecoration(
-        color: AppColors.canvas,
+      decoration: BoxDecoration(
+        color: colors.canvas,
         border: Border(
-          bottom: BorderSide(color: AppColors.hairline),
+          bottom: BorderSide(color: colors.hairline),
         ),
       ),
       child: Row(
@@ -415,7 +428,7 @@ class _CommitRow extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.bodyStyle.copyWith(
-                color: AppColors.ink,
+                color: colors.ink,
               ),
             ),
           ),
@@ -423,7 +436,7 @@ class _CommitRow extends StatelessWidget {
           Text(
             commit.createdAt.relativeTime,
             style: AppTypography.monoSmStyle.copyWith(
-              color: AppColors.inkSubtle,
+              color: colors.inkSubtle,
               fontWeight: AppTypography.regular,
             ),
           ),

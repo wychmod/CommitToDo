@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -42,6 +43,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchNotifierProvider);
+    final colors = AppThemeColors.of(context);
 
     return Scaffold(
       appBar: AppBarWidget(
@@ -53,7 +55,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: Text(
               '取消',
               style: AppTypography.buttonStyle.copyWith(
-                color: AppColors.inkMuted,
+                color: colors.inkMuted,
               ),
             ),
           ),
@@ -67,9 +69,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               controller: _searchController,
               focusNode: _focusNode,
               hint: '搜索任务...',
-              prefixIcon: const AppIcon(
+              prefixIcon: AppIcon(
                 AppIcons.search,
-                color: AppColors.inkSubtle,
+                color: colors.inkSubtle,
                 size: AppDimensions.iconMd,
               ),
               onChanged: (value) {
@@ -128,7 +130,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         AppDimensions.md,
       ),
       itemCount: history.length + 1,
-      separatorBuilder: (_, __) => const Divider(color: AppColors.hairline),
+      separatorBuilder: (_, __) =>
+          Divider(color: AppThemeColors.of(context).hairline),
       itemBuilder: (context, index) {
         if (index == 0) {
           return _HistoryHeader(onClear: () {
@@ -162,6 +165,7 @@ class _HistoryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimensions.xs),
       child: Row(
@@ -169,7 +173,7 @@ class _HistoryHeader extends StatelessWidget {
           Text(
             '最近搜索',
             style: AppTypography.eyebrowStyle.copyWith(
-              color: AppColors.inkSubtle,
+              color: colors.inkSubtle,
             ),
           ),
           const Spacer(),
@@ -210,6 +214,7 @@ class _HistoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Semantics(
       button: true,
       label: '搜索 $term',
@@ -230,14 +235,14 @@ class _HistoryRow extends StatelessWidget {
                 child: Text(
                   term,
                   style: AppTypography.bodyStyle.copyWith(
-                    color: AppColors.ink,
+                    color: colors.ink,
                   ),
                 ),
               ),
               Text(
                 'history',
                 style: AppTypography.monoSmStyle.copyWith(
-                  color: AppColors.inkSubtle,
+                  color: colors.inkSubtle,
                 ),
               ),
             ],
@@ -253,13 +258,14 @@ class _SearchIdleState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDimensions.xxl),
         child: Text(
           '输入关键词搜索任务',
           style: AppTypography.bodyStyle.copyWith(
-            color: AppColors.inkSubtle,
+            color: colors.inkSubtle,
           ),
         ),
       ),
@@ -274,29 +280,30 @@ class _SearchEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDimensions.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const AppIcon(
+            AppIcon(
               AppIcons.search,
               size: AppDimensions.xxl,
-              color: AppColors.inkSubtle,
+              color: colors.inkSubtle,
             ),
             const SizedBox(height: AppDimensions.md),
             Text(
               '未找到匹配的任务',
               style: AppTypography.cardTitleStyle.copyWith(
-                color: AppColors.ink,
+                color: colors.ink,
               ),
             ),
             const SizedBox(height: AppDimensions.xs),
             Text(
               query,
               style: AppTypography.monoSmStyle.copyWith(
-                color: AppColors.inkSubtle,
+                color: colors.inkSubtle,
               ),
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
@@ -25,12 +26,13 @@ class BranchList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     if (branches.isEmpty) {
       return Center(
         child: Text(
           '暂无分支',
           style: AppTypography.bodySmStyle.copyWith(
-            color: AppColors.inkSubtle,
+            color: colors.inkSubtle,
           ),
         ),
       );
