@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 
@@ -84,7 +83,7 @@ class AppInput extends StatelessWidget {
             style: AppTypography.bodyStyle.copyWith(
               color: enabled ? colors.ink : colors.inkSubtle,
             ),
-            cursorColor: AppColors.primary,
+            cursorColor: colors.primary,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: AppTypography.bodyStyle.copyWith(
@@ -106,7 +105,7 @@ class AppInput extends StatelessWidget {
                 minHeight: AppDimensions.tapTargetMin,
               ),
               errorStyle: AppTypography.captionStyle.copyWith(
-                color: AppColors.error,
+                color: colors.error,
               ),
               errorText: null,
             ),
@@ -117,7 +116,7 @@ class AppInput extends StatelessWidget {
           Text(
             errorText!,
             style: AppTypography.captionStyle.copyWith(
-              color: AppColors.error,
+              color: colors.error,
             ),
           ),
         ],
@@ -193,6 +192,7 @@ class _FocusRingFieldState extends State<_FocusRingField> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return AnimatedContainer(
       duration: AppDimensions.animFast,
       curve: AppDimensions.easeOutQuart,
@@ -200,7 +200,7 @@ class _FocusRingFieldState extends State<_FocusRingField> {
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd + 2),
         border: _focused && !widget.hasError
             ? Border.all(
-                color: AppColors.primaryFocus.withAlpha(128),
+                color: colors.primaryFocus.withAlpha(128),
                 width: 2,
               )
             : null,

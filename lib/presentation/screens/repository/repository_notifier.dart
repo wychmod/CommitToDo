@@ -87,6 +87,7 @@ class RepositoryNotifier
   Future<void> switchBranch(String branchId) async {
     state = state.copyWith(
       activeBranchId: branchId,
+      selectedTaskId: null,
       isLoading: true,
     );
     try {
@@ -142,6 +143,10 @@ class RepositoryNotifier
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }
+  }
+
+  void selectTask(String? taskId) {
+    state = state.copyWith(selectedTaskId: taskId);
   }
 
   Future<void> createBranch({

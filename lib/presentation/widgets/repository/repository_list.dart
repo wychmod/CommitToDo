@@ -2,7 +2,6 @@
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../../domain/entities/branch.dart';
@@ -87,8 +86,8 @@ class _EmptyRepositoryState extends StatelessWidget {
               width: AppDimensions.xxl + AppDimensions.xl,
               height: AppDimensions.xxl + AppDimensions.xl,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: AppColors.primaryGradient,
+                gradient: LinearGradient(
+                  colors: colors.primaryGradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -96,23 +95,23 @@ class _EmptyRepositoryState extends StatelessWidget {
                   AppDimensions.radiusXl,
                 ),
               ),
-              child: const Center(
+              child: Center(
                 child: AppIcon(
                   AppIcons.repositoryOpen,
                   size: AppDimensions.repositoryIconBox,
-                  color: AppColors.onPrimary,
+                  color: colors.onPrimary,
                 ),
               ),
             ),
             const SizedBox(height: AppDimensions.lg),
             ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: AppColors.primaryGradient,
+              shaderCallback: (bounds) => LinearGradient(
+                colors: colors.primaryGradient,
               ).createShader(bounds),
               child: Text(
                 '开始你的第一个仓库',
                 style: AppTypography.displayMdStyle.copyWith(
-                  color: AppColors.onPrimary,
+                  color: colors.onPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),

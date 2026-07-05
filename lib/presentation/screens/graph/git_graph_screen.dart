@@ -8,6 +8,7 @@ import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../widgets/common/app_bar_widget.dart';
+import '../../widgets/common/app_card.dart';
 import 'graph_painter.dart';
 
 /// Git Graph 页
@@ -45,6 +46,8 @@ class _GitGraphScreenState
 
   Widget _buildContent() {
     final colors = AppThemeColors.of(context);
+    final isMobile = MediaQuery.sizeOf(context).width <
+        AppDimensions.mobileBreakpoint;
     // 示例节点数据
     final nodes = [
       CommitNode(
@@ -111,94 +114,116 @@ class _GitGraphScreenState
     );
 
     final branchColors = {
-      'main': AppColors.branchColors[0],
-      'feature': AppColors.branchColors[1],
+      'main': AppColors.branchColor(0),
+      'feature': AppColors.branchColor(1),
     };
 
-    return Column(
-      children: [
-        // 展示面标题
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppDimensions.md,
-            AppDimensions.md,
-            AppDimensions.md,
-            AppDimensions.sm,
-          ),
-          child: Row(
-            children: [
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: AppColors.primaryGradient,
-                ).createShader(bounds),
-                child: Text(
-                  'Git Graph',
-                  style: AppTypography.displayMdStyle.copyWith(
-                    color: AppColors.onPrimary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+    final boundaryMargin = EdgeInsets.all(
+      (isMobile ? AppDimensions.xxl : AppDimensions.section) +
+          AppDimensions.xxs,
+    );
 
-        // Graph 区域
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.md,
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(AppDimensions.lg),
-              decoration: BoxDecoration(
-                color: colors.canvas,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-                border: Border.all(color: colors.hairline),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: AppDimensions.contentMaxWidth,
+        ),
+        child: Column(
+          children: [
+            // 展示面标题
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.md,
+                AppDimensions.md,
+                AppDimensions.md,
+                AppDimensions.sm,
               ),
-              child: Stack(
+              child: Row(
                 children: [
-                  InteractiveViewer(
-                    transformationController: _transformationController,
-                    boundaryMargin: const EdgeInsets.all(
-                      AppDimensions.section + AppDimensions.xxs,
-                    ),
-                    minScale: _minScale,
-                    maxScale: _maxScale,
-                    onInteractionUpdate: (details) {
-                      setState(() {
-                        _scale = _transformationController.value
-                            .getMaxScaleOnAxis()
-                            .clamp(_minScale, _maxScale);
-                      });
-                    },
-                    child: CustomPaint(
-                      painter: GitGraphPainter(
-                        nodes: nodes,
-                        branchColors: branchColors,
-                        themeColors: colors,
-                        selectedNodeId: _selectedNodeId,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '数据',
+                        style: AppTypography.eyebrowStyle.copyWith(
+                          color: colors.inkSubtle,
+                        ),
                       ),
-                      size: Size(
-                        400,
-                        nodes.length * AppConstants.graphRowHeight + 20,
+                      ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: colors.primaryGradient,
+                        ).createShader(bounds),
+                        child: Text(
+                          'Git Graph',
+                          style: AppTypography.displayMdStyle.copyWith(
+                            color: colors.onPrimary,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: _buildZoomControls(),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-        ),
 
-        // 节点详情面板
-        if (_selectedNodeId != null)
-          _buildDetailPanel(nodes),
-      ],
+            // Graph 区域
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.md,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(AppDimensions.lg),
+                  decoration: BoxDecoration(
+                    color: colors.canvas,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.radiusXl),
+                    border: Border.all(color: colors.hairline),
+                  ),
+                  child: Stack(
+                    children: [
+                      InteractiveViewer(
+                        transformationController: _transformationController,
+                        boundaryMargin: boundaryMargin,
+                        minScale: _minScale,
+                        maxScale: _maxScale,
+                        onInteractionUpdate: (details) {
+                          setState(() {
+                            _scale = _transformationController.value
+                                .getMaxScaleOnAxis()
+                                .clamp(_minScale, _maxScale);
+                          });
+                        },
+                        child: CustomPaint(
+                          painter: GitGraphPainter(
+                            nodes: nodes,
+                            branchColors: branchColors,
+                            themeColors: colors,
+                            selectedNodeId: _selectedNodeId,
+                          ),
+                          size: Size(
+                            400,
+                            nodes.length * AppConstants.graphRowHeight + 20,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: _buildZoomControls(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // 节点详情面板
+            if (_selectedNodeId != null)
+              _buildDetailPanel(nodes),
+          ],
+        ),
+      ),
     );
   }
 
@@ -234,8 +259,8 @@ class _GitGraphScreenState
         onTap: onPressed,
         borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
         child: Container(
-          width: AppDimensions.graphControlSize,
-          height: AppDimensions.graphControlSize,
+          width: AppDimensions.tapTargetMin,
+          height: AppDimensions.tapTargetMin,
           decoration: BoxDecoration(
             color: colors.surface1,
             shape: BoxShape.circle,
@@ -253,13 +278,9 @@ class _GitGraphScreenState
 
   Widget _buildZoomControls() {
     final colors = AppThemeColors.of(context);
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.all(AppDimensions.xs),
-      decoration: BoxDecoration(
-        color: colors.surface1,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
-        border: Border.all(color: colors.hairline),
-      ),
+      radius: AppDimensions.radiusFull,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -113,7 +113,7 @@ class AppDimensions {
         stops: [0.0, 0.02],
       );
 
-:  /// 统一 hairline 四边边框。顶部微高光请单独用 [topEdgeHighlightGradient] 叠加。
+  /// 统一 hairline 四边边框。顶部微高光请单独用 [topEdgeHighlightGradient] 叠加。
   static Border cardBorder({Color? color}) => Border(
         top: BorderSide(color: color ?? AppColors.hairline, width: 1),
         left: BorderSide(color: color ?? AppColors.hairline, width: 1),

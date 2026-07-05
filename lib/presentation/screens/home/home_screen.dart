@@ -4,16 +4,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
-import '../../../core/theme/typography.dart';
 import '../../widgets/common/app_bar_widget.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_dialog.dart';
 import '../../widgets/common/app_input.dart';
 import '../../widgets/common/app_toast.dart';
-import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/error_widget.dart' as err;
+import '../../widgets/common/hero_empty_state.dart';
+import '../../widgets/common/loading_widget.dart';
 import '../../widgets/repository/repository_list.dart';
 import 'home_notifier.dart';
 
@@ -65,14 +64,19 @@ class HomeScreen extends ConsumerWidget {
     }
 
     if (state.repositories.isEmpty) {
-      return _HomeEmptyState(
-        onCreate: () => _showCreateDialog(context, ref),
+      return HeroEmptyState(
+        icon: AppIcons.repositoryOpen,
+        title: '开始你的第一个仓库',
+        subtitle: '像管理代码一样管理你的任务',
+        actionText: '创建仓库',
+        onAction: () => _showCreateDialog(context, ref),
       );
     }
 
+    final colors = AppThemeColors.of(context);
     return RefreshIndicator(
-      color: AppColors.primary,
-      backgroundColor: AppThemeColors.of(context).surface1,
+      color: colors.primary,
+      backgroundColor: colors.surface1,
       onRefresh: () => ref
           .read(homeNotifierProvider.notifier)
           .loadRepositories(),
@@ -176,101 +180,6 @@ class HomeScreen extends ConsumerWidget {
           },
         ),
       ],
-    );
-  }
-}
-class _HomeEmptyState extends StatelessWidget {
-  const _HomeEmptyState({required this.onCreate});
-
-  final VoidCallback onCreate;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppThemeColors.of(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < AppDimensions.mobileBreakpoint;
-        return Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(
-              isMobile ? AppDimensions.lg : AppDimensions.xxl,
-            ),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 640),
-              padding: EdgeInsets.all(
-                isMobile ? AppDimensions.xl : AppDimensions.xxl,
-              ),
-              decoration: BoxDecoration(
-                color: colors.canvas,
-                borderRadius: BorderRadius.circular(
-                  AppDimensions.radiusXxl,
-                ),
-                border: AppDimensions.cardBorder(color: colors.hairline),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: isMobile
-                        ? AppDimensions.xxl + AppDimensions.md
-                        : AppDimensions.xxl + AppDimensions.xl,
-                    height: isMobile
-                        ? AppDimensions.xxl + AppDimensions.md
-                        : AppDimensions.xxl + AppDimensions.xl,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: AppColors.primaryGradient,
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.radiusXl,
-                      ),
-                    ),
-                    child: Center(
-                      child: AppIcon(
-                        AppIcons.repositoryOpen,
-                        size: isMobile
-                            ? AppDimensions.xl
-                            : AppDimensions.repositoryIconBox,
-                        color: AppColors.onPrimary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppDimensions.lg),
-                  ShaderMask(
-                    shaderCallback: (bounds) => const LinearGradient(
-                      colors: AppColors.primaryGradient,
-                    ).createShader(bounds),
-                    child: Text(
-                      '开始你的第一个仓库',
-                      style: (isMobile
-                              ? AppTypography.displayMdStyle
-                              : AppTypography.displayXlStyle)
-                          .copyWith(color: AppColors.onPrimary),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  Text(
-                    '像管理代码一样管理你的任务',
-                    style: AppTypography.subheadStyle.copyWith(
-                      color: colors.inkMuted,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppDimensions.xl),
-                  AppButton(
-                    text: '创建仓库',
-                    icon: AppIcons.add,
-                    onPressed: onCreate,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }

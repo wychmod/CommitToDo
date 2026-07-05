@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 
 /// 通用卡片
@@ -20,6 +19,8 @@ class AppCard extends StatelessWidget {
     this.margin,
     this.lifted = false,
     this.radius = AppDimensions.radiusLg,
+    this.border,
+    this.color,
   });
 
   const AppCard.task({
@@ -30,6 +31,8 @@ class AppCard extends StatelessWidget {
     this.semanticLabel,
     this.margin,
     this.lifted = false,
+    this.border,
+    this.color,
   })  : padding = const EdgeInsets.all(AppDimensions.md),
         radius = AppDimensions.radiusLg;
 
@@ -41,6 +44,8 @@ class AppCard extends StatelessWidget {
     this.semanticLabel,
     this.margin,
     this.lifted = false,
+    this.border,
+    this.color,
   })  : padding = const EdgeInsets.all(AppDimensions.md),
         radius = AppDimensions.radiusLg;
 
@@ -52,6 +57,8 @@ class AppCard extends StatelessWidget {
     this.semanticLabel,
     this.margin,
     this.lifted = false,
+    this.border,
+    this.color,
   })  : padding = const EdgeInsets.all(AppDimensions.lg),
         radius = AppDimensions.radiusLg;
 
@@ -72,13 +79,20 @@ class AppCard extends StatelessWidget {
   /// 圆角，默认 radiusLg(12)。
   final double radius;
 
+  /// 自定义边框；为 null 时使用统一 1px hairline（lifted 时为 hairlineStrong）。
+  final BoxBorder? border;
+
+  /// 自定义背景色；为 null 时使用 surface1（lifted 时为 surface2）。
+  final Color? color;
+
   @override
   Widget build(BuildContext context) {
     final colors = AppThemeColors.of(context);
-    final color = lifted ? colors.surface2 : colors.surface1;
-    final border = lifted ? colors.hairlineStrong : colors.hairline;
+    final bgColor = color ?? (lifted ? colors.surface2 : colors.surface1);
+    final borderColor = lifted ? colors.hairlineStrong : colors.hairline;
+    final effectiveBorder = border ?? Border.all(color: borderColor, width: 1);
 
-    // 圆角矩形容器，先画统一 hairline 边框，再在顶部叠 1px edge highlight。
+    // 圆角矩形容器，先画 hairline 边框，再在顶部叠 1px edge highlight。
     // 拆成两段避免 `Border` 四边在圆角交汇处与顶部高光混色断裂。
     final card = AnimatedContainer(
       duration: AppDimensions.animFast,
@@ -86,9 +100,9 @@ class AppCard extends StatelessWidget {
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        color: color,
+        color: bgColor,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: border, width: 1),
+        border: effectiveBorder,
       ),
       child: child,
     );

@@ -17,7 +17,7 @@ import '../../widgets/common/app_dialog.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'task_notifier.dart';
 
-/// 任务详情页
+/// 任务详情页（全屏）
 class TaskDetailScreen extends ConsumerWidget {
   const TaskDetailScreen({
     super.key,
@@ -28,9 +28,6 @@ class TaskDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final taskState = ref.watch(
-      taskNotifierProvider(taskId),
-    );
     final colors = AppThemeColors.of(context);
 
     return Scaffold(
@@ -48,17 +45,48 @@ class TaskDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const AppIcon(AppIcons.more),
             color: colors.inkMuted,
-            onPressed: () =>
-                _showMoreActions(context, ref),
+            onPressed: () =
+                _showMoreActions(context, ref, taskId),
           ),
         ],
       ),
-      body: _buildBody(context, ref, taskState),
-      bottomNavigationBar: _buildBottomBar(
-        context,
-        ref,
-        taskState,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: AppDimensions.contentMaxWidth,
+          ),
+          child: TaskDetailBody(taskId: taskId),
+        ),
       ),
+    );
+  }
+}
+
+/// 任务详情内容体
+///
+/// 可独立用于分栏布局的右侧面板，因此不内嵌 [Scaffold] 和 [AppBar]。
+class TaskDetailBody extends ConsumerWidget {
+  const TaskDetailBody({
+    super.key,
+    required this.taskId,
+    this.showBottomBar = true,
+  });
+
+  final String taskId;
+  final bool showBottomBar;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final taskState = ref.watch(taskNotifierProvider(taskId));
+
+    return Column(
+      children: [
+        Expanded(
+          child: _buildBody(context, ref, taskState),
+        ),
+        if (showBottomBar)
+          _buildBottomBar(context, ref, taskState),
+      ],
     );
   }
 
@@ -123,7 +151,7 @@ class TaskDetailScreen extends ConsumerWidget {
                 AppBadge(
                   label: task.dueDate!.relativeTime,
                   color: task.isOverdue
-                      ? AppColors.error
+                      ? colors.error
                       : colors.inkSubtle,
                   variant: BadgeVariant.outlined,
                 ),
@@ -233,12 +261,12 @@ class TaskDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget? _buildBottomBar(
+  Widget _buildBottomBar(
     BuildContext context,
     WidgetRef ref,
     TaskDetailState state,
   ) {
-    if (state.task == null) return null;
+    if (state.task == null) return const SizedBox.shrink();
     final colors = AppThemeColors.of(context);
 
     return Container(
@@ -284,88 +312,12 @@ class TaskDetailScreen extends ConsumerWidget {
               text: '删除',
               icon: AppIcons.delete,
               variant: ButtonVariant.danger,
-              onPressed: () =>
-                  _showDeleteDialog(context, ref),
+              onPressed: () =
+                  _showDeleteDialog(context, ref, taskId),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  void _showMoreActions(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
-    final colors = AppThemeColors.of(context);
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: colors.surface1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppDimensions.radiusXl),
-        ),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const AppIcon(
-                AppIcons.edit,
-                color: AppColors.primary,
-              ),
-              title: const Text('编辑任务'),
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/task-form?taskId=$taskId');
-              },
-            ),
-            ListTile(
-              leading: const AppIcon(
-                AppIcons.delete,
-                color: AppColors.error,
-              ),
-              title: const Text('删除任务'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showDeleteDialog(context, ref);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteDialog(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
-    AppDialog.show<void>(
-      context,
-      title: '删除任务',
-      content: const Text('确定要删除这个任务吗？'),
-      actions: [
-        DialogAction(
-          text: '取消',
-          variant: ButtonVariant.secondary,
-        ),
-        DialogAction(
-          text: '删除',
-          variant: ButtonVariant.danger,
-          onPressed: () async {
-            await ref
-                .read(
-                  taskNotifierProvider(taskId).notifier,
-                )
-                .deleteTask();
-            if (context.mounted) {
-              context.pop();
-            }
-          },
-        ),
-      ],
     );
   }
 
@@ -385,6 +337,84 @@ class TaskDetailScreen extends ConsumerWidget {
       TaskStatus.cancelled => AppColors.statusCancelled,
     };
   }
+}
+
+void _showMoreActions(
+  BuildContext context,
+  WidgetRef ref,
+  String taskId,
+) {
+  final colors = AppThemeColors.of(context);
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: colors.surface1,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(AppDimensions.radiusXl),
+      ),
+    ),
+    builder: (ctx) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: AppIcon(
+              AppIcons.edit,
+              color: colors.primary,
+            ),
+            title: const Text('编辑任务'),
+            onTap: () {
+              Navigator.pop(ctx);
+              context.push('/task-form?taskId=$taskId');
+            },
+          ),
+          ListTile(
+            leading: AppIcon(
+              AppIcons.delete,
+              color: colors.error,
+            ),
+            title: const Text('删除任务'),
+            onTap: () {
+              Navigator.pop(ctx);
+              _showDeleteDialog(context, ref, taskId);
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showDeleteDialog(
+  BuildContext context,
+  WidgetRef ref,
+  String taskId,
+) {
+  AppDialog.show<void>(
+    context,
+    title: '删除任务',
+    content: const Text('确定要删除这个任务吗？'),
+    actions: [
+      DialogAction(
+        text: '取消',
+        variant: ButtonVariant.secondary,
+      ),
+      DialogAction(
+        text: '删除',
+        variant: ButtonVariant.danger,
+        onPressed: () async {
+          await ref
+              .read(
+                taskNotifierProvider(taskId).notifier,
+              )
+              .deleteTask();
+          if (context.mounted) {
+            context.pop();
+          }
+        },
+      ),
+    ],
+  );
 }
 
 class _CommitRow extends StatelessWidget {
@@ -410,16 +440,16 @@ class _CommitRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const AppIcon(
+          AppIcon(
             AppIcons.gitCommit,
             size: AppDimensions.iconSm,
-            color: AppColors.primary,
+            color: colors.primary,
           ),
           const SizedBox(width: AppDimensions.sm),
           Text(
             hash,
             style: AppTypography.monoSmStyle.copyWith(
-              color: AppColors.primary,
+              color: colors.primary,
             ),
           ),
           const SizedBox(width: AppDimensions.md),

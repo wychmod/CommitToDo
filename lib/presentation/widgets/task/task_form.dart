@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
@@ -8,7 +7,9 @@ import '../../../core/theme/typography.dart';
 import '../../../core/utils/validators.dart';
 import '../../../domain/entities/enums.dart';
 import '../common/app_button.dart';
+import '../common/app_date_picker_field.dart';
 import '../common/app_input.dart';
+import '../common/app_segmented_control.dart';
 
 /// 任务表单
 class TaskForm extends StatefulWidget {
@@ -65,36 +66,6 @@ class _TaskFormState extends State<TaskForm> {
     super.dispose();
   }
 
-  Future<void> _selectDate() async {
-    final colors = AppThemeColors.of(context);
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _dueDate ?? DateTime.now(),
-      firstDate: DateTime.now().subtract(
-        const Duration(days: 365),
-      ),
-      lastDate: DateTime.now().add(
-        const Duration(days: 365 * 2),
-      ),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: AppColors.primary,
-              onPrimary: AppColors.onPrimary,
-              surface: colors.surface1,
-              onSurface: colors.ink,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (date != null) {
-      setState(() => _dueDate = date);
-    }
-  }
-
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
       widget.onSubmit?.call(
@@ -144,141 +115,33 @@ class _TaskFormState extends State<TaskForm> {
             ),
           ),
           const SizedBox(height: AppDimensions.xs),
-          Row(
-            children: [
-              for (final p in Priority.values) ...[
-                Semantics(
-                  button: true,
-                  selected: _priority == p,
-                  label: '${p.label}优先级',
-                  child: InkWell(
-                    onTap: () => setState(() => _priority = p),
-                    borderRadius: BorderRadius.circular(
-                      AppDimensions.radiusPill,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.sm + 2,
-                        vertical: AppDimensions.xs - AppDimensions.micro,
-                      ),
-                      margin: const EdgeInsets.only(
-                        right: AppDimensions.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _priority == p
-                            ? colors.surface2
-                            : colors.canvas,
-                        borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusPill,
-                        ),
-                        border: Border.all(
-                          color: _priority == p
-                              ? _priorityColor(p)
-                              : colors.hairline,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: AppDimensions.dotSm,
-                            height: AppDimensions.dotSm,
-                            decoration: BoxDecoration(
-                              color: _priorityColor(p),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: AppDimensions.xxs),
-                          Text(
-                            p.label,
-                            style: AppTypography.monoSmStyle.copyWith(
-                              color: _priority == p
-                                  ? colors.ink
-                                  : colors.inkSubtle,
-                            ),
-                          ),
-                        ],
-                      ),
+          AppSegmentedControl<Priority>(
+            options: [
+              for (final p in Priority.values)
+                AppSegmentedOption(
+                  value: p,
+                  label: p.label,
+                  leading: Container(
+                    width: AppDimensions.dotSm,
+                    height: AppDimensions.dotSm,
+                    decoration: BoxDecoration(
+                      color: _priorityColor(p),
+                      shape: BoxShape.circle,
                     ),
                   ),
                 ),
-              ],
             ],
+            selected: _priority,
+            onSelected: (value) => setState(() => _priority = value),
           ),
           const SizedBox(height: AppDimensions.md),
 
           // 截止日期选择
-          Text(
-            '截止日期（可选）',
-            style: AppTypography.eyebrowStyle.copyWith(
-              color: colors.inkMuted,
-            ),
-          ),
-          const SizedBox(height: AppDimensions.xs),
-          Semantics(
-            button: true,
-            label: _dueDate != null
-                ? '截止日期 ${_dueDate!.year}-${_dueDate!.month.toString().padLeft(2, '0')}-${_dueDate!.day.toString().padLeft(2, '0')}'
-                : '选择截止日期',
-            child: InkWell(
-              onTap: _selectDate,
-              borderRadius: BorderRadius.circular(
-                AppDimensions.radiusMd,
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.sm,
-                  vertical: AppDimensions.sm + AppDimensions.micro,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.surface1,
-                  borderRadius: BorderRadius.circular(
-                    AppDimensions.radiusMd,
-                  ),
-                  border: Border.all(color: colors.hairlineStrong),
-                ),
-                child: Row(
-                  children: [
-                    AppIcon(
-                      AppIcons.calendar,
-                      size: AppDimensions.iconSm,
-                      color: colors.inkSubtle,
-                    ),
-                    const SizedBox(width: AppDimensions.xs),
-                    Text(
-                      _dueDate != null
-                          ? '${_dueDate!.year}-${_dueDate!.month.toString().padLeft(2, '0')}-${_dueDate!.day.toString().padLeft(2, '0')}'
-                          : '选择截止日期',
-                      style: AppTypography.bodyStyle.copyWith(
-                        color: _dueDate != null
-                            ? colors.ink
-                            : colors.inkSubtle,
-                      ),
-                    ),
-                    const Spacer(),
-                    if (_dueDate != null)
-                      Semantics(
-                        button: true,
-                        label: '清除截止日期',
-                        child: InkWell(
-                          onTap: () => setState(() => _dueDate = null),
-                          borderRadius: BorderRadius.circular(
-                            AppDimensions.radiusFull,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppDimensions.xxs),
-                            child: AppIcon(
-                              AppIcons.close,
-                              size: AppDimensions.iconSm,
-                              color: colors.inkSubtle,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
+          AppDatePickerField(
+            label: '截止日期（可选）',
+            hint: '选择截止日期',
+            value: _dueDate,
+            onChanged: (date) => setState(() => _dueDate = date),
           ),
           const SizedBox(height: AppDimensions.xl),
 

@@ -4,11 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../widgets/common/app_bar_widget.dart';
+import '../../widgets/common/app_card.dart';
 import '../../widgets/common/app_input.dart';
+import '../../widgets/common/hero_empty_state.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/task/task_card.dart';
 import 'search_notifier.dart';
@@ -61,26 +62,33 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppDimensions.md),
-            child: AppInput(
-              controller: _searchController,
-              focusNode: _focusNode,
-              hint: '搜索任务...',
-              prefixIcon: AppIcon(
-                AppIcons.search,
-                color: colors.inkSubtle,
-                size: AppDimensions.iconMd,
-              ),
-              onChanged: (value) {
-                ref.read(searchNotifierProvider.notifier).search(value);
-              },
-            ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: AppDimensions.contentMaxWidth,
           ),
-          Expanded(child: _buildBody(context, searchState)),
-        ],
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppDimensions.md),
+                child: AppInput(
+                  controller: _searchController,
+                  focusNode: _focusNode,
+                  hint: '搜索任务...',
+                  prefixIcon: AppIcon(
+                    AppIcons.search,
+                    color: colors.inkSubtle,
+                    size: AppDimensions.iconMd,
+                  ),
+                  onChanged: (value) {
+                    ref.read(searchNotifierProvider.notifier).search(value);
+                  },
+                ),
+              ),
+              Expanded(child: _buildBody(context, searchState)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -183,15 +191,18 @@ class _HistoryHeader extends StatelessWidget {
             child: InkWell(
               onTap: onClear,
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-              child: Padding(
+              child: Container(
+                constraints: const BoxConstraints(
+                  minHeight: AppDimensions.tapTargetMin,
+                ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.xs,
-                  vertical: AppDimensions.xxs,
                 ),
+                alignment: Alignment.center,
                 child: Text(
                   '清除',
                   style: AppTypography.buttonStyle.copyWith(
-                    color: AppColors.primary,
+                    color: colors.primary,
                   ),
                 ),
               ),
@@ -221,14 +232,18 @@ class _HistoryRow extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXs),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppDimensions.md),
+        child: AppCard(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.md,
+            vertical: AppDimensions.sm,
+          ),
+          radius: AppDimensions.radiusXs,
           child: Row(
             children: [
-              const AppIcon(
+              AppIcon(
                 AppIcons.gitCommit,
                 size: AppDimensions.iconSm,
-                color: AppColors.primary,
+                color: colors.primary,
               ),
               const SizedBox(width: AppDimensions.md),
               Expanded(
@@ -258,17 +273,10 @@ class _SearchIdleState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = AppThemeColors.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.xxl),
-        child: Text(
-          '输入关键词搜索任务',
-          style: AppTypography.bodyStyle.copyWith(
-            color: colors.inkSubtle,
-          ),
-        ),
-      ),
+    return const HeroEmptyState(
+      icon: AppIcons.search,
+      title: '搜索任务',
+      subtitle: '输入关键词查找已创建的任务',
     );
   }
 }
@@ -281,34 +289,12 @@ class _SearchEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppThemeColors.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.xxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppIcon(
-              AppIcons.search,
-              size: AppDimensions.xxl,
-              color: colors.inkSubtle,
-            ),
-            const SizedBox(height: AppDimensions.md),
-            Text(
-              '未找到匹配的任务',
-              style: AppTypography.cardTitleStyle.copyWith(
-                color: colors.ink,
-              ),
-            ),
-            const SizedBox(height: AppDimensions.xs),
-            Text(
-              query,
-              style: AppTypography.monoSmStyle.copyWith(
-                color: colors.inkSubtle,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return HeroEmptyState(
+      icon: AppIcons.search,
+      title: '未找到匹配的任务',
+      subtitle: query,
+      actionText: null,
+      onAction: null,
     );
   }
 }

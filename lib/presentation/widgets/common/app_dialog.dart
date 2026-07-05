@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import 'app_button.dart';
@@ -32,9 +31,10 @@ class AppDialog<T> extends StatelessWidget {
     Widget? content,
     List<DialogAction<T>>? actions,
   }) {
+    final colors = AppThemeColors.of(context);
     return showDialog<T>(
       context: context,
-      barrierColor: AppColors.overlay,
+      barrierColor: colors.overlay,
       builder: (context) => AppDialog<T>(
         title: title,
         content: content,
@@ -85,7 +85,6 @@ class AppDialog<T> extends StatelessWidget {
                           actions![i].onPressed?.call();
                         },
                         variant: actions![i].variant,
-                        size: ButtonSize.sm,
                       ),
                     ],
                   ],

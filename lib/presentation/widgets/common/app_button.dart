@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 
@@ -80,20 +79,20 @@ class _AppButtonState extends State<AppButton> {
     final v = widget.variant;
     switch (v) {
       case ButtonVariant.primary:
-        if (_pressing) return AppColors.primaryFocus;
-        if (_hovering) return AppColors.primaryHover;
-        return AppColors.primary;
+        if (_pressing) return colors.primaryFocus;
+        if (_hovering) return colors.primaryHover;
+        return colors.primary;
       case ButtonVariant.secondary:
         if (_hovering) return colors.surface2;
         return colors.surface1;
       case ButtonVariant.tertiary:
         return colors.canvas;
       case ButtonVariant.danger:
-        if (_hovering) return AppColors.errorLight;
-        return AppColors.error;
+        if (_hovering) return colors.errorLight;
+        return colors.error;
       case ButtonVariant.inverse:
-        if (_hovering) return AppColors.lightSurface2;
-        return AppColors.inverseCanvas;
+        if (_hovering) return colors.surface2;
+        return colors.inverseCanvas;
     }
   }
 
@@ -102,12 +101,12 @@ class _AppButtonState extends State<AppButton> {
     switch (widget.variant) {
       case ButtonVariant.primary:
       case ButtonVariant.danger:
-        return AppColors.onPrimary;
+        return colors.onPrimary;
       case ButtonVariant.secondary:
       case ButtonVariant.tertiary:
         return colors.ink;
       case ButtonVariant.inverse:
-        return AppColors.inverseInk;
+        return colors.inverseInk;
     }
   }
 
@@ -157,12 +156,15 @@ class _AppButtonState extends State<AppButton> {
             boxShadow: _focused && !isDisabled
                 ? [
                     BoxShadow(
-                      color: AppColors.primaryFocus.withAlpha(128),
+                      color: colors.primaryFocus.withAlpha(128),
                       blurRadius: 0,
                       spreadRadius: 2,
                     ),
                   ]
                 : null,
+          ),
+          constraints: const BoxConstraints(
+            minHeight: AppDimensions.tapTargetMin,
           ),
           child: Material(
             color: Colors.transparent,

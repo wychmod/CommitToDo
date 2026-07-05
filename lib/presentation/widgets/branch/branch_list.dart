@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../../domain/entities/branch.dart';
@@ -39,7 +38,9 @@ class BranchList extends StatelessWidget {
     }
 
     return SizedBox(
-      height: scrollDirection == Axis.horizontal ? 36 : null,
+      height: scrollDirection == Axis.horizontal
+          ? AppDimensions.tapTargetMin
+          : null,
       child: ListView.separated(
         scrollDirection: scrollDirection,
         shrinkWrap: scrollDirection == Axis.vertical,

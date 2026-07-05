@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/extensions/date_extensions.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../../domain/entities/branch.dart';
@@ -63,7 +62,7 @@ class _RepositoryCardState extends State<RepositoryCard> {
                   width: AppDimensions.repositoryIconBox,
                   height: AppDimensions.repositoryIconBox,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withAlpha(31),
+                    color: colors.primary.withAlpha(31),
                     borderRadius: BorderRadius.circular(
                       AppDimensions.radiusSm,
                     ),
@@ -72,7 +71,7 @@ class _RepositoryCardState extends State<RepositoryCard> {
                     child: AppIcon(
                       AppIcons.repository,
                       size: AppDimensions.iconMd,
-                      color: AppColors.primary,
+                      color: colors.primary,
                     ),
                   ),
                 ),
@@ -89,7 +88,7 @@ class _RepositoryCardState extends State<RepositoryCard> {
                 ),
                 AppBadge(
                   label: '${widget.taskCount} 任务',
-                  color: AppColors.primary,
+                  color: colors.primary,
                   variant: BadgeVariant.soft,
                 ),
               ],

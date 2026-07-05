@@ -6,8 +6,10 @@ import '../../../core/theme/app_theme_colors.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
+import '../../../domain/entities/branch.dart';
 import '../../../domain/entities/enums.dart';
 import '../../../domain/entities/task.dart';
+import '../branch/branch_indicator.dart';
 import '../common/app_badge.dart';
 import '../common/app_card.dart';
 
@@ -111,7 +113,10 @@ class _TaskCardState extends State<TaskCard> {
                       ),
                       const SizedBox(width: AppDimensions.sm),
                       if (widget.showBranch) ...[
-                        _BranchChip(branchId: task.branchId),
+                        BranchIndicator(
+                          branch: _syntheticBranch(task.branchId),
+                          isActive: false,
+                        ),
                         const SizedBox(width: AppDimensions.sm),
                       ],
                       if (task.dueDate != null) ...[
@@ -119,7 +124,7 @@ class _TaskCardState extends State<TaskCard> {
                           AppIcons.calendar,
                           size: AppDimensions.iconXs,
                           color: task.isOverdue
-                              ? AppColors.error
+                              ? colors.error
                               : colors.inkSubtle,
                         ),
                         const SizedBox(width: AppDimensions.xxs),
@@ -127,7 +132,7 @@ class _TaskCardState extends State<TaskCard> {
                           task.dueDate!.relativeTime,
                           style: AppTypography.monoSmStyle.copyWith(
                             color: task.isOverdue
-                                ? AppColors.error
+                                ? colors.error
                                 : colors.inkSubtle,
                           ),
                         ),
@@ -147,42 +152,15 @@ class _TaskCardState extends State<TaskCard> {
       ),
     );
   }
-}
 
-class _BranchChip extends StatelessWidget {
-  const _BranchChip({required this.branchId});
-
-  final String branchId;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppThemeColors.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.xs,
-        vertical: AppDimensions.micro,
-      ),
-      decoration: BoxDecoration(
-        color: colors.surface2.withAlpha(128),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AppIcon(
-            AppIcons.gitBranch,
-            size: AppDimensions.iconXs,
-            color: colors.inkMuted,
-          ),
-          const SizedBox(width: AppDimensions.xxs),
-          Text(
-            branchId,
-            style: AppTypography.monoSmStyle.copyWith(
-              color: colors.inkSubtle,
-            ),
-          ),
-        ],
-      ),
+  Branch _syntheticBranch(String branchId) {
+    final now = DateTime.now();
+    return Branch(
+      id: branchId,
+      repositoryId: branchId,
+      name: branchId,
+      createdAt: now,
+      updatedAt: now,
     );
   }
 }

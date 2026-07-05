@@ -8,12 +8,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/di/injection_container.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../../domain/services/data_export_service.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_bar_widget.dart';
+import '../../widgets/common/app_card.dart';
 import '../../widgets/common/app_dialog.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_toast.dart';
@@ -31,18 +31,29 @@ class SettingsScreen extends ConsumerWidget {
       appBar: const AppBarWidget(title: '设置'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: AppDimensions.contentMaxWidth,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             // 展示面头部
+            Text(
+              '系统',
+              style: AppTypography.eyebrowStyle.copyWith(
+                color: colors.inkSubtle,
+              ),
+            ),
             ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: AppColors.primaryGradient,
+              shaderCallback: (bounds) => LinearGradient(
+                colors: colors.primaryGradient,
               ).createShader(bounds),
               child: Text(
                 '偏好',
                 style: AppTypography.displayMdStyle.copyWith(
-                  color: AppColors.onPrimary,
+                  color: colors.onPrimary,
                 ),
               ),
             ),
@@ -61,7 +72,7 @@ class SettingsScreen extends ConsumerWidget {
                     onChanged: (value) => ref
                         .read(settingsProvider.notifier)
                         .setDarkMode(value),
-                    activeColor: AppColors.primary,
+                    activeColor: colors.primary,
                   ),
                 ),
               ],
@@ -117,7 +128,7 @@ class SettingsScreen extends ConsumerWidget {
                     onChanged: (value) => ref
                         .read(settingsProvider.notifier)
                         .setNotifications(value),
-                    activeColor: AppColors.primary,
+                    activeColor: colors.primary,
                   ),
                 ),
                 _SettingsItem(
@@ -179,8 +190,9 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSectionTitle(String title, AppThemeColors colors) {
     return Text(
@@ -195,12 +207,8 @@ class SettingsScreen extends ConsumerWidget {
     List<Widget> items,
     AppThemeColors colors,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface1,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        border: Border.all(color: colors.hairline),
-      ),
+    return AppCard.feature(
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           for (var i = 0; i < items.length; i++) ...[
@@ -381,9 +389,9 @@ class _ExportTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppThemeColors.of(context);
     return ListTile(
-      leading: const AppIcon(
+      leading: AppIcon(
         AppIcons.upload,
-        color: AppColors.primary,
+        color: colors.primary,
       ),
       title: Text(
         label,

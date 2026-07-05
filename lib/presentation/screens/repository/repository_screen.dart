@@ -4,17 +4,20 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../providers/repository_providers.dart';
 import '../../widgets/branch/branch_list.dart';
 import '../../widgets/common/app_bar_widget.dart';
+import '../../widgets/common/app_card.dart';
 import '../../widgets/common/app_dialog.dart';
 import '../../widgets/common/app_input.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/common/loading_widget.dart';
+import '../../widgets/common/responsive_layout.dart';
+import '../../widgets/common/split_view.dart';
 import '../../widgets/task/task_list.dart';
+import '../task/task_detail_screen.dart' show TaskDetailBody;
 import 'repository_state.dart';
 
 /// 仓库详情页
@@ -58,11 +61,36 @@ class RepositoryScreen extends ConsumerWidget {
     WidgetRef ref,
     RepositoryScreenState state,
   ) {
-    final colors = AppThemeColors.of(context);
     if (state.isLoading && state.branches.isEmpty) {
       return const LoadingWidget(message: '加载中...');
     }
 
+    final master = _buildMaster(context, ref, state);
+    final selectedTaskId = state.selectedTaskId;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: AppDimensions.contentMaxWidth,
+        ),
+        child: SplitView(
+          master: master,
+          detail: selectedTaskId != null
+              ? TaskDetailBody(taskId: selectedTaskId)
+              : const _EmptyDetail(),
+          detailVisible: selectedTaskId != null,
+          emptyDetail: const _EmptyDetail(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaster(
+    BuildContext context,
+    WidgetRef ref,
+    RepositoryScreenState state,
+  ) {
+    final colors = AppThemeColors.of(context);
     return Column(
       children: [
         // 分支选择栏
@@ -89,32 +117,8 @@ class RepositoryScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: AppDimensions.xs),
-              Semantics(
-                button: true,
-                label: '新建分支',
-                child: InkWell(
-                  onTap: () => _showCreateBranchDialog(context, ref),
-                  borderRadius: BorderRadius.circular(
-                    AppDimensions.radiusSm,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(
-                      AppDimensions.xs - AppDimensions.micro,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colors.surface1,
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.radiusSm,
-                      ),
-                      border: Border.all(color: colors.hairlineStrong),
-                    ),
-                    child: AppIcon(
-                      AppIcons.add,
-                      size: AppDimensions.iconSm,
-                      color: colors.inkMuted,
-                    ),
-                  ),
-                ),
+              _AddBranchButton(
+                onTap: () => _showCreateBranchDialog(context, ref),
               ),
             ],
           ),
@@ -123,7 +127,7 @@ class RepositoryScreen extends ConsumerWidget {
         // 任务列表
         Expanded(
           child: RefreshIndicator(
-            color: AppColors.primary,
+            color: colors.primary,
             backgroundColor: colors.surface1,
             onRefresh: () => ref
                 .read(
@@ -140,7 +144,17 @@ class RepositoryScreen extends ConsumerWidget {
               child: TaskList(
                 tasks: state.tasks,
                 onTaskTap: (task) {
-                  context.push('/task/${task.id}');
+                  if (ResponsiveLayout.isWide(context)) {
+                    ref
+                        .read(
+                          repositoryNotifierProvider(
+                            repositoryId,
+                          ).notifier,
+                        )
+                        .selectTask(task.id);
+                  } else {
+                    context.push('/task/${task.id}');
+                  }
                 },
                 onTaskLongPress: (task) {
                   _showTaskActions(
@@ -225,9 +239,9 @@ class RepositoryScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const AppIcon(
+              leading: AppIcon(
                 AppIcons.checkCircleOutline,
-                color: AppColors.success,
+                color: colors.success,
               ),
               title: const Text('完成任务'),
               onTap: () {
@@ -242,9 +256,9 @@ class RepositoryScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: const AppIcon(
+              leading: AppIcon(
                 AppIcons.edit,
-                color: AppColors.primary,
+                color: colors.primary,
               ),
               title: const Text('编辑任务'),
               onTap: () {
@@ -253,9 +267,9 @@ class RepositoryScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: const AppIcon(
+              leading: AppIcon(
                 AppIcons.delete,
-                color: AppColors.error,
+                color: colors.error,
               ),
               title: const Text('删除任务'),
               onTap: () {
@@ -271,6 +285,63 @@ class RepositoryScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AddBranchButton extends StatelessWidget {
+  const _AddBranchButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '新建分支',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+        child: AppCard(
+          padding: const EdgeInsets.all(
+            AppDimensions.md - AppDimensions.micro,
+          ),
+          radius: AppDimensions.radiusSm,
+          child: AppIcon(
+            AppIcons.add,
+            size: AppDimensions.iconSm,
+            color: AppThemeColors.of(context).inkMuted,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyDetail extends StatelessWidget {
+  const _EmptyDetail();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppIcon(
+            AppIcons.repository,
+            size: AppDimensions.xxl,
+            color: colors.inkSubtle,
+          ),
+          const SizedBox(height: AppDimensions.md),
+          Text(
+            '选择一个任务查看详情',
+            style: AppTypography.bodyStyle.copyWith(
+              color: colors.inkMuted,
+            ),
+          ),
+        ],
       ),
     );
   }

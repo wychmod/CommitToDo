@@ -9,6 +9,7 @@ class RepositoryScreenState {
     this.branches = const [],
     this.tasks = const [],
     this.activeBranchId,
+    this.selectedTaskId,
     this.isLoading = false,
     this.error,
   });
@@ -17,6 +18,7 @@ class RepositoryScreenState {
   final List<Branch> branches;
   final List<Task> tasks;
   final String? activeBranchId;
+  final String? selectedTaskId;
   final bool isLoading;
   final String? error;
 
@@ -36,14 +38,19 @@ class RepositoryScreenState {
     List<Branch>? branches,
     List<Task>? tasks,
     String? activeBranchId,
+    String? selectedTaskId,
     bool? isLoading,
     String? error,
+    bool clearSelectedTaskId = false,
   }) {
     return RepositoryScreenState(
       repository: repository ?? this.repository,
       branches: branches ?? this.branches,
       tasks: tasks ?? this.tasks,
       activeBranchId: activeBranchId ?? this.activeBranchId,
+      selectedTaskId: clearSelectedTaskId
+          ? null
+          : (selectedTaskId ?? this.selectedTaskId),
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );

@@ -2,13 +2,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import '../../providers/heatmap_providers.dart';
 import '../../widgets/common/app_bar_widget.dart';
-import '../../widgets/common/loading_widget.dart';
+import '../../widgets/common/app_card.dart';
 import '../../widgets/common/error_widget.dart';
+import '../../widgets/common/loading_widget.dart';
 import '../../widgets/heatmap/heatmap_calendar.dart';
 
 /// 热力图页
@@ -73,37 +73,50 @@ class HeatmapScreen extends ConsumerWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppDimensions.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 展示面标题
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: AppColors.primaryGradient,
-            ).createShader(bounds),
-            child: Text(
-              '贡献热力图',
-              style: AppTypography.displayMdStyle.copyWith(
-                color: AppColors.onPrimary,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: AppDimensions.contentMaxWidth,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 展示面标题
+              Text(
+                '数据',
+                style: AppTypography.eyebrowStyle.copyWith(
+                  color: colors.inkSubtle,
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: AppDimensions.xl),
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: colors.primaryGradient,
+                ).createShader(bounds),
+                child: Text(
+                  '贡献热力图',
+                  style: AppTypography.displayMdStyle.copyWith(
+                    color: colors.onPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppDimensions.xl),
 
-          // 统计卡片
-          _buildStatsRow(today, thisWeek, totalCompleted, streak),
-          const SizedBox(height: AppDimensions.xl),
+              // 统计卡片
+              _buildStatsRow(today, thisWeek, totalCompleted, streak),
+              const SizedBox(height: AppDimensions.xl),
 
-          // 热力图
-          Text(
-            '过去一年',
-            style: AppTypography.eyebrowStyle.copyWith(
-              color: colors.inkSubtle,
-            ),
+              // 热力图
+              Text(
+                '过去一年',
+                style: AppTypography.eyebrowStyle.copyWith(
+                  color: colors.inkSubtle,
+                ),
+              ),
+              const SizedBox(height: AppDimensions.xs),
+              HeatmapCalendar(data: data),
+            ],
           ),
-          const SizedBox(height: AppDimensions.xs),
-          HeatmapCalendar(data: data),
-        ],
+        ),
       ),
     );
   }
@@ -153,23 +166,18 @@ class _StatCard extends StatelessWidget {
     final colors = AppThemeColors.of(context);
     return SizedBox(
       width: width,
-      child: Container(
+      child: AppCard(
         padding: const EdgeInsets.all(AppDimensions.md),
-        decoration: BoxDecoration(
-          color: colors.surface1,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-          border: Border.all(color: colors.hairline, width: 1),
-        ),
         child: Column(
           children: [
             ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: AppColors.primaryGradient,
+              shaderCallback: (bounds) => LinearGradient(
+                colors: colors.primaryGradient,
               ).createShader(bounds),
               child: Text(
                 value,
                 style: AppTypography.displayMdStyle.copyWith(
-                  color: AppColors.onPrimary,
+                  color: colors.onPrimary,
                   fontWeight: AppTypography.bold,
                 ),
               ),

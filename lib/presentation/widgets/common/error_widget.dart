@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 import 'app_button.dart';
@@ -32,7 +31,7 @@ class AppErrorWidget extends StatelessWidget {
             const AppIcon(
               AppIcons.error,
               size: AppDimensions.xxl,
-              color: AppColors.error,
+              color: colors.error,
             ),
             const SizedBox(height: AppDimensions.md),
             Text(

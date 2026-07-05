@@ -304,7 +304,7 @@ ButtonStyle _buildButtonStyle({
       horizontal: AppDimensions.ctaPaddingHorizontal,
       vertical: AppDimensions.xs,
     ),
-    minimumSize: const Size(0, AppDimensions.ctaHeight),
+    minimumSize: const Size(0, AppDimensions.tapTargetMin),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
     ),
@@ -325,7 +325,7 @@ ButtonStyle _buildOutlinedButtonStyle({
       horizontal: AppDimensions.ctaPaddingHorizontal,
       vertical: AppDimensions.xs,
     ),
-    minimumSize: const Size(0, AppDimensions.ctaHeight),
+    minimumSize: const Size(0, AppDimensions.tapTargetMin),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
     ),
@@ -342,7 +342,7 @@ ButtonStyle _buildTextButtonStyle({required Color ink}) {
       horizontal: AppDimensions.ctaPaddingHorizontal,
       vertical: AppDimensions.xs,
     ),
-    minimumSize: const Size(0, AppDimensions.ctaHeight),
+    minimumSize: const Size(0, AppDimensions.tapTargetMin),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
     ),

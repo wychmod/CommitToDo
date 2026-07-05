@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 
@@ -70,12 +69,12 @@ class _ToastWidgetState extends State<_ToastWidget>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  Color get _accentColor {
+  Color _accentColor(AppThemeColors colors) {
     return switch (widget.variant) {
-      ToastVariant.success => AppColors.success,
-      ToastVariant.error => AppColors.error,
-      ToastVariant.warning => AppColors.warning,
-      ToastVariant.info => AppColors.info,
+      ToastVariant.success => colors.success,
+      ToastVariant.error => colors.error,
+      ToastVariant.warning => colors.warning,
+      ToastVariant.info => colors.info,
     };
   }
 
@@ -140,7 +139,7 @@ class _ToastWidgetState extends State<_ToastWidget>
                     BorderRadius.circular(AppDimensions.radiusMd),
                 border: Border(
                   left: BorderSide(
-                    color: _accentColor,
+                    color: _accentColor(colors),
                     width: AppDimensions.priorityStripWidth,
                   ),
                 ),
@@ -151,7 +150,7 @@ class _ToastWidgetState extends State<_ToastWidget>
                   AppIcon(
                     _icon,
                     size: AppDimensions.iconMd,
-                    color: _accentColor,
+                    color: _accentColor(colors),
                   ),
                   const SizedBox(width: AppDimensions.sm),
                   Expanded(

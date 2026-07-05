@@ -42,28 +42,32 @@ class BranchIndicator extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
         child: Container(
+          constraints: const BoxConstraints(
+            minHeight: AppDimensions.tapTargetMin,
+          ),
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimensions.xs,
             vertical: AppDimensions.micro,
           ),
           decoration: BoxDecoration(
             color: isActive
-                ? AppColors.primary.withAlpha(31)
+                ? colors.primary.withAlpha(31)
                 : colors.surface2.withAlpha(128),
             borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
             border: Border.all(
               color: isActive
-                  ? AppColors.primary
+                  ? colors.primary
                   : colors.hairlineStrong,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AppIcon(
                 AppIcons.gitBranch,
                 size: AppDimensions.iconSm,
-                color: isActive ? AppColors.primary : colors.inkMuted,
+                color: isActive ? colors.primary : colors.inkMuted,
               ),
               const SizedBox(width: AppDimensions.xxs),
               Container(
@@ -79,7 +83,7 @@ class BranchIndicator extends StatelessWidget {
                 branch.name,
                 style: AppTypography.monoStyle.copyWith(
                   fontSize: AppTypography.monoSm,
-                  color: isActive ? AppColors.primary : colors.ink,
+                  color: isActive ? colors.primary : colors.ink,
                   fontWeight: isActive
                       ? AppTypography.medium
                       : AppTypography.regular,
@@ -90,7 +94,7 @@ class BranchIndicator extends StatelessWidget {
                 const AppIcon(
                   AppIcons.star,
                   size: AppDimensions.iconXs,
-                  color: AppColors.warning,
+                  color: colors.warning,
                 ),
               ],
             ],

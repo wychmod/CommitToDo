@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 
@@ -30,7 +29,7 @@ class LoadingWidget extends StatelessWidget {
             height: size,
             child: const CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: AppColors.primary,
+              color: colors.primary,
             ),
           ),
           if (message != null) ...[

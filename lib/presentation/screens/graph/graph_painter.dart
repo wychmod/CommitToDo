@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme_colors.dart';
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/dimensions.dart';
 import '../../../core/theme/typography.dart';
 
@@ -100,7 +99,7 @@ class GitGraphPainter extends CustomPainter {
       // 绘制节点
       final isMerge = node.parents.length > 1;
       final nodeColor = isMerge
-          ? AppColors.primary
+          ? themeColors.primary
           : branchColors[node.branchId] ??
           themeColors.inkSubtle;
       final nodePaint = Paint()..color = nodeColor;
