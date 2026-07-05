@@ -1,0 +1,147 @@
+
+> commit_web@0.1.0 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/idea/Commit/web[39m
+
+ [32m✓[39m src/platform/web-notification-service.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+ [31m❯[39m src/presentation/components/heatmap/heatmap-helpers.test.ts [2m([22m[2m0 test[22m[2m)[22m
+ [32m✓[39m src/domain/entities/entities.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2mfilters deleted repositories
+[22m[39mAnother connection wants to delete database 'commit-db'. Closing db now to resume the delete request.
+
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2mcreates branches by repository
+[22m[39mAnother connection wants to delete database 'commit-db'. Closing db now to resume the delete request.
+
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2mcreates branches by repository
+[22m[39mThe query {"repositoryId":"repo-1","isDeleted":0} on branches would benefit from a compound index [repositoryId+isDeleted]
+
+[90mstderr[2m | src/application/usecases/repository/repository-usecases.test.ts[2m > [22m[2mRepository use cases[2m > [22m[2mCreateRepositoryUseCase creates repo and main branch
+[22m[39mThe query {"repositoryId":"bddce29b-2556-461a-b07b-b0a99a787161","isDeleted":0} on branches would benefit from a compound index [repositoryId+isDeleted]
+
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2msoft deletes main branch too
+[22m[39mAnother connection wants to delete database 'commit-db'. Closing db now to resume the delete request.
+
+[90mstderr[2m | src/application/usecases/repository/repository-usecases.test.ts[2m > [22m[2mRepository use cases[2m > [22m[2mDeleteRepositoryUseCase deletes repo and related data
+[22m[39mAnother connection wants to delete database 'commit-db'. Closing db now to resume the delete request.
+
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2mcreates tasks and commits
+[22m[39mAnother connection wants to delete database 'commit-db'. Closing db now to resume the delete request.
+
+ [31m❯[39m src/presentation/components/graph/graph-layout.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 37[2mms[22m[39m
+[31m   [31m×[31m Git Graph layout[2m > [22massigns columns by branch order with main first[90m 34[2mms[22m[31m[39m
+[31m     → expected 24 to be +0 // Object.is equality[39m
+[90mstderr[2m | src/application/usecases/repository/repository-usecases.test.ts[2m > [22m[2mRepository use cases[2m > [22m[2mDeleteRepositoryUseCase deletes repo and related data
+[22m[39mThe query {"repositoryId":"a2830a1d-9673-4c4c-9d33-88fb28555f2a","isDeleted":0} on branches would benefit from a compound index [repositoryId+isDeleted]
+
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2mcreates tasks and commits
+[22m[39mThe query {"branchId":"branch-1","isDeleted":0} on tasks would benefit from a compound index [branchId+isDeleted]
+
+[90mstderr[2m | src/application/usecases/repository/repository-usecases.test.ts[2m > [22m[2mRepository use cases[2m > [22m[2mDeleteRepositoryUseCase deletes repo and related data
+[22m[39mThe query {"branchId":"962ffdcd-0129-4213-91fe-d8138f498b2c","isDeleted":0} on tasks would benefit from a compound index [branchId+isDeleted]
+
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2msoft deletes tasks
+[22m[39mAnother connection wants to delete database 'commit-db'. Closing db now to resume the delete request.
+
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2msoft deletes tasks
+[22m[39mThe query {"branchId":"branch-1","isDeleted":0} on tasks would benefit from a compound index [branchId+isDeleted]
+
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2msearches tasks
+[22m[39mAnother connection wants to delete database 'commit-db'. Closing db now to resume the delete request.
+
+[90mstderr[2m | src/data/repositories/dexie-repositories.test.ts[2m > [22m[2mDexie repositories[2m > [22m[2mfilters completed tasks by date range
+[22m[39mAnother connection wants to delete database 'commit-db'. Closing db now to resume the delete request.
+
+ [32m✓[39m src/application/usecases/repository/repository-usecases.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 57[2mms[22m[39m
+ [32m✓[39m src/data/repositories/dexie-repositories.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 82[2mms[22m[39m
+ [32m✓[39m src/application/usecases/import-data-usecase.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 39[2mms[22m[39m
+[90mstderr[2m | src/presentation/stores/repository-store.test.ts[2m > [22m[2mRepositoryStore[2m > [22m[2mloads repository with main branch
+[22m[39mThe query {"repositoryId":"ec9bf020-8246-478c-a7f1-a4771e530a82","isDeleted":0} on branches would benefit from a compound index [repositoryId+isDeleted]
+
+[90mstderr[2m | src/presentation/stores/repository-store.test.ts[2m > [22m[2mRepositoryStore[2m > [22m[2mloads repository with main branch
+[22m[39mThe query {"branchId":"2201641a-638f-41d3-b0c6-ad51b0677365","isDeleted":0} on tasks would benefit from a compound index [branchId+isDeleted]
+
+ [32m✓[39m src/presentation/stores/search-store.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 34[2mms[22m[39m
+[90mstderr[2m | src/presentation/stores/repository-store.test.ts[2m > [22m[2mRepositoryStore[2m > [22m[2mcreates a task in active branch
+[22m[39mThe query {"repositoryId":"484ca88b-54bc-4236-8505-37a50c2cf30e","isDeleted":0} on branches would benefit from a compound index [repositoryId+isDeleted]
+
+[90mstderr[2m | src/presentation/stores/repository-store.test.ts[2m > [22m[2mRepositoryStore[2m > [22m[2mcreates a task in active branch
+[22m[39mThe query {"branchId":"17d952a4-150d-4edc-985a-5ef6719652d5","isDeleted":0} on tasks would benefit from a compound index [branchId+isDeleted]
+
+[90mstderr[2m | src/presentation/stores/home-store.test.ts[2m > [22m[2mHomeStore[2m > [22m[2mdeletes a repository
+[22m[39mThe query {"repositoryId":"1217d1f4-423b-4640-a2a9-d2192aeb77e2","isDeleted":0} on branches would benefit from a compound index [repositoryId+isDeleted]
+
+[90mstderr[2m | src/presentation/stores/home-store.test.ts[2m > [22m[2mHomeStore[2m > [22m[2mdeletes a repository
+[22m[39mThe query {"branchId":"c1955ad7-9b9d-4682-af8a-7f635b6c365f","isDeleted":0} on tasks would benefit from a compound index [branchId+isDeleted]
+
+ [32m✓[39m src/presentation/stores/task-store.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 44[2mms[22m[39m
+[90mstderr[2m | src/presentation/stores/repository-store.test.ts[2m > [22m[2mRepositoryStore[2m > [22m[2mcreates a task in active branch
+[22m[39mThe query {"branchId":"17d952a4-150d-4edc-985a-5ef6719652d5","isDeleted":0} on tasks would benefit from a compound index [branchId+isDeleted]
+
+ [32m✓[39m src/presentation/stores/repository-store.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 42[2mms[22m[39m
+ [32m✓[39m src/presentation/stores/home-store.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 48[2mms[22m[39m
+ [31m❯[39m src/platform/web-file-save-service.test.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 7[2mms[22m[39m
+[31m   [31m×[31m WebFileSaveService[2m > [22mcreates a download link and clicks it[90m 6[2mms[22m[31m[39m
+[31m     → URL.createObjectURL is not a function[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/presentation/components/heatmap/heatmap-helpers.test.ts[2m [ src/presentation/components/heatmap/heatmap-helpers.test.ts ][22m
+[31m[1mError[22m: Failed to resolve import "../../domain/entities/task" from "src/presentation/components/heatmap/heatmap-helpers.test.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mD:/idea/Commit/web/src/presentation/components/heatmap/heatmap-helpers.test.ts[39m:2:21
+[33m  1  |  import { describe, expect, it } from "vitest";
+  2  |  import { Task } from "../../domain/entities/task";
+     |                        ^
+  3  |  import { Priority, TaskStatus } from "../../domain/entities/enums";
+  4  |  import { computeHeatmapData } from "./heatmap-helpers";[39m
+[90m [2m❯[22m TransformPluginContext._formatError node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:[2m49258:41[22m[39m
+[90m [2m❯[22m TransformPluginContext.error node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:[2m49253:16[22m[39m
+[90m [2m❯[22m normalizeUrl node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:[2m64307:23[22m[39m
+[90m [2m❯[22m node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:[2m64439:39[22m[39m
+[90m [2m❯[22m TransformPluginContext.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:[2m64366:7[22m[39m
+[90m [2m❯[22m PluginContainer.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:[2m49099:18[22m[39m
+[90m [2m❯[22m loadAndTransform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:[2m51978:27[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 2 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/platform/web-file-save-service.test.ts[2m > [22mWebFileSaveService[2m > [22mcreates a download link and clicks it
+[31m[1mTypeError[22m: URL.createObjectURL is not a function[39m
+[36m [2m❯[22m WebFileSaveService.save src/platform/web-file-save-service.ts:[2m10:21[22m[39m
+    [90m  8| [39m  [34msave[39m(options[33m:[39m [33mFileSaveOptions[39m)[33m:[39m [35mvoid[39m {
+    [90m  9| [39m    [35mconst[39m blob [33m=[39m [35mnew[39m [33mBlob[39m([options[33m.[39mcontent][33m,[39m { type[33m:[39m options[33m.[39mmimeType …
+    [90m 10| [39m    [35mconst[39m url [33m=[39m [33mURL[39m[33m.[39m[34mcreateObjectURL[39m(blob)[33m;[39m
+    [90m   | [39m                    [31m^[39m
+    [90m 11| [39m    [35mconst[39m a [33m=[39m document[33m.[39m[34mcreateElement[39m([32m'a'[39m)[33m;[39m
+    [90m 12| [39m    a[33m.[39mhref [33m=[39m url[33m;[39m
+[90m [2m❯[22m src/platform/web-file-save-service.test.ts:[2m18:13[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/presentation/components/graph/graph-layout.test.ts[2m > [22mGit Graph layout[2m > [22massigns columns by branch order with main first
+[31m[1mAssertionError[22m: expected 24 to be +0 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 24[39m
+
+[36m [2m❯[22m src/presentation/components/graph/graph-layout.test.ts:[2m27:33[22m[39m
+    [90m 25| [39m
+    [90m 26| [39m    [34mexpect[39m(nodes)[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+    [90m 27| [39m    [34mexpect[39m(nodes[[34m0[39m][33m.[39mposition[33m.[39mx)[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                [31m^[39m
+    [90m 28| [39m    [34mexpect[39m(edges)[33m.[39m[34mtoHaveLength[39m([34m0[39m)[33m;[39m
+    [90m 29| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m9 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m29 passed[39m[22m[90m (31)[39m
+[2m   Start at [22m 20:54:10
+[2m   Duration [22m 7.68s[2m (transform 1.37s, setup 4.55s, collect 14.79s, tests 401ms, environment 23.40s, prepare 3.11s)[22m
+

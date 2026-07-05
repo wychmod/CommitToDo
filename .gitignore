@@ -1,1 +1,3 @@
 /.workbuddy/
+/web/node_modules/
+/web/dist/
