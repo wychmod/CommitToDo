@@ -1,28 +1,28 @@
 export const colorTokens = {
-  canvas: '#0f172a',
-  surface1: '#1e293b',
-  surface2: '#334155',
-  surface3: '#475569',
-  surface4: '#64748b',
+  canvas: '#071414',
+  surface1: '#0e2324',
+  surface2: '#163234',
+  surface3: '#24484a',
+  surface4: '#3a6666',
 
-  hairline: '#1e293b',
-  hairlineStrong: '#334155',
-  hairlineTertiary: '#475569',
+  hairline: '#123033',
+  hairlineStrong: '#1f4a4c',
+  hairlineTertiary: '#37676a',
 
-  ink: '#f1f5f9',
-  inkMuted: '#94a3b8',
-  inkSubtle: '#64748b',
-  inkTertiary: '#475569',
+  ink: '#f4fff9',
+  inkMuted: '#a9c2bc',
+  inkSubtle: '#73918d',
+  inkTertiary: '#4d6d6b',
 
   edgeHighlight: 'rgba(255, 255, 255, 0.06)',
 
-  primary: '#3b82f6',
-  primaryHover: '#60a5fa',
-  primaryFocus: '#2563eb',
-  primaryDark: '#1d4ed8',
-  onPrimary: '#ffffff',
-  primaryGradientFrom: '#3b82f6',
-  primaryGradientTo: '#8b5cf6',
+  primary: '#16c7c7',
+  primaryHover: '#2bd8d8',
+  primaryFocus: '#0f9f9f',
+  primaryDark: '#087777',
+  onPrimary: '#031414',
+  primaryGradientFrom: '#16c7c7',
+  primaryGradientTo: '#2bd8d8',
 
   success: '#10b981',
   successLight: 'rgba(16, 185, 129, 0.1)',
@@ -30,18 +30,18 @@ export const colorTokens = {
   warningLight: 'rgba(245, 158, 11, 0.1)',
   error: '#ef4444',
   errorLight: 'rgba(239, 68, 68, 0.1)',
-  info: '#3b82f6',
+  info: '#16c7c7',
 
   overlay: 'rgba(0, 0, 0, 0.5)',
-  inverseCanvas: '#f8fafc',
-  inverseInk: '#0f172a',
+  inverseCanvas: '#f5fbf8',
+  inverseInk: '#071414',
 
   priorityHigh: '#ef4444',
   priorityMedium: '#f59e0b',
   priorityLow: '#10b981',
 
   statusTodo: '#94a3b8',
-  statusInProgress: '#3b82f6',
+  statusInProgress: '#16c7c7',
   statusDone: '#10b981',
   statusCancelled: '#6b7280',
 
@@ -56,26 +56,26 @@ export type ColorToken = keyof typeof colorTokens;
 
 export const lightColorTokens: Record<ColorToken, string> = {
   ...colorTokens,
-  canvas: '#f8fafc',
+  canvas: '#f5fbf8',
   surface1: '#ffffff',
-  surface2: '#f1f5f9',
-  surface3: '#e2e8f0',
-  surface4: '#cbd5e1',
+  surface2: '#eaf5f1',
+  surface3: '#d8e8e3',
+  surface4: '#bdd2ce',
 
-  hairline: '#e2e8f0',
-  hairlineStrong: '#cbd5e1',
-  hairlineTertiary: '#94a3b8',
+  hairline: '#d8e8e3',
+  hairlineStrong: '#bdd2ce',
+  hairlineTertiary: '#8aa9a4',
 
-  ink: '#0f172a',
-  inkMuted: '#475569',
-  inkSubtle: '#64748b',
-  inkTertiary: '#94a3b8',
+  ink: '#071414',
+  inkMuted: '#385956',
+  inkSubtle: '#607c78',
+  inkTertiary: '#8aa9a4',
 
   edgeHighlight: 'rgba(0, 0, 0, 0.06)',
 
   overlay: 'rgba(0, 0, 0, 0.5)',
-  inverseCanvas: '#0f172a',
-  inverseInk: '#f1f5f9',
+  inverseCanvas: '#071414',
+  inverseInk: '#f4fff9',
 };
 
 /**

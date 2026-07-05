@@ -15,7 +15,7 @@ export function ThemeProvider({ children }: ThemeProviderProps): JSX.Element {
 
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute('content', isDarkMode ? '#0F172A' : '#F8FAFC');
+      meta.setAttribute('content', isDarkMode ? '#071414' : '#F5FBF8');
     }
   }, [isDarkMode]);
 

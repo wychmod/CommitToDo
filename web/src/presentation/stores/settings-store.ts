@@ -17,11 +17,16 @@ export interface SettingsStore extends AppSettings {
 }
 
 const STORAGE_KEY = 'commit-settings';
+export const defaultThemeColor = '#16C7C7';
 
 function loadSettings(): Partial<AppSettings> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Partial<AppSettings>) : {};
+    const settings = raw ? (JSON.parse(raw) as Partial<AppSettings>) : {};
+    if (settings.themeColor?.toUpperCase() === '#3B82F6') {
+      return { ...settings, themeColor: defaultThemeColor };
+    }
+    return settings;
   } catch {
     return {};
   }
@@ -37,7 +42,7 @@ function saveSettings(settings: AppSettings): void {
 
 const defaults: AppSettings = {
   isDarkMode: true,
-  themeColor: '#3B82F6',
+  themeColor: defaultThemeColor,
   enableNotifications: true,
   reminderHours: 1,
   enableAutoBackup: false,

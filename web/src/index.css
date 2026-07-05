@@ -9,30 +9,30 @@
   --safe-area-right: env(safe-area-inset-right, 0px);
 
   /* Dark mode (default) surface ladder */
-  --color-canvas: #0f172a;
-  --color-surface-1: #1e293b;
-  --color-surface-2: #334155;
-  --color-surface-3: #475569;
-  --color-surface-4: #64748b;
+  --color-canvas: #071414;
+  --color-surface-1: #0e2324;
+  --color-surface-2: #163234;
+  --color-surface-3: #24484a;
+  --color-surface-4: #3a6666;
 
-  --color-hairline: #1e293b;
-  --color-hairline-strong: #334155;
-  --color-hairline-tertiary: #475569;
+  --color-hairline: #123033;
+  --color-hairline-strong: #1f4a4c;
+  --color-hairline-tertiary: #37676a;
 
-  --color-ink: #f1f5f9;
-  --color-ink-muted: #94a3b8;
-  --color-ink-subtle: #64748b;
-  --color-ink-tertiary: #475569;
+  --color-ink: #f4fff9;
+  --color-ink-muted: #a9c2bc;
+  --color-ink-subtle: #73918d;
+  --color-ink-tertiary: #4d6d6b;
 
   --color-edge-highlight: rgba(255, 255, 255, 0.06);
 
-  --color-primary: #3b82f6;
-  --color-primary-hover: #60a5fa;
-  --color-primary-focus: #2563eb;
-  --color-primary-dark: #1d4ed8;
-  --color-on-primary: #ffffff;
-  --color-primary-gradient-from: #3b82f6;
-  --color-primary-gradient-to: #8b5cf6;
+  --color-primary: #16c7c7;
+  --color-primary-hover: #2bd8d8;
+  --color-primary-focus: #0f9f9f;
+  --color-primary-dark: #087777;
+  --color-on-primary: #031414;
+  --color-primary-gradient-from: #16c7c7;
+  --color-primary-gradient-to: #2bd8d8;
 
   --color-success: #10b981;
   --color-success-light: rgba(16, 185, 129, 0.1);
@@ -40,18 +40,18 @@
   --color-warning-light: rgba(245, 158, 11, 0.1);
   --color-error: #ef4444;
   --color-error-light: rgba(239, 68, 68, 0.1);
-  --color-info: #3b82f6;
+  --color-info: #16c7c7;
 
   --color-overlay: rgba(0, 0, 0, 0.5);
-  --color-inverse-canvas: #f8fafc;
-  --color-inverse-ink: #0f172a;
+  --color-inverse-canvas: #f5fbf8;
+  --color-inverse-ink: #071414;
 
   --color-priority-high: #ef4444;
   --color-priority-medium: #f59e0b;
   --color-priority-low: #10b981;
 
   --color-status-todo: #94a3b8;
-  --color-status-in-progress: #3b82f6;
+  --color-status-in-progress: #16c7c7;
   --color-status-done: #10b981;
   --color-status-cancelled: #6b7280;
 
@@ -63,26 +63,26 @@
 }
 
 .light {
-  --color-canvas: #f8fafc;
+  --color-canvas: #f5fbf8;
   --color-surface-1: #ffffff;
-  --color-surface-2: #f1f5f9;
-  --color-surface-3: #e2e8f0;
-  --color-surface-4: #cbd5e1;
+  --color-surface-2: #eaf5f1;
+  --color-surface-3: #d8e8e3;
+  --color-surface-4: #bdd2ce;
 
-  --color-hairline: #e2e8f0;
-  --color-hairline-strong: #cbd5e1;
-  --color-hairline-tertiary: #94a3b8;
+  --color-hairline: #d8e8e3;
+  --color-hairline-strong: #bdd2ce;
+  --color-hairline-tertiary: #8aa9a4;
 
-  --color-ink: #0f172a;
-  --color-ink-muted: #475569;
-  --color-ink-subtle: #64748b;
-  --color-ink-tertiary: #94a3b8;
+  --color-ink: #071414;
+  --color-ink-muted: #385956;
+  --color-ink-subtle: #607c78;
+  --color-ink-tertiary: #8aa9a4;
 
   --color-edge-highlight: rgba(0, 0, 0, 0.06);
 
   --color-overlay: rgba(0, 0, 0, 0.5);
-  --color-inverse-canvas: #0f172a;
-  --color-inverse-ink: #f1f5f9;
+  --color-inverse-canvas: #071414;
+  --color-inverse-ink: #f4fff9;
 }
 
 * {
@@ -276,7 +276,7 @@ body {
 }
 
 /* ============================================================================
-   Landing screen — retro terminal / agent pipeline
+   Landing screen — focused taskflow / terminal HUD
    ============================================================================ */
 
 .landing-root {
@@ -285,10 +285,11 @@ body {
   min-height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 19% 19%, rgba(226, 22, 128, 0.2), transparent 27%),
-    radial-gradient(circle at 79% 76%, rgba(255, 99, 58, 0.14), transparent 31%),
-    linear-gradient(107deg, #070508 0%, #0b0710 43%, #020304 100%);
-  color: #f7f3f6;
+    radial-gradient(circle at 17% 19%, rgba(43, 216, 216, 0.2), transparent 28%),
+    radial-gradient(circle at 78% 76%, rgba(178, 255, 89, 0.12), transparent 30%),
+    radial-gradient(circle at 42% 86%, rgba(255, 198, 92, 0.1), transparent 26%),
+    linear-gradient(108deg, #031414 0%, #071d22 48%, #020706 100%);
+  color: #f4fff9;
   font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
   letter-spacing: 0;
 }
@@ -299,8 +300,8 @@ body {
   inset: 0;
   z-index: -2;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.032) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(rgba(208, 255, 245, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(208, 255, 245, 0.025) 1px, transparent 1px);
   background-size: 4px 4px, 28px 28px;
   opacity: 0.23;
   mask-image: radial-gradient(circle at center, black 30%, transparent 82%);
@@ -314,8 +315,8 @@ body {
   background:
     repeating-linear-gradient(
       0deg,
-      rgba(255, 255, 255, 0.035) 0,
-      rgba(255, 255, 255, 0.035) 1px,
+      rgba(208, 255, 245, 0.034) 0,
+      rgba(208, 255, 245, 0.034) 1px,
       transparent 1px,
       transparent 4px
     );
@@ -338,7 +339,7 @@ body {
   grid-template-columns: 1fr auto 1fr;
   gap: 16px;
   padding: 24px clamp(18px, 4vw, 56px) 0;
-  color: rgba(247, 243, 246, 0.34);
+  color: rgba(244, 255, 249, 0.34);
   font-size: 11px;
   line-height: 1.4;
   text-transform: uppercase;
@@ -349,7 +350,7 @@ body {
 }
 
 .landing-topline-center {
-  color: rgba(247, 243, 246, 0.22);
+  color: rgba(244, 255, 249, 0.22);
 }
 
 .landing-hero {
@@ -367,7 +368,7 @@ body {
 
 .landing-kicker {
   margin: 0 0 28px;
-  color: rgba(247, 243, 246, 0.55);
+  color: rgba(244, 255, 249, 0.55);
   font-size: 14px;
 }
 
@@ -377,28 +378,28 @@ body {
   align-items: center;
   gap: 0.34em;
   margin: 0;
-  color: #f7f3f6;
+  color: #f4fff9;
   font-size: clamp(42px, 8.6vw, 106px);
   font-weight: 800;
   line-height: 0.95;
   text-transform: uppercase;
   text-shadow:
-    2px 0 rgba(226, 22, 128, 0.55),
-    -2px 0 rgba(255, 99, 58, 0.28),
-    0 0 22px rgba(247, 243, 246, 0.12);
+    2px 0 rgba(43, 216, 216, 0.5),
+    -2px 0 rgba(178, 255, 89, 0.26),
+    0 0 22px rgba(244, 255, 249, 0.12);
 }
 
 .landing-hot {
-  color: #e21680;
+  color: #2bd8d8;
   text-shadow:
-    2px 0 rgba(255, 99, 58, 0.56),
-    0 0 24px rgba(226, 22, 128, 0.42);
+    2px 0 rgba(178, 255, 89, 0.48),
+    0 0 24px rgba(43, 216, 216, 0.38);
 }
 
 .landing-subtitle {
   max-width: 620px;
   margin: 28px 0 0;
-  color: rgba(247, 243, 246, 0.66);
+  color: rgba(244, 255, 249, 0.68);
   font-family: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
   font-size: clamp(15px, 1.7vw, 18px);
   line-height: 1.75;
@@ -407,7 +408,7 @@ body {
 .landing-boot {
   margin-top: 34px;
   max-width: 500px;
-  color: rgba(247, 243, 246, 0.56);
+  color: rgba(244, 255, 249, 0.56);
   font-size: 13px;
 }
 
@@ -417,9 +418,9 @@ body {
   max-width: 100%;
   margin: 0 0 16px;
   overflow: hidden;
-  color: #ff7a58;
+  color: #ffc65c;
   white-space: nowrap;
-  border-right: 10px solid #ff633a;
+  border-right: 10px solid #b2ff59;
   animation:
     landing-type 1.28s steps(38, end) 280ms both,
     landing-caret 940ms steps(1, end) infinite;
@@ -437,13 +438,13 @@ body {
 
 .landing-dots {
   height: 1px;
-  background-image: linear-gradient(90deg, rgba(247, 243, 246, 0.25) 40%, transparent 0);
+  background-image: linear-gradient(90deg, rgba(244, 255, 249, 0.25) 40%, transparent 0);
   background-size: 8px 1px;
   background-repeat: repeat-x;
 }
 
 .landing-ok {
-  color: #e21680;
+  color: #2bd8d8;
 }
 
 .landing-actions {
@@ -460,10 +461,10 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border: 1px solid rgba(247, 243, 246, 0.18);
+  border: 1px solid rgba(244, 255, 249, 0.18);
   border-radius: 3px;
   padding: 0 18px;
-  color: #f7f3f6;
+  color: #f4fff9;
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -475,16 +476,18 @@ body {
 }
 
 .landing-primary {
-  border-color: rgba(226, 22, 128, 0.82);
-  background: linear-gradient(90deg, #e21680, #ff633a);
+  border-color: rgba(43, 216, 216, 0.78);
+  background:
+    linear-gradient(180deg, rgba(244, 255, 249, 0.22), transparent 42%),
+    linear-gradient(90deg, #12b9ba, #2bd8d8);
   box-shadow:
-    0 0 28px rgba(226, 22, 128, 0.24),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    0 0 22px rgba(43, 216, 216, 0.22),
+    inset 0 0 0 1px rgba(244, 255, 249, 0.16);
 }
 
 .landing-secondary {
-  background: rgba(247, 243, 246, 0.045);
-  color: rgba(247, 243, 246, 0.78);
+  background: rgba(244, 255, 249, 0.045);
+  color: rgba(244, 255, 249, 0.78);
 }
 
 .landing-primary:hover,
@@ -493,8 +496,8 @@ body {
 }
 
 .landing-secondary:hover {
-  border-color: rgba(255, 99, 58, 0.48);
-  background: rgba(255, 99, 58, 0.08);
+  border-color: rgba(178, 255, 89, 0.5);
+  background: rgba(178, 255, 89, 0.08);
 }
 
 .landing-scan {
@@ -506,7 +509,7 @@ body {
 .landing-scan::after {
   content: '';
   position: absolute;
-  background: rgba(247, 243, 246, 0.24);
+  background: rgba(244, 255, 249, 0.24);
   transform-origin: left center;
 }
 
@@ -531,13 +534,13 @@ body {
   grid-template-columns: 1fr auto 1fr;
   gap: 12px;
   margin-bottom: 8px;
-  color: rgba(247, 243, 246, 0.7);
+  color: rgba(244, 255, 249, 0.7);
   font-size: 10px;
   text-transform: uppercase;
 }
 
 .landing-scan-meta span:nth-child(2) {
-  color: #e21680;
+  color: #2bd8d8;
   text-align: center;
 }
 
@@ -558,46 +561,46 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid rgba(247, 243, 246, 0.38);
+  border: 1px solid rgba(244, 255, 249, 0.34);
   background:
     linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
     rgba(0, 0, 0, 0.1);
   background-size: 100% 6px;
-  color: #e21680;
+  color: #2bd8d8;
   font-size: clamp(52px, 7vw, 94px);
   font-weight: 900;
   line-height: 1;
   text-transform: uppercase;
-  text-shadow: 3px 0 rgba(255, 99, 58, 0.52);
+  text-shadow: 3px 0 rgba(178, 255, 89, 0.42);
 }
 
 .landing-model-box::before {
   content: '';
   position: absolute;
   inset: -1px;
-  border: 1px solid rgba(226, 22, 128, 0.28);
+  border: 1px solid rgba(43, 216, 216, 0.32);
   clip-path: polygon(0 0, 36% 0, 36% 100%, 0 100%);
   animation: landing-scan-window 3.4s ease-in-out infinite;
 }
 
 .landing-model-box-hot {
-  color: #ff4c56;
+  color: #b2ff59;
 }
 
 .landing-scan-labels {
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
-  color: rgba(247, 243, 246, 0.45);
+  color: rgba(244, 255, 249, 0.45);
   font-size: 10px;
 }
 
 .landing-scan-labels span:first-child {
-  color: #e21680;
+  color: #2bd8d8;
 }
 
 .landing-scan-labels span:nth-child(2) {
-  color: #ff633a;
+  color: #b2ff59;
 }
 
 .landing-orbit {
@@ -609,7 +612,7 @@ body {
   height: 138px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(247, 243, 246, 0.25);
+  border: 1px solid rgba(244, 255, 249, 0.25);
   border-radius: 999px;
 }
 
@@ -617,7 +620,7 @@ body {
 .landing-orbit::after {
   content: '';
   position: absolute;
-  background: rgba(247, 243, 246, 0.28);
+  background: rgba(244, 255, 249, 0.28);
 }
 
 .landing-orbit::before {
@@ -633,7 +636,7 @@ body {
 .landing-orbit span {
   width: 66px;
   height: 66px;
-  border: 1px solid rgba(255, 99, 58, 0.56);
+  border: 1px solid rgba(255, 198, 92, 0.6);
   border-radius: 50%;
   border-left-color: transparent;
   animation: landing-orbit 8s linear infinite;
@@ -647,24 +650,126 @@ body {
   gap: 34px;
 }
 
-.landing-wave {
-  display: flex;
+.landing-flow-map {
+  position: relative;
+  display: grid;
+  width: min(100%, 360px);
   height: 214px;
+  grid-template-columns: repeat(6, 1fr);
   align-items: center;
-  gap: 12px;
-  opacity: 0.56;
+  overflow: hidden;
+  border: 1px solid rgba(244, 255, 249, 0.13);
+  background:
+    linear-gradient(rgba(244, 255, 249, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(43, 216, 216, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 30% 30%, rgba(43, 216, 216, 0.14), transparent 34%),
+    radial-gradient(circle at 76% 72%, rgba(178, 255, 89, 0.1), transparent 38%),
+    rgba(3, 20, 20, 0.42);
+  background-size: 100% 24px, 36px 100%, auto, auto, auto;
 }
 
-.landing-wave span {
-  width: 17px;
+.landing-flow-map::before {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 49%;
+  height: 38px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(43, 216, 216, 0.1),
+      rgba(43, 216, 216, 0.58) 38%,
+      rgba(178, 255, 89, 0.4) 68%,
+      rgba(244, 255, 249, 0.08)
+    );
+  clip-path: polygon(0 42%, 13% 42%, 13% 30%, 28% 30%, 28% 55%, 44% 55%, 44% 24%, 62% 24%, 62% 66%, 78% 66%, 78% 38%, 100% 38%, 100% 50%, 80% 50%, 80% 78%, 60% 78%, 60% 36%, 46% 36%, 46% 67%, 26% 67%, 26% 42%, 0 42%);
+  opacity: 0.9;
+}
+
+.landing-flow-map::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  top: calc(49% + 10px);
+  width: 10px;
+  height: 10px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(226, 22, 128, 0.38), rgba(255, 99, 58, 0.2));
-  filter: blur(0.2px);
-  transform-origin: center;
-  animation: landing-wave 2.7s ease-in-out infinite;
+  background: #b2ff59;
+  box-shadow:
+    0 0 0 5px rgba(178, 255, 89, 0.12),
+    0 0 24px rgba(178, 255, 89, 0.5);
+  animation: landing-flow-dot 4.2s cubic-bezier(0.5, 0, 0.15, 1) infinite;
 }
 
-.landing-no-limits {
+.landing-flow-node {
+  --node-index: 0;
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 36px;
+  height: 8px;
+  justify-self: center;
+  border-radius: 0;
+  background: rgba(244, 255, 249, 0.16);
+  color: rgba(244, 255, 249, 0.52);
+  transform: translateY(calc((var(--node-index) % 2) * -34px + 17px)) skewX(-16deg);
+}
+
+.landing-flow-node span {
+  position: absolute;
+  left: 0;
+  top: -18px;
+  color: rgba(244, 255, 249, 0.38);
+  font-size: 9px;
+  font-style: normal;
+  letter-spacing: 0;
+  transform: skewX(16deg);
+}
+
+.landing-flow-node-done {
+  background: rgba(43, 216, 216, 0.7);
+  box-shadow: 0 0 14px rgba(43, 216, 216, 0.2);
+}
+
+.landing-flow-node-active {
+  background: #b2ff59;
+  box-shadow:
+    0 0 20px rgba(178, 255, 89, 0.32),
+    0 0 0 1px rgba(178, 255, 89, 0.14);
+  animation: landing-flow-node-pulse 2.4s ease-in-out infinite;
+}
+
+.landing-flow-node-inbox {
+  background:
+    linear-gradient(90deg, rgba(244, 255, 249, 0.22) 50%, transparent 0);
+  background-size: 8px 100%;
+}
+
+.landing-flow-label {
+  position: absolute;
+  bottom: 18px;
+  color: rgba(244, 255, 249, 0.32);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.landing-flow-label-start {
+  left: 9%;
+  color: rgba(43, 216, 216, 0.75);
+}
+
+.landing-flow-label-mid {
+  left: 48%;
+  transform: translateX(-50%);
+}
+
+.landing-flow-label-end {
+  right: 9%;
+  color: rgba(178, 255, 89, 0.72);
+}
+
+.landing-slogan {
   display: grid;
   justify-items: end;
   gap: 14px;
@@ -672,17 +777,17 @@ body {
   font-weight: 900;
   line-height: 0.9;
   text-transform: uppercase;
-  text-shadow: 3px 0 rgba(247, 243, 246, 0.28);
+  text-shadow: 3px 0 rgba(244, 255, 249, 0.26);
 }
 
-.landing-no-limits span {
-  color: #f7f3f6;
+.landing-slogan span {
+  color: #f4fff9;
 }
 
-.landing-no-limits strong {
-  color: #e21680;
+.landing-slogan strong {
+  color: #b2ff59;
   font: inherit;
-  text-shadow: 3px 0 rgba(255, 99, 58, 0.34);
+  text-shadow: 3px 0 rgba(43, 216, 216, 0.34);
 }
 
 .landing-capabilities {
@@ -690,8 +795,8 @@ body {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
   margin: -12px clamp(18px, 7vw, 96px) 0;
-  border: 1px solid rgba(247, 243, 246, 0.1);
-  background: rgba(247, 243, 246, 0.1);
+  border: 1px solid rgba(244, 255, 249, 0.1);
+  background: rgba(244, 255, 249, 0.1);
 }
 
 .landing-capability {
@@ -705,23 +810,23 @@ body {
 }
 
 .landing-capability-index {
-  color: #e21680;
+  color: #2bd8d8;
   font-size: 11px;
 }
 
 .landing-capability svg {
-  color: rgba(255, 99, 58, 0.9);
+  color: rgba(178, 255, 89, 0.92);
 }
 
 .landing-capability h2 {
   margin: 0 0 7px;
-  color: rgba(247, 243, 246, 0.92);
+  color: rgba(244, 255, 249, 0.92);
   font-size: 14px;
 }
 
 .landing-capability p {
   margin: 0;
-  color: rgba(247, 243, 246, 0.48);
+  color: rgba(244, 255, 249, 0.5);
   font-family: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.6;
@@ -733,22 +838,22 @@ body {
   align-items: center;
   gap: 12px;
   padding: 14px clamp(18px, 7vw, 96px) 26px;
-  color: rgba(247, 243, 246, 0.46);
+  color: rgba(244, 255, 249, 0.46);
   font-size: 12px;
 }
 
 .landing-command span:nth-child(3) {
-  color: rgba(247, 243, 246, 0.78);
+  color: rgba(244, 255, 249, 0.78);
 }
 
 .landing-command a,
 .landing-command svg {
-  color: #ff633a;
+  color: #ffc65c;
 }
 
 .landing-command-tail {
   margin-left: auto;
-  color: rgba(247, 243, 246, 0.24);
+  color: rgba(244, 255, 249, 0.28);
   text-transform: uppercase;
 }
 
@@ -787,7 +892,7 @@ body {
 
 @keyframes landing-caret {
   0%, 48% {
-    border-color: #ff633a;
+    border-color: #b2ff59;
   }
   49%, 100% {
     border-color: transparent;
@@ -822,14 +927,38 @@ body {
   }
 }
 
-@keyframes landing-wave {
-  0%, 100% {
-    opacity: 0.42;
-    transform: scaleY(0.76);
+@keyframes landing-flow-dot {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  28% {
+    transform: translate3d(72px, -20px, 0);
   }
   50% {
+    transform: translate3d(150px, 10px, 0);
+  }
+  72% {
+    transform: translate3d(230px, -16px, 0);
+  }
+  90% {
     opacity: 1;
-    transform: scaleY(1.08);
+  }
+  100% {
+    transform: translate3d(300px, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes landing-flow-node-pulse {
+  0%, 100% {
+    transform: translateY(calc((var(--node-index) % 2) * -34px + 17px)) skewX(-16deg) scaleX(1);
+  }
+  50% {
+    transform: translateY(calc((var(--node-index) % 2) * -34px + 17px)) skewX(-16deg) scaleX(1.32);
   }
 }
 
@@ -846,11 +975,11 @@ body {
     justify-items: stretch;
   }
 
-  .landing-wave {
+  .landing-flow-map {
     height: 150px;
   }
 
-  .landing-no-limits {
+  .landing-slogan {
     font-size: clamp(38px, 8vw, 64px);
   }
 
@@ -904,17 +1033,16 @@ body {
     justify-items: start;
   }
 
-  .landing-wave {
+  .landing-flow-map {
     width: 100%;
-    justify-content: center;
-    gap: 8px;
   }
 
-  .landing-wave span {
-    width: 13px;
+  .landing-flow-node {
+    width: 28px;
+    transform: translateY(calc((var(--node-index) % 2) * -22px + 11px)) skewX(-16deg);
   }
 
-  .landing-no-limits {
+  .landing-slogan {
     justify-items: start;
   }
 

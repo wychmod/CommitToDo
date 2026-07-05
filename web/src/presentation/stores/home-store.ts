@@ -5,6 +5,7 @@ import { CreateRepositoryUseCase } from '../../application/usecases/repository/c
 import { DeleteRepositoryUseCase } from '../../application/usecases/repository/delete-repository-usecase';
 import { UpdateRepositoryUseCase } from '../../application/usecases/repository/update-repository-usecase';
 import { create } from 'zustand';
+import { defaultThemeColor } from './settings-store';
 
 export interface HomeState {
   repositories: Repository[];
@@ -39,7 +40,7 @@ export const useHomeStore = create<HomeState>((set, get) => {
       }
     },
 
-    createRepository: async (name, icon = 'repository', color = '#3B82F6') => {
+    createRepository: async (name, icon = 'repository', color = defaultThemeColor) => {
       set({ isLoading: true, error: null });
       try {
         const created = await createRepoUseCase.execute({ name, icon, color });

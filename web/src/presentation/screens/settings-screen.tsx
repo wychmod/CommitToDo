@@ -10,15 +10,16 @@ import { WebFileSaveService } from '../../platform/web-file-save-service';
 import { WebNotificationService } from '../../platform/web-notification-service';
 import { ImportDataUseCase } from '../../application/usecases/import-data-usecase';
 import { useHomeStore } from '../stores/home-store';
+import { defaultThemeColor } from '../stores/settings-store';
 
 const themeColors = [
-  '#3B82F6',
-  '#8B5CF6',
+  defaultThemeColor,
+  '#A7F542',
+  '#FFC65C',
+  '#06B6D4',
   '#10B981',
   '#F59E0B',
   '#EF4444',
-  '#06B6D4',
-  '#EC4899',
 ];
 
 export function SettingsScreen(): JSX.Element {
