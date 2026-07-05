@@ -10,12 +10,24 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/', icon: AppIconName.repository, label: '仓库' },
+  { to: '/workspace', icon: AppIconName.repository, label: '仓库' },
   { to: '/search', icon: AppIconName.search, label: '搜索' },
   { to: '/heatmap', icon: AppIconName.heatmap, label: '热力图' },
   { to: '/graph', icon: AppIconName.graph, label: '图形' },
   { to: '/settings', icon: AppIconName.settings, label: '设置' },
 ];
+
+function isNavItemActive(pathname: string, item: NavItem): boolean {
+  if (item.to === '/workspace') {
+    return (
+      pathname === item.to ||
+      pathname.startsWith('/repository/') ||
+      pathname.startsWith('/task/')
+    );
+  }
+
+  return pathname === item.to || pathname.startsWith(`${item.to}/`);
+}
 
 function SideNav(): JSX.Element {
   const { pathname } = useLocation();
@@ -32,7 +44,7 @@ function SideNav(): JSX.Element {
       </div>
       <div className="flex flex-1 flex-col gap-xs px-sm py-sm">
         {navItems.map((item) => {
-          const isActive = pathname === item.to || pathname.startsWith(`${item.to}/`);
+          const isActive = isNavItemActive(pathname, item);
           return (
             <Link
               key={item.to}
@@ -62,7 +74,7 @@ function BottomNav(): JSX.Element {
     <nav className="fixed bottom-0 left-0 z-40 h-12 w-full border-t border-hairline bg-canvas pb-[var(--safe-area-bottom)]">
       <div className="flex h-full items-center justify-around">
         {navItems.map((item) => {
-          const isActive = pathname === item.to || pathname.startsWith(`${item.to}/`);
+          const isActive = isNavItemActive(pathname, item);
           return (
             <Link
               key={item.to}

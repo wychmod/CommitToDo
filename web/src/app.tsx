@@ -3,6 +3,7 @@ import { ThemeProvider } from './core/theme/theme-provider';
 import { AppLayout } from './presentation/components/layout/app-layout';
 import { ToastProvider } from './presentation/components/common/toast-provider';
 import { NotificationScheduler } from './presentation/components/common/notification-scheduler';
+import { LandingScreen } from './presentation/screens/landing-screen';
 import { HomeScreen } from './presentation/screens/home-screen';
 import { RepositoryScreen } from './presentation/screens/repository-screen';
 import { TaskDetailScreen } from './presentation/screens/task-detail-screen';
@@ -19,8 +20,9 @@ function App(): JSX.Element {
         <NotificationScheduler />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<HomeScreen />} />
+            <Route path="/" element={<LandingScreen />} />
+            <Route element={<AppLayout />}>
+              <Route path="workspace" element={<HomeScreen />} />
               <Route path="search" element={<SearchScreen />} />
               <Route path="heatmap" element={<HeatmapScreen />} />
               <Route path="graph" element={<GitGraphScreen />} />
