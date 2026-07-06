@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../core/hooks/use-is-mobile';
 import { AppInput } from '../components/common/app-input';
@@ -7,12 +7,18 @@ import { TaskList } from '../components/tasks/task-list';
 import { RepositoryRow } from '../components/repository/repository-row';
 import { useSearchStore } from '../stores/search-store';
 import { useCommandPaletteStore } from '../components/command-palette/command-palette.store';
+import { container } from '../../core/di/injection-container';
+import { IBranchRepository } from '../../domain/repositories/i-branch-repository';
 
 export function SearchScreen(): JSX.Element {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const inputRef = useRef<HTMLInputElement>(null);
   const openPalette = useCommandPaletteStore((s) => s.openPalette);
+  const kbdHint = useMemo(() => {
+    if (typeof navigator === 'undefined') return 'Ctrl+K';
+    return /mac|iphone|ipad|ipod/i.test(navigator.platform) ? '⌘K' : 'Ctrl+K';
+  }, []);
   const {
     query,
     tasks,
@@ -43,6 +49,15 @@ export function SearchScreen(): JSX.Element {
     }
   };
 
+  const navigateToTask = async (branchId: string, taskId: string): Promise<void> => {
+    const branchRepo = container.resolve<IBranchRepository>('IBranchRepository');
+    const branch = await branchRepo.getById(branchId);
+    if (!branch) return;
+    navigate(
+      `/repository/${branch.repositoryId}?branch=${branch.id}&task=${taskId}`
+    );
+  };
+
   return (
     <div className="work-main">
       <div className="work-main-pad">
@@ -60,7 +75,7 @@ export function SearchScreen(): JSX.Element {
               onClick={openPalette}
               className="font-mono text-primary underline-offset-4 hover:underline"
             >
-              ⌘K
+              {kbdHint}
             </button>{' '}
             打开命令面板。
           </p>
@@ -102,10 +117,7 @@ export function SearchScreen(): JSX.Element {
                   tasks={tasks}
                   onItemClick={(task) => {
                     if (task.branchId) {
-                      const url = task.branchId
-                        ? `/repository?branch=${task.branchId}&task=${task.id}`
-                        : `/workspace`;
-                      navigate(url);
+                      void navigateToTask(task.branchId, task.id);
                     }
                   }}
                 />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -84,10 +84,10 @@ export function CommandPalette(): JSX.Element {
     return undefined;
   }, [open]);
 
-  const navigateTo = (path: string): void => {
+  const navigateTo = useCallback((path: string): void => {
     closePalette();
     navigate(path);
-  };
+  }, [closePalette, navigate]);
 
   // Build the actions list (always available)
   const actions = useMemo<CommandResult[]>(() => {
@@ -150,7 +150,7 @@ export function CommandPalette(): JSX.Element {
       meta: a.hint,
       onSelect: a.onSelect,
     }));
-  }, [navigate]);
+  }, [navigateTo]);
 
   const taskResults = useMemo<CommandResult[]>(() => {
     const branchRepo = container.resolve<IBranchRepository>('IBranchRepository');
@@ -170,7 +170,7 @@ export function CommandPalette(): JSX.Element {
         })();
       },
     }));
-  }, [tasks]);
+  }, [navigateTo, tasks]);
 
   const branchResults = useMemo<CommandResult[]>(
     () =>
@@ -182,7 +182,7 @@ export function CommandPalette(): JSX.Element {
         meta: b.isMain ? 'main' : 'feature',
         onSelect: () => navigateTo(`/repository/${b.repositoryId}?branch=${b.id}`),
       })),
-    [branches]
+    [branches, navigateTo]
   );
 
   const repositoryResults = useMemo<CommandResult[]>(
@@ -195,7 +195,7 @@ export function CommandPalette(): JSX.Element {
         meta: '仓库',
         onSelect: () => navigateTo(`/repository/${r.id}`),
       })),
-    [repositories]
+    [repositories, navigateTo]
   );
 
   const filtered = useMemo<CommandResult[]>(() => {

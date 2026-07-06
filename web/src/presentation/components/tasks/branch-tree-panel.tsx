@@ -187,6 +187,7 @@ function BranchRow({
         className="branch-row"
         data-active={active}
         onClick={onSelect}
+        aria-label={`${branch.name}${branch.isMain ? '，主分支' : ''}，${count} 个任务`}
       >
         <span
           className="branch-row-marker"
@@ -196,7 +197,10 @@ function BranchRow({
         <span className="branch-row-name">
           {branch.name}
           {branch.isMain ? (
-            <span className="ml-1 align-middle font-mono text-[10px] text-ink-subtle">
+            <span
+              className="ml-1 align-middle font-mono text-[10px] text-ink-subtle"
+              aria-hidden="true"
+            >
               main
             </span>
           ) : null}

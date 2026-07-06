@@ -36,6 +36,11 @@ interface WorkspaceStats {
   pendingTasks: number;
 }
 
+interface RepositoryCounts {
+  branchCount: number;
+  taskCount: number;
+}
+
 const PAGE_TITLE = '工作台';
 const PAGE_SUBTITLE = '今日焦点 · 最近仓库 · 本地保存';
 
@@ -60,6 +65,10 @@ export function HomeScreen(): JSX.Element {
   });
 
   const [statsLoading, setStatsLoading] = useState(true);
+  const [repositoryCounts, setRepositoryCounts] = useState<
+    Record<string, RepositoryCounts>
+  >({});
+  const [isMac, setIsMac] = useState(false);
 
   const [isCreateOpen, setIsCreateOpen] = useState(
     searchParams.get('create') === '1'
@@ -78,6 +87,11 @@ export function HomeScreen(): JSX.Element {
   }, [load]);
 
   useEffect(() => {
+    if (typeof navigator === 'undefined') return;
+    setIsMac(/mac|iphone|ipad|ipod/i.test(navigator.platform));
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     (async (): Promise<void> => {
       try {
@@ -88,18 +102,34 @@ export function HomeScreen(): JSX.Element {
         const startOfWeek = startOfDay(subDays(new Date(), 6)).getTime();
         const endOfToday = endOfDay(new Date()).getTime();
 
-        const taskLists = await Promise.all(
+        const entries = await Promise.all(
           repositories.map((r) =>
             branchRepo.getByRepositoryId(r.id).then(async (branches) => {
               const all = await Promise.all(
                 branches.map((b) => taskRepo.getByBranchId(b.id))
               );
-              return all.flat();
+              const tasksForRepo = all.flat();
+              return {
+                repositoryId: r.id,
+                branchCount: branches.length,
+                tasks: tasksForRepo,
+              };
             })
           )
         );
-        const allTasks: Task[] = taskLists.flat();
+        const allTasks: Task[] = entries.flatMap((entry) => entry.tasks);
         if (cancelled) return;
+        setRepositoryCounts(
+          Object.fromEntries(
+            entries.map((entry) => [
+              entry.repositoryId,
+              {
+                branchCount: entry.branchCount,
+                taskCount: entry.tasks.length,
+              },
+            ])
+          )
+        );
         const isSameDay = (a: Date, b: Date): boolean =>
           a.toDateString() === b.toDateString();
         const today = new Date();
@@ -268,6 +298,8 @@ export function HomeScreen(): JSX.Element {
                 <RepositoryRow
                   key={repo.id}
                   repository={repo}
+                  branchCount={repositoryCounts[repo.id]?.branchCount}
+                  taskCount={repositoryCounts[repo.id]?.taskCount}
                   onDelete={() => deleteRepository(repo.id)}
                 />
               ))}
@@ -284,7 +316,7 @@ export function HomeScreen(): JSX.Element {
         <footer className="mt-4 border-t border-border-quiet pt-4 text-[11px] text-ink-subtle">
           最近更新 {repositories[0] ? formatRelativeTime(repositories[0].updatedAt) : '—'} ·
           数据保存在 IndexedDB ·
-          按 ⌘K 打开命令面板
+          按 {isMac ? '⌘K' : 'Ctrl+K'} 打开命令面板
         </footer>
       </div>
 

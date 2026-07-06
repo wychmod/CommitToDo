@@ -10,9 +10,12 @@ import { HeatmapCalendar } from '../components/heatmap/heatmap-calendar';
 import { useRepositoryStore } from '../stores/repository-store';
 import { Branch } from '../../domain/entities/branch';
 import { CalendarCheck2 } from 'lucide-react';
+import { AppButton } from '../components/common/app-button';
+import { useNavigate } from 'react-router-dom';
 
 export function RepoHeatmapScreen(): JSX.Element {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { repository, loadData } = useRepositoryStore();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -123,6 +126,14 @@ export function RepoHeatmapScreen(): JSX.Element {
             ) : tasks.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-state-title">本仓库暂无完成记录</span>
+                <span className="empty-state-caption">
+                  完成任务后会在这里形成节奏热力图。先回到任务页推进一个任务。
+                </span>
+                {id ? (
+                  <AppButton onClick={() => navigate(`/repository/${id}`)}>
+                    回到任务页
+                  </AppButton>
+                ) : null}
               </div>
             ) : (
               <HeatmapCalendar tasks={tasks} />

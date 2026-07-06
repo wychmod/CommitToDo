@@ -36,6 +36,17 @@ export class AppDatabase extends Dexie {
       tags: 'id, name',
       taskTags: '[taskId+tagId], taskId, tagId',
     });
+
+    this.version(2).stores({
+      repositories: 'id, isArchived, isDeleted',
+      branches:
+        'id, repositoryId, parentBranchId, isDeleted, [repositoryId+isDeleted]',
+      tasks:
+        'id, branchId, status, dueDate, parentTaskId, isDeleted, sortOrder, [branchId+isDeleted]',
+      commits: 'id, taskId, branchId, createdAt',
+      tags: 'id, name',
+      taskTags: '[taskId+tagId], taskId, tagId',
+    });
   }
 }
 

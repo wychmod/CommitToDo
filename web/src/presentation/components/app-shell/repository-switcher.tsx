@@ -44,9 +44,9 @@ export function RepositorySwitcher({
   }, [repositories, query]);
 
   const active =
-    repositories.find((r) => r.id === activeRepositoryId) ??
-    repositories[0] ??
-    null;
+    activeRepositoryId
+      ? repositories.find((r) => r.id === activeRepositoryId) ?? null
+      : null;
 
   const handleSelect = (repo: Repository): void => {
     setOpen(false);

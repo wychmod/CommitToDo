@@ -4,12 +4,9 @@ import { Loader2, Plus, Folder, Filter as FilterIcon } from 'lucide-react';
 
 import { useRepositoryStore } from '../stores/repository-store';
 import { useTaskStore } from '../stores/task-store';
-import { container } from '../../core/di/injection-container';
-import { ICommitRepository } from '../../domain/repositories/i-commit-repository';
 import { Priority, TaskStatus } from '../../domain/entities/enums';
 import { Task } from '../../domain/entities/task';
 import { Branch } from '../../domain/entities/branch';
-import { Commit } from '../../domain/entities/commit';
 
 import { AppButton } from '../components/common/app-button';
 import { AppInput } from '../components/common/app-input';
@@ -33,7 +30,7 @@ import { formatRelativeTime } from '../../core/utils/formatters';
 export function RepositoryScreen(): JSX.Element {
   const { id: repoId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const {
     repository,
@@ -53,7 +50,14 @@ export function RepositoryScreen(): JSX.Element {
     selectTask,
   } = useRepositoryStore();
 
-  const { task: drawerTask, commits: drawerCommits, isLoading: drawerLoading, completeTask: completeDetailTask, deleteTask: deleteDetailTask } = useTaskStore();
+  const {
+    task: drawerTask,
+    commits: drawerCommits,
+    isLoading: drawerLoading,
+    load: loadDrawerTask,
+    completeTask: completeDetailTask,
+    deleteTask: deleteDetailTask,
+  } = useTaskStore();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filterView, setFilterView] = useState<TaskFilterView>('all');
@@ -76,16 +80,27 @@ export function RepositoryScreen(): JSX.Element {
     }
     const taskParam = searchParams.get('task');
     if (taskParam) {
-      const taskInState = tasks.find((t) => t.id === taskParam);
-      if (taskInState) {
-        selectTask(taskInState.id);
-        setDrawerOpen(true);
-      } else {
-        selectTask(taskParam);
-        setDrawerOpen(true);
-      }
+      selectTask(taskParam);
+      setDrawerOpen(true);
+      void loadDrawerTask(taskParam);
     }
-  }, [branches, searchParams, switchBranch, selectTask, tasks]);
+  }, [branches, searchParams, switchBranch, selectTask, loadDrawerTask]);
+
+  const openTaskDrawer = (taskId: string): void => {
+    selectTask(taskId);
+    setDrawerOpen(true);
+    void loadDrawerTask(taskId);
+  };
+
+  const closeTaskDrawer = (): void => {
+    setDrawerOpen(false);
+    selectTask(null);
+    const next = new URLSearchParams(searchParams);
+    if (next.has('task')) {
+      next.delete('task');
+      setSearchParams(next, { replace: true });
+    }
+  };
 
   const activeBranch: Branch | null = useMemo(
     () => branches.find((b) => b.id === activeBranchId) ?? null,
@@ -304,8 +319,7 @@ export function RepositoryScreen(): JSX.Element {
               selectedTaskId={selectedTaskId}
               branchName={activeBranch?.name ?? null}
               onItemClick={(task) => {
-                selectTask(task.id);
-                setDrawerOpen(true);
+                openTaskDrawer(task.id);
               }}
               onToggleComplete={(task) => void completeTask(task.id)}
             />
@@ -316,8 +330,8 @@ export function RepositoryScreen(): JSX.Element {
       <TaskDetailDrawer
         open={drawerOpen}
         onOpenChange={(o) => {
-          setDrawerOpen(o);
-          if (!o) selectTask(null);
+          if (o) setDrawerOpen(true);
+          else closeTaskDrawer();
         }}
         task={drawerTask}
         commits={drawerCommits}
@@ -326,10 +340,12 @@ export function RepositoryScreen(): JSX.Element {
         repositoryName={repository?.name ?? null}
         onComplete={async () => {
           await completeDetailTask();
+          if (repoId) await loadData(repoId);
         }}
         onDelete={async () => {
           await deleteDetailTask();
-          setDrawerOpen(false);
+          if (repoId) await loadData(repoId);
+          closeTaskDrawer();
         }}
         onEdit={() => {
           if (drawerTask && repoId) {
@@ -394,14 +410,4 @@ function FilterChip({ label, active, onClick }: FilterChipProps): JSX.Element {
       {label}
     </button>
   );
-}
-
-/* unused-export helper: keep TS happy for tasks with branches */
-export async function fetchBranchCommits(
-  branchIds: string[]
-): Promise<Commit[]> {
-  if (branchIds.length === 0) return [];
-  const repo = container.resolve<ICommitRepository>('ICommitRepository');
-  const lists = await Promise.all(branchIds.map((id) => repo.getByBranchId(id)));
-  return lists.flat();
 }
