@@ -47,7 +47,7 @@ export function TopCommandBar({ className }: TopCommandBarProps): JSX.Element {
     <header className={cn('topbar', className)} role="banner">
       {/* Brand */}
       <a
-        href="workspace"
+        href="./workspace"
         className="flex items-center gap-2 text-ink"
         onClick={(e) => {
           e.preventDefault();

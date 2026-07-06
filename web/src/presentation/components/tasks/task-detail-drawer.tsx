@@ -203,7 +203,7 @@ export function TaskDetailDrawer({
                     type="button"
                     onClick={() => {
                       onOpenChange(false);
-                      navigate('/settings');
+                      navigate('settings');
                     }}
                     className="text-xs text-ink-subtle underline-offset-4 hover:underline"
                   >

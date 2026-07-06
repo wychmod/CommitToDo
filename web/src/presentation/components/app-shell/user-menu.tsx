@@ -55,7 +55,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element {
             hint="即将支持"
             onClick={() => {
               setOpen(false);
-              navigate('/settings');
+              navigate('settings');
             }}
             disabled
           />
@@ -64,7 +64,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element {
             label="工作空间设置"
             onClick={() => {
               setOpen(false);
-              navigate('/settings');
+              navigate('settings');
             }}
           />
           <MenuItem

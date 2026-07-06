@@ -236,13 +236,13 @@ export function HomeScreen(): JSX.Element {
                   <AppButton onClick={() => setIsCreateOpen(true)}>
                     <Plus className="h-4 w-4" /> 新建仓库
                   </AppButton>
-                  <AppButton variant="secondary" onClick={() => navigate('/heatmap')}>
+                  <AppButton variant="secondary" onClick={() => navigate('heatmap')}>
                     <CalendarCheck2 className="h-4 w-4" /> 打开热力图
                   </AppButton>
-                  <AppButton variant="secondary" onClick={() => navigate('/graph')}>
+                  <AppButton variant="secondary" onClick={() => navigate('graph')}>
                     <GitBranch className="h-4 w-4" /> 打开 Git Graph
                   </AppButton>
-                  <AppButton variant="secondary" onClick={() => navigate('/search')}>
+                  <AppButton variant="secondary" onClick={() => navigate('search')}>
                     <Search className="h-4 w-4" /> 搜索任务 / 仓库
                   </AppButton>
                 </div>
@@ -257,7 +257,7 @@ export function HomeScreen(): JSX.Element {
                 </h2>
                 <button
                   type="button"
-                  onClick={() => navigate('/settings')}
+                  onClick={() => navigate('settings')}
                   className="text-xs text-ink-muted underline-offset-4 hover:underline"
                 >
                   设置
