@@ -87,7 +87,7 @@ function RepoGraphInner({
 
   return (
     <div className="work-main">
-      <div className="work-main-pad">
+      <div className="work-main-pad page-container">
         <header className="flex flex-wrap items-end justify-between gap-md">
           <div className="flex flex-col gap-xs">
             <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-subtle">

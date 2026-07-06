@@ -26,10 +26,14 @@ const sharedDark: Record<string, string> = {
   '--color-border-quiet': 'rgba(132, 210, 205, 0.10)',
 
   // Text --------------------------------------------------------------------
+  '--color-ink': '#eaf7f3',
+  '--color-ink-muted': '#bfd3ce',
+  '--color-ink-subtle': '#95aaa6',
+  '--color-ink-tertiary': '#78908c',
   '--color-text-primary': '#eaf7f3',
-  '--color-text-secondary': '#a9bfba',
-  '--color-text-muted': '#6f8783',
-  '--color-text-subtle': '#3f5250',
+  '--color-text-secondary': '#bfd3ce',
+  '--color-text-muted': '#95aaa6',
+  '--color-text-subtle': '#78908c',
 
   // Brand & status ----------------------------------------------------------
   '--color-primary': '#18d6d0',
@@ -85,10 +89,14 @@ const sharedLight: Record<string, string> = {
   '--color-border-strong': 'rgba(23, 86, 82, 0.28)',
   '--color-border-quiet': 'rgba(23, 86, 82, 0.08)',
 
+  '--color-ink': '#102523',
+  '--color-ink-muted': '#36534e',
+  '--color-ink-subtle': '#58726d',
+  '--color-ink-tertiary': '#7d958f',
   '--color-text-primary': '#102523',
-  '--color-text-secondary': '#46625d',
-  '--color-text-muted': '#708985',
-  '--color-text-subtle': '#a9bfba',
+  '--color-text-secondary': '#36534e',
+  '--color-text-muted': '#58726d',
+  '--color-text-subtle': '#7d958f',
 
   '--color-primary': '#008f8a',
   '--color-primary-hover': '#00a39c',

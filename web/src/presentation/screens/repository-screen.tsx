@@ -186,7 +186,7 @@ export function RepositoryScreen(): JSX.Element {
       />
 
       <section className="work-main">
-        <header className="flex flex-wrap items-end justify-between gap-md border-b border-border-quiet px-md py-md">
+        <header className="page-container flex flex-wrap items-end justify-between gap-md border-b border-border-quiet px-md py-md">
           <div className="flex flex-col gap-xs">
             <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-subtle">
               当前分支
@@ -252,7 +252,7 @@ export function RepositoryScreen(): JSX.Element {
           </div>
         ) : null}
 
-        <div className="work-main-pad">
+        <div className="work-main-pad page-container">
           <div className="flex flex-wrap items-center gap-sm">
             <FilterChip
               label="全部"

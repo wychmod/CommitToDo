@@ -49,7 +49,7 @@ export function RepoSearchScreen(): JSX.Element {
 
   return (
     <div className="work-main">
-      <div className="work-main-pad">
+      <div className="work-main-pad page-container">
         <header className="flex flex-col gap-xs">
           <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-subtle">
             In-repo Search

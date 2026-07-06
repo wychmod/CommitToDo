@@ -55,8 +55,26 @@ export default {
         'heatmap-4': 'var(--color-heatmap-4)',
       },
       fontFamily: {
-        sans: ['IBM Plex Sans', '-apple-system', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'SF Mono', 'Menlo', 'monospace'],
+        sans: [
+          'Segoe UI',
+          'Microsoft YaHei UI',
+          'PingFang SC',
+          'Noto Sans CJK SC',
+          'Noto Sans SC',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
+        mono: [
+          'JetBrains Mono',
+          'Cascadia Mono',
+          'SF Mono',
+          'Menlo',
+          'Consolas',
+          'Microsoft YaHei UI',
+          'Noto Sans CJK SC',
+          'monospace',
+        ],
       },
       fontSize: {
         'display-xl': ['48px', { lineHeight: '1.05', letterSpacing: '-2.0px' }],

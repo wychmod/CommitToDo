@@ -81,7 +81,7 @@ export function RepoHeatmapScreen(): JSX.Element {
 
   return (
     <div className="work-main">
-      <div className="work-main-pad">
+      <div className="work-main-pad page-container">
         <header className="flex flex-col gap-xs">
           <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-subtle">
             In-repo Heatmap
@@ -95,7 +95,7 @@ export function RepoHeatmapScreen(): JSX.Element {
           </p>
         </header>
 
-        <section className="grid grid-cols-3 gap-sm">
+        <section className="grid grid-cols-1 gap-sm tablet:grid-cols-3">
           <div className="stat-card" data-tone="primary">
             <span className="stat-card-label">仓库完成数</span>
             <span className="stat-card-value tabular">{tasks.length}</span>
