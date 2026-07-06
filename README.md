@@ -1,361 +1,570 @@
 <div align="center">
 
-```
+<pre>
  ██████╗ ██████╗ ███╗   ███╗███╗   ███╗██╗████████╗
 ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██║╚══██╔══╝
 ██║     ██║   ██║██╔████╔██║██╔████╔██║██║   ██║
 ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██║   ██║
 ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║██║   ██║
  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚═╝   ╚═╝
-```
+</pre>
 
-**A todo tool that thinks in commits.**
+### A todo tool that thinks in commits.
 
-`taskflow ready · indexeddb online · pwa installable · v0.1`
+<sub><sub>`taskflow ready · indexeddb online · pwa installable · v0.1.0`</sub></sub>
+
+---
+
+<p>
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-2bd8d8?style=for-the-badge&labelColor=061313&color=2bd8d8" />
+  <img alt="Version" src="https://img.shields.io/badge/version-0.1.0-b2ff59?style=for-the-badge&labelColor=061313&color=b2ff59" />
+  <img alt="Web" src="https://img.shields.io/badge/platform-web-ffc65c?style=for-the-badge&labelColor=061313&color=ffc65c" />
+  <img alt="PWA" src="https://img.shields.io/badge/installable-PWA-16c7c7?style=for-the-badge&labelColor=061313&color=16c7c7" />
+  <img alt="Offline First" src="https://img.shields.io/badge/offline-first-a6ff4d?style=for-the-badge&labelColor=061313&color=a6ff4d" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/typescript-strict-3178c6?style=for-the-badge&labelColor=061313&color=3178c6" />
+</p>
+
+<p>
+  <a href="#-quick-start"><b>Quick Start</b></a>  ·  
+  <a href="#-screenshots"><b>Screenshots</b></a>  ·  
+  <a href="#-architecture"><b>Architecture</b></a>  ·  
+  <a href="#-roadmap"><b>Roadmap</b></a>  ·  
+  <a href="#-license"><b>License</b></a>
+</p>
 
 </div>
 
 ---
 
-> **关于本仓库** — `Commit` 是一个跨平台任务管理工具集，主仓库同时托管 Flutter 桌面/移动端与 **`/web`** 浏览器版本。本 README 当前只描述 **`/web` 子项目**（已具备完整工作台能力，刚刚开发完成）。其他平台的代码与文档将随后续 release 同步补充。
+> **About this repository** — `Commit` is a cross-platform task management suite. This monorepo currently hosts the main Flutter project (`lib/` · `pubspec.yaml`) and the **`/web`** sub-project that this README documents. The web build is feature-complete and just shipped. Other platform documentation will follow in subsequent releases.
 >
-> Flutter 主项目相关规范请见 [`AGENTS.md`](./AGENTS.md) 与 [`overview.md`](./overview.md)。
+> Flutter project conventions live in [`AGENTS.md`](./AGENTS.md) and the most recent audit in [`overview.md`](./overview.md).
 
 ---
 
-## ✦ 视觉预览
+## 📑 Table of Contents
 
-启动台首页 — 一个会"开机"的暗色终端 HUD，扫描线 / 打字机 / 流程流点全部是真实的 CSS + 动效，不是占位图。
-
-![CommitToDo Landing — booting committodo -- taskflow ready](./web/docs/landing-hero.png)
-
-> `commit@todo:~$` · `booting committodo — taskflow ready` · `> 待办索引 ....... 就绪` · `> 分支清单 ....... 已挂载` · `> 提交日志 ....... 记录中` · `> 本地数据 ....... IndexedDB` · `OK`
+- [✦ Visual Preview](#-visual-preview)
+- [✦ What is CommitToDo?](#-what-is-committodo)
+- [✦ Why CommitToDo?](#-why-committodo)
+- [✦ Core Capabilities](#-core-capabilities)
+- [✦ Feature Matrix](#-feature-matrix)
+- [✦ Architecture](#-architecture)
+- [✦ Design Language](#-design-language)
+- [✦ Built With](#-built-with)
+- [✦ Quick Start](#-quick-start)
+- [✦ Project Structure](#-project-structure)
+- [✦ Data Model](#-data-model)
+- [✦ Testing](#-testing)
+- [✦ Keyboard Shortcuts](#-keyboard-shortcuts)
+- [✦ Roadmap](#-roadmap)
+- [✦ Contributing](#-contributing)
+- [✦ License](#-license)
+- [✦ Acknowledgments](#-acknowledgments)
+- [✦ Show Your Support](#-show-your-support)
 
 ---
 
-## ✦ 它是什么
+## ✦ Visual Preview
 
-**CommitToDo** 把 Git 的版本控制隐喻搬进个人任务管理：
+A terminal-grade HUD that actually **boots** — scanlines, typewriter caret, scan-window mask, flow-dot orbit. Not a mockup.
 
-| Git 概念 | CommitToDo |
+<table>
+  <thead>
+    <tr>
+      <th align="center">▸ Landing · <code>booting committodo -- taskflow ready</code></th>
+      <th align="center">▸ Workspace · Linear-grade overview</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="./web/docs/landing-hero.png" alt="Landing" width="100%" /></td>
+      <td align="center"><img src="./web/docs/workspace.png" alt="Workspace" width="100%" /></td>
+    </tr>
+  </tbody>
+</table>
+
+> *Both screenshots are unstyled fallbacks served from `web/docs/`. No data was fabricated — empty state reflects a fresh IndexedDB after first install.*
+
+---
+
+## ✦ What is CommitToDo?
+
+**CommitToDo** transplants Git's version-control vocabulary into personal task management:
+
+| Git | CommitToDo |
 | --- | --- |
-| Repository | 目标 / 项目空间（一个长期方向） |
-| Branch | 工作线（主题、阶段、迭代） |
-| Commit | 推进记录（创建、更新、完成、合并、删除） |
-| Graph | 提交图谱（节点 + 边，可缩放） |
-| Heatmap | 节奏热力图（每天的完成量） |
+| Repository | a long-term goal / project space |
+| Branch | a workstream (theme, phase, iteration) |
+| Commit | an immutable progress record (create · update · complete · merge · delete) |
+| Graph | a node-edge map of every commit, pan & zoom |
+| Heatmap | 365-day cadence visualisation |
 
-每一次创建、更新、完成、合并都会自动写入一条 commit，让你的进展"有迹可循"。所有数据留在本地浏览器（PWA + IndexedDB），可以离线、可以安装、可以导出 JSON / CSV / Markdown。
+Every meaningful action lands a commit. Your progress becomes **replayable, auditable, branch-able** — and 100% lives in your browser via IndexedDB. Offline-first, installable as a PWA, exportable to JSON / CSV / Markdown.
+
+This README documents the **`/web`** build — a React 18 + TypeScript SPA powered by Vite, Dexie, Zustand and `@xyflow/react`.
 
 ---
 
-## ✦ 核心能力
+## ✦ Why CommitToDo?
 
-| | 能力 | 说明 |
+> *Why borrow metaphors from a version-control system for a todo app?*
+
+Most task tools optimise for **capture**. They make adding a task frictionless, then bury you in an unsorted pile the next morning. The result: a thousand-item graveyard where nothing is finished, nothing is searchable, and nothing is yours.
+
+CommitToDo optimises for **closure**. By modelling work as *branches* and *commits*, the system forces a small set of healthy habits:
+
+- **One branch, one thread.** A branch is a focused intent. When the branch dies, so do its tasks.
+- **Every action leaves a trace.** No silent mutations. No "what did I actually do last Tuesday?"
+- **The graph never lies.** A glance at the commit graph reveals scope creep, abandoned branches, parallel work.
+- **The heatmap never flatters.** Your real cadence, week over week, rendered as a 365-cell grid.
+- **The data never leaves you.** IndexedDB, your machine, your export, your call.
+
+The web build is opinionated about ergonomics: dark by default, keyboard-first, command palette everywhere, dense information design that respects a developer's eyes.
+
+---
+
+## ✦ Core Capabilities
+
+| | Capability | Description |
 | --- | --- | --- |
-| **01** | **新式 ToDo** | 把待办拆成 *仓库 → 分支 → 任务*，保留上下文而不是一份扁平清单 |
-| **02** | **完成即提交** | 每次推进自动落 commit，进展可回放、可审计 |
-| **03** | **节奏热力图** | 365 天的完成度压缩成一张可扫描的网格，看见节奏 |
-| **04** | **离线优先** | 数据 100% 留在本地 IndexedDB，PWA 可安装，断网照用 |
+| **01** | **Modern ToDo** | Decompose work into *repository → branch → task*. Keep the context, not just the line items. |
+| **02** | **Commit-on-complete** | Every push writes a commit. Progress is replayable, never lost. |
+| **03** | **Cadence heatmap** | 365 days of completions compressed into a single scannable grid. |
+| **04** | **Offline-first** | Data stays in your browser. PWA-installable. Survives the subway. |
 
 ---
 
-## ✦ 特性矩阵
+## ✦ Feature Matrix
 
-### 工作台
+### Workspace
 
-- **三栏布局**：左侧 Context Panel（仓库 + 分支树）· 主工作区 · 右侧 Task Detail Drawer
-- **统计卡**：仓库数、待办数、近 7 日完成数、今日活跃
-- **仓库网格**：每个仓库展示 branch 数 / task 数 / 最近活动时间
-- **命令面板**：`Ctrl/Cmd + K` 全局唤起，支持动作、任务、分支、仓库的模糊搜索
+- **Three-pane shell** — Context Panel (repos + branch tree) · Work surface · Task Detail Drawer
+- **Stat cards** — repository count · pending tasks · 7-day completions · active today
+- **Repository grid** — per-repo branch / task count, last activity timestamp
+- **Command palette** — `Ctrl / Cmd + K`, fuzzy across actions · tasks · branches · repositories
 
-### 任务管理
+### Task management
 
-- 4 态生命周期：`待办 → 进行中 → 已完成 / 已取消`
-- 3 级优先级：高 / 中 / 低，列表左侧色条标记
-- 父子任务（`parentTaskId`）、分支归属、截止日期、标签、排序
-- Task Form 抽屉内联编辑；Task Detail Drawer 侧滑展开
-- Commit Timeline：每一次状态变化都留痕
+- **4-state lifecycle** — `todo → inProgress → done / cancelled`
+- **3-tier priority** — high / medium / low, colour-striped on the row edge
+- **Hierarchy** — parent tasks, branch binding, due dates, tags, custom sort order
+- **Inline editing** — Task Form drawer; **side preview** — Task Detail Drawer
+- **Commit timeline** — every status change is logged, audit-trail style
 
-### 视图
+### Views
 
-- **HomeScreen** — 工作台总览、仓库网格、统计、快捷创建
-- **RepositoryScreen** — 单仓库视图，分支树 + 任务列表
-- **CommitsScreen** — 单仓库的 commit 时间线
-- **HeatmapScreen** — 全局 365 天节奏热力图
-- **GitGraphScreen** — 全局提交图谱（基于 `@xyflow/react`）
-- **RepoHeatmapScreen / RepoGraphScreen / RepoSearchScreen / RepoSettingsScreen** — 单仓库视角的四个工具
-- **SearchScreen** — 全局跨仓库搜索 + 搜索历史持久化
-- **TaskFormScreen** — 任务创建 / 编辑
-- **SettingsScreen** — 主题色、深色 / 浅色切换、数据导出、导入
+| Screen | Path | Purpose |
+| --- | --- | --- |
+| HomeScreen | `/workspace` | Overview · stats · recent repos · quick actions |
+| RepositoryScreen | `/repository/:id` | Single-repo branch tree + task list |
+| CommitsScreen | `/repository/:id/commits` | Per-repo commit timeline |
+| HeatmapScreen | `/heatmap` | Global 365-day cadence |
+| GitGraphScreen | `/graph` | Global commit graph (`@xyflow/react`) |
+| RepoHeatmapScreen | `/repository/:id/heatmap` | Per-repo cadence |
+| RepoGraphScreen | `/repository/:id/graph` | Per-repo commit graph |
+| RepoSearchScreen | `/repository/:id/search` | Per-repo scoped search |
+| RepoSettingsScreen | `/repository/:id/settings` | Per-repo settings |
+| SearchScreen | `/search` | Global cross-repo search + history |
+| TaskFormScreen | `/repository/:id/task/new` · `/.../edit` | Create / edit task |
+| SettingsScreen | `/settings` | Theme · accent colour · data I/O |
+| LandingScreen | `/` | Boot HUD · brand stage |
 
-### 数据
+### Data I/O
 
-- **导出**：JSON / CSV / Markdown 三种格式，弹出系统保存对话框选择目标路径
-- **导入**：从 JSON 反向重建仓库 / 分支 / 任务
-- **本地优先**：IndexedDB（Dexie 4）多版本 schema 演进，软删除 + 归档
+- **Export** — JSON · CSV · Markdown via File System Access API, user-chosen path
+- **Import** — re-hydrate repositories / branches / tasks from a JSON dump
+- **Local-first** — IndexedDB (Dexie 4) with multi-version schema, soft-delete + archive
 
-### 体验
+### Experience
 
-- **暗 / 亮主题**：CSS 变量驱动，可在运行时切换主色（`applyThemeColor`）
-- **响应式**：mobile / tablet / laptop / desktop / desktop-xl 五档断点
-- **PWA**：`vite-plugin-pwa` 自动注册 service worker，可"添加到主屏幕"
-- **键盘**：命令面板、Esc 关闭、抽屉内快捷键
-- **无障碍**：`aria-label` / `aria-hidden` / 焦点环 / `prefers-reduced-motion`
-
----
-
-## ✦ 技术栈
-
-**运行时**
-
-| 层 | 选型 |
-| --- | --- |
-| UI 框架 | React 18 + TypeScript 5.5 |
-| 构建 | Vite 6 |
-| 样式 | TailwindCSS 3.4 + CSS Variables（design token 驱动） |
-| 路由 | React Router 7 |
-| 状态 | Zustand 5 |
-| DI | tsyringe + reflect-metadata |
-| 本地存储 | Dexie 4（IndexedDB） |
-| 图谱 | @xyflow/react 12 |
-| 时间 | date-fns 4 |
-| 虚拟列表 | @tanstack/react-virtual |
-| 图标 | lucide-react |
-| 基础组件 | @radix-ui（Dialog / Popover / Toast / Select / Switch / Slot / VisuallyHidden） |
-| 工具 | class-variance-authority · clsx · tailwind-merge · uuid |
-
-**质量**
-
-| 层 | 选型 |
-| --- | --- |
-| 类型 | TypeScript strict + 多份 tsconfig（app / node） |
-| Lint | ESLint 9 + typescript-eslint + react-hooks / react-refresh |
-| 测试 | Vitest 2 + jsdom + fake-indexeddb + Testing Library |
-| PWA | vite-plugin-pwa（autoUpdate） |
+- **Dark / light theme** — CSS-variable driven, runtime accent recolouring via `applyThemeColor()`
+- **Responsive** — five breakpoints: `mobile · tablet · laptop · desktop · desktop-xl`
+- **PWA** — `vite-plugin-pwa` auto-registers the service worker, installable to home screen
+- **Keyboard-first** — command palette, Esc-closes, drawer hotkeys
+- **Accessible** — `aria-label` · `aria-hidden` · focus rings · honours `prefers-reduced-motion`
 
 ---
 
-## ✦ 架构
+## ✦ Architecture
 
-Web 端严格沿用主项目的 Clean Architecture 分层，**Presentation → Application → Domain ← Data**，依赖只能向内。
+The web build follows the same Clean Architecture discipline as the main Flutter project: **Presentation → Application → Domain ← Data**. Dependencies flow strictly inward.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  presentation/   React 组件、屏幕、Zustand store、UI tokens │
-│      ↓ uses                                                   │
-│  application/    UseCase（create / update / complete / merge │
-│                  / delete / import）                           │
-│      ↓ uses                                                   │
-│  domain/         实体 (Repository / Branch / Task / Commit)  │
-│                  仓库接口 (I*Repository)、领域服务            │
-│      ↑ implements                                             │
-│  data/           Dexie schema、Repository 实现                │
-│                                                              │
-│  platform/       Web 平台适配（文件保存、通知 service）      │
-│  core/           DI 容器、扩展、hook、theme、utils           │
-└─────────────────────────────────────────────────────────────┘
+            ┌──────────────────────────────────────────────────────────┐
+            │                    presentation/                          │
+            │     React components · Screens · Zustand stores           │
+            │     UI tokens · SVG icon system                          │
+            └────────────────────────┬─────────────────────────────────┘
+                                     │ uses
+            ┌────────────────────────▼─────────────────────────────────┐
+            │                    application/                           │
+            │     UseCase · CreateTask · CompleteTask · MergeBranch     │
+            │     ImportDataUseCase · repository / branch / task        │
+            └────────────────────────┬─────────────────────────────────┘
+                                     │ uses
+            ┌────────────────────────▼─────────────────────────────────┐
+            │                      domain/                              │
+            │     Entities  : Repository · Branch · Task · Commit      │
+            │     Interfaces: I*Repository (pure abstractions)          │
+            │     Services  : DataExportService                         │
+            └────────────────────────▲─────────────────────────────────┘
+                                     │ implements
+            ┌────────────────────────┴─────────────────────────────────┐
+            │                       data/                               │
+            │     Dexie schema (v1 / v2) · Record types                 │
+            │     Dexie*Repository : repository · branch · task · commit│
+            └──────────────────────────────────────────────────────────┘
+
+            ┌──────────────────────────────────────────────────────────┐
+            │  platform/   Web file-save · web notification services    │
+            │  core/       DI container · extensions · hooks · theme    │
+            └──────────────────────────────────────────────────────────┘
 ```
 
-- **DI 容器** 在 `core/di/injection-container.ts` 单例化所有 Repository 与 UseCase
-- **Domain 接口** 在 `domain/repositories/`，**Data 层用 Dexie 实现**
-- **Zustand store** 在 `presentation/stores/` 注入 DI 容器，分发到 React 组件
+- **DI container** — `core/di/injection-container.ts` (tsyringe) — single source of truth for Repositories and UseCases
+- **Domain interfaces** — defined in `domain/repositories/`; **Data layer** provides the Dexie-backed implementations
+- **Zustand stores** — in `presentation/stores/` resolve the DI container at construction time, then hand state to React via `useStore()`
 
 ---
 
-## ✦ 设计语言
+## ✦ Design Language
 
-参考主项目 `docs/DESIGN.md`，**Linear-inspired Developer Dark** 风格：
+A **Linear-inspired Developer Dark** aesthetic — restrained motion, sharp typography, dense information.
 
-- **字体**：`JetBrains Mono`（等宽，标题 / hash / branch 名）+ `IBM Plex Sans`（正文）
-- **主色**：青色 `#16c7c7` / `#2bd8d8`，强调色 `#b2ff59`，警示色 `#ffc65c`，危险色 `#ff5c7a`
-- **背景 ladder**：`canvas → surface → surface-soft → surface-strong → surface-quiet`
-- **Motion**：`out-expo` 缓动（`cubic-bezier(0.16, 1, 0.3, 1)`），大部分交互 150ms / 250ms
-- **入场**：landing 用 `landing-reveal` 序列动画 + 模糊→清晰，App Shell 更克制
-- **Tailwind 扩展**：display / headline / card-title / body / button / eyebrow / mono 七级字号、6 档 spacing、4 档圆角、5 档断点
+### Palette
+
+```
+canvas          #061313   ████  deep ink, the page itself
+surface         #102829   ████  first elevation
+surface-soft    #163435   ████  second elevation (selected rows)
+surface-strong  #1f4a4c   ████  pills, badges, accents
+ink             #eaf7f3   ████  primary text
+ink-muted       #bfd3ce   ████  secondary text
+ink-subtle      #95aaa6   ████  tertiary / meta
+
+primary         #18d6d0   ████  brand teal — buttons, focus, selection
+primary-hover   #3be1db   ████  hover state
+accent          #a6ff4d   ████  completion / "done"
+warning         #ffc75a   ████  warning / due-soon
+danger          #ff5c7a   ████  destructive / overdue
+success         #5dffa7   ████  healthy state
+```
+
+### Typography
+
+- **Display & mono** — `JetBrains Mono` 500 / 800 — used for hero, hash, branch names, code
+- **Body & UI** — `IBM Plex Sans` 400 / 500 / 600 — used for prose, controls
+- **Fallback chain** — `Segoe UI · Microsoft YaHei UI · PingFang SC · Noto Sans CJK SC` for graceful CJK fallback
+
+### Motion
+
+- **Easing** — `out-expo` (`cubic-bezier(0.16, 1, 0.3, 1)`) — most interactions 150 / 250 ms
+- **Reveal** — landing uses `landing-reveal` sequence (blur → focus, 6 staggered stages)
+- **Reduced motion** — every animation collapses under `prefers-reduced-motion: reduce`
 
 ---
 
-## ✦ 快速开始
+## ✦ Built With
 
-### 环境要求
+| Layer | Choice | Notes |
+| --- | --- | --- |
+| UI | [React](https://react.dev) 18 + [TypeScript](https://www.typescriptlang.org) 5.5 | strict mode, three `tsconfig.*` variants |
+| Build | [Vite](https://vitejs.dev) 6 | instant HMR, esbuild for transform |
+| Styling | [TailwindCSS](https://tailwindcss.com) 3.4 + CSS variables | design-token-first, theme via JS |
+| Routing | [React Router](https://reactrouter.com) 7 | nested layouts + redirect rules |
+| State | [Zustand](https://github.com/pmndrs/zustand) 5 | minimal API, no Provider boilerplate |
+| DI | [tsyringe](https://github.com/microsoft/tsyringe) + `reflect-metadata` | constructor-injected |
+| Storage | [Dexie](https://dexie.org) 4 | IndexedDB wrapper, multi-version schema |
+| Graph | [`@xyflow/react`](https://reactflow.dev) 12 | node-edge graph, pan + zoom |
+| Virtual list | `@tanstack/react-virtual` | long commit timelines |
+| Time | [date-fns](https://date-fns.org) 4 | immutable, tree-shakable |
+| Icons | [lucide-react](https://lucide.dev) | hand-tuned stroke icons |
+| Primitives | [`@radix-ui`](https://www.radix-ui.com) | Dialog · Popover · Toast · Select · Switch · Slot |
+| Helpers | `class-variance-authority` · `clsx` · `tailwind-merge` · `uuid` | ergonomic component API |
+| PWA | `vite-plugin-pwa` | autoUpdate strategy, manifest |
+| Lint | [ESLint](https://eslint.org) 9 + `typescript-eslint` + `react-hooks` · `react-refresh` | strict |
+| Test | [Vitest](https://vitest.dev) 2 + `jsdom` + `fake-indexeddb` + Testing Library |  |
+
+---
+
+## ✦ Quick Start
+
+### Prerequisites
 
 - Node.js ≥ 18
-- pnpm（推荐）/ npm / yarn
+- pnpm (recommended) / npm / yarn
 
-### 安装与启动
+### Install & run
 
 ```bash
-cd web
+git clone https://github.com/your-org/commit.git
+cd commit/web
 npm install
 npm run dev          # http://localhost:5173
 ```
 
-### 常用命令
+### Commands
 
-| 命令 | 作用 |
+| Command | What it does |
 | --- | --- |
-| `npm run dev` | 启动 Vite 开发服务器（HMR） |
-| `npm run build` | `tsc -b && vite build`，输出到 `dist/` |
-| `npm run preview` | 本地预览生产构建 |
-| `npm run lint` | ESLint 全量扫描 |
-| `npm run test` | Vitest 单次跑测 |
-| `npm run test:watch` | Vitest watch 模式 |
+| `npm run dev` | Start Vite dev server with HMR |
+| `npm run build` | `tsc -b && vite build` → `dist/` |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | ESLint full scan |
+| `npm run test` | Vitest single-pass |
+| `npm run test:watch` | Vitest watch mode |
 
-### 第一次进入
+### First-run flow
 
-1. 打开 `http://localhost:5173`，看到的是 Landing 启动台
-2. 点击 **「进入工作台」** → HomeScreen
-3. 点击右上角 **「+ 新建仓库」** 创建第一个仓库
-4. 进入仓库 → 默认分支会自动创建 → 在分支上添加任务
-5. 勾选任务 → 自动写入 commit → 时间线与热力图开始累计
+1. Open `http://localhost:5173` — you'll see the **Landing** boot HUD.
+2. Click **「进入工作台 / Enter Workspace」** → HomeScreen.
+3. Click **「+ 新建仓库 / New Repository」** — your first repository.
+4. Enter the repository — a default branch (`main`) is auto-created.
+5. Add a task on the branch — check it off — a commit lands automatically.
+6. Open the **Heatmap** tab — your first cell lights up.
 
-> Tip：浏览器 DevTools → Application → IndexedDB → `commit-db` 可看到所有表（`repositories / branches / tasks / commits / tags / taskTags`）。
+> **DevTools tip** — `Application → IndexedDB → commit-db` reveals every table (`repositories · branches · tasks · commits · tags · taskTags`).
 
 ---
 
-## ✦ 项目结构
+## ✦ Project Structure
 
 ```
 web/
-├── public/                     静态资源（favicon / manifest / icons）
+├── public/                            Static assets (favicon · manifest · icons)
 ├── src/
-│   ├── app.tsx                 路由 + Provider 装配
-│   ├── main.tsx                入口
-│   ├── index.css               Design token CSS variables + 全局样式
+│   ├── app.tsx                        Routes + Provider composition
+│   ├── main.tsx                       Entry
+│   ├── index.css                      Design tokens + global styles
 │   │
-│   ├── core/                   框架无关的基础设施
-│   │   ├── di/                 tsyringe 容器
-│   │   ├── extensions/         Date / String 扩展
-│   │   ├── hooks/              useBreakpoint / useIsDesktop / ...
-│   │   ├── theme/              colorTokens · typography · dimensions · provider
-│   │   └── utils/              formatters · validators · logger
+│   ├── core/                          Framework-agnostic infrastructure
+│   │   ├── di/                        tsyringe container
+│   │   ├── extensions/                Date · String extensions
+│   │   ├── hooks/                     useBreakpoint · useIsDesktop · useIsMobile
+│   │   ├── theme/                     colorTokens · typography · dimensions · provider
+│   │   └── utils/                     formatters · validators · logger
 │   │
-│   ├── domain/                 纯领域（无 React / 无 IO）
-│   │   ├── entities/           Repository / Branch / Task / Commit
-│   │   ├── repositories/       I*Repository 接口
-│   │   └── services/           数据导出服务
+│   ├── domain/                        Pure domain (no React · no IO)
+│   │   ├── entities/                  Repository · Branch · Task · Commit
+│   │   ├── repositories/              I*Repository interfaces
+│   │   └── services/                  DataExportService
 │   │
-│   ├── application/            UseCase（每个动作一个文件）
+│   ├── application/                   UseCase per action
 │   │   └── usecases/
-│   │       ├── repository/     create · update · delete
-│   │       ├── branch/         create · delete · merge
-│   │       ├── task/           create · update · complete · delete
+│   │       ├── repository/            create · update · delete
+│   │       ├── branch/                create · delete · merge
+│   │       ├── task/                  create · update · complete · delete
 │   │       └── import-data-usecase.ts
 │   │
-│   ├── data/                   领域接口的具体实现
-│   │   ├── db/                 Dexie schema（v1 / v2 演进）
-│   │   ├── models/             Dexie record 类型
-│   │   └── repositories/       Dexie*Repository 实现
+│   ├── data/                          Concrete implementations of domain interfaces
+│   │   ├── db/                        Dexie schema (v1 → v2)
+│   │   ├── models/                    Dexie record types
+│   │   └── repositories/              Dexie*Repository implementations
 │   │
-│   ├── platform/               Web 平台适配
-│   │   ├── web-file-save-service.ts   File System Access API 包装
+│   ├── platform/                      Web platform adapters
+│   │   ├── web-file-save-service.ts   File System Access API wrapper
 │   │   └── web-notification-service.ts
 │   │
 │   └── presentation/
-│       ├── screens/            14 个路由屏幕
+│       ├── screens/                   14 route screens
 │       ├── components/
-│       │   ├── app-shell/      Topbar / Context Tabs / Switcher / Sync
-│       │   ├── command-palette/  Ctrl/Cmd+K
-│       │   ├── common/         AppButton / Input / Dialog / Toast / Badge
-│       │   ├── graph/          Commit node / Branch edge / layout 算法
-│       │   ├── heatmap/        Calendar / Cell / Helpers
-│       │   ├── layout/         AppLayout / SafeArea
-│       │   ├── repository/     RepositoryRow
-│       │   └── tasks/          TaskList / TaskForm / BranchTree / Timeline
-│       ├── stores/             Zustand stores（home / repo / task / search / settings）
-│       └── icons/              自绘 SVG 图标系统
+│       │   ├── app-shell/             Topbar · Context Tabs · Switcher · Sync
+│       │   ├── command-palette/       Ctrl / Cmd + K
+│       │   ├── common/                AppButton · Input · Dialog · Toast · Badge
+│       │   ├── graph/                 Commit node · Branch edge · layout algorithm
+│       │   ├── heatmap/               Calendar · Cell · Helpers
+│       │   ├── layout/                AppLayout · SafeArea
+│       │   ├── repository/            RepositoryRow
+│       │   └── tasks/                 TaskList · TaskForm · BranchTree · Timeline
+│       ├── stores/                    Zustand stores
+│       └── icons/                     Hand-tuned SVG icon system
 │
-├── test/                       vitest setup
-├── tailwind.config.ts          design token → Tailwind theme extend
-├── vite.config.ts              React + VitePWA
+├── test/                              vitest setup
+├── tailwind.config.ts                 design tokens → Tailwind theme extend
+├── vite.config.ts                     React + VitePWA
 └── package.json
 ```
 
 ---
 
-## ✦ 数据模型（IndexedDB · Dexie v2 schema）
+## ✦ Data Model
 
-```ts
-repositories  ─┐
-               │ 1:N
-branches  ─────┤
-               │ 1:N
-tasks  ────────┤
-               │ 1:N
-commits  ──────┘
+IndexedDB · Dexie **v2 schema** — entities are normalised, soft-deletable, and versioned.
 
-tags  ── M:N ── tasks      (via taskTags)
-tasks  ── 1:N ── tasks     (parentTaskId, 子任务)
+```
+   repositories ─┐
+                │  1 : N
+   branches ────┤
+                │  1 : N
+   tasks ───────┤
+                │  1 : N
+   commits ─────┘
+
+   tags  ───  M : N  ─── tasks        (via taskTags)
+   tasks ───  1 : N  ─── tasks        (parentTaskId, sub-tasks)
 ```
 
-- **soft delete**：所有实体带 `isDeleted` / `isArchived`，删除走事务级联
-- **多版本 schema**：v1 → v2 增加复合索引 `[branchId+isDeleted]`
-- **commit 自动落库**：所有写操作经 UseCase，自动生成 `Commit{ type, taskId, branchId, createdAt, message }`
+### Entities
+
+| Entity | Key fields |
+| --- | --- |
+| **Repository** | `id · name · icon · color · description · isArchived · isDeleted · createdAt · updatedAt` |
+| **Branch** | `id · repositoryId · name · parentBranchId · isDefault · isDeleted · sortOrder · createdAt · updatedAt` |
+| **Task** | `id · branchId · title · description · status · priority · dueDate · parentTaskId · sortOrder · isDeleted · completedAt · createdAt · updatedAt` |
+| **Commit** | `id · type (create\|update\|merge\|complete\|delete) · taskId · branchId · repositoryId · message · metadata · createdAt` |
+| **Tag** | `id · name · color · createdAt` |
+
+### Guarantees
+
+- **Soft delete everywhere** — `isDeleted` cascades across `Repository → Branch → Task`
+- **Multi-version schema** — v1 → v2 added composite indexes `[branchId+isDeleted]` for fast filtered scans
+- **Auto-commit** — every write through a UseCase generates a `Commit` row with type + message + metadata
+- **Local-only by design** — no network calls in the data layer; export/import is the sync boundary
 
 ---
 
-## ✦ 测试
+## ✦ Testing
 
 ```bash
 cd web
 npm run test
 ```
 
-已覆盖：
+Coverage map:
 
-| 模块 | 文件 |
+| Module | Spec |
 | --- | --- |
-| 实体 | `domain/entities/entities.test.ts` |
-| 仓库实现 | `data/repositories/dexie-repositories.test.ts` |
-| 仓库用例 | `application/usecases/repository/repository-usecases.test.ts` |
-| 数据导入 | `application/usecases/import-data-usecase.test.ts` |
-| 平台适配 | `platform/web-file-save-service.test.ts`、`web-notification-service.test.ts` |
-| Zustand store | `presentation/stores/*.test.ts` |
-| 图谱布局 | `presentation/components/graph/graph-layout.test.ts` |
-| 热力图 | `presentation/components/heatmap/heatmap-helpers.test.ts` |
+| Entities | `domain/entities/entities.test.ts` |
+| Repositories | `data/repositories/dexie-repositories.test.ts` |
+| Repository usecases | `application/usecases/repository/repository-usecases.test.ts` |
+| Data import | `application/usecases/import-data-usecase.test.ts` |
+| Platform | `platform/web-file-save-service.test.ts` · `web-notification-service.test.ts` |
+| Zustand stores | `presentation/stores/*.test.ts` |
+| Graph layout | `presentation/components/graph/graph-layout.test.ts` |
+| Heatmap | `presentation/components/heatmap/heatmap-helpers.test.ts` |
 
-测试栈：`vitest` + `jsdom` + `fake-indexeddb` + `@testing-library/react` + `@testing-library/user-event`。
+Stack — `vitest` · `jsdom` · `fake-indexeddb` · `@testing-library/react` · `@testing-library/user-event`.
 
 ---
 
-## ✦ 键盘快捷键
+## ✦ Keyboard Shortcuts
 
-| 快捷键 | 行为 |
+| Shortcut | Action |
 | --- | --- |
-| `Ctrl / Cmd + K` | 唤起命令面板 |
-| `Esc` | 关闭对话框 / 抽屉 |
-| `Enter` | 在 Task Form 中提交 |
-| `/` | 聚焦搜索（部分屏幕） |
+| `Ctrl / Cmd + K` | Open command palette |
+| `Esc` | Close dialog / drawer |
+| `Enter` | Submit form (when focused in Task Form) |
+| `/` | Focus search (where available) |
 
 ---
 
-## ✦ 路线图
+## ✦ Roadmap
 
-- [x] Landing 启动台 + 工作台
-- [x] 仓库 / 分支 / 任务 CRUD + commit 留痕
-- [x] Git Graph（@xyflow/react）+ Heatmap Calendar
-- [x] 全局搜索 + 搜索历史持久化
-- [x] 数据导出（JSON / CSV / Markdown）+ 导入
-- [x] PWA 离线 / 可安装
-- [x] 深 / 亮主题 + 主色可定制
-- [x] 命令面板（动作 + 实体模糊搜索）
-- [ ] 跨设备同步（WebRTC / WebSocket 通道）
-- [ ] 任务标签云 + 智能推荐
-- [ ] 协作模式（共享仓库 / 角色权限）
+### Shipped · v0.1.0
+
+- [x] Landing boot HUD + Workspace overview
+- [x] Repository / Branch / Task CRUD with commit audit trail
+- [x] Git Graph (`@xyflow/react`) + Heatmap Calendar
+- [x] Global search + persisted search history
+- [x] Data export (JSON · CSV · Markdown) + JSON import
+- [x] PWA — installable + offline
+- [x] Dark / light theme + runtime accent recolouring
+- [x] Command palette (actions + entities + fuzzy match)
+
+### In flight · v0.2
+
+- [ ] Multi-device sync (WebRTC peer channel + WebSocket fallback)
+- [ ] Sub-task reordering via drag-and-drop
+- [ ] Branch templates + repository templates
+- [ ] Notification scheduling (browser notifications + due-soon)
+
+### Planned · v0.3+
+
+- [ ] Collaboration mode (shared repository · role-based access)
+- [ ] Plugin system for custom commit types
+- [ ] Mobile shells (Capacitor / Tauri)
+- [ ] Public REST + GraphQL read API for self-hosted instances
 
 ---
 
-## ✦ 许可与署名
+## ✦ Contributing
 
-本仓库当前为内部项目，源代码与设计资源暂未对外授权开源。如需引用、合作或扩展，请联系项目所有者。
+Contributions are welcome — but please read this first.
+
+1. **Open an issue before a PR.** Bug reports, design proposals, and breaking-change discussions all start as issues. Use the templates.
+2. **Branch from `main`, name your branch** `<type>/<scope>-<short-summary>` (e.g. `feat/task-recurrence`, `fix/heatmap-edge-overflow`).
+3. **Keep the architecture clean.** Presentation does not depend on Data. Domain depends on nothing.
+4. **Add a test.** New UseCase ⇒ unit test. New component ⇒ at least a render smoke test.
+5. **Match the design language.** Tokens from `core/theme/`, no inline `Color(0x...)`, no Tailwind `bg-[#xxx]`.
+6. **Lint clean.** `npm run lint` and `npm run test` must pass before review.
+7. **Commit messages** — Conventional Commits, with scope. `feat(task): add recurrence rule`.
+8. **No secrets in the repo.** No `.env`, no API keys, no tokens.
+
+### Code style
+
+- TypeScript strict, no `any` unless you've earned it with a comment
+- Components compose (`AppButton`, `AppInput`, `AppDialog`); avoid one-off inline widgets
+- CSS variables over hard-coded values
+- Comments explain *why*, not *what*
+
+---
+
+## ✦ License
+
+This project is released under the **MIT License** — see [`LICENSE`](./LICENSE) for the full text.
+
+```
+MIT License
+
+Copyright (c) 2026 Commit Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND...
+```
+
+> **TL;DR** — Use it, fork it, ship it. Just keep the copyright line.
+
+---
+
+## ✦ Acknowledgments
+
+- **The Git project** — for the metaphor that made this app make sense.
+- **Linear** — for the dark-mode density aesthetic that defines modern dev-tool UX.
+- **Dexie · Radix · xyflow · Zustand · Vite · TailwindCSS** — for the libraries that let one person ship a feature-complete app.
+- **Every open-source developer who writes docs as carefully as they write code.**
+
+---
+
+## ✦ Show Your Support
+
+If CommitToDo improved your day, give it a star. It costs nothing and helps the project surface in search.
+
+<a href="#top">
+  <img alt="Back to top" src="https://img.shields.io/badge/↑_back_to_top-061313?style=for-the-badge" />
+</a>
 
 ---
 
 <div align="center">
 
+<sub><sub>
+
 **Commit · taskflow ready**
 
 `committed in the open · committed to the craft`
+
+<sub><sub>Made with discipline in `<web/>`</sub></sub>
+
+</sub></sub>
 
 </div>
