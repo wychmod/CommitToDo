@@ -1,20 +1,40 @@
-import { ArrowLeft, ChevronRight, GitMerge, Plus, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useIsWide } from '../../core/hooks/use-is-wide';
-import { Branch } from '../../domain/entities/branch';
-import { AppButton } from '../components/common/app-button';
-import { AppDialog, AppDialogContent, AppDialogFooter, AppDialogHeader, AppDialogTitle, AppDialogDescription } from '../components/common/app-dialog';
-import { AppInput } from '../components/common/app-input';
-import { SplitView } from '../components/common/split-view';
-import { BranchList } from '../components/branch/branch-list';
-import { TaskList } from '../components/task/task-list';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Loader2, Plus, Folder, Filter as FilterIcon } from 'lucide-react';
+
 import { useRepositoryStore } from '../stores/repository-store';
+import { useTaskStore } from '../stores/task-store';
+import { container } from '../../core/di/injection-container';
+import { ICommitRepository } from '../../domain/repositories/i-commit-repository';
+import { Priority, TaskStatus } from '../../domain/entities/enums';
+import { Task } from '../../domain/entities/task';
+import { Branch } from '../../domain/entities/branch';
+import { Commit } from '../../domain/entities/commit';
+
+import { AppButton } from '../components/common/app-button';
+import { AppInput } from '../components/common/app-input';
+import {
+  AppDialog,
+  AppDialogContent,
+  AppDialogDescription,
+  AppDialogFooter,
+  AppDialogHeader,
+  AppDialogTitle,
+} from '../components/common/app-dialog';
+
+import {
+  BranchTreePanel,
+  type TaskFilterView,
+} from '../components/tasks/branch-tree-panel';
+import { TaskList } from '../components/tasks/task-list';
+import { TaskDetailDrawer } from '../components/tasks/task-detail-drawer';
+import { formatRelativeTime } from '../../core/utils/formatters';
 
 export function RepositoryScreen(): JSX.Element {
-  const { id } = useParams<{ id: string }>();
+  const { id: repoId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isWide = useIsWide();
+  const [searchParams] = useSearchParams();
+
   const {
     repository,
     branches,
@@ -29,29 +49,78 @@ export function RepositoryScreen(): JSX.Element {
     deleteBranch,
     completeTask,
     clearError,
+    selectedTaskId,
+    selectTask,
   } = useRepositoryStore();
 
-  const [showTasks, setShowTasks] = useState(false);
-  const [isBranchDialogOpen, setIsBranchDialogOpen] = useState(false);
+  const { task: drawerTask, commits: drawerCommits, isLoading: drawerLoading, completeTask: completeDetailTask, deleteTask: deleteDetailTask } = useTaskStore();
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [filterView, setFilterView] = useState<TaskFilterView>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | TaskStatus>('all');
+  const [priorityFilter, setPriorityFilter] = useState<'all' | Priority>('all');
+  const [createBranchOpen, setCreateBranchOpen] = useState(false);
   const [newBranchName, setNewBranchName] = useState('');
 
+  // Load repository context
   useEffect(() => {
-    if (id) {
-      loadData(id);
-      setShowTasks(false);
+    if (repoId) void loadData(repoId);
+  }, [repoId, loadData]);
+
+  // Honor deep links: ?branch=:id and ?task=:id
+  useEffect(() => {
+    if (!branches.length) return;
+    const branchParam = searchParams.get('branch');
+    if (branchParam && branches.some((b) => b.id === branchParam)) {
+      switchBranch(branchParam);
     }
-  }, [id, loadData]);
+    const taskParam = searchParams.get('task');
+    if (taskParam) {
+      const taskInState = tasks.find((t) => t.id === taskParam);
+      if (taskInState) {
+        selectTask(taskInState.id);
+        setDrawerOpen(true);
+      } else {
+        selectTask(taskParam);
+        setDrawerOpen(true);
+      }
+    }
+  }, [branches, searchParams, switchBranch, selectTask, tasks]);
 
-  const activeBranch = branches.find((b) => b.id === activeBranchId) ?? null;
+  const activeBranch: Branch | null = useMemo(
+    () => branches.find((b) => b.id === activeBranchId) ?? null,
+    [branches, activeBranchId]
+  );
 
-  const handleBranchSelect = (branch: Branch) => {
+  const visibleTasks = useMemo<Task[]>(() => {
+    return tasks.filter((t) => {
+      if (statusFilter !== 'all' && t.status !== statusFilter) return false;
+      if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
+      if (filterView === 'today') {
+        if (!t.dueDate) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const due = new Date(t.dueDate);
+        due.setHours(0, 0, 0, 0);
+        if (due.getTime() !== today.getTime()) return false;
+      }
+      if (filterView === 'pending-commit') {
+        if (t.status === TaskStatus.done || t.status === TaskStatus.cancelled) {
+          return false;
+        }
+      }
+      if (filterView === 'completed') {
+        if (t.status !== TaskStatus.done) return false;
+      }
+      return true;
+    });
+  }, [tasks, statusFilter, priorityFilter, filterView]);
+
+  const handleSelectBranch = (branch: Branch): void => {
     switchBranch(branch.id);
-    if (!isWide) {
-      setShowTasks(true);
-    }
   };
 
-  const handleCreateBranch = async () => {
+  const handleCreateBranch = async (): Promise<void> => {
     if (!newBranchName.trim() || !activeBranch) return;
     const created = await createBranch(newBranchName.trim(), {
       parentBranchId: activeBranch.id,
@@ -59,59 +128,226 @@ export function RepositoryScreen(): JSX.Element {
     });
     if (created) {
       setNewBranchName('');
-      setIsBranchDialogOpen(false);
+      setCreateBranchOpen(false);
     }
   };
 
-  const masterContent = (
-    <div className="flex h-full flex-col gap-md">
-      <div className="flex items-center gap-xs">
-        <Link
-          to="/"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-ink-muted hover:bg-surface-1 hover:text-ink"
-          aria-label="返回"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <h1 className="text-headline font-semibold text-ink">
-          {repository?.name ?? '仓库'}
-        </h1>
-      </div>
-      {error ? (
-        <div className="rounded-md border border-error bg-error/10 p-md text-body text-error">
-          {error}
-          <button type="button" onClick={clearError} className="ml-sm text-body-sm underline">
-            清除
-          </button>
-        </div>
-      ) : null}
-      <div className="flex items-center justify-between">
-        <span className="text-eyebrow text-ink-muted">分支</span>
-        <AppButton
-          size="sm"
-          variant="secondary"
-          onClick={() => setIsBranchDialogOpen(true)}
-          disabled={!activeBranch}
-        >
-          <Plus className="h-4 w-4" />
-          新建分支
-        </AppButton>
-      </div>
-      {isLoading && branches.length === 0 ? (
-        <p className="py-lg text-center text-body text-ink-muted">加载中…</p>
-      ) : (
-        <BranchList
-          branches={branches}
-          activeBranchId={activeBranchId}
-          onSelect={handleBranchSelect}
-        />
-      )}
+  const handleMerge = async (branch: Branch): Promise<void> => {
+    const main = branches.find((b) => b.isMain);
+    if (!main) return;
+    await mergeBranch(branch.id, main.id);
+  };
 
-      <AppDialog open={isBranchDialogOpen} onOpenChange={setIsBranchDialogOpen}>
+  const handleDeleteBranch = async (branch: Branch): Promise<void> => {
+    await deleteBranch(branch.id);
+  };
+
+  if (!isLoading && !repository) {
+    return (
+      <div className="work-main-pad">
+        <div className="empty-state">
+          <span className="empty-state-title">仓库不存在</span>
+          <span className="empty-state-caption">
+            这个仓库可能已被删除或链接已失效。回到工作台选择其他仓库。
+          </span>
+          <AppButton onClick={() => navigate('/workspace')}>回到工作台</AppButton>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="work-surface flex-1" data-drawer={drawerOpen ? 'open' : 'closed'}>
+      <BranchTreePanel
+        branches={branches}
+        activeBranchId={activeBranchId}
+        tasks={tasks.map((t) => ({ status: t.status, branchId: t.branchId }))}
+        onSelectBranch={handleSelectBranch}
+        onCreateBranch={() => setCreateBranchOpen(true)}
+        onMergeBranch={handleMerge}
+        onDeleteBranch={handleDeleteBranch}
+        view={filterView}
+        onChangeView={setFilterView}
+      />
+
+      <section className="work-main">
+        <header className="flex flex-wrap items-end justify-between gap-md border-b border-border-quiet px-md py-md">
+          <div className="flex flex-col gap-xs">
+            <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-subtle">
+              当前分支
+            </span>
+            <div className="flex items-center gap-sm">
+              <Folder className="h-5 w-5 text-primary" aria-hidden />
+              <h1 className="text-[18px] font-semibold text-ink">
+                {repository?.name ?? '仓库'}
+              </h1>
+              {activeBranch ? (
+                <>
+                  <span className="text-ink-subtle">/</span>
+                  <span className="font-mono text-[12px] text-primary">
+                    {activeBranch.name}
+                  </span>
+                  <span className="font-mono text-[11px] text-ink-subtle">
+                    {tasks.length} 任务
+                  </span>
+                </>
+              ) : null}
+            </div>
+            {repository ? (
+              <span className="font-mono text-[11px] text-ink-subtle">
+                最近活动 · {formatRelativeTime(repository.updatedAt)}
+              </span>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-xs">
+            <AppButton
+              variant="secondary"
+              size="sm"
+              onClick={() => setCreateBranchOpen(true)}
+              disabled={!activeBranch}
+            >
+              <Plus className="h-3.5 w-3.5" /> 新建分支
+            </AppButton>
+            <AppButton
+              size="sm"
+              onClick={() =>
+                repoId &&
+                activeBranchId &&
+                navigate(
+                  `/repository/${repoId}/task/new?branchId=${activeBranchId}`
+                )
+              }
+              disabled={!activeBranchId}
+            >
+              <Plus className="h-3.5 w-3.5" /> 新建任务
+            </AppButton>
+          </div>
+        </header>
+
+        {error ? (
+          <div className="mx-md mt-md flex items-center justify-between rounded-md border border-error bg-error-soft px-md py-sm text-body-sm text-error">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={clearError}
+              className="underline"
+            >
+              清除
+            </button>
+          </div>
+        ) : null}
+
+        <div className="work-main-pad">
+          <div className="flex flex-wrap items-center gap-sm">
+            <FilterChip
+              label="全部"
+              active={statusFilter === 'all'}
+              onClick={() => setStatusFilter('all')}
+            />
+            <FilterChip
+              label="待办"
+              active={statusFilter === TaskStatus.todo}
+              onClick={() => setStatusFilter(TaskStatus.todo)}
+            />
+            <FilterChip
+              label="进行中"
+              active={statusFilter === TaskStatus.inProgress}
+              onClick={() => setStatusFilter(TaskStatus.inProgress)}
+            />
+            <FilterChip
+              label="已完成"
+              active={statusFilter === TaskStatus.done}
+              onClick={() => setStatusFilter(TaskStatus.done)}
+            />
+            <span className="mx-1 h-3 w-px bg-border" aria-hidden />
+            <FilterChip
+              label="低"
+              active={priorityFilter === Priority.low}
+              onClick={() =>
+                setPriorityFilter(
+                  priorityFilter === Priority.low ? 'all' : Priority.low
+                )
+              }
+            />
+            <FilterChip
+              label="中"
+              active={priorityFilter === Priority.medium}
+              onClick={() =>
+                setPriorityFilter(
+                  priorityFilter === Priority.medium ? 'all' : Priority.medium
+                )
+              }
+            />
+            <FilterChip
+              label="高"
+              active={priorityFilter === Priority.high}
+              onClick={() =>
+                setPriorityFilter(
+                  priorityFilter === Priority.high ? 'all' : Priority.high
+                )
+              }
+            />
+            <span className="ml-auto inline-flex items-center gap-1 font-mono text-[11px] text-ink-subtle">
+              <FilterIcon className="h-3 w-3" aria-hidden /> 共{' '}
+              {visibleTasks.length} 条
+            </span>
+          </div>
+
+          {isLoading && tasks.length === 0 ? (
+            <div className="empty-state">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden />
+              <span className="empty-state-title">正在加载任务…</span>
+            </div>
+          ) : (
+            <TaskList
+              tasks={visibleTasks}
+              selectedTaskId={selectedTaskId}
+              branchName={activeBranch?.name ?? null}
+              onItemClick={(task) => {
+                selectTask(task.id);
+                setDrawerOpen(true);
+              }}
+              onToggleComplete={(task) => void completeTask(task.id)}
+            />
+          )}
+        </div>
+      </section>
+
+      <TaskDetailDrawer
+        open={drawerOpen}
+        onOpenChange={(o) => {
+          setDrawerOpen(o);
+          if (!o) selectTask(null);
+        }}
+        task={drawerTask}
+        commits={drawerCommits}
+        isLoading={drawerLoading}
+        branchName={activeBranch?.name ?? null}
+        repositoryName={repository?.name ?? null}
+        onComplete={async () => {
+          await completeDetailTask();
+        }}
+        onDelete={async () => {
+          await deleteDetailTask();
+          setDrawerOpen(false);
+        }}
+        onEdit={() => {
+          if (drawerTask && repoId) {
+            setDrawerOpen(false);
+            navigate(
+              `/repository/${repoId}/task/${drawerTask.id}/edit?branchId=${drawerTask.branchId}`
+            );
+          }
+        }}
+      />
+
+      <AppDialog open={createBranchOpen} onOpenChange={setCreateBranchOpen}>
         <AppDialogContent>
           <AppDialogHeader>
             <AppDialogTitle>新建分支</AppDialogTitle>
-            <AppDialogDescription>从当前分支派生出新分支。</AppDialogDescription>
+            <AppDialogDescription>
+              从当前分支 {activeBranch?.name ?? 'main'} 派生出新分支。
+            </AppDialogDescription>
           </AppDialogHeader>
           <AppInput
             placeholder="分支名称"
@@ -120,10 +356,16 @@ export function RepositoryScreen(): JSX.Element {
             autoFocus
           />
           <AppDialogFooter>
-            <AppButton variant="secondary" onClick={() => setIsBranchDialogOpen(false)}>
+            <AppButton
+              variant="secondary"
+              onClick={() => setCreateBranchOpen(false)}
+            >
               取消
             </AppButton>
-            <AppButton onClick={handleCreateBranch} disabled={!newBranchName.trim() || isLoading}>
+            <AppButton
+              onClick={() => void handleCreateBranch()}
+              disabled={!newBranchName.trim() || isLoading}
+            >
               创建
             </AppButton>
           </AppDialogFooter>
@@ -131,91 +373,35 @@ export function RepositoryScreen(): JSX.Element {
       </AppDialog>
     </div>
   );
+}
 
-  const detailContent = (
-    <div className="flex h-full flex-col gap-md">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-xs">
-          {!isWide ? (
-            <button
-              type="button"
-              onClick={() => setShowTasks(false)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md text-ink-muted hover:bg-surface-1 hover:text-ink"
-              aria-label="返回分支列表"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-          ) : null}
-          <h2 className="text-headline font-semibold text-ink">
-            {activeBranch?.name ?? '任务'}
-          </h2>
-        </div>
-        <AppButton
-          size="sm"
-          onClick={() => navigate(`/repository/${id}/task/new?repoId=${id}&branchId=${activeBranchId ?? ''}`)}
-          disabled={!activeBranchId}
-        >
-          <Plus className="h-4 w-4" />
-          新建任务
-        </AppButton>
-      </div>
-      {activeBranch && (
-        <div className="flex items-center gap-xs text-body-sm text-ink-muted">
-          <span className="font-mono">{tasks.length} 个任务</span>
-          {!activeBranch.isMain && (
-            <>
-              <button
-                type="button"
-                onClick={async () => {
-                  const main = branches.find((b) => b.isMain);
-                  if (main) {
-                    await mergeBranch(activeBranch.id, main.id);
-                  }
-                }}
-                className="ml-auto inline-flex items-center gap-micro text-primary hover:underline"
-              >
-                <GitMerge className="h-4 w-4" />
-                合并到 main
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  await deleteBranch(activeBranch.id);
-                }}
-                className="inline-flex items-center gap-micro text-error hover:underline"
-              >
-                <Trash2 className="h-4 w-4" />
-                删除
-              </button>
-            </>
-          )}
-        </div>
-      )}
-      <TaskList
-        tasks={tasks}
-        onItemClick={(task) => navigate(`/task/${task.id}`)}
-        onToggleComplete={(task) => completeTask(task.id)}
-      />
-    </div>
-  );
+interface FilterChipProps {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}
 
-  if (!isWide && showTasks) {
-    return detailContent;
-  }
-
+function FilterChip({ label, active, onClick }: FilterChipProps): JSX.Element {
   return (
-    <div className="h-[calc(100vh-120px)]">
-      <SplitView
-        master={masterContent}
-        detail={detailContent}
-        detailVisible={isWide}
-        emptyDetail={
-          <div className="flex h-full flex-col items-center justify-center text-ink-muted">
-            <ChevronRight className="h-8 w-8" />
-            <p className="mt-sm text-body">选择一个分支查看任务</p>
-          </div>
-        }
-      />
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`filter-pill inline-flex w-auto px-3 py-1 text-[12px]${
+        active ? ' text-primary' : ''
+      }`}
+      data-active={active}
+    >
+      {label}
+    </button>
   );
+}
+
+/* unused-export helper: keep TS happy for tasks with branches */
+export async function fetchBranchCommits(
+  branchIds: string[]
+): Promise<Commit[]> {
+  if (branchIds.length === 0) return [];
+  const repo = container.resolve<ICommitRepository>('ICommitRepository');
+  const lists = await Promise.all(branchIds.map((id) => repo.getByBranchId(id)));
+  return lists.flat();
 }

@@ -8,12 +8,13 @@ describe('Heatmap data calculation', () => {
     const today = new Date();
     today.setHours(12, 0, 0, 0);
     const tasks = [
-      Task.create('branch-1', 'Task 1', { status: TaskStatus.done }),
-      Task.create('branch-1', 'Task 2', { status: TaskStatus.done }),
-      Task.create('branch-1', 'Task 3', { status: TaskStatus.done, priority: Priority.high }),
+      Task.create('branch-1', 'Task 1'),
+      Task.create('branch-1', 'Task 2'),
+      Task.create('branch-1', 'Task 3', { priority: Priority.high }),
     ];
     tasks.forEach((t, i) => {
       (t as unknown as { completedAt: Date }).completedAt = new Date(today.getTime() - i * 1000);
+      (t as unknown as { status: TaskStatus }).status = TaskStatus.done;
     });
 
     const data = computeHeatmapData(tasks);

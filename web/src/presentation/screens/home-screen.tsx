@@ -1,6 +1,14 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  Folder,
+  Plus,
+  GitBranch,
+  ListTodo,
+  CheckCircle2,
+  CalendarCheck2,
+} from 'lucide-react';
+import { endOfDay, startOfDay, subDays } from 'date-fns';
 
 import { useHomeStore } from '../stores/home-store';
 import { AppButton } from '../components/common/app-button';
@@ -14,19 +22,26 @@ import {
 } from '../components/common/app-dialog';
 import { AppInput } from '../components/common/app-input';
 
-import { HudTopbar } from '../components/home/hud-topbar';
-import { HeroBlock } from '../components/home/hero-block';
-import { StatsGrid } from '../components/home/stats-grid';
-import { RepoRow } from '../components/home/repo-row';
-import { QuickActions } from '../components/home/quick-actions';
+import { RepositoryRow } from '../components/repository/repository-row';
+import { container } from '../../core/di/injection-container';
+import { ITaskRepository } from '../../domain/repositories/i-task-repository';
+import { IBranchRepository } from '../../domain/repositories/i-branch-repository';
+import { Task } from '../../domain/entities/task';
+import { formatRelativeTime } from '../../core/utils/formatters';
 
-import { cn } from '../../core/utils/formatters';
+interface WorkspaceStats {
+  totalRepositories: number;
+  activeToday: number;
+  tasksCompletedWeek: number;
+  pendingTasks: number;
+}
 
-const PRODUCT_TITLE = 'CommitToDo';
-const PRODUCT_TAGLINE = '记录每一次提交，绘制你的节奏';
+const PAGE_TITLE = '工作台';
+const PAGE_SUBTITLE = '今日焦点 · 最近仓库 · 本地保存';
 
 export function HomeScreen(): JSX.Element {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     repositories,
     isLoading,
@@ -37,12 +52,92 @@ export function HomeScreen(): JSX.Element {
     clearError,
   } = useHomeStore();
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [stats, setStats] = useState<WorkspaceStats>({
+    totalRepositories: 0,
+    activeToday: 0,
+    tasksCompletedWeek: 0,
+    pendingTasks: 0,
+  });
+
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  const [isCreateOpen, setIsCreateOpen] = useState(
+    searchParams.get('create') === '1'
+  );
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
-    load();
+    if (searchParams.get('create') === '1') {
+      setIsCreateOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    void load();
   }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async (): Promise<void> => {
+      try {
+        const taskRepo = container.resolve<ITaskRepository>('ITaskRepository');
+        const branchRepo = container.resolve<IBranchRepository>('IBranchRepository');
+
+        const startOfYesterday = startOfDay(subDays(new Date(), 0)).getTime();
+        const startOfWeek = startOfDay(subDays(new Date(), 6)).getTime();
+        const endOfToday = endOfDay(new Date()).getTime();
+
+        const taskLists = await Promise.all(
+          repositories.map((r) =>
+            branchRepo.getByRepositoryId(r.id).then(async (branches) => {
+              const all = await Promise.all(
+                branches.map((b) => taskRepo.getByBranchId(b.id))
+              );
+              return all.flat();
+            })
+          )
+        );
+        const allTasks: Task[] = taskLists.flat();
+        if (cancelled) return;
+        const isSameDay = (a: Date, b: Date): boolean =>
+          a.toDateString() === b.toDateString();
+        const today = new Date();
+        const completed = allTasks.filter(
+          (t) => t.completedAt && t.completedAt.getTime() >= startOfWeek
+        );
+        const activeToday = repositories.filter(
+          (r) => r.updatedAt && isSameDay(new Date(r.updatedAt), today)
+        ).length;
+        const pending = allTasks.filter(
+          (t) =>
+            t.status !== 2 /*done*/ &&
+            t.status !== 3 /*cancelled*/ &&
+            (!t.completedAt || t.completedAt.getTime() < startOfYesterday ||
+              (t.dueDate && t.dueDate.getTime() < endOfToday))
+        ).length;
+
+        setStats({
+          totalRepositories: repositories.length,
+          activeToday,
+          tasksCompletedWeek: completed.length,
+          pendingTasks: pending,
+        });
+        setStatsLoading(false);
+      } catch {
+        if (!cancelled) setStatsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [repositories]);
+
+  const recentRepositories = useMemo(() => {
+    return [...repositories]
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+      .slice(0, 5);
+  }, [repositories]);
 
   const handleCreate = async (): Promise<void> => {
     const created = await createRepository(newName);
@@ -53,113 +148,146 @@ export function HomeScreen(): JSX.Element {
   };
 
   return (
-    <div className="flex min-h-full flex-col gap-lg">
-      <HudTopbar />
-
-      <HeroBlock title={PRODUCT_TITLE} subtitle={PRODUCT_TAGLINE} />
-
-      <StatsGrid repositories={repositories} />
-
-      {/* Accent line under stats — quiet but signals the transition */}
-      <div className="accent-line hud-rise hud-stagger-4" aria-hidden />
-
-      {/* Workspace section */}
-      <section
-        className="flex flex-col gap-md hud-rise hud-stagger-4"
-        aria-label="仓库列表"
-      >
-        <header className="flex flex-wrap items-baseline justify-between gap-sm">
-          <div className="flex items-center gap-sm">
-            <span className="inline-flex h-5 items-center rounded-sm border border-primary/40 bg-primary/10 px-2 text-mono-sm font-medium text-primary">
-              02
-            </span>
-            <h2 className="text-headline font-semibold text-ink">
-              <span className="text-ink-muted">[ </span>WORKSPACE
-              <span className="text-ink-muted"> ]</span>
-            </h2>
-            <span className="text-mono-sm text-ink-tertiary">
-              / {repositories.length} repos
-            </span>
-          </div>
-          <span className="text-mono-sm text-ink-subtle tablet:hidden">
-            <span>&gt;</span>
-            <span className="hud-dot">·</span>
-            <span className="hud-dot">·</span>
-            <span className="hud-dot">·</span>
-            <span className="hud-dot ml-xs">ready</span>
+    <div className="work-main">
+      <div className="work-main-pad">
+        <header className="flex flex-col gap-xs">
+          <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-subtle">
+            Workspace Overview
           </span>
+          <h1 className="text-[22px] font-semibold leading-tight text-ink">
+            {PAGE_TITLE}
+          </h1>
+          <p className="text-[13px] text-ink-muted">{PAGE_SUBTITLE}</p>
         </header>
 
-        {/* Error notice */}
-        {error ? (
-          <div className="flex items-center justify-between rounded-md border border-error/40 bg-error/10 px-md py-sm text-body text-error">
-            <span>{error}</span>
+        <section className="grid grid-cols-2 gap-sm tablet:grid-cols-4" aria-label="概览">
+          <Stat
+            label="仓库总数"
+            value={stats.totalRepositories}
+            icon={Folder}
+            loading={statsLoading}
+          />
+          <Stat
+            label="今日活跃"
+            value={stats.activeToday}
+            icon={GitBranch}
+            loading={statsLoading}
+          />
+          <Stat
+            label="本周完成"
+            value={stats.tasksCompletedWeek}
+            icon={CheckCircle2}
+            tone="done"
+            loading={statsLoading}
+          />
+          <Stat
+            label="待处理任务"
+            value={stats.pendingTasks}
+            icon={ListTodo}
+            tone="warn"
+            loading={statsLoading}
+          />
+        </section>
+
+        <section className="panel" aria-label="快捷动作">
+          <header className="panel-header">
+            <span className="panel-title">
+              <Plus className="h-3.5 w-3.5 text-primary" aria-hidden /> 快捷动作
+            </span>
+          </header>
+          <div className="panel-body">
+            <div className="flex flex-wrap gap-sm">
+              <AppButton onClick={() => setIsCreateOpen(true)}>
+                <Plus className="h-4 w-4" /> 新建仓库
+              </AppButton>
+              <AppButton variant="secondary" onClick={() => navigate('/heatmap')}>
+                <CalendarCheck2 className="h-4 w-4" /> 打开热力图
+              </AppButton>
+              <AppButton variant="secondary" onClick={() => navigate('/graph')}>
+                <GitBranch className="h-4 w-4" /> 打开 Git Graph
+              </AppButton>
+              <AppButton variant="secondary" onClick={() => navigate('/search')}>
+                搜索任务 / 仓库
+              </AppButton>
+            </div>
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-sm" aria-label="最近仓库">
+          <div className="flex items-center justify-between">
+            <h2 className="section-heading">
+              最近仓库
+              <span className="section-heading-meta">/{repositories.length} 个</span>
+            </h2>
             <button
               type="button"
-              onClick={clearError}
-              className="text-body-sm underline underline-offset-2 hover:opacity-80"
+              onClick={() => navigate('/settings')}
+              className="text-xs text-ink-muted underline-offset-4 hover:underline"
             >
-              清除
+              设置
             </button>
           </div>
-        ) : null}
 
-        {/* Loading skeletons */}
-        {isLoading && repositories.length === 0 ? (
-          <div className="flex flex-col gap-xs">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className={cn(
-                  'h-16 rounded-lg border border-hairline bg-surface-1',
-                  'animate-pulse'
-                )}
-                style={{ animationDelay: `${i * 80}ms` }}
-                aria-hidden
-              />
-            ))}
-          </div>
-        ) : null}
-
-        {/* Empty state */}
-        {!isLoading && repositories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-md rounded-xl border border-dashed border-hairline-strong bg-canvas px-lg py-section text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-hairline bg-surface-1 text-ink-muted hud-glow">
-              <Plus className="h-7 w-7 text-primary" aria-hidden />
+          {error ? (
+            <div className="rounded-md border border-error bg-error-soft p-md text-body-sm text-error">
+              {error}
+              <button
+                type="button"
+                onClick={clearError}
+                className="ml-sm underline"
+              >
+                清除
+              </button>
             </div>
+          ) : null}
+
+          {isLoading && repositories.length === 0 ? (
             <div className="flex flex-col gap-xs">
-              <h3 className="text-headline font-semibold text-ink">
-                还没建仓库
-              </h3>
-              <p className="max-w-sm text-body text-ink-muted">
-                建一个仓库开始追踪你的提交节奏。每个仓库会自动初始化 main 分支。
-              </p>
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-12 rounded-lg border border-hairline bg-surface-1 animate-pulse"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                  aria-hidden
+                />
+              ))}
             </div>
-            <AppButton onClick={() => setIsCreateOpen(true)} size="lg">
-              <Plus className="h-4 w-4" />
-              创建第一个仓库
-            </AppButton>
-          </div>
-        ) : null}
+          ) : !isLoading && repositories.length === 0 ? (
+            <div className="empty-state">
+              <span className="empty-state-title">还没有仓库</span>
+              <span className="empty-state-caption">
+                创建一个仓库开始追踪提交节奏。每个仓库都会自动初始化 main 分支。
+              </span>
+              <AppButton onClick={() => setIsCreateOpen(true)}>
+                <Plus className="h-4 w-4" /> 创建第一个仓库
+              </AppButton>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-xs">
+              {recentRepositories.map((repo) => (
+                <RepositoryRow
+                  key={repo.id}
+                  repository={repo}
+                  onDelete={() => deleteRepository(repo.id)}
+                />
+              ))}
+              {repositories.length > recentRepositories.length ? (
+                <p className="mt-2 text-center text-xs text-ink-subtle">
+                  还有 {repositories.length - recentRepositories.length}{' '}
+                  个仓库，更多请搜索或使用命令面板。
+                </p>
+              ) : null}
+            </div>
+          )}
+        </section>
 
-        {/* Repository rows */}
-        {repositories.length > 0 ? (
-          <div className="flex flex-col gap-xs">
-            {repositories.map((repo) => (
-              <RepoRow
-                key={repo.id}
-                repository={repo}
-                onClick={() => navigate(`/repository/${repo.id}`)}
-                onDelete={() => deleteRepository(repo.id)}
-              />
-            ))}
-          </div>
-        ) : null}
-      </section>
+        <footer className="mt-4 border-t border-border-quiet pt-4 text-[11px] text-ink-subtle">
+          最近更新 {repositories[0] ? formatRelativeTime(repositories[0].updatedAt) : '—'} ·
+          数据保存在 IndexedDB ·
+          按 ⌘K 打开命令面板
+        </footer>
+      </div>
 
-      <QuickActions onCreateRepository={() => setIsCreateOpen(true)} />
-
-      {/* Create dialog */}
       <AppDialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <AppDialogContent>
           <AppDialogHeader>
@@ -195,6 +323,37 @@ export function HomeScreen(): JSX.Element {
           </AppDialogFooter>
         </AppDialogContent>
       </AppDialog>
+    </div>
+  );
+}
+
+interface StatProps {
+  label: string;
+  value: number;
+  icon: typeof Folder;
+  tone?: 'default' | 'done' | 'warn';
+  loading?: boolean;
+}
+
+function Stat({ label, value, icon: Icon, tone = 'default', loading }: StatProps): JSX.Element {
+  return (
+    <div
+      className="stat-card"
+      data-tone={tone === 'default' ? undefined : tone}
+    >
+      <div className="flex items-center justify-between">
+        <span className="stat-card-label">{label}</span>
+        <Icon
+          className="h-3.5 w-3.5 text-ink-subtle"
+          aria-hidden
+        />
+      </div>
+      {loading ? (
+        <div className="h-7 w-12 animate-pulse rounded bg-surface-strong" aria-hidden />
+      ) : (
+        <span className="stat-card-value tabular">{value}</span>
+      )}
+      <span className="stat-card-caption">实时统计</span>
     </div>
   );
 }

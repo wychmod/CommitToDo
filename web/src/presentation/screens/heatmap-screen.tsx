@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { subDays, startOfDay, endOfDay } from 'date-fns';
 import { container } from '../../core/di/injection-container';
 import { ITaskRepository } from '../../domain/repositories/i-task-repository';
@@ -30,34 +31,61 @@ export function HeatmapScreen(): JSX.Element {
   }, [tasks]);
 
   return (
-    <div className="flex flex-col gap-md">
-      <h1 className="text-headline font-semibold text-ink">热力图</h1>
-      <p className="text-body text-ink-muted">过去一年任务完成情况</p>
+    <div className="work-main">
+      <div className="work-main-pad">
+        <header className="flex flex-col gap-xs">
+          <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-subtle">
+            Activity / Rhythm
+          </span>
+          <h1 className="text-[22px] font-semibold leading-tight text-ink">
+            节奏热力图
+          </h1>
+          <p className="text-[13px] text-ink-muted">
+            过去一年任务完成情况，按青色 → 石灰绿 显示强度。
+          </p>
+        </header>
 
-      <div className="grid grid-cols-1 gap-xs sm:grid-cols-3">
-        <StatCard label="总完成数" value={String(stats.total)} />
-        <StatCard label="连续完成天数" value={String(stats.streak)} />
-        <StatCard label="单日最高" value={String(stats.bestDay)} />
+        <section className="grid grid-cols-3 gap-sm" aria-label="节奏概览">
+          <div className="stat-card" data-tone="primary">
+            <span className="stat-card-label">总完成数</span>
+            <span className="stat-card-value tabular">{stats.total}</span>
+            <span className="stat-card-caption">已完成任务</span>
+          </div>
+          <div className="stat-card" data-tone="primary">
+            <span className="stat-card-label">连续完成天数</span>
+            <span className="stat-card-value tabular">{stats.streak}</span>
+            <span className="stat-card-caption">最近一次断档</span>
+          </div>
+          <div className="stat-card" data-tone="primary">
+            <span className="stat-card-label">单日最高</span>
+            <span className="stat-card-value tabular">{stats.bestDay}</span>
+            <span className="stat-card-caption">最多一天完成任务数</span>
+          </div>
+        </section>
+
+        <section className="panel">
+          <header className="panel-header">
+            <span className="panel-title">Heatmap · 过去 12 个月</span>
+            <span className="panel-meta">{tasks.length} 条记录</span>
+          </header>
+          <div className="panel-body">
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-ink-muted">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> 正在加载…
+              </div>
+            ) : tasks.length === 0 ? (
+              <div className="empty-state">
+                <span className="empty-state-title">过去一年没有已完成任务</span>
+                <span className="empty-state-caption">
+                  完成第一个任务后，节奏热力图会自动开始累积。
+                </span>
+              </div>
+            ) : (
+              <HeatmapCalendar tasks={tasks} />
+            )}
+          </div>
+        </section>
       </div>
-
-      <div className="rounded-lg border border-hairline bg-surface-1 p-md">
-        {isLoading ? (
-          <p className="text-body text-ink-muted">加载中…</p>
-        ) : tasks.length === 0 ? (
-          <p className="text-body text-ink-muted">过去一年没有已完成任务</p>
-        ) : (
-          <HeatmapCalendar tasks={tasks} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }): JSX.Element {
-  return (
-    <div className="rounded-lg border border-hairline bg-surface-1 p-md">
-      <p className="text-eyebrow text-ink-muted">{label}</p>
-      <p className="mt-xs text-display-md font-semibold text-ink">{value}</p>
     </div>
   );
 }

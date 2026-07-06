@@ -3,9 +3,6 @@ import { AppDatabase } from '../../data/db/app-database';
 import { container } from '../../core/di/injection-container';
 import { ImportDataUseCase } from './import-data-usecase';
 import { IRepositoryRepository } from '../../domain/repositories/i-repository-repository';
-import { IBranchRepository } from '../../domain/repositories/i-branch-repository';
-import { ITaskRepository } from '../../domain/repositories/i-task-repository';
-import { ICommitRepository } from '../../domain/repositories/i-commit-repository';
 
 async function resetDatabase(): Promise<void> {
   const db = container.resolve(AppDatabase);

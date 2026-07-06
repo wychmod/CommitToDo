@@ -25,7 +25,7 @@ export function buildGraphLayout(
   branches: Branch[],
   commits: Commit[]
 ): GraphLayoutResult {
-  const repoMap = new Map(repositories.map((r) => [r.id, r]));
+  void repositories;
 
   const sortedBranches = [...branches].sort((a, b) => {
     if (a.isMain !== b.isMain) return a.isMain ? -1 : 1;
