@@ -119,8 +119,8 @@ export function SettingsScreen(): JSX.Element {
 
   return (
     <div className="work-main">
-      <div className="work-main-pad page-container">
-        <header className="flex flex-col gap-xs">
+      <div className="work-main-pad page-container settings-page">
+        <header className="page-heading flex flex-col gap-xs">
           <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-subtle">
             Settings
           </span>
@@ -130,132 +130,134 @@ export function SettingsScreen(): JSX.Element {
           </p>
         </header>
 
-        <Section title="外观 / Appearance">
-          <Row label="深色模式" hint="切换深色 / 浅色">
-            <button
-              type="button"
-              onClick={() => setDarkMode(!isDarkMode)}
-              className="topbar-action border border-border"
-              aria-label={isDarkMode ? '切换到浅色模式' : '切换到深色模式'}
-            >
-              {isDarkMode ? (
-                <Sun className="h-4 w-4" aria-hidden />
-              ) : (
-                <Moon className="h-4 w-4" aria-hidden />
-              )}
-              <span>{isDarkMode ? '深色 · 开' : '浅色 · 关'}</span>
-            </button>
-          </Row>
-          <div className="flex flex-col gap-xs">
-            <span className="text-[13px] text-ink">主题色</span>
+        <div className="settings-layout">
+          <Section title="外观 / Appearance">
+            <Row label="深色模式" hint="切换深色 / 浅色">
+              <button
+                type="button"
+                onClick={() => setDarkMode(!isDarkMode)}
+                className="topbar-action border border-border"
+                aria-label={isDarkMode ? '切换到浅色模式' : '切换到深色模式'}
+              >
+                {isDarkMode ? (
+                  <Sun className="h-4 w-4" aria-hidden />
+                ) : (
+                  <Moon className="h-4 w-4" aria-hidden />
+                )}
+                <span>{isDarkMode ? '深色 · 开' : '浅色 · 关'}</span>
+              </button>
+            </Row>
+            <div className="flex flex-col gap-xs">
+              <span className="text-[13px] text-ink">主题色</span>
+              <div className="flex flex-wrap gap-xs">
+                {themeColors.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setThemeColor(color)}
+                    className={`h-8 w-8 rounded-full border-2 ${
+                      themeColor === color
+                        ? 'border-primary shadow-[0_0_0_2px_var(--color-primary-soft)]'
+                        : 'border-transparent'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    aria-label={`选择主题色 ${color}`}
+                  />
+                ))}
+              </div>
+              <p className="font-mono text-[11px] text-ink-subtle">
+                主题色决定主操作、链接与选中态。
+              </p>
+            </div>
+          </Section>
+
+          <Section title="数据 / Data">
             <div className="flex flex-wrap gap-xs">
-              {themeColors.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setThemeColor(color)}
-                  className={`h-8 w-8 rounded-full border-2 ${
-                    themeColor === color
-                      ? 'border-primary shadow-[0_0_0_2px_var(--color-primary-soft)]'
-                      : 'border-transparent'
-                  }`}
-                  style={{ backgroundColor: color }}
-                  aria-label={`选择主题色 ${color}`}
-                />
-              ))}
+              <AppButton variant="secondary" onClick={() => void handleExport('json')}>
+                <Download className="h-4 w-4" />
+                导出 JSON
+              </AppButton>
+              <AppButton variant="secondary" onClick={() => void handleExport('csv')}>
+                <Download className="h-4 w-4" />
+                导出 CSV
+              </AppButton>
+              <AppButton
+                variant="secondary"
+                onClick={() => void handleExport('markdown')}
+              >
+                <Download className="h-4 w-4" />
+                导出 Markdown
+              </AppButton>
+              <AppButton variant="secondary" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4" />
+                导入 JSON
+              </AppButton>
             </div>
-            <p className="font-mono text-[11px] text-ink-subtle">
-              主题色决定主操作、链接与选中态。
-            </p>
-          </div>
-        </Section>
+            {exportStatus ? (
+              <p className="font-mono text-[12px] text-ink-muted">{exportStatus}</p>
+            ) : null}
+          </Section>
 
-        <Section title="数据 / Data">
-          <div className="flex flex-wrap gap-xs">
-            <AppButton variant="secondary" onClick={() => void handleExport('json')}>
-              <Download className="h-4 w-4" />
-              导出 JSON
-            </AppButton>
-            <AppButton variant="secondary" onClick={() => void handleExport('csv')}>
-              <Download className="h-4 w-4" />
-              导出 CSV
-            </AppButton>
-            <AppButton
-              variant="secondary"
-              onClick={() => void handleExport('markdown')}
+          <Section title="通知 / Notifications">
+            <Row
+              label="开启提醒"
+              hint={
+                notificationPermission === 'granted'
+                  ? '已授权'
+                  : notificationPermission === 'denied'
+                    ? '已拒绝'
+                    : '未申请'
+              }
             >
-              <Download className="h-4 w-4" />
-              导出 Markdown
-            </AppButton>
-            <AppButton variant="secondary" onClick={() => setImportOpen(true)}>
-              <Upload className="h-4 w-4" />
-              导入 JSON
-            </AppButton>
-          </div>
-          {exportStatus ? (
-            <p className="font-mono text-[12px] text-ink-muted">{exportStatus}</p>
-          ) : null}
-        </Section>
-
-        <Section title="通知 / Notifications">
-          <Row
-            label="开启提醒"
-            hint={
-              notificationPermission === 'granted'
-                ? '已授权'
-                : notificationPermission === 'denied'
-                  ? '已拒绝'
-                  : '未申请'
-            }
-          >
-            <div className="flex items-center gap-sm">
-              <AppSegmentedControl
-                value={enableNotifications ? 'on' : 'off'}
-                options={[
-                  { value: 'on', label: '开' },
-                  { value: 'off', label: '关' },
-                ]}
-                onChange={(value) =>
-                  void handleNotificationChange(value === 'on')
-                }
+              <div className="flex items-center gap-sm">
+                <AppSegmentedControl
+                  value={enableNotifications ? 'on' : 'off'}
+                  options={[
+                    { value: 'on', label: '开' },
+                    { value: 'off', label: '关' },
+                  ]}
+                  onChange={(value) =>
+                    void handleNotificationChange(value === 'on')
+                  }
+                />
+                {notificationPermission === 'granted' ? (
+                  <Bell className="h-4 w-4 text-success" aria-hidden />
+                ) : (
+                  <BellOff className="h-4 w-4 text-ink-subtle" aria-hidden />
+                )}
+              </div>
+            </Row>
+            <Row label="截止前提醒（小时）">
+              <input
+                type="number"
+                min={1}
+                max={24}
+                value={reminderHours}
+                onChange={(e) => setReminderHours(Number(e.target.value))}
+                className="h-9 w-20 rounded-md border border-hairline-strong bg-surface-1 px-2 text-center text-body text-ink"
               />
-              {notificationPermission === 'granted' ? (
-                <Bell className="h-4 w-4 text-success" aria-hidden />
-              ) : (
-                <BellOff className="h-4 w-4 text-ink-subtle" aria-hidden />
-              )}
-            </div>
-          </Row>
-          <Row label="截止前提醒（小时）">
-            <input
-              type="number"
-              min={1}
-              max={24}
-              value={reminderHours}
-              onChange={(e) => setReminderHours(Number(e.target.value))}
-              className="h-9 w-20 rounded-md border border-border bg-surface px-2 text-center text-body text-ink"
-            />
-          </Row>
-        </Section>
+            </Row>
+          </Section>
 
-        <Section title="账号 / Account" muted>
-          <p className="text-[12px] text-ink-muted">
-            登录与同步系统接入后将出现在这里。当前为纯本地模式，所有数据保存在本机 IndexedDB。
-          </p>
-        </Section>
+          <Section title="账号 / Account" muted>
+            <p className="text-[12px] text-ink-muted">
+              登录与同步系统接入后将出现在这里。当前为纯本地模式，所有数据保存在本机 IndexedDB。
+            </p>
+          </Section>
 
-        <Section title="工作空间 / Workspace" muted>
-          <p className="text-[12px] text-ink-muted">
-            多工作空间 / 团队成员 / 权限将在登录系统上线后开放。
-          </p>
-        </Section>
+          <Section title="工作空间 / Workspace" muted>
+            <p className="text-[12px] text-ink-muted">
+              多工作空间 / 团队成员 / 权限将在登录系统上线后开放。
+            </p>
+          </Section>
 
-        <Section title="关于 / About">
-          <p className="text-body text-ink">CommitToDo Web v0.1.0</p>
-          <p className="font-mono text-[12px] text-ink-subtle">
-            任务管理，像 Git 一样优雅。
-          </p>
-        </Section>
+          <Section title="关于 / About">
+            <p className="text-body text-ink">CommitToDo Web v0.1.0</p>
+            <p className="font-mono text-[12px] text-ink-subtle">
+              任务管理，像 Git 一样优雅。
+            </p>
+          </Section>
+        </div>
       </div>
 
       <AppDialog open={importOpen} onOpenChange={setImportOpen}>

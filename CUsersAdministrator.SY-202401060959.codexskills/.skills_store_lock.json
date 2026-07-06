@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "cloudbase": {
+      "name": "cloudbase",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=cloudbase",
+      "source": "community",
+      "version": "2.24.2-beta.1",
+      "installedAt": "2026-07-06T15:51:40Z"
+    }
+  }
+}

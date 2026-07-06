@@ -124,16 +124,21 @@ export function RepoHeatmapScreen(): JSX.Element {
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> 正在加载…
               </div>
             ) : tasks.length === 0 ? (
-              <div className="empty-state">
-                <span className="empty-state-title">本仓库暂无完成记录</span>
-                <span className="empty-state-caption">
-                  完成任务后会在这里形成节奏热力图。先回到任务页推进一个任务。
-                </span>
-                {id ? (
-                  <AppButton onClick={() => navigate(`/repository/${id}`)}>
-                    回到任务页
-                  </AppButton>
-                ) : null}
+              <div className="empty-state heatmap-empty-state">
+                <div className="heatmap-empty-copy">
+                  <span className="empty-state-title">本仓库暂无完成记录</span>
+                  <span className="empty-state-caption">
+                    完成任务后会在这里形成节奏热力图。先回到任务页推进一个任务。
+                  </span>
+                  {id ? (
+                    <AppButton onClick={() => navigate(`/repository/${id}`)}>
+                      回到任务页
+                    </AppButton>
+                  ) : null}
+                </div>
+                <div className="heatmap-empty-preview" aria-hidden>
+                  <HeatmapCalendar tasks={[]} weeks={53} cellSize={9} gap={3} />
+                </div>
               </div>
             ) : (
               <HeatmapCalendar tasks={tasks} />

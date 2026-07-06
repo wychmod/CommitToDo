@@ -77,11 +77,16 @@ export function HeatmapScreen(): JSX.Element {
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> 正在加载…
               </div>
             ) : tasks.length === 0 ? (
-              <div className="empty-state">
-                <span className="empty-state-title">过去一年没有已完成任务</span>
-                <span className="empty-state-caption">
-                  完成第一个任务后，节奏热力图会自动开始累积。
-                </span>
+              <div className="empty-state heatmap-empty-state">
+                <div className="heatmap-empty-copy">
+                  <span className="empty-state-title">过去一年没有已完成任务</span>
+                  <span className="empty-state-caption">
+                    完成第一个任务后，节奏热力图会自动开始累积。
+                  </span>
+                </div>
+                <div className="heatmap-empty-preview" aria-hidden>
+                  <HeatmapCalendar tasks={[]} weeks={53} cellSize={9} gap={3} />
+                </div>
               </div>
             ) : (
               <HeatmapCalendar tasks={tasks} />

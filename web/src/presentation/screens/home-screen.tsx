@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
+  Activity,
+  CircleDot,
+  Database,
   Folder,
   Plus,
   GitBranch,
   ListTodo,
   CheckCircle2,
   CalendarCheck2,
+  Search,
 } from 'lucide-react';
 import { endOfDay, startOfDay, subDays } from 'date-fns';
 
@@ -179,8 +183,8 @@ export function HomeScreen(): JSX.Element {
 
   return (
     <div className="work-main">
-      <div className="work-main-pad page-container">
-        <header className="flex flex-col gap-xs">
+      <div className="work-main-pad page-container dashboard-page">
+        <header className="page-heading flex flex-col gap-xs">
           <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-subtle">
             Workspace Overview
           </span>
@@ -190,7 +194,7 @@ export function HomeScreen(): JSX.Element {
           <p className="text-[13px] text-ink-muted">{PAGE_SUBTITLE}</p>
         </header>
 
-        <section className="grid grid-cols-2 gap-sm tablet:grid-cols-4" aria-label="概览">
+        <section className="dashboard-stat-grid" aria-label="概览">
           <Stat
             label="仓库总数"
             value={stats.totalRepositories}
@@ -219,101 +223,169 @@ export function HomeScreen(): JSX.Element {
           />
         </section>
 
-        <section className="panel" aria-label="快捷动作">
-          <header className="panel-header">
-            <span className="panel-title">
-              <Plus className="h-3.5 w-3.5 text-primary" aria-hidden /> 快捷动作
-            </span>
-          </header>
-          <div className="panel-body">
-            <div className="flex flex-wrap gap-sm">
-              <AppButton onClick={() => setIsCreateOpen(true)}>
-                <Plus className="h-4 w-4" /> 新建仓库
-              </AppButton>
-              <AppButton variant="secondary" onClick={() => navigate('/heatmap')}>
-                <CalendarCheck2 className="h-4 w-4" /> 打开热力图
-              </AppButton>
-              <AppButton variant="secondary" onClick={() => navigate('/graph')}>
-                <GitBranch className="h-4 w-4" /> 打开 Git Graph
-              </AppButton>
-              <AppButton variant="secondary" onClick={() => navigate('/search')}>
-                搜索任务 / 仓库
-              </AppButton>
-            </div>
-          </div>
-        </section>
+        <div className="workspace-dashboard">
+          <main className="workspace-dashboard-main">
+            <section className="panel" aria-label="快捷动作">
+              <header className="panel-header">
+                <span className="panel-title">
+                  <Plus className="h-3.5 w-3.5 text-primary" aria-hidden /> 快捷动作
+                </span>
+              </header>
+              <div className="panel-body">
+                <div className="quick-actions-grid">
+                  <AppButton onClick={() => setIsCreateOpen(true)}>
+                    <Plus className="h-4 w-4" /> 新建仓库
+                  </AppButton>
+                  <AppButton variant="secondary" onClick={() => navigate('/heatmap')}>
+                    <CalendarCheck2 className="h-4 w-4" /> 打开热力图
+                  </AppButton>
+                  <AppButton variant="secondary" onClick={() => navigate('/graph')}>
+                    <GitBranch className="h-4 w-4" /> 打开 Git Graph
+                  </AppButton>
+                  <AppButton variant="secondary" onClick={() => navigate('/search')}>
+                    <Search className="h-4 w-4" /> 搜索任务 / 仓库
+                  </AppButton>
+                </div>
+              </div>
+            </section>
 
-        <section className="flex flex-col gap-sm" aria-label="最近仓库">
-          <div className="flex items-center justify-between">
-            <h2 className="section-heading">
-              最近仓库
-              <span className="section-heading-meta">/{repositories.length} 个</span>
-            </h2>
-            <button
-              type="button"
-              onClick={() => navigate('/settings')}
-              className="text-xs text-ink-muted underline-offset-4 hover:underline"
-            >
-              设置
-            </button>
-          </div>
+            <section className="flex flex-col gap-sm" aria-label="最近仓库">
+              <div className="flex items-center justify-between">
+                <h2 className="section-heading">
+                  最近仓库
+                  <span className="section-heading-meta">/{repositories.length} 个</span>
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => navigate('/settings')}
+                  className="text-xs text-ink-muted underline-offset-4 hover:underline"
+                >
+                  设置
+                </button>
+              </div>
 
-          {error ? (
-            <div className="rounded-md border border-error bg-error-soft p-md text-body-sm text-error">
-              {error}
-              <button
-                type="button"
-                onClick={clearError}
-                className="ml-sm underline"
-              >
-                清除
-              </button>
-            </div>
-          ) : null}
-
-          {isLoading && repositories.length === 0 ? (
-            <div className="flex flex-col gap-xs">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-12 rounded-lg border border-hairline bg-surface-1 animate-pulse"
-                  style={{ animationDelay: `${i * 80}ms` }}
-                  aria-hidden
-                />
-              ))}
-            </div>
-          ) : !isLoading && repositories.length === 0 ? (
-            <div className="empty-state">
-              <span className="empty-state-title">还没有仓库</span>
-              <span className="empty-state-caption">
-                创建一个仓库开始追踪提交节奏。每个仓库都会自动初始化 main 分支。
-              </span>
-              <AppButton onClick={() => setIsCreateOpen(true)}>
-                <Plus className="h-4 w-4" /> 创建第一个仓库
-              </AppButton>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-xs">
-              {recentRepositories.map((repo) => (
-                <RepositoryRow
-                  key={repo.id}
-                  repository={repo}
-                  branchCount={repositoryCounts[repo.id]?.branchCount}
-                  taskCount={repositoryCounts[repo.id]?.taskCount}
-                  onDelete={() => deleteRepository(repo.id)}
-                />
-              ))}
-              {repositories.length > recentRepositories.length ? (
-                <p className="mt-2 text-center text-xs text-ink-subtle">
-                  还有 {repositories.length - recentRepositories.length}{' '}
-                  个仓库，更多请搜索或使用命令面板。
-                </p>
+              {error ? (
+                <div className="rounded-md border border-error bg-error-soft p-md text-body-sm text-error">
+                  {error}
+                  <button
+                    type="button"
+                    onClick={clearError}
+                    className="ml-sm underline"
+                  >
+                    清除
+                  </button>
+                </div>
               ) : null}
-            </div>
-          )}
-        </section>
 
-        <footer className="mt-4 border-t border-border-quiet pt-4 text-[11px] text-ink-subtle">
+              {isLoading && repositories.length === 0 ? (
+                <div className="flex flex-col gap-xs">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="h-12 rounded-lg border border-hairline bg-surface-1 animate-pulse"
+                      style={{ animationDelay: `${i * 80}ms` }}
+                      aria-hidden
+                    />
+                  ))}
+                </div>
+              ) : !isLoading && repositories.length === 0 ? (
+                <div className="empty-state workspace-empty-state">
+                  <div className="workspace-empty-copy">
+                    <span className="empty-state-title">还没有仓库</span>
+                    <span className="empty-state-caption">
+                      创建一个仓库开始追踪提交节奏。每个仓库都会自动初始化 main 分支。
+                    </span>
+                    <AppButton onClick={() => setIsCreateOpen(true)}>
+                      <Plus className="h-4 w-4" /> 创建第一个仓库
+                    </AppButton>
+                  </div>
+                  <div className="workspace-empty-steps" aria-label="初始化状态">
+                    <span>
+                      <CircleDot className="h-4 w-4" aria-hidden /> 仓库
+                    </span>
+                    <span>
+                      <GitBranch className="h-4 w-4" aria-hidden /> main 分支
+                    </span>
+                    <span>
+                      <ListTodo className="h-4 w-4" aria-hidden /> 第一条任务
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-xs">
+                  {recentRepositories.map((repo) => (
+                    <RepositoryRow
+                      key={repo.id}
+                      repository={repo}
+                      branchCount={repositoryCounts[repo.id]?.branchCount}
+                      taskCount={repositoryCounts[repo.id]?.taskCount}
+                      onDelete={() => deleteRepository(repo.id)}
+                    />
+                  ))}
+                  {repositories.length > recentRepositories.length ? (
+                    <p className="mt-2 text-center text-xs text-ink-subtle">
+                      还有 {repositories.length - recentRepositories.length}{' '}
+                      个仓库，更多请搜索或使用命令面板。
+                    </p>
+                  ) : null}
+                </div>
+              )}
+            </section>
+          </main>
+
+          <aside className="workspace-side-rail" aria-label="工作区摘要">
+            <section className="panel">
+              <header className="panel-header">
+                <span className="panel-title">
+                  <Activity className="h-3.5 w-3.5 text-primary" aria-hidden /> 今日脉冲
+                </span>
+                <span className="panel-meta">实时</span>
+              </header>
+              <div className="panel-body workspace-metric-list">
+                <div className="workspace-metric-row">
+                  <span>待处理任务</span>
+                  <strong className="tabular">{stats.pendingTasks}</strong>
+                </div>
+                <div className="workspace-metric-row">
+                  <span>本周完成</span>
+                  <strong className="tabular">{stats.tasksCompletedWeek}</strong>
+                </div>
+                <div className="workspace-metric-row">
+                  <span>今日活跃仓库</span>
+                  <strong className="tabular">{stats.activeToday}</strong>
+                </div>
+              </div>
+            </section>
+
+            <section className="panel">
+              <header className="panel-header">
+                <span className="panel-title">
+                  <Database className="h-3.5 w-3.5 text-primary" aria-hidden /> 本地状态
+                </span>
+              </header>
+              <div className="panel-body workspace-status-list">
+                <div className="workspace-status-row">
+                  <span>数据存储</span>
+                  <strong>IndexedDB</strong>
+                </div>
+                <div className="workspace-status-row">
+                  <span>最近更新</span>
+                  <strong>
+                    {repositories[0]
+                      ? formatRelativeTime(repositories[0].updatedAt)
+                      : '暂无'}
+                  </strong>
+                </div>
+                <div className="workspace-status-row">
+                  <span>命令面板</span>
+                  <strong>{isMac ? '⌘K' : 'Ctrl+K'}</strong>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+
+        <footer className="dashboard-footer">
           最近更新 {repositories[0] ? formatRelativeTime(repositories[0].updatedAt) : '—'} ·
           数据保存在 IndexedDB ·
           按 {isMac ? '⌘K' : 'Ctrl+K'} 打开命令面板
