@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+const routerBasename = import.meta.env.VITE_APP_BASENAME || '/';
 import { ThemeProvider } from './core/theme/theme-provider';
 import { AppLayout } from './presentation/components/layout/app-layout';
 import { ToastProvider } from './presentation/components/common/toast-provider';
@@ -21,7 +23,7 @@ function App(): JSX.Element {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={routerBasename}>
           <Routes>
             {/* Landing / brand stage */}
             <Route path="/" element={<LandingScreen />} />

@@ -37,7 +37,7 @@ export class WebNotificationService {
       new Notification(payload.title, {
         body: payload.body,
         tag: payload.tag,
-        icon: '/icons/icon-192x192.png',
+        icon: './icons/icon-192x192.png',
       });
     } catch {
       // Ignore notification errors.
