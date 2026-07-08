@@ -5,3 +5,5 @@
 /web/dist/
 /.playwright-cli/
 /web/output/screenshots/
+*.tsbuildinfo
+tsconfig.*.tsbuildinfo

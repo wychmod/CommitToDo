@@ -4,7 +4,7 @@ const routerBasename = import.meta.env.VITE_APP_BASENAME || '/';
 import { ThemeProvider } from './core/theme/theme-provider';
 import { AppLayout } from './presentation/components/layout/app-layout';
 import { ToastProvider } from './presentation/components/common/toast-provider';
-import { LandingScreen } from './presentation/screens/landing-screen';
+import { LandingPage } from './presentation/screens/landing/landing-page';
 import { HomeScreen } from './presentation/screens/home-screen';
 import { RepositoryScreen } from './presentation/screens/repository-screen';
 import { TaskDetailScreen } from './presentation/screens/task-detail-screen';
@@ -26,7 +26,7 @@ function App(): JSX.Element {
         <BrowserRouter basename={routerBasename}>
           <Routes>
             {/* Landing / brand stage */}
-            <Route path="/" element={<LandingScreen />} />
+            <Route path="/" element={<LandingPage />} />
 
             {/* Application shell */}
             <Route element={<AppLayout />}>
