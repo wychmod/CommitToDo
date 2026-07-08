@@ -31,7 +31,7 @@ describe('HeroCopy', () => {
     render(<HeroCopy />);
 
     expect(
-      screen.getByText('用仓库组织目标，用分支推进任务。每次完成都有记录。')
+      screen.getByText('用仓库组织目标，用分支推进任务，每次完成都有记录。')
     ).toBeInTheDocument();
   });
 });

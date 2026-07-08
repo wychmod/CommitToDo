@@ -38,3 +38,19 @@ export function getPointOnPath(
   );
   return path.points[index] ?? path.points[path.points.length - 1];
 }
+
+/**
+ * Map a point from SVG viewBox coordinates to container coordinates,
+ * accounting for the visible vertical offset and responsive scaling.
+ */
+export function toContainerPoint(
+  svgPoint: PathPoint,
+  scaleX: number,
+  scaleY: number,
+  viewOffsetY: number
+): PathPoint {
+  return {
+    x: svgPoint.x * scaleX,
+    y: (svgPoint.y - viewOffsetY) * scaleY,
+  };
+}

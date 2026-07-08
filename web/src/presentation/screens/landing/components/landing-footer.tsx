@@ -36,7 +36,7 @@ export function LandingFooter(): JSX.Element {
         </div>
 
         <span className="font-mono text-[10px] text-[var(--v3-text-muted)]">
-          Local-first · PWA · IndexedDB
+          Local-first • PWA • IndexedDB
         </span>
 
         <span className="text-[10px] text-[var(--v3-text-faint)]">

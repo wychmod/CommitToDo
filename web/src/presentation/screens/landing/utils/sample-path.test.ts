@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getPointOnPath, samplePath } from './sample-path';
+import { getPointOnPath, samplePath, toContainerPoint } from './sample-path';
 
 function createMockPath(totalLength: number): SVGPathElement {
   const pathEl = document.createElementNS(
@@ -71,5 +71,31 @@ describe('getPointOnPath', () => {
 
     expect(getPointOnPath(path, -0.5)).toEqual({ x: 0, y: 0 });
     expect(getPointOnPath(path, 1.5)).toEqual({ x: 100, y: 0 });
+  });
+});
+
+describe('toContainerPoint', () => {
+  it('maps an SVG point into container space with offset and scale', () => {
+    const svgPoint = { x: 348, y: 350 };
+
+    const containerPoint = toContainerPoint(svgPoint, 1, 1, 220);
+
+    expect(containerPoint).toEqual({ x: 348, y: 130 });
+  });
+
+  it('applies scale factors to both axes', () => {
+    const svgPoint = { x: 790, y: 352 };
+
+    const containerPoint = toContainerPoint(svgPoint, 0.5, 0.75, 220);
+
+    expect(containerPoint).toEqual({ x: 395, y: 99 });
+  });
+
+  it('handles points above the visible band', () => {
+    const svgPoint = { x: 100, y: 200 };
+
+    const containerPoint = toContainerPoint(svgPoint, 1, 1, 220);
+
+    expect(containerPoint).toEqual({ x: 100, y: -20 });
   });
 });

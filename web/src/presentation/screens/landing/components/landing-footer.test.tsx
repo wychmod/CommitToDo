@@ -13,7 +13,7 @@ describe('LandingFooter', () => {
     render(<LandingFooter />);
 
     expect(
-      screen.getByText('Local-first · PWA · IndexedDB')
+      screen.getByText('Local-first • PWA • IndexedDB')
     ).toBeInTheDocument();
   });
 

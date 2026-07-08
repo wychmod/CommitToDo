@@ -20,9 +20,15 @@ export function FlowVisualization(): JSX.Element {
 
   const { isMobile, isTablet } = useBreakpoint();
   const particleCount = useMemo(() => {
-    if (isMobile) return 1000;
-    if (isTablet) return 1800;
-    return 3800;
+    if (isMobile) return 1400;
+    if (isTablet) return 2600;
+    return 5000;
+  }, [isMobile, isTablet]);
+
+  const commitNebulaCount = useMemo(() => {
+    if (isMobile) return 0;
+    if (isTablet) return 180;
+    return 380;
   }, [isMobile, isTablet]);
 
   const reducedMotion = useMemo(() => {
@@ -52,8 +58,8 @@ export function FlowVisualization(): JSX.Element {
     const sampledPaths: SampledPath[] = [];
 
     pathElements.forEach((pathEl) => {
-      if (pathEl instanceof SVGPathElement) {
-        sampledPaths.push(samplePath(pathEl, 2));
+      if (pathEl.tagName.toLowerCase() === 'path') {
+        sampledPaths.push(samplePath(pathEl as SVGPathElement, 2));
       }
     });
 
@@ -68,6 +74,7 @@ export function FlowVisualization(): JSX.Element {
     containerRef,
     paths,
     particleCount,
+    commitNebulaCount,
     reducedMotion,
     scaleX,
     scaleY,

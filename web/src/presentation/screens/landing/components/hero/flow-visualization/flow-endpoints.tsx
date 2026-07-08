@@ -1,14 +1,14 @@
 import { Check, FileText } from 'lucide-react';
 
 const docIcons = [
-  { x: 620, y: 315, delay: '0s' },
-  { x: 720, y: 285, delay: '1.2s' },
-  { x: 840, y: 380, delay: '2.4s' },
+  { x: 620, y: 300, delay: '0s' },
+  { x: 720, y: 352, delay: '1.2s' },
+  { x: 840, y: 410, delay: '2.4s' },
   { x: 950, y: 300, delay: '3.6s' },
-  { x: 1050, y: 395, delay: '4.8s' },
+  { x: 1050, y: 350, delay: '4.8s' },
   { x: 580, y: 395, delay: '1.8s' },
-  { x: 880, y: 270, delay: '3s' },
-  { x: 1000, y: 345, delay: '4.2s' },
+  { x: 880, y: 275, delay: '3s' },
+  { x: 1150, y: 358, delay: '4.2s' },
 ];
 
 interface FlowEndpointsProps {
@@ -42,7 +42,8 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
           style={{
             left: `${icon.x * scaleX}px`,
             top: `${toContainerY(icon.y)}px`,
-            opacity: 0.45,
+            opacity: 0.90,
+            filter: 'drop-shadow(0 0 4px rgba(0, 0, 0, 0.8))',
             animation: `v3-doc-float ${8 + (index % 3) * 2}s ease-in-out ${icon.delay} infinite`,
           }}
         >
@@ -60,22 +61,27 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
         }}
       >
         <div className="relative flex items-center justify-center">
+          {/* Outer thin ring */}
           <div
-            className="absolute h-[56px] w-[56px] rounded-[5px] border border-[var(--v3-primary)]/30"
+            className="absolute h-[50px] w-[50px] rounded-[8px] border border-[var(--v3-primary)]/70"
             style={{
-              boxShadow: '0 0 18px rgba(128, 228, 140, 0.18), inset 0 0 12px rgba(128, 228, 140, 0.12)',
+              boxShadow: '0 0 20px rgba(128, 228, 140, 0.22), inset 0 0 8px rgba(128, 228, 140, 0.08)',
             }}
           />
-          <div
-            className="absolute h-[44px] w-[44px] rounded-[5px] border border-[var(--v3-primary)]/50"
-          />
-          <div className="relative flex h-[22px] w-[22px] items-center justify-center rounded-[5px] bg-[var(--v3-primary)]"
+          {/* Green rounded square with checkmark */}
+          <div className="relative flex h-[24px] w-[24px] items-center justify-center rounded-[5px] bg-[var(--v3-primary)]"
           >
-            <span className="font-mono text-[10px] font-bold text-[var(--v3-text-on-primary)]"
-            >T</span>
+            <Check
+              size={14}
+              strokeWidth={2.5}
+              className="text-[var(--v3-text-on-primary)]"
+              aria-hidden="true"
+            />
           </div>
         </div>
-        <span className="mt-11 font-mono text-[16px] text-[var(--v3-text-secondary)]"
+        <span
+          className="mt-11 font-mono text-[16px] text-[var(--v3-text-secondary)]"
+          style={{ textShadow: '0 0 12px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.8)' }}
         >
           TODO
         </span>
@@ -122,25 +128,30 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
         }}
       >
         <div className="relative flex items-center justify-center">
+          {/* Layered nebula glow */}
+          <div className="v3-commit-nebula-outer h-[140px] w-[140px]" />
+          <div className="v3-commit-nebula-mid h-[90px] w-[90px]" />
+          <div className="v3-commit-nebula-core h-[50px] w-[50px]" />
+
+          {/* Outer ring */}
           <div
-            className="v3-commit-bloom absolute h-[100px] w-[100px] rounded-full bg-white/10"
-            style={{
-              filter: 'blur(40px)',
-            }}
+            className="absolute h-[58px] w-[58px] rounded-full border border-[var(--v3-primary)]/45"
           />
-          <div
-            className="absolute h-[55px] w-[55px] rounded-full border border-white/30"
-          />
-          <div className="relative flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[var(--v3-bg)]"
+
+          {/* Green circle with white checkmark */}
+          <div className="relative flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[var(--v3-primary)]"
           >
             <Check
               size={18}
               strokeWidth={2.5}
-              className="text-[var(--v3-text-strong)]"
+              className="text-[var(--v3-text-on-primary)]"
+              aria-hidden="true"
             />
           </div>
         </div>
-        <span className="mt-11 font-mono text-[16px] text-[var(--v3-text-secondary)]"
+        <span
+          className="mt-11 font-mono text-[16px] text-[var(--v3-text-secondary)]"
+          style={{ textShadow: '0 0 12px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.8)' }}
         >
           COMMIT
         </span>

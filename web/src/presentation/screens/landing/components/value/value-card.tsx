@@ -22,6 +22,9 @@ export function ValueCard({
   const iconColor =
     color === 'green' ? 'text-[var(--v3-primary)]' : 'text-[var(--v3-launch)]';
 
+  const topBorderColor =
+    color === 'green' ? 'var(--v3-primary)' : 'var(--v3-launch)';
+
   return (
     <article
       className={`v3-card flex h-[158px] flex-col p-[22px] transition-all duration-500 ease-out ${
@@ -29,7 +32,11 @@ export function ValueCard({
           ? 'translate-y-0 opacity-100'
           : 'translate-y-[18px] opacity-0'
       }`}
-      style={{ transitionDelay: `${delay}ms` }}
+      style={{
+        transitionDelay: `${delay}ms`,
+        borderTopColor: topBorderColor,
+        borderTopWidth: '1.5px',
+      }}
     >
       <div
         className={`mb-[18px] flex h-8 w-8 items-center justify-center rounded-md border ${borderColor} bg-[var(--v3-control)]`}

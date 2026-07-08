@@ -15,7 +15,7 @@ export function LandingHeaderActions(): JSX.Element {
           aria-hidden="true"
         />
         <span className="font-mono text-[11px] text-[var(--v3-text-secondary)]">
-          Local-first · PWA · IndexedDB
+          Local-first • PWA • IndexedDB
         </span>
         <span
           className="mx-2 h-6 w-px bg-[var(--v3-border)]"

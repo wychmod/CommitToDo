@@ -27,7 +27,7 @@ describe('LandingHeader', () => {
     renderWithRouter(<LandingHeader />);
 
     expect(
-      screen.getByText('Local-first · PWA · IndexedDB')
+      screen.getByText('Local-first • PWA • IndexedDB')
     ).toBeInTheDocument();
   });
 
