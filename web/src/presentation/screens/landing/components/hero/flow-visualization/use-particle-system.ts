@@ -1,36 +1,54 @@
 import { useEffect, useRef } from 'react';
+import type { RefObject } from 'react';
 
 import type { SampledPath } from '../../../utils/sample-path';
 
-interface Particle {
+const TODO_X = 348;
+const TODO_Y = 350;
+const COMMIT_X = 1232;
+const COMMIT_Y = 350;
+
+type ParticleColor = 'white' | 'green';
+
+interface PathDust {
+  kind: 'path';
+  pathIndex: number;
+  progress: number;
+  offsetX: number;
+  offsetY: number;
+  radius: number;
+  alpha: number;
+  color: ParticleColor;
+  phase: number;
+}
+
+interface CloudDust {
+  kind: 'cloud';
+  x: number;
+  y: number;
+  progress: number;
+  radius: number;
+  alpha: number;
+  color: ParticleColor;
+  phase: number;
+}
+
+type DustParticle = PathDust | CloudDust;
+
+interface SparkParticle {
   pathIndex: number;
   progress: number;
   speed: number;
+  offsetY: number;
   radius: number;
   alpha: number;
-  color: 'white' | 'green';
-  jitterX: number;
-  jitterY: number;
-  glow: number;
-  emissionAngle: number;
-  emissionRadius: number;
-}
-
-interface NebulaParticle {
-  x: number;
-  y: number;
-  radius: number;
-  alpha: number;
-  angle: number;
-  distance: number;
-  angularSpeed: number;
-  driftSpeed: number;
-  color: 'white' | 'green';
+  color: ParticleColor;
+  phase: number;
 }
 
 interface UseParticleSystemOptions {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
-  containerRef: React.RefObject<HTMLDivElement>;
+  canvasRef: RefObject<HTMLCanvasElement>;
+  containerRef: RefObject<HTMLDivElement>;
   paths: SampledPath[];
   particleCount: number;
   commitNebulaCount: number;
@@ -40,138 +58,142 @@ interface UseParticleSystemOptions {
   viewOffsetY: number;
 }
 
-/**
- * Sample an initial progress value weighted by the desired density regions:
- * - medium density right after TODO (0..0.15)
- * - highest density in the central branch area (~0.35..0.70)
- * - elevated density converging before COMMIT (~0.85..1.0)
- */
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function randomBetween(min: number, max: number): number {
+  return min + Math.random() * (max - min);
+}
+
+function randomNormal(): number {
+  let u = 0;
+  let v = 0;
+
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
 function sampleWeightedProgress(): number {
   const buckets = [
-    { range: [0, 0.10] as const, weight: 1.2 },
-    { range: [0.10, 0.28] as const, weight: 0.9 },
-    { range: [0.28, 0.45] as const, weight: 1.6 },
-    { range: [0.45, 0.72] as const, weight: 2.2 },
-    { range: [0.72, 0.86] as const, weight: 0.9 },
-    { range: [0.86, 1.0] as const, weight: 2.4 },
+    { range: [0, 0.12] as const, weight: 1.45 },
+    { range: [0.12, 0.30] as const, weight: 0.90 },
+    { range: [0.30, 0.58] as const, weight: 1.28 },
+    { range: [0.58, 0.80] as const, weight: 1.08 },
+    { range: [0.80, 1] as const, weight: 1.90 },
   ];
-
-  const totalWeight = buckets.reduce((sum, b) => sum + b.weight, 0);
+  const totalWeight = buckets.reduce((sum, bucket) => sum + bucket.weight, 0);
   let roll = Math.random() * totalWeight;
 
   for (const bucket of buckets) {
     roll -= bucket.weight;
     if (roll <= 0) {
       const [min, max] = bucket.range;
-      return min + Math.random() * (max - min);
+      return randomBetween(min, max);
     }
   }
 
   return Math.random();
 }
 
-/**
- * Pick a path index for the given progress so that:
- * - early flow keeps all three branches visible (medium density)
- * - central area favours the main path but keeps branches alive
- * - pre-COMMIT area strongly converges onto the main path
- */
-function samplePathIndex(progress: number): number {
+function choosePathIndex(progress: number): number {
   const r = Math.random();
 
-  if (progress < 0.15) {
-    // TODO start: all branches visible, slight main bias
-    if (r < 0.42) return 0;
-    if (r < 0.72) return 1;
-    return 2;
-  }
-
-  if (progress < 0.35) {
+  if (progress < 0.16) {
     if (r < 0.50) return 0;
-    if (r < 0.78) return 1;
+    if (r < 0.75) return 1;
     return 2;
   }
 
-  if (progress < 0.70) {
-    // Central branch area: main path dominant
-    if (r < 0.62) return 0;
+  if (progress > 0.82) {
+    if (r < 0.72) return 0;
     if (r < 0.86) return 1;
     return 2;
   }
 
-  if (progress < 0.85) {
-    // Convergence begins
-    if (r < 0.78) return 0;
-    if (r < 0.94) return 1;
-    return 2;
-  }
-
-  // Pre-COMMIT: strong convergence to main path, white spray
-  if (r < 0.90) return 0;
-  if (r < 0.98) return 1;
+  if (r < 0.54) return 0;
+  if (r < 0.77) return 1;
   return 2;
 }
 
-function createParticle(): Particle {
+function createPathDust(): PathDust {
   const progress = sampleWeightedProgress();
-  const pathIndex = samplePathIndex(progress);
+  const pathIndex = choosePathIndex(progress);
+  const endpointBloom =
+    progress < 0.15
+      ? 1 - progress / 0.15
+      : progress > 0.84
+        ? (progress - 0.84) / 0.16
+        : 0;
+  const branchSpread = pathIndex === 0 ? 3.8 : 5.8;
+  const spread = branchSpread + endpointBloom * randomBetween(16, 42);
+  const isHighlight = Math.random() < 0.05;
+  const branchGreenBias = pathIndex === 0 ? 0.10 : 0.26;
+  const color: ParticleColor = Math.random() < branchGreenBias ? 'green' : 'white';
+  let offsetX = randomNormal() * (1.6 + endpointBloom * 8);
+  const offsetY = randomNormal() * spread;
 
-  // Brighter white spray near COMMIT.
-  const whiteBias = progress > 0.85 ? 0.85 : progress > 0.70 ? 0.70 : 0.20;
-  const color: 'white' | 'green' = Math.random() < whiteBias ? 'white' : 'green';
-  const isHighlight = Math.random() < 0.04;
-
-  let alpha: number;
-  if (color === 'green') {
-    alpha = isHighlight
-      ? 0.65 + Math.random() * 0.25
-      : 0.22 + Math.random() * 0.30;
-  } else {
-    alpha = isHighlight
-      ? 0.60 + Math.random() * 0.30
-      : 0.18 + Math.random() * 0.28;
+  if (progress < 0.12) {
+    offsetX -= Math.random() * 150 * (1 - progress / 0.12);
+  } else if (progress > 0.88) {
+    offsetX += Math.random() * 140 * ((progress - 0.88) / 0.12);
   }
 
-  // Brightness gradient from left (dim) to right (bright).
-  alpha *= 0.32 + 0.68 * progress;
+  return {
+    kind: 'path',
+    pathIndex,
+    progress,
+    offsetX,
+    offsetY,
+    radius: isHighlight ? randomBetween(0.72, 1.26) : randomBetween(0.28, 0.78),
+    alpha: isHighlight ? randomBetween(0.28, 0.58) : randomBetween(0.060, 0.26),
+    color,
+    phase: Math.random() * Math.PI * 2,
+  };
+}
 
-  // Reduce jitter as particles converge toward COMMIT.
-  const convergence = progress > 0.85 ? 0.20 : progress > 0.70 ? 0.35 : 0.75;
+function createCloudDust(side: 'todo' | 'commit'): CloudDust {
+  const isCommit = side === 'commit';
+  const centerX = isCommit ? COMMIT_X : TODO_X;
+  const centerY = isCommit ? COMMIT_Y : TODO_Y;
+  const direction = isCommit ? 1 : -1;
+  const core = Math.abs(randomNormal());
+  const x =
+    centerX +
+    direction * core * randomBetween(40, isCommit ? 128 : 118) +
+    randomNormal() * randomBetween(18, 52) +
+    (isCommit ? randomBetween(-86, 54) : randomBetween(-42, 72));
+  const y = centerY + randomNormal() * randomBetween(26, isCommit ? 76 : 68);
+  const progress = clamp((x - (TODO_X - 230)) / (COMMIT_X - TODO_X + 460), 0, 1);
+  const isHighlight = Math.random() < (isCommit ? 0.08 : 0.05);
 
-  // Emission direction from TODO: main path goes right, branches fan up/down.
-  const baseEmissionAngle = (pathIndex - 1) * 0.65;
-  const emissionAngle = baseEmissionAngle + (Math.random() - 0.5) * 0.6;
+  return {
+    kind: 'cloud',
+    x,
+    y,
+    progress,
+    radius: isHighlight ? randomBetween(0.68, 1.42) : randomBetween(0.24, 0.88),
+    alpha: isHighlight ? randomBetween(0.24, 0.58) : randomBetween(0.055, 0.24),
+    color: Math.random() < (isCommit ? 0.12 : 0.18) ? 'green' : 'white',
+    phase: Math.random() * Math.PI * 2,
+  };
+}
+
+function createSpark(): SparkParticle {
+  const progress = Math.random();
+  const pathIndex = choosePathIndex(progress);
 
   return {
     pathIndex,
     progress,
-    speed: 22 + Math.random() * 28,
-    radius: isHighlight ? 1.2 + Math.random() * 0.9 : 0.45 + Math.random() * 0.75,
-    alpha,
-    color,
-    jitterX: (Math.random() - 0.5) * 2.5 * convergence,
-    jitterY: (Math.random() - 0.5) * 5 * convergence,
-    glow: isHighlight ? 0.80 + Math.random() * 0.20 : 0.30 + Math.random() * 0.40,
-    emissionAngle,
-    emissionRadius: 14 + Math.random() * 20,
-  };
-}
-
-function createNebulaParticle(commitX: number, commitY: number): NebulaParticle {
-  const angle = Math.random() * Math.PI * 2;
-  const distance = Math.random() * 120 + 4;
-  const isGreen = Math.random() < 0.20;
-
-  return {
-    x: commitX + Math.cos(angle) * distance,
-    y: commitY + Math.sin(angle) * distance,
-    radius: 0.25 + Math.random() * 0.95,
-    alpha: 0.40 + Math.random() * 0.45,
-    angle,
-    distance,
-    angularSpeed: (Math.random() - 0.5) * 0.0015,
-    driftSpeed: -0.4 - Math.random() * 1.0,
-    color: isGreen ? 'green' : 'white',
+    speed: randomBetween(0.045, 0.115),
+    offsetY: randomNormal() * (pathIndex === 0 ? 1.8 : 2.8),
+    radius: randomBetween(0.45, 1.05),
+    alpha: randomBetween(0.18, 0.42),
+    color: Math.random() < 0.18 ? 'green' : 'white',
+    phase: Math.random() * Math.PI * 2,
   };
 }
 
@@ -181,9 +203,7 @@ function createGlowSprite(size: number): HTMLCanvasElement {
   canvas.height = size;
   const context = canvas.getContext('2d');
 
-  if (!context) {
-    return canvas;
-  }
+  if (!context) return canvas;
 
   const gradient = context.createRadialGradient(
     size / 2,
@@ -194,8 +214,8 @@ function createGlowSprite(size: number): HTMLCanvasElement {
     size / 2
   );
   gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-  gradient.addColorStop(0.25, 'rgba(255, 255, 255, 0.45)');
-  gradient.addColorStop(0.55, 'rgba(255, 255, 255, 0.12)');
+  gradient.addColorStop(0.22, 'rgba(255, 255, 255, 0.46)');
+  gradient.addColorStop(0.58, 'rgba(255, 255, 255, 0.12)');
   gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
   context.fillStyle = gradient;
@@ -215,14 +235,12 @@ export function useParticleSystem({
   scaleY,
   viewOffsetY,
 }: UseParticleSystemOptions): void {
-  const particlesRef = useRef<Particle[]>([]);
-  const nebulaRef = useRef<NebulaParticle[]>([]);
+  const dustRef = useRef<DustParticle[]>([]);
+  const sparksRef = useRef<SparkParticle[]>([]);
   const rafRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
   const visibleRef = useRef(true);
   const glowSpriteRef = useRef<HTMLCanvasElement | null>(null);
-  const frameTimesRef = useRef<number[]>([]);
-  const fallbackRef = useRef(false);
 
   useEffect(() => {
     if (reducedMotion || paths.length === 0 || !canvasRef.current || !containerRef.current) {
@@ -230,21 +248,17 @@ export function useParticleSystem({
     }
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return undefined;
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (prefersReducedMotion.matches) {
+    if (typeof navigator !== 'undefined' && /jsdom/i.test(navigator.userAgent)) {
       return undefined;
     }
 
-    const commitX = 1232 * scaleX;
-    const commitY = (350 - viewOffsetY) * scaleY;
-    const centerX = 790 * scaleX;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return undefined;
 
     const resizeCanvas = () => {
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
+
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.floor(rect.width * dpr);
       canvas.height = Math.floor(rect.height * dpr);
@@ -252,162 +266,250 @@ export function useParticleSystem({
       canvas.style.height = `${rect.height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Recreate glow sprite for current DPR.
-      const spriteSize = Math.max(32, Math.floor(64 * dpr));
-      glowSpriteRef.current = createGlowSprite(spriteSize);
+      glowSpriteRef.current = createGlowSprite(Math.max(48, Math.floor(72 * dpr)));
     };
-
-    resizeCanvas();
-
-    const observer = new ResizeObserver(resizeCanvas);
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
 
     const initParticles = () => {
-      const particles: Particle[] = [];
-      for (let i = 0; i < particleCount; i += 1) {
-        particles.push(createParticle());
-      }
-      particlesRef.current = particles;
+      const cloudCount = Math.max(
+        commitNebulaCount,
+        Math.round(particleCount * 0.50)
+      );
+      const dust: DustParticle[] = [];
+      const sparkCount = Math.max(360, Math.round(particleCount * 0.16));
 
-      const nebula: NebulaParticle[] = [];
-      for (let i = 0; i < commitNebulaCount; i += 1) {
-        nebula.push(createNebulaParticle(commitX, commitY));
+      for (let i = 0; i < particleCount; i += 1) {
+        dust.push(createPathDust());
       }
-      nebulaRef.current = nebula;
+
+      for (let i = 0; i < cloudCount; i += 1) {
+        dust.push(createCloudDust(i % 2 === 0 ? 'commit' : 'todo'));
+      }
+
+      dustRef.current = dust;
+      sparksRef.current = Array.from({ length: sparkCount }, createSpark);
     };
 
-    initParticles();
+    const getPointOnPath = (
+      path: SampledPath,
+      progress: number
+    ): { x: number; y: number } | null => {
+      if (path.points.length === 0) return null;
 
-    const getPointOnPath = (path: SampledPath, progress: number): { x: number; y: number } | null => {
-      const pointIndex = Math.min(
-        path.points.length - 1,
-        Math.floor(progress * (path.points.length - 1))
-      );
-      const point = path.points[pointIndex];
-      if (!point) return null;
+      const p = clamp(progress, 0, 1);
+      const rawIndex = p * (path.points.length - 1);
+      const leftIndex = Math.floor(rawIndex);
+      const rightIndex = Math.min(path.points.length - 1, leftIndex + 1);
+      const mix = rawIndex - leftIndex;
+      const left = path.points[leftIndex];
+      const right = path.points[rightIndex];
+
+      if (!left || !right) return null;
 
       return {
-        x: point.x * scaleX,
-        y: (point.y - viewOffsetY) * scaleY,
+        x: left.x + (right.x - left.x) * mix,
+        y: left.y + (right.y - left.y) * mix,
       };
     };
 
-    const drawGlow = (x: number, y: number, radius: number, color: 'white' | 'green', alpha: number) => {
+    const toScreenPoint = (x: number, y: number) => ({
+      x: x * scaleX,
+      y: (y - viewOffsetY) * scaleY,
+    });
+
+    const sweepBoost = (progress: number, lightProgress: number) => {
+      const frontDistance = progress - lightProgress;
+      const front = Math.exp(-(frontDistance * frontDistance) / (2 * 0.022 * 0.022));
+      const trailDistance = lightProgress - progress;
+      const trail =
+        trailDistance > 0 && trailDistance < 0.22
+          ? (1 - trailDistance / 0.22) * 0.72
+          : 0;
+
+      return front * 0.95 + trail * 0.66;
+    };
+
+    const drawGlow = (
+      x: number,
+      y: number,
+      radius: number,
+      alpha: number
+    ) => {
       const sprite = glowSpriteRef.current;
-      if (!sprite) return;
+      if (!sprite || alpha <= 0) return;
 
-      const size = radius * 8;
-      const tintAlpha = color === 'green' ? alpha * 0.75 : alpha;
       const previousAlpha = ctx.globalAlpha;
-
-      ctx.globalAlpha = tintAlpha * 0.32;
+      const size = radius * 11;
+      ctx.globalAlpha = alpha;
       ctx.drawImage(sprite, x - size / 2, y - size / 2, size, size);
       ctx.globalAlpha = previousAlpha;
     };
 
-    const drawParticleCore = (x: number, y: number, radius: number, color: 'white' | 'green', alpha: number) => {
+    const drawDot = (
+      x: number,
+      y: number,
+      radius: number,
+      color: ParticleColor,
+      alpha: number
+    ) => {
+      if (alpha <= 0) return;
+
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
-
-      if (color === 'green') {
-        ctx.fillStyle = `rgba(128, 228, 140, ${alpha})`;
-      } else {
-        ctx.fillStyle = `rgba(245, 245, 242, ${alpha})`;
-      }
-
+      ctx.fillStyle =
+        color === 'green'
+          ? `rgba(128, 228, 140, ${alpha})`
+          : `rgba(245, 245, 242, ${alpha})`;
       ctx.fill();
     };
 
-    const todoX = 348 * scaleX;
-    const todoY = (350 - viewOffsetY) * scaleY;
+    const drawDust = (elapsed: number, lightProgress: number) => {
+      for (const particle of dustRef.current) {
+        let rawPoint: { x: number; y: number } | null;
 
-    const drawParticle = (p: Particle) => {
-      const path = paths[p.pathIndex];
-      if (!path) return;
+        if (particle.kind === 'path') {
+          const path = paths[particle.pathIndex];
+          if (!path) continue;
 
-      const point = getPointOnPath(path, p.progress);
-      if (!point) return;
-
-      // Reduce noise near convergence area.
-      const distanceToCenter = Math.abs(point.x - centerX);
-      const convergenceFactor = Math.min(1, distanceToCenter / 180);
-
-      const pathX = point.x + p.jitterX * convergenceFactor;
-      const pathY = point.y + p.jitterY * convergenceFactor;
-
-      // Radiate particles from TODO at the start, then converge onto the path.
-      let finalX = pathX;
-      let finalY = pathY;
-
-      if (p.progress < 0.12) {
-        const pathWeight = p.progress / 0.12;
-        const emissionX = todoX + Math.cos(p.emissionAngle) * p.emissionRadius;
-        const emissionY = todoY + Math.sin(p.emissionAngle) * p.emissionRadius;
-
-        finalX = emissionX * (1 - pathWeight) + pathX * pathWeight;
-        finalY = emissionY * (1 - pathWeight) + pathY * pathWeight;
-      }
-
-      if (!fallbackRef.current) {
-        drawGlow(finalX, finalY, p.radius, p.color, p.alpha * p.glow);
-      }
-      drawParticleCore(finalX, finalY, p.radius, p.color, p.alpha);
-    };
-
-    const drawNebula = () => {
-      const nebula = nebulaRef.current;
-      if (nebula.length === 0) return;
-
-      ctx.globalCompositeOperation = 'lighter';
-
-      for (const p of nebula) {
-        const size = p.radius * 7;
-        const sprite = glowSpriteRef.current;
-        if (!sprite) continue;
-
-        const previousAlpha = ctx.globalAlpha;
-        const baseAlpha = fallbackRef.current ? 0.5 : 0.85;
-        ctx.globalAlpha = p.alpha * baseAlpha * (p.color === 'green' ? 0.70 : 1.0);
-
-        ctx.drawImage(sprite, p.x - size / 2, p.y - size / 2, size, size);
-        ctx.globalAlpha = previousAlpha;
-      }
-
-      ctx.globalCompositeOperation = 'source-over';
-    };
-
-    const updateNebula = (delta: number) => {
-      const nebula = nebulaRef.current;
-      for (const p of nebula) {
-        p.angle += p.angularSpeed;
-        p.distance += p.driftSpeed * delta * 10;
-
-        if (p.distance < 6) {
-          p.distance = 90 + Math.random() * 30;
-          p.angle = Math.random() * Math.PI * 2;
+          rawPoint = getPointOnPath(path, particle.progress);
+          if (!rawPoint) continue;
+          rawPoint = {
+            x: rawPoint.x + particle.offsetX,
+            y: rawPoint.y + particle.offsetY,
+          };
+        } else {
+          rawPoint = { x: particle.x, y: particle.y };
         }
 
-        p.x = commitX + Math.cos(p.angle) * p.distance;
-        p.y = commitY + Math.sin(p.angle) * p.distance;
+        const point = toScreenPoint(rawPoint.x, rawPoint.y);
+        const pulse = sweepBoost(particle.progress, lightProgress);
+        const twinkle = 0.78 + Math.sin(elapsed * 1.15 + particle.phase) * 0.18;
+        const alpha = clamp(particle.alpha * twinkle * (1 + pulse * 1.55), 0, 0.82);
+        const radius = particle.radius * (1 + pulse * 0.65);
+
+        if (pulse > 0.18 || particle.alpha > 0.20) {
+          drawGlow(point.x, point.y, radius, alpha * 0.32);
+        }
+        drawDot(point.x, point.y, radius, particle.color, alpha);
       }
     };
 
-    const updatePerformanceFallback = (delta: number) => {
-      frameTimesRef.current.push(delta);
-      if (frameTimesRef.current.length > 60) {
-        frameTimesRef.current.shift();
+    const drawSweepPath = (
+      path: SampledPath,
+      pathIndex: number,
+      lightProgress: number
+    ) => {
+      if (lightProgress < -0.08 || lightProgress > 1.08 || path.points.length < 2) {
+        return;
       }
 
-      if (frameTimesRef.current.length === 60 && !fallbackRef.current) {
-        const averageFrameTime =
-          frameTimesRef.current.reduce((sum, t) => sum + t, 0) / frameTimesRef.current.length;
-        if (averageFrameTime > 0.022) {
-          fallbackRef.current = true;
+      const start = clamp(lightProgress - 0.16, 0, 1);
+      const end = clamp(lightProgress + 0.025, 0, 1);
+      if (end <= 0 || start >= 1 || end <= start) return;
+
+      const startIndex = Math.max(0, Math.floor(start * (path.points.length - 1)));
+      const endIndex = Math.min(
+        path.points.length - 1,
+        Math.ceil(end * (path.points.length - 1))
+      );
+
+      ctx.save();
+      ctx.beginPath();
+
+      let hasPoint = false;
+      for (let i = startIndex; i <= endIndex; i += 2) {
+        const point = path.points[i];
+        if (!point) continue;
+
+        const screenPoint = toScreenPoint(point.x, point.y);
+        if (!hasPoint) {
+          ctx.moveTo(screenPoint.x, screenPoint.y);
+          hasPoint = true;
+        } else {
+          ctx.lineTo(screenPoint.x, screenPoint.y);
         }
       }
+
+      if (hasPoint) {
+        const isMain = pathIndex === 0;
+        ctx.globalCompositeOperation = 'screen';
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = isMain ? 1.85 : 1.20;
+        ctx.shadowBlur = isMain ? 14 : 10;
+        ctx.shadowColor = isMain
+          ? 'rgba(245, 245, 242, 0.46)'
+          : 'rgba(128, 228, 140, 0.30)';
+        ctx.strokeStyle = isMain
+          ? 'rgba(245, 245, 242, 0.48)'
+          : 'rgba(128, 228, 140, 0.24)';
+        ctx.stroke();
+      }
+
+      ctx.restore();
     };
+
+    const resetSpark = (spark: SparkParticle) => {
+      const next = createSpark();
+      spark.pathIndex = next.pathIndex;
+      spark.progress = 0;
+      spark.speed = next.speed;
+      spark.offsetY = next.offsetY;
+      spark.radius = next.radius;
+      spark.alpha = next.alpha;
+      spark.color = next.color;
+      spark.phase = next.phase;
+    };
+
+    const drawSparks = (elapsed: number, delta: number, lightProgress: number) => {
+      for (const spark of sparksRef.current) {
+        const path = paths[spark.pathIndex];
+        if (!path) continue;
+
+        const previousProgress = spark.progress;
+        spark.progress += spark.speed * delta;
+
+        if (spark.progress > 1) {
+          resetSpark(spark);
+        }
+
+        const point = getPointOnPath(path, spark.progress);
+        if (!point) continue;
+
+        const previousPoint = getPointOnPath(path, Math.max(0, previousProgress - 0.012));
+        const screenPoint = toScreenPoint(point.x, point.y + spark.offsetY);
+        const pulse = sweepBoost(spark.progress, lightProgress);
+        const alpha = clamp(
+          spark.alpha * (0.72 + Math.sin(elapsed * 1.8 + spark.phase) * 0.12) * (1 + pulse * 1.5),
+          0,
+          0.86
+        );
+
+        if (previousPoint && spark.progress > previousProgress) {
+          const tail = toScreenPoint(previousPoint.x, previousPoint.y + spark.offsetY);
+          ctx.beginPath();
+          ctx.moveTo(tail.x, tail.y);
+          ctx.lineTo(screenPoint.x, screenPoint.y);
+          ctx.strokeStyle =
+            spark.color === 'green'
+              ? `rgba(128, 228, 140, ${alpha * 0.38})`
+              : `rgba(245, 245, 242, ${alpha * 0.42})`;
+          ctx.lineWidth = spark.radius * 0.85;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+
+        if (pulse > 0.22) {
+          drawGlow(screenPoint.x, screenPoint.y, spark.radius * 1.6, alpha * 0.38);
+        }
+        drawDot(screenPoint.x, screenPoint.y, spark.radius, spark.color, alpha);
+      }
+    };
+
+    resizeCanvas();
+    initParticles();
+
+    const observer = new ResizeObserver(resizeCanvas);
+    if (containerRef.current) observer.observe(containerRef.current);
 
     const render = (timestamp: number) => {
       if (!visibleRef.current) {
@@ -418,59 +520,27 @@ export function useParticleSystem({
       if (lastTimeRef.current === null) {
         lastTimeRef.current = timestamp;
       }
-      const delta = (timestamp - lastTimeRef.current) / 1000;
+
+      const delta = Math.min(0.05, (timestamp - lastTimeRef.current) / 1000);
+      const elapsed = timestamp / 1000;
+      const rect = containerRef.current?.getBoundingClientRect();
       lastTimeRef.current = timestamp;
 
-      const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) {
         rafRef.current = requestAnimationFrame(render);
         return;
       }
 
-      updatePerformanceFallback(delta);
+      const lightProgress = ((elapsed % 5.8) / 5.8) * 1.22 - 0.10;
 
-      // Trail effect.
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
-      ctx.fillRect(0, 0, rect.width, rect.height);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      ctx.globalCompositeOperation = 'lighter';
 
-      // Background noise dots.
-      if (!fallbackRef.current) {
-        ctx.fillStyle = 'rgba(245, 245, 242, 0.035)';
-        for (let i = 0; i < 40; i += 1) {
-          const nx = Math.random() * rect.width;
-          const ny = Math.random() * rect.height;
-          ctx.beginPath();
-          ctx.arc(nx, ny, Math.random() * 0.6, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      // Glow pass for path particles.
-      if (!fallbackRef.current) {
-        ctx.globalCompositeOperation = 'screen';
-      }
-
-      const particles = particlesRef.current;
-      for (const p of particles) {
-        const path = paths[p.pathIndex];
-        if (!path) continue;
-
-        p.progress += (p.speed * delta) / path.totalLength;
-
-        if (p.progress >= 1) {
-          p.progress = 0;
-          p.speed = 18 + Math.random() * 24;
-        }
-
-        drawParticle(p);
-      }
+      drawDust(elapsed, lightProgress);
+      paths.forEach((path, index) => drawSweepPath(path, index, lightProgress));
+      drawSparks(elapsed, delta, lightProgress);
 
       ctx.globalCompositeOperation = 'source-over';
-
-      // Nebula around COMMIT.
-      updateNebula(delta);
-      drawNebula();
-
       rafRef.current = requestAnimationFrame(render);
     };
 
@@ -478,7 +548,6 @@ export function useParticleSystem({
       visibleRef.current = document.visibilityState === 'visible';
       if (visibleRef.current) {
         lastTimeRef.current = null;
-        frameTimesRef.current = [];
       }
     };
 
@@ -487,7 +556,6 @@ export function useParticleSystem({
         visibleRef.current = entry?.isIntersecting ?? true;
         if (visibleRef.current) {
           lastTimeRef.current = null;
-          frameTimesRef.current = [];
         }
       },
       { threshold: 0 }
@@ -495,13 +563,13 @@ export function useParticleSystem({
 
     intersectionObserver.observe(canvas);
     document.addEventListener('visibilitychange', visibilityHandler);
-
     rafRef.current = requestAnimationFrame(render);
 
     return () => {
       observer.disconnect();
       intersectionObserver.disconnect();
       document.removeEventListener('visibilitychange', visibilityHandler);
+
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }

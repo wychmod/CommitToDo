@@ -9,7 +9,7 @@ import { useParticleSystem } from './use-particle-system';
 
 const VIEWBOX_WIDTH = 1576;
 const VIEWBOX_VISIBLE_HEIGHT = 220;
-const VIEWBOX_OFFSET_Y = 220;
+const VIEWBOX_OFFSET_Y = 214;
 
 export function FlowVisualization(): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,15 +20,15 @@ export function FlowVisualization(): JSX.Element {
 
   const { isMobile, isTablet } = useBreakpoint();
   const particleCount = useMemo(() => {
-    if (isMobile) return 1400;
-    if (isTablet) return 2600;
-    return 5000;
+    if (isMobile) return 1800;
+    if (isTablet) return 4200;
+    return 8200;
   }, [isMobile, isTablet]);
 
   const commitNebulaCount = useMemo(() => {
-    if (isMobile) return 0;
-    if (isTablet) return 180;
-    return 380;
+    if (isMobile) return 560;
+    if (isTablet) return 1900;
+    return 4200;
   }, [isMobile, isTablet]);
 
   const reducedMotion = useMemo(() => {
@@ -54,7 +54,12 @@ export function FlowVisualization(): JSX.Element {
   useEffect(() => {
     if (!svgRef.current) return;
 
-    const pathElements = svgRef.current.querySelectorAll('path[id^="flow-"]');
+    const pathElements = Array.from(
+      svgRef.current.querySelectorAll('path[id^="flow-"]')
+    ).sort((a, b) => {
+      const order = ['flow-main', 'flow-upper', 'flow-lower'];
+      return order.indexOf(a.id) - order.indexOf(b.id);
+    });
     const sampledPaths: SampledPath[] = [];
 
     pathElements.forEach((pathEl) => {
@@ -84,26 +89,26 @@ export function FlowVisualization(): JSX.Element {
   return (
     <div
       ref={containerRef}
-      className="hero-flow relative mx-auto mt-6 h-[180px] w-full max-w-[1576px] overflow-hidden tablet:h-[200px] desktop:h-[220px]"
+      className="hero-flow relative mx-[-20px] mt-[-69px] h-[220px] w-[calc(100%+40px)] max-w-[1576px] overflow-hidden"
       aria-hidden="true"
     >
       <BranchPaths
         ref={svgRef}
-        className="hero-flow__paths absolute -top-full h-[200%] w-full"
+        className="hero-flow__paths absolute top-[-214px] h-[440px] w-full"
       />
 
       <ParticleCanvas ref={canvasRef} />
-
-      <FlowEndpoints
-        scaleX={scaleX}
-        scaleY={scaleY}
-        viewOffsetY={VIEWBOX_OFFSET_Y}
-      />
 
       {/* Bottom fade to blend into workbench panel */}
       <div
         className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[var(--v3-bg)] to-transparent"
         aria-hidden="true"
+      />
+
+      <FlowEndpoints
+        scaleX={scaleX}
+        scaleY={scaleY}
+        viewOffsetY={VIEWBOX_OFFSET_Y}
       />
     </div>
   );

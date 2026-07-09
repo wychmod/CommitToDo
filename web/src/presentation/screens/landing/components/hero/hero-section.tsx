@@ -9,7 +9,7 @@ interface HeroSectionProps {
 export function HeroSection({ onScrollToFlow }: HeroSectionProps): JSX.Element {
   return (
     <section
-      className="relative mx-auto flex max-w-[1576px] flex-col items-center px-5 pt-5"
+      className="relative mx-auto flex max-w-[1576px] flex-col items-center px-5 pt-2"
       aria-label="CommitToDo 产品介绍"
     >
       <HeroCopy />

@@ -1,12 +1,18 @@
 import { Check, FileText } from 'lucide-react';
 
 const docIcons = [
-  { x: 600, y: 297, delay: '0s' },
-  { x: 980, y: 297, delay: '2.4s' },
-  { x: 600, y: 350, delay: '1.2s' },
-  { x: 980, y: 350, delay: '3.6s' },
-  { x: 600, y: 403, delay: '2s' },
-  { x: 980, y: 403, delay: '4.4s' },
+  { x: 586, y: 298, delay: '0s' },
+  { x: 750, y: 286, delay: '1.8s' },
+  { x: 840, y: 304, delay: '3.2s' },
+  { x: 980, y: 296, delay: '2.4s' },
+  { x: 520, y: 350, delay: '0.8s' },
+  { x: 692, y: 350, delay: '1.2s' },
+  { x: 854, y: 350, delay: '3.6s' },
+  { x: 902, y: 348, delay: '4.2s' },
+  { x: 552, y: 407, delay: '2s' },
+  { x: 718, y: 412, delay: '2.8s' },
+  { x: 844, y: 404, delay: '4.4s' },
+  { x: 986, y: 408, delay: '5.2s' },
 ];
 
 interface FlowEndpointsProps {
@@ -40,12 +46,12 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
           style={{
             left: `${icon.x * scaleX}px`,
             top: `${toContainerY(icon.y)}px`,
-            opacity: 0.55,
-            filter: 'drop-shadow(0 0 4px rgba(0, 0, 0, 0.8))',
+            opacity: 0.42,
+            filter: 'drop-shadow(0 0 6px rgba(0, 0, 0, 0.9))',
             animation: `v3-doc-float ${8 + (index % 3) * 2}s ease-in-out ${icon.delay} infinite`,
           }}
         >
-          <FileText size={12} strokeWidth={1.5} />
+          <FileText size={13} strokeWidth={1.45} />
         </div>
       ))}
 
@@ -55,28 +61,32 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
         style={{
           left: `${todoX}px`,
           top: `${todoY}px`,
-          transform: 'translate(-50%, -50%)',
+          transform: 'translateX(-50%)',
         }}
       >
-        <div className="relative flex items-center justify-center">
+        <div
+          className="relative flex items-center justify-center"
+          style={{ transform: 'translateY(-50%)' }}
+        >
           {/* Dashed outer ring */}
           <div
-            className="absolute h-[58px] w-[58px] rounded-full border border-dashed border-[var(--v3-text-secondary)]/40"
+            className="absolute h-[62px] w-[62px] rounded-full border border-dashed border-[var(--v3-text-secondary)]/42"
             style={{
-              boxShadow: '0 0 18px rgba(245, 245, 242, 0.08)',
+              boxShadow:
+                '0 0 20px rgba(245, 245, 242, 0.10), inset 0 0 16px rgba(128, 228, 140, 0.06)',
             }}
           />
 
           {/* Green square icon */}
           <div
-            className="relative h-[14px] w-[14px] rounded-[4px] bg-[var(--v3-primary)]"
+            className="relative h-[18px] w-[18px] rounded-[5px] bg-[var(--v3-primary)]"
             style={{
-              boxShadow: '0 0 10px rgba(128, 228, 140, 0.45)',
+              boxShadow: '0 0 16px rgba(128, 228, 140, 0.60)',
             }}
           />
         </div>
         <span
-          className="mt-10 font-mono text-[14px] uppercase tracking-[0.18em] text-[var(--v3-text-secondary)]"
+          className="absolute top-[45px] font-mono text-[16px] uppercase tracking-[0.08em] text-[var(--v3-text-strong)]"
           style={{ textShadow: '0 0 10px rgba(0, 0, 0, 0.9)' }}
         >
           TODO
@@ -85,7 +95,7 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
 
       {/* Main central node */}
       <div
-        className="absolute h-[12px] w-[12px] rounded-full bg-[var(--v3-text-strong)]"
+        className="absolute h-[14px] w-[14px] rounded-full bg-[var(--v3-text-strong)]"
         style={{
           left: `${centerX}px`,
           top: `${mainNodeY}px`,
@@ -96,7 +106,7 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
 
       {/* Upper active node */}
       <div
-        className="v3-node-pulse absolute h-[12px] w-[12px] rounded-full bg-[var(--v3-primary)]"
+        className="v3-node-pulse absolute h-[15px] w-[15px] rounded-full bg-[var(--v3-primary)]"
         style={{
           left: `${centerX}px`,
           top: `${upperNodeY}px`,
@@ -107,7 +117,7 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
 
       {/* Lower active node */}
       <div
-        className="v3-node-pulse absolute h-[12px] w-[12px] rounded-full bg-[var(--v3-primary)]"
+        className="v3-node-pulse absolute h-[15px] w-[15px] rounded-full bg-[var(--v3-primary)]"
         style={{
           left: `${centerX}px`,
           top: `${lowerNodeY}px`,
@@ -123,39 +133,42 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
         style={{
           left: `${commitX}px`,
           top: `${commitY}px`,
-          transform: 'translate(-50%, -50%)',
+          transform: 'translateX(-50%)',
         }}
       >
-        <div className="relative flex items-center justify-center">
+        <div
+          className="relative flex items-center justify-center"
+          style={{ transform: 'translateY(-50%)' }}
+        >
           {/* Soft white glow behind the ring */}
           <div
-            className="absolute h-[90px] w-[90px] rounded-full"
+            className="v3-commit-bloom absolute h-[106px] w-[106px] rounded-full"
             style={{
               background:
-                'radial-gradient(circle, rgba(245, 245, 242, 0.18) 0%, rgba(245, 245, 242, 0.06) 40%, transparent 70%)',
-              filter: 'blur(16px)',
+                'radial-gradient(circle, rgba(245, 245, 242, 0.30) 0%, rgba(245, 245, 242, 0.10) 38%, transparent 72%)',
             }}
           />
 
           {/* Outer ring */}
           <div
-            className="absolute h-[58px] w-[58px] rounded-full border border-[var(--v3-text-strong)]/55"
+            className="absolute h-[62px] w-[62px] rounded-full border border-[var(--v3-text-strong)]/80"
+            style={{ boxShadow: '0 0 22px rgba(245, 245, 242, 0.36)' }}
           />
 
           {/* Inner ring */}
           <div
-            className="absolute h-[44px] w-[44px] rounded-full border border-[var(--v3-text-strong)]/25"
+            className="absolute h-[48px] w-[48px] rounded-full border border-[var(--v3-text-strong)]/32"
           />
 
           {/* Dark circle with white checkmark */}
           <div
-            className="relative flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[var(--v3-bg)]"
+            className="relative flex h-[36px] w-[36px] items-center justify-center rounded-full bg-[var(--v3-bg)]"
             style={{
               boxShadow: 'inset 0 0 0 1px rgba(245, 245, 242, 0.12)',
             }}
           >
             <Check
-              size={18}
+              size={21}
               strokeWidth={2.5}
               className="text-[var(--v3-text-strong)]"
               aria-hidden="true"
@@ -163,7 +176,7 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
           </div>
         </div>
         <span
-          className="mt-10 font-mono text-[14px] uppercase tracking-[0.18em] text-[var(--v3-text-secondary)]"
+          className="absolute top-[45px] font-mono text-[16px] uppercase tracking-[0.08em] text-[var(--v3-text-strong)]"
           style={{ textShadow: '0 0 10px rgba(0, 0, 0, 0.9)' }}
         >
           COMMIT

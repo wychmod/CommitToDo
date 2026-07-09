@@ -18,14 +18,14 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
       >
         <defs>
           <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(245, 245, 242, 0.14)" />
-            <stop offset="50%" stopColor="rgba(245, 245, 242, 0.42)" />
-            <stop offset="100%" stopColor="rgba(245, 245, 242, 0.14)" />
+            <stop offset="0%" stopColor="rgba(245, 245, 242, 0.10)" />
+            <stop offset="50%" stopColor="rgba(245, 245, 242, 0.54)" />
+            <stop offset="100%" stopColor="rgba(245, 245, 242, 0.16)" />
           </linearGradient>
           <linearGradient id="branchGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(128, 228, 140, 0.08)" />
-            <stop offset="50%" stopColor="rgba(128, 228, 140, 0.32)" />
-            <stop offset="100%" stopColor="rgba(128, 228, 140, 0.08)" />
+            <stop offset="0%" stopColor="rgba(245, 245, 242, 0.06)" />
+            <stop offset="50%" stopColor="rgba(128, 228, 140, 0.20)" />
+            <stop offset="100%" stopColor="rgba(245, 245, 242, 0.08)" />
           </linearGradient>
         </defs>
 
@@ -35,7 +35,7 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
             id="flow-upper"
             d="M348 350 C470 270, 1110 270, 1232 350"
             stroke="url(#branchGradient)"
-            strokeWidth="1.2"
+            strokeWidth="1"
             fill="none"
           />
 
@@ -44,7 +44,7 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
             id="flow-lower"
             d="M348 350 C470 430, 1110 430, 1232 350"
             stroke="url(#branchGradient)"
-            strokeWidth="1.2"
+            strokeWidth="1"
             fill="none"
           />
 
@@ -53,35 +53,35 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
             id="flow-main"
             d="M348 350 L1232 350"
             stroke="url(#pathGradient)"
-            strokeWidth="1.6"
+            strokeWidth="1.45"
             fill="none"
           />
 
           {/* Green glow overlay for upper branch */}
           <path
             d="M348 350 C470 270, 1110 270, 1232 350"
-            stroke="rgba(128, 228, 140, 0.26)"
-            strokeWidth="1"
+            stroke="rgba(128, 228, 140, 0.12)"
+            strokeWidth="0.9"
             fill="none"
-            style={{ filter: 'drop-shadow(0 0 8px rgba(128, 228, 140, 0.28))' }}
+            style={{ filter: 'drop-shadow(0 0 7px rgba(128, 228, 140, 0.18))' }}
           />
 
           {/* Green glow overlay for lower branch */}
           <path
             d="M348 350 C470 430, 1110 430, 1232 350"
-            stroke="rgba(128, 228, 140, 0.26)"
-            strokeWidth="1"
+            stroke="rgba(128, 228, 140, 0.12)"
+            strokeWidth="0.9"
             fill="none"
-            style={{ filter: 'drop-shadow(0 0 8px rgba(128, 228, 140, 0.28))' }}
+            style={{ filter: 'drop-shadow(0 0 7px rgba(128, 228, 140, 0.18))' }}
           />
 
           {/* Subtle white glow overlay for main path */}
           <path
             d="M348 350 L1232 350"
-            stroke="rgba(245, 245, 242, 0.18)"
-            strokeWidth="1.4"
+            stroke="rgba(245, 245, 242, 0.26)"
+            strokeWidth="1.35"
             fill="none"
-            style={{ filter: 'drop-shadow(0 0 10px rgba(245, 245, 242, 0.22))' }}
+            style={{ filter: 'drop-shadow(0 0 10px rgba(245, 245, 242, 0.24))' }}
           />
         </g>
       </svg>

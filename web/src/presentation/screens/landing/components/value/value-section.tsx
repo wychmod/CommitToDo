@@ -44,15 +44,15 @@ export function ValueSection(): JSX.Element {
     <section
       ref={sectionRef}
       id="features"
-      className="relative mt-12 border-y border-[var(--v3-divider)] bg-[var(--v3-bg)] py-20"
+      className="relative mt-8 border-y border-[var(--v3-divider)] bg-[var(--v3-bg)] py-20"
       aria-label="为什么选择 CommitToDo"
     >
       <ValueDots />
 
-      <div className="relative mx-auto max-w-[1328px] px-5">
+      <div className="relative mx-auto max-w-[1328px] px-5 desktop:px-0">
         <ValueHeading isVisible={isInView} />
 
-        <div className="v3-value-grid mt-14">
+        <div className="v3-value-grid mt-10">
           {valueCards.map((card, index) => (
             <ValueCard
               key={card.title}
