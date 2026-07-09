@@ -9,7 +9,7 @@ vi.mock('../../../utils/sample-path', async (importOriginal) => {
     ...original,
     samplePath: vi.fn().mockReturnValue({
       points: Array.from({ length: 501 }, (_, i) => ({
-        x: 348 + i * 1.75,
+        x: 348 + i * 1.768,
         y: 350,
       })),
       totalLength: 1000,

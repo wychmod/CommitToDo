@@ -395,62 +395,6 @@
   animation: v3-commit-bloom 3.2s ease-in-out infinite;
 }
 
-/* COMMIT layered nebula glow */
-.v3-commit-nebula-outer,
-.v3-commit-nebula-mid,
-.v3-commit-nebula-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 999px;
-  pointer-events: none;
-}
-
-.v3-commit-nebula-outer {
-  background: radial-gradient(
-    circle,
-    rgba(128, 228, 140, 0.18) 0%,
-    rgba(255, 255, 255, 0.08) 35%,
-    transparent 70%
-  );
-  filter: blur(32px);
-  animation: v3-commit-nebula-pulse 3.2s ease-in-out infinite;
-}
-
-.v3-commit-nebula-mid {
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.12) 40%,
-    transparent 70%
-  );
-  filter: blur(16px);
-  animation: v3-commit-nebula-pulse 3.2s ease-in-out infinite reverse;
-}
-
-.v3-commit-nebula-core {
-  background: radial-gradient(
-    circle,
-    rgba(128, 228, 140, 0.55) 0%,
-    rgba(255, 255, 255, 0.18) 45%,
-    transparent 65%
-  );
-  filter: blur(8px);
-}
-
-@keyframes v3-commit-nebula-pulse {
-  0%,
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.85;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.08);
-    opacity: 1;
-  }
-}
-
 /* Canvas particle layer promotion */
 .v3-landing .hero-flow__particles {
   will-change: transform;

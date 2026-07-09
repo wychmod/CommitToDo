@@ -12,6 +12,8 @@ interface Particle {
   jitterX: number;
   jitterY: number;
   glow: number;
+  emissionAngle: number;
+  emissionRadius: number;
 }
 
 interface NebulaParticle {
@@ -46,12 +48,12 @@ interface UseParticleSystemOptions {
  */
 function sampleWeightedProgress(): number {
   const buckets = [
-    { range: [0, 0.15] as const, weight: 1.2 },
-    { range: [0.15, 0.32] as const, weight: 0.7 },
-    { range: [0.32, 0.45] as const, weight: 1.4 },
-    { range: [0.45, 0.70] as const, weight: 2.2 },
-    { range: [0.70, 0.85] as const, weight: 0.9 },
-    { range: [0.85, 1.0] as const, weight: 1.8 },
+    { range: [0, 0.10] as const, weight: 1.2 },
+    { range: [0.10, 0.28] as const, weight: 0.9 },
+    { range: [0.28, 0.45] as const, weight: 1.6 },
+    { range: [0.45, 0.72] as const, weight: 2.2 },
+    { range: [0.72, 0.86] as const, weight: 0.9 },
+    { range: [0.86, 1.0] as const, weight: 2.4 },
   ];
 
   const totalWeight = buckets.reduce((sum, b) => sum + b.weight, 0);
@@ -122,19 +124,23 @@ function createParticle(): Particle {
   let alpha: number;
   if (color === 'green') {
     alpha = isHighlight
-      ? 0.70 + Math.random() * 0.25
-      : 0.25 + Math.random() * 0.35;
+      ? 0.65 + Math.random() * 0.25
+      : 0.22 + Math.random() * 0.30;
   } else {
     alpha = isHighlight
-      ? 0.65 + Math.random() * 0.30
-      : 0.22 + Math.random() * 0.32;
+      ? 0.60 + Math.random() * 0.30
+      : 0.18 + Math.random() * 0.28;
   }
 
   // Brightness gradient from left (dim) to right (bright).
-  alpha *= 0.45 + 0.55 * progress;
+  alpha *= 0.32 + 0.68 * progress;
 
   // Reduce jitter as particles converge toward COMMIT.
   const convergence = progress > 0.85 ? 0.20 : progress > 0.70 ? 0.35 : 0.75;
+
+  // Emission direction from TODO: main path goes right, branches fan up/down.
+  const baseEmissionAngle = (pathIndex - 1) * 0.65;
+  const emissionAngle = baseEmissionAngle + (Math.random() - 0.5) * 0.6;
 
   return {
     pathIndex,
@@ -146,6 +152,8 @@ function createParticle(): Particle {
     jitterX: (Math.random() - 0.5) * 2.5 * convergence,
     jitterY: (Math.random() - 0.5) * 5 * convergence,
     glow: isHighlight ? 0.80 + Math.random() * 0.20 : 0.30 + Math.random() * 0.40,
+    emissionAngle,
+    emissionRadius: 14 + Math.random() * 20,
   };
 }
 
@@ -230,7 +238,7 @@ export function useParticleSystem({
       return undefined;
     }
 
-    const commitX = 1223 * scaleX;
+    const commitX = 1232 * scaleX;
     const commitY = (350 - viewOffsetY) * scaleY;
     const centerX = 790 * scaleX;
 
@@ -291,10 +299,10 @@ export function useParticleSystem({
       if (!sprite) return;
 
       const size = radius * 8;
-      const tintAlpha = color === 'green' ? alpha * 0.80 : alpha;
+      const tintAlpha = color === 'green' ? alpha * 0.75 : alpha;
       const previousAlpha = ctx.globalAlpha;
 
-      ctx.globalAlpha = tintAlpha * 0.40;
+      ctx.globalAlpha = tintAlpha * 0.32;
       ctx.drawImage(sprite, x - size / 2, y - size / 2, size, size);
       ctx.globalAlpha = previousAlpha;
     };
@@ -312,6 +320,9 @@ export function useParticleSystem({
       ctx.fill();
     };
 
+    const todoX = 348 * scaleX;
+    const todoY = (350 - viewOffsetY) * scaleY;
+
     const drawParticle = (p: Particle) => {
       const path = paths[p.pathIndex];
       if (!path) return;
@@ -323,8 +334,21 @@ export function useParticleSystem({
       const distanceToCenter = Math.abs(point.x - centerX);
       const convergenceFactor = Math.min(1, distanceToCenter / 180);
 
-      const finalX = point.x + p.jitterX * convergenceFactor;
-      const finalY = point.y + p.jitterY * convergenceFactor;
+      const pathX = point.x + p.jitterX * convergenceFactor;
+      const pathY = point.y + p.jitterY * convergenceFactor;
+
+      // Radiate particles from TODO at the start, then converge onto the path.
+      let finalX = pathX;
+      let finalY = pathY;
+
+      if (p.progress < 0.12) {
+        const pathWeight = p.progress / 0.12;
+        const emissionX = todoX + Math.cos(p.emissionAngle) * p.emissionRadius;
+        const emissionY = todoY + Math.sin(p.emissionAngle) * p.emissionRadius;
+
+        finalX = emissionX * (1 - pathWeight) + pathX * pathWeight;
+        finalY = emissionY * (1 - pathWeight) + pathY * pathWeight;
+      }
 
       if (!fallbackRef.current) {
         drawGlow(finalX, finalY, p.radius, p.color, p.alpha * p.glow);
