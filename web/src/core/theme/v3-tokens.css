@@ -1,0 +1,101 @@
+/**
+ * v3 design tokens — shared engineering layer for NEW pages.
+ *
+ * The Landing page (`src/presentation/screens/landing/landing-theme.css`) is the
+ * reference implementation of the v3 design language. This file mirrors its
+ * token values so that new pages can adopt the SAME visual language WITHOUT
+ * depending on the Landing page's CSS being loaded, and WITHOUT modifying the
+ * Landing page itself.
+ *
+ * Usage contract (see `docs/v3/STYLE_GUIDE.md`):
+ *   1. A new page imports this file once: `import '@/core/theme/v3-tokens.css';`
+ *   2. The page reads tokens via Tailwind arbitrary values
+ *      (e.g. `text-[var(--v3-text-strong)]`) or inline styles.
+ *   3. Prefer the ready-made primitives in `@/presentation/components/v3`.
+ *
+ * These tokens are declared on `:root` so they resolve anywhere a v3 primitive
+ * is used. They are idempotent with `landing-theme.css` (identical values), so
+ * importing this file changes no existing pixel. Do NOT edit the Landing page's
+ * own `landing-theme.css`; keep these values in sync with it instead. If a token
+ * value changes, update BOTH files (a future refactor can unify them).
+ */
+:root {
+  /* Canvas and surfaces */
+  --v3-bg: #000000;
+  --v3-bg-near: #010101;
+  --v3-panel: #121313;
+  --v3-panel-alt: #111312;
+  --v3-card: #0c0f0d;
+  --v3-card-hover: #101510;
+  --v3-control: #141716;
+  --v3-control-hover: #1a1e1c;
+  --v3-selected: #202522;
+
+  /* Brand and branch colors */
+  --v3-primary: #80e48c;
+  --v3-primary-solid: #7ee48a;
+  --v3-primary-dim: #74c67e;
+  --v3-primary-hover: #8bed98;
+  --v3-primary-active: #6fc979;
+  --v3-primary-soft: #17261a;
+  --v3-main: #80e48c;
+  --v3-launch: #59cbd0;
+  --v3-design: #6e95ff;
+
+  /* Semantic */
+  --v3-success: #80e48c;
+  --v3-warning: #e3a33c;
+  --v3-danger: #e6635b;
+  --v3-info: #68a1ff;
+
+  /* Text */
+  --v3-text-strong: #f5f5f2;
+  --v3-text: #d9ddda;
+  --v3-text-secondary: #aeb4af;
+  --v3-text-muted: #838984;
+  --v3-text-faint: #686e69;
+  --v3-text-disabled: #4e5550;
+  --v3-text-on-primary: #061008;
+
+  /* Lines */
+  --v3-border: #30332f;
+  --v3-border-soft: #1c211e;
+  --v3-divider: #181c19;
+  --v3-focus: #91ed9c;
+
+  /* Heatmap */
+  --v3-heat-0: #252a27;
+  --v3-heat-1: #354538;
+  --v3-heat-2: #4e7050;
+  --v3-heat-3: #6ea967;
+  --v3-heat-4: #91dc86;
+
+  /* Typography */
+  --v3-font-sans: 'Segoe UI', 'Microsoft YaHei UI', 'PingFang SC',
+    'Noto Sans CJK SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif;
+  --v3-font-mono: 'JetBrains Mono', 'Cascadia Mono', 'SF Mono', 'Menlo',
+    Consolas, 'Microsoft YaHei UI', 'Noto Sans CJK SC', monospace;
+
+  /* Geometry */
+  --v3-content: 1328px;
+  --v3-header-height: 64px;
+  --v3-radius-sm: 4px;
+  --v3-radius-md: 6px;
+  --v3-radius-lg: 8px;
+  --v3-radius-xl: 12px;
+  --v3-radius-full: 999px;
+
+  /* Motion */
+  --v3-fast: 120ms;
+  --v3-standard: 200ms;
+  --v3-emphasis: 360ms;
+  --v3-hero-enter: 700ms;
+  --v3-ease: cubic-bezier(0.2, 0, 0, 1);
+  --v3-ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --v3-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Elevation */
+  --v3-shadow-panel: 0 24px 80px rgb(0 0 0 / 38%);
+  --v3-glow-primary: 0 0 24px rgb(128 228 140 / 24%);
+  --v3-focus-ring: 0 0 0 2px #000000, 0 0 0 4px rgb(145 237 156 / 75%);
+}
