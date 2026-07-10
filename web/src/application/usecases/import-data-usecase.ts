@@ -76,6 +76,8 @@ export class ImportDataUseCase {
       const repo = new Repository({
         id: String(raw.id),
         name: String(raw.name),
+        description: raw.description === undefined ? null : (raw.description as string | null),
+        defaultBranchId: raw.defaultBranchId === undefined ? null : (raw.defaultBranchId as string | null),
         icon: String(raw.icon ?? 'repository'),
         color: String(raw.color ?? '#3B82F6'),
         isArchived: Boolean(raw.isArchived),

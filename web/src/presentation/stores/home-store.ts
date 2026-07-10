@@ -13,8 +13,8 @@ export interface HomeState {
   error: string | null;
 
   load: () => Promise<void>;
-  createRepository: (name: string, icon?: string, color?: string) => Promise<Repository | null>;
-  updateRepository: (id: string, updates: Partial<{ name: string; icon: string; color: string }>) => Promise<void>;
+  createRepository: (name: string, description?: string | null, icon?: string, color?: string) => Promise<Repository | null>;
+  updateRepository: (id: string, updates: Partial<{ name: string; description: string | null; defaultBranchId: string | null; icon: string; color: string }>) => Promise<void>;
   deleteRepository: (id: string) => Promise<void>;
   clearError: () => void;
 }
@@ -40,10 +40,10 @@ export const useHomeStore = create<HomeState>((set, get) => {
       }
     },
 
-    createRepository: async (name, icon = 'repository', color = defaultThemeColor) => {
+    createRepository: async (name, description = null, icon = 'repository', color = defaultThemeColor) => {
       set({ isLoading: true, error: null });
       try {
-        const created = await createRepoUseCase.execute({ name, icon, color });
+        const created = await createRepoUseCase.execute({ name, description, icon, color });
         await get().load();
         return created;
       } catch (err) {

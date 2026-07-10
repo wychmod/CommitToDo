@@ -1,6 +1,6 @@
 {
-  "name": "Commit",
-  "short_name": "Commit",
+  "name": "CommitToDo",
+  "short_name": "CommitToDo",
   "description": "像 Git 一样优雅的任务管理",
   "start_url": "/",
   "scope": "/",

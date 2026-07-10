@@ -3,6 +3,8 @@ import { Repository } from '../../domain/entities/repository';
 export interface RepositoryRecord {
   id: string;
   name: string;
+  description: string | null;
+  defaultBranchId: string | null;
   icon: string;
   color: string;
   isArchived: number;
@@ -16,6 +18,8 @@ export const RepositoryModel = {
     return {
       id: entity.id,
       name: entity.name,
+      description: entity.description,
+      defaultBranchId: entity.defaultBranchId,
       icon: entity.icon,
       color: entity.color,
       isArchived: entity.isArchived ? 1 : 0,
@@ -29,6 +33,8 @@ export const RepositoryModel = {
     return new Repository({
       id: record.id,
       name: record.name,
+      description: record.description ?? null,
+      defaultBranchId: record.defaultBranchId ?? null,
       icon: record.icon,
       color: record.color,
       isArchived: record.isArchived === 1,

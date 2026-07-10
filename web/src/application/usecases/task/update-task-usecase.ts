@@ -12,6 +12,7 @@ export interface UpdateTaskInput {
   status?: TaskStatus;
   priority?: Priority;
   dueDate?: Date | null;
+  completedAt?: Date | null;
   parentTaskId?: string | null;
   sortOrder?: number;
 }

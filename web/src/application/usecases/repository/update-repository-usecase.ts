@@ -5,6 +5,8 @@ import { validateNotEmpty } from '../../../core/utils/validators';
 export interface UpdateRepositoryInput {
   id: string;
   name?: string;
+  description?: string | null;
+  defaultBranchId?: string | null;
   icon?: string;
   color?: string;
   isArchived?: boolean;

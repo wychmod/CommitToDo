@@ -25,3 +25,18 @@ export type { V3SectionProps } from './v3-section';
 
 export { V3NavLink } from './v3-nav-link';
 export type { V3NavLinkProps } from './v3-nav-link';
+
+export { V3AppShell } from './v3-app-shell';
+export type { V3AppShellProps } from './v3-app-shell';
+
+export { V3TopCommandBar } from './v3-top-command-bar';
+export type { V3TopCommandBarProps } from './v3-top-command-bar';
+
+export { V3LeftNavigation } from './v3-left-navigation';
+export type { V3LeftNavigationProps } from './v3-left-navigation';
+
+export { V3BottomStatusBar } from './v3-bottom-status-bar';
+export type { V3BottomStatusBarProps } from './v3-bottom-status-bar';
+
+export { V3NewMenu } from './v3-new-menu';
+export type { V3NewMenuProps } from './v3-new-menu';

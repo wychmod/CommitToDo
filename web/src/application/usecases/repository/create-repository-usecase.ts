@@ -6,6 +6,7 @@ import { validateNotEmpty } from '../../../core/utils/validators';
 
 export interface CreateRepositoryInput {
   name: string;
+  description?: string | null;
   icon?: string;
   color?: string;
 }
@@ -21,11 +22,15 @@ export class CreateRepositoryUseCase {
     const repo = Repository.create(
       input.name,
       input.icon ?? 'repository',
-      input.color ?? '#3B82F6'
+      input.color ?? '#3B82F6',
+      input.description ?? null
     );
     const createdRepo = await this.repositoryRepo.create(repo);
     const mainBranch = Branch.main(createdRepo.id, createdRepo.color);
     await this.branchRepo.create(mainBranch);
-    return createdRepo;
+    const repoWithDefaultBranch = createdRepo.copyWith({
+      defaultBranchId: mainBranch.id,
+    });
+    return this.repositoryRepo.update(repoWithDefaultBranch);
   }
 }

@@ -19,6 +19,7 @@ describe('RepositoryStore', () => {
       repository: null,
       branches: [],
       tasks: [],
+      allRepositoryTasks: [],
       activeBranchId: null,
       selectedTaskId: null,
       isLoading: false,
@@ -51,5 +52,48 @@ describe('RepositoryStore', () => {
     expect(task).not.toBeNull();
     expect(useRepositoryStore.getState().tasks).toHaveLength(1);
     expect(useRepositoryStore.getState().tasks[0].title).toBe('Implement feature');
+  });
+
+  it('completes a task and creates a custom commit', async () => {
+    const createRepo = container.resolve(CreateRepositoryUseCase);
+    const repo = await createRepo.execute({ name: 'Project' });
+    const store = useRepositoryStore.getState();
+    await store.loadData(repo.id);
+    const task = await store.createTask({ title: 'Implement feature' });
+    if (!task) throw new Error('task should exist');
+
+    await store.completeAndCommit(task.id, 3, 'feat: implement feature', 'details');
+
+    const updated = useRepositoryStore.getState().tasks.find((t) => t.id === task.id);
+    expect(updated?.status).toBe(2);
+  });
+
+  it('restores a completed task back to todo', async () => {
+    const createRepo = container.resolve(CreateRepositoryUseCase);
+    const repo = await createRepo.execute({ name: 'Project' });
+    const store = useRepositoryStore.getState();
+    await store.loadData(repo.id);
+    const task = await store.createTask({ title: 'Implement feature' });
+    if (!task) throw new Error('task should exist');
+
+    await store.completeAndCommit(task.id, 3, 'feat: implement feature');
+    await store.restoreTask(task.id);
+
+    const updated = useRepositoryStore.getState().tasks.find((t) => t.id === task.id);
+    expect(updated?.status).toBe(0);
+    expect(updated?.completedAt).toBeNull();
+  });
+
+  it('renames the active branch', async () => {
+    const createRepo = container.resolve(CreateRepositoryUseCase);
+    const repo = await createRepo.execute({ name: 'Project' });
+    const store = useRepositoryStore.getState();
+    await store.loadData(repo.id);
+    const branchId = useRepositoryStore.getState().activeBranchId;
+    if (!branchId) throw new Error('branch should exist');
+
+    await store.renameBranch(branchId, 'trunk');
+
+    expect(useRepositoryStore.getState().branches[0].name).toBe('trunk');
   });
 });

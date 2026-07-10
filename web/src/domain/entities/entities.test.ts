@@ -10,6 +10,7 @@ describe('Domain entities', () => {
     const repo = Repository.create('My Repo', 'repository', '#3B82F6');
     expect(repo.id).toBeDefined();
     expect(repo.name).toBe('My Repo');
+    expect(repo.description).toBeNull();
     expect(repo.isDeleted).toBe(false);
     expect(repo.toJson().name).toBe('My Repo');
   });

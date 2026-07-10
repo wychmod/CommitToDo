@@ -47,6 +47,50 @@ export class AppDatabase extends Dexie {
       tags: 'id, name',
       taskTags: '[taskId+tagId], taskId, tagId',
     });
+
+    this.version(3)
+      .stores({
+        repositories: 'id, isArchived, isDeleted',
+        branches:
+          'id, repositoryId, parentBranchId, isDeleted, [repositoryId+isDeleted]',
+        tasks:
+          'id, branchId, status, dueDate, parentTaskId, isDeleted, sortOrder, [branchId+isDeleted]',
+        commits: 'id, taskId, branchId, createdAt',
+        tags: 'id, name',
+        taskTags: '[taskId+tagId], taskId, tagId',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('repositories')
+          .toCollection()
+          .modify((record) => {
+            if (record.description === undefined) {
+              record.description = null;
+            }
+          });
+      });
+
+    this.version(4)
+      .stores({
+        repositories: 'id, isArchived, isDeleted',
+        branches:
+          'id, repositoryId, parentBranchId, isDeleted, [repositoryId+isDeleted]',
+        tasks:
+          'id, branchId, status, dueDate, parentTaskId, isDeleted, sortOrder, [branchId+isDeleted]',
+        commits: 'id, taskId, branchId, createdAt',
+        tags: 'id, name',
+        taskTags: '[taskId+tagId], taskId, tagId',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('repositories')
+          .toCollection()
+          .modify((record) => {
+            if (record.defaultBranchId === undefined) {
+              record.defaultBranchId = null;
+            }
+          });
+      });
   }
 }
 
