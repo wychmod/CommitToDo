@@ -15,7 +15,7 @@ const heatColors = [
 
 export function HeatmapColumn(): JSX.Element {
   return (
-    <div className="flex w-[238px] shrink-0 flex-col py-4">
+    <div className="flex w-[228px] shrink-0 flex-col py-4">
       <span className="mb-3 px-4 text-[12px] font-medium text-[var(--v3-text-strong)]">
         Heatmap · 过去 12 个月
       </span>

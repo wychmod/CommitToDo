@@ -1,18 +1,21 @@
 import { Check, FileText } from 'lucide-react';
 
 const docIcons = [
-  { x: 586, y: 298, delay: '0s' },
-  { x: 750, y: 286, delay: '1.8s' },
-  { x: 840, y: 304, delay: '3.2s' },
-  { x: 980, y: 296, delay: '2.4s' },
-  { x: 520, y: 350, delay: '0.8s' },
-  { x: 692, y: 350, delay: '1.2s' },
-  { x: 854, y: 350, delay: '3.6s' },
-  { x: 902, y: 348, delay: '4.2s' },
-  { x: 552, y: 407, delay: '2s' },
-  { x: 718, y: 412, delay: '2.8s' },
-  { x: 844, y: 404, delay: '4.4s' },
-  { x: 986, y: 408, delay: '5.2s' },
+  { x: 586, y: 293, size: 13, opacity: 0.58, rotate: -7, delay: '0s' },
+  { x: 734, y: 276, size: 12, opacity: 0.50, rotate: 5, delay: '1.8s' },
+  { x: 824, y: 305, size: 14, opacity: 0.62, rotate: -3, delay: '3.2s' },
+  { x: 968, y: 284, size: 13, opacity: 0.52, rotate: 8, delay: '2.4s' },
+  { x: 1018, y: 318, size: 12, opacity: 0.46, rotate: -10, delay: '4.8s' },
+  { x: 524, y: 350, size: 14, opacity: 0.66, rotate: -5, delay: '0.8s' },
+  { x: 675, y: 357, size: 13, opacity: 0.55, rotate: 7, delay: '1.2s' },
+  { x: 782, y: 337, size: 12, opacity: 0.44, rotate: -11, delay: '2.2s' },
+  { x: 856, y: 356, size: 15, opacity: 0.64, rotate: 4, delay: '3.6s' },
+  { x: 918, y: 343, size: 12, opacity: 0.48, rotate: -6, delay: '4.2s' },
+  { x: 552, y: 407, size: 13, opacity: 0.57, rotate: 6, delay: '2s' },
+  { x: 684, y: 392, size: 12, opacity: 0.46, rotate: -8, delay: '2.8s' },
+  { x: 752, y: 423, size: 14, opacity: 0.60, rotate: 3, delay: '3.4s' },
+  { x: 862, y: 411, size: 13, opacity: 0.54, rotate: -4, delay: '4.4s' },
+  { x: 992, y: 403, size: 15, opacity: 0.62, rotate: 9, delay: '5.2s' },
 ];
 
 interface FlowEndpointsProps {
@@ -46,12 +49,17 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
           style={{
             left: `${icon.x * scaleX}px`,
             top: `${toContainerY(icon.y)}px`,
-            opacity: 0.42,
+            opacity: icon.opacity,
             filter: 'drop-shadow(0 0 6px rgba(0, 0, 0, 0.9))',
             animation: `v3-doc-float ${8 + (index % 3) * 2}s ease-in-out ${icon.delay} infinite`,
           }}
         >
-          <FileText size={13} strokeWidth={1.45} />
+          <span
+            className="block"
+            style={{ transform: `rotate(${icon.rotate}deg)` }}
+          >
+            <FileText size={icon.size} strokeWidth={1.45} />
+          </span>
         </div>
       ))}
 

@@ -33,7 +33,7 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
           {/* Upper branch — elegant arc that gathers at endpoints and peaks at center */}
           <path
             id="flow-upper"
-            d="M348 350 C470 270, 1110 270, 1232 350"
+            d="M348 350 C430 350 500 336 548 305 C594 276 652 276 720 282 C790 288 858 288 928 282 C1014 276 1074 300 1124 329 C1162 350 1200 354 1232 350"
             stroke="url(#branchGradient)"
             strokeWidth="1"
             fill="none"
@@ -42,7 +42,7 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
           {/* Lower branch — mirror of upper */}
           <path
             id="flow-lower"
-            d="M348 350 C470 430, 1110 430, 1232 350"
+            d="M348 350 C430 350 500 364 548 395 C594 424 652 424 720 418 C790 412 858 412 928 418 C1014 424 1074 400 1124 371 C1162 350 1200 346 1232 350"
             stroke="url(#branchGradient)"
             strokeWidth="1"
             fill="none"
@@ -59,7 +59,7 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
 
           {/* Green glow overlay for upper branch */}
           <path
-            d="M348 350 C470 270, 1110 270, 1232 350"
+            d="M348 350 C430 350 500 336 548 305 C594 276 652 276 720 282 C790 288 858 288 928 282 C1014 276 1074 300 1124 329 C1162 350 1200 354 1232 350"
             stroke="rgba(128, 228, 140, 0.12)"
             strokeWidth="0.9"
             fill="none"
@@ -68,7 +68,7 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
 
           {/* Green glow overlay for lower branch */}
           <path
-            d="M348 350 C470 430, 1110 430, 1232 350"
+            d="M348 350 C430 350 500 364 548 395 C594 424 652 424 720 418 C790 412 858 412 928 418 C1014 424 1074 400 1124 371 C1162 350 1200 346 1232 350"
             stroke="rgba(128, 228, 140, 0.12)"
             strokeWidth="0.9"
             fill="none"

@@ -4,22 +4,22 @@ import { commitList } from './workbench-demo-data';
 
 export function CommitColumn(): JSX.Element {
   return (
-    <div className="flex w-[270px] shrink-0 flex-col border-r border-[var(--v3-border)] py-4">
+    <div className="flex w-[280px] shrink-0 flex-col border-r border-[var(--v3-border)] py-4">
       <span className="mb-3 px-4 text-[12px] font-medium text-[var(--v3-text-strong)]">
         Commit
       </span>
 
       <div className="relative flex-1 px-4">
-        <div
-          className="absolute bottom-4 left-[30px] top-2 w-px bg-[var(--v3-border)]"
-          aria-hidden="true"
-        />
+        <div className="relative flex flex-col gap-3">
+          <div
+            className="absolute bottom-[15px] left-[6px] top-[7px] w-px bg-gradient-to-b from-[var(--v3-primary)] via-[var(--v3-launch)] to-[var(--v3-launch)] opacity-80"
+            aria-hidden="true"
+          />
 
-        <div className="flex flex-col gap-3">
           {commitList.map((commit) => (
             <div key={commit.hash} className="relative pl-6">
               <div
-                className="absolute left-0 top-1 flex h-3 w-3 items-center justify-center rounded-full border-2"
+                className="absolute left-0 top-1 z-[1] flex h-3 w-3 items-center justify-center rounded-full border-2"
                 style={{
                   borderColor: commit.nodeColor,
                   backgroundColor: 'var(--v3-panel)',
