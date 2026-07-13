@@ -2,20 +2,20 @@ import { Check, FileText } from 'lucide-react';
 
 const docIcons = [
   { x: 586, y: 293, size: 13, opacity: 0.58, rotate: -7, delay: '0s' },
-  { x: 734, y: 276, size: 12, opacity: 0.50, rotate: 5, delay: '1.8s' },
+  { x: 734, y: 292, size: 12, opacity: 0.50, rotate: 5, delay: '1.8s' },
   { x: 824, y: 305, size: 14, opacity: 0.62, rotate: -3, delay: '3.2s' },
-  { x: 968, y: 284, size: 13, opacity: 0.52, rotate: 8, delay: '2.4s' },
+  { x: 968, y: 300, size: 13, opacity: 0.52, rotate: 8, delay: '2.4s' },
   { x: 1018, y: 318, size: 12, opacity: 0.46, rotate: -10, delay: '4.8s' },
   { x: 524, y: 350, size: 14, opacity: 0.66, rotate: -5, delay: '0.8s' },
   { x: 675, y: 357, size: 13, opacity: 0.55, rotate: 7, delay: '1.2s' },
   { x: 782, y: 337, size: 12, opacity: 0.44, rotate: -11, delay: '2.2s' },
   { x: 856, y: 356, size: 15, opacity: 0.64, rotate: 4, delay: '3.6s' },
   { x: 918, y: 343, size: 12, opacity: 0.48, rotate: -6, delay: '4.2s' },
-  { x: 552, y: 407, size: 13, opacity: 0.57, rotate: 6, delay: '2s' },
+  { x: 552, y: 393, size: 13, opacity: 0.57, rotate: 6, delay: '2s' },
   { x: 684, y: 392, size: 12, opacity: 0.46, rotate: -8, delay: '2.8s' },
-  { x: 752, y: 423, size: 14, opacity: 0.60, rotate: 3, delay: '3.4s' },
-  { x: 862, y: 411, size: 13, opacity: 0.54, rotate: -4, delay: '4.4s' },
-  { x: 992, y: 403, size: 15, opacity: 0.62, rotate: 9, delay: '5.2s' },
+  { x: 752, y: 407, size: 14, opacity: 0.60, rotate: 3, delay: '3.4s' },
+  { x: 862, y: 397, size: 13, opacity: 0.54, rotate: -4, delay: '4.4s' },
+  { x: 992, y: 389, size: 15, opacity: 0.62, rotate: 9, delay: '5.2s' },
 ];
 
 interface FlowEndpointsProps {
@@ -32,9 +32,9 @@ export function FlowEndpoints({ scaleX, scaleY, viewOffsetY }: FlowEndpointsProp
   const commitX = 1232 * scaleX;
   const commitY = toContainerY(350);
   const centerX = 790 * scaleX;
-  const upperNodeY = toContainerY(290);
+  const upperNodeY = toContainerY(304);
   const mainNodeY = toContainerY(350);
-  const lowerNodeY = toContainerY(410);
+  const lowerNodeY = toContainerY(396);
 
   return (
     <div

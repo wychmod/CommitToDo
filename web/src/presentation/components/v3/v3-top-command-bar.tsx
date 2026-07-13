@@ -122,7 +122,7 @@ export function V3TopCommandBar({
       <button
         type="button"
         onClick={openPalette}
-        className="mx-4 flex flex-1 max-w-[420px] items-center gap-2 rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-3 py-2 text-[14px] text-[var(--v3-text-muted)] transition-[border-color,background-color] duration-[var(--v3-fast)] hover:border-[var(--v3-border)] hover:bg-[var(--v3-control)]"
+        className="mx-4 flex flex-1 max-w-[420px] items-center gap-2 rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-3 py-2 text-[14px] text-[var(--v3-text-muted)] transition-[border-color,background-color] duration-(--v3-fast) hover:border-[var(--v3-border)] hover:bg-[var(--v3-control)]"
         aria-label="打开命令面板"
       >
         <Search size={16} strokeWidth={1.5} aria-hidden="true" />
@@ -174,7 +174,7 @@ function WorkspaceSwitcher(): JSX.Element {
       <PopoverPrimitive.Trigger asChild>
         <button
           type="button"
-          className="hidden items-center gap-2 rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-2.5 py-1.5 text-[13px] text-[var(--v3-text)] transition-[background-color,border-color] duration-[var(--v3-fast)] hover:bg-[var(--v3-control)] data-[state=open]:bg-[var(--v3-control)] tablet:inline-flex"
+          className="hidden items-center gap-2 rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-2.5 py-1.5 text-[13px] text-[var(--v3-text)] transition-[background-color,border-color] duration-(--v3-fast) hover:bg-[var(--v3-control)] data-[state=open]:bg-[var(--v3-control)] tablet:inline-flex"
           aria-label="切换工作空间"
           data-state={open ? 'open' : 'closed'}
         >
@@ -250,7 +250,7 @@ function RepositorySwitcher({
       <PopoverPrimitive.Trigger asChild>
         <button
           type="button"
-          className="hidden items-center gap-2 rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-2.5 py-1.5 text-[13px] text-[var(--v3-text)] transition-[background-color,border-color] duration-[var(--v3-fast)] hover:bg-[var(--v3-control)] data-[state=open]:bg-[var(--v3-control)] tablet:inline-flex"
+          className="hidden items-center gap-2 rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-2.5 py-1.5 text-[13px] text-[var(--v3-text)] transition-[background-color,border-color] duration-(--v3-fast) hover:bg-[var(--v3-control)] data-[state=open]:bg-[var(--v3-control)] tablet:inline-flex"
           aria-label="切换仓库"
           data-state={open ? 'open' : 'closed'}
         >
@@ -345,7 +345,7 @@ function UserMenu(): JSX.Element {
         <button
           type="button"
           aria-label="用户菜单"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] text-[var(--v3-text-secondary)] transition-[background-color,border-color,color] duration-[var(--v3-fast)] hover:border-[var(--v3-border)] hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)]"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] text-[var(--v3-text-secondary)] transition-[background-color,border-color,color] duration-(--v3-fast) hover:border-[var(--v3-border)] hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)]"
         >
           <User size={16} strokeWidth={1.5} aria-hidden="true" />
         </button>

@@ -21,7 +21,7 @@ export const V3NavLink = React.forwardRef<HTMLAnchorElement, V3NavLinkProps>(
       <Comp
         ref={ref}
         className={cn(
-          'inline-flex h-10 items-center gap-2 px-3 text-[14px] font-medium text-[var(--v3-text-secondary)] rounded-[var(--v3-radius-md)] transition-[background-color,color] duration-[var(--v3-fast)] ease-out hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)]',
+          'inline-flex h-10 items-center gap-2 px-3 text-[14px] font-medium text-[var(--v3-text-secondary)] rounded-[var(--v3-radius-md)] transition-[background-color,color] duration-(--v3-fast) ease-out hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)]',
           className
         )}
         {...props}

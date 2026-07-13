@@ -155,7 +155,7 @@ function NavItem({ item, accentColor }: NavItemProps): JSX.Element {
     <Link
       to={item.href}
       className={cn(
-        'group relative flex h-[44px] items-center gap-3 rounded-[var(--v3-radius-md)] px-3 text-[15px] transition-[background-color,color] duration-[var(--v3-fast)] ease-out focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)]',
+        'group relative flex h-[44px] items-center gap-3 rounded-[var(--v3-radius-md)] px-3 text-[15px] transition-[background-color,color] duration-(--v3-fast) ease-out focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)]',
         item.isSelected
           ? 'bg-[var(--v3-selected)] font-medium text-[var(--v3-primary)]'
           : 'text-[var(--v3-text-secondary)] hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)]'
@@ -191,7 +191,7 @@ function NavItem({ item, accentColor }: NavItemProps): JSX.Element {
           size={14}
           strokeWidth={1.5}
           aria-hidden="true"
-          className="text-[var(--v3-text-muted)] opacity-0 transition-opacity duration-[var(--v3-fast)] group-hover:opacity-100"
+          className="text-[var(--v3-text-muted)] opacity-0 transition-opacity duration-(--v3-fast) group-hover:opacity-100"
         />
       ) : null}
     </Link>

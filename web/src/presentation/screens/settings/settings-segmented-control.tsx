@@ -39,7 +39,7 @@ export function SettingsSegmentedControl<T extends string>({
             aria-selected={isSelected}
             onClick={() => onChange(option.value)}
             className={cn(
-              'px-4 text-[14px] font-medium transition-[color,background-color,border-color] duration-[var(--v3-fast)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] rounded-[var(--v3-radius-sm)]',
+              'px-4 text-[14px] font-medium transition-[color,background-color,border-color] duration-(--v3-fast) focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] rounded-[var(--v3-radius-sm)]',
               isSelected
                 ? 'bg-[var(--v3-primary-soft)] text-[var(--v3-primary)] border border-[var(--v3-primary)]'
                 : 'text-[var(--v3-text-secondary)] hover:text-[var(--v3-text)] hover:bg-[var(--v3-control)]'

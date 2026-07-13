@@ -61,7 +61,7 @@ export function FilterSidebar({
               type="button"
               onClick={() => onStatusChange(item.value)}
               className={cn(
-                'flex h-[38px] items-center justify-between rounded-[var(--v3-radius-sm)] px-2.5 text-[14px] transition-colors duration-[var(--v3-fast)]',
+                'flex h-[38px] items-center justify-between rounded-[var(--v3-radius-sm)] px-2.5 text-[14px] transition-colors duration-(--v3-fast)',
                 active
                   ? 'bg-[var(--v3-selected)] text-[var(--v3-text-strong)]'
                   : 'text-[var(--v3-text-secondary)] hover:bg-[var(--v3-control)] hover:text-[var(--v3-text)]'
@@ -102,7 +102,7 @@ export function FilterSidebar({
             <label
               key={option.value}
               className={cn(
-                'flex h-[34px] cursor-pointer items-center gap-2.5 rounded-[var(--v3-radius-sm)] px-2.5 text-[14px] transition-colors duration-[var(--v3-fast)]',
+                'flex h-[34px] cursor-pointer items-center gap-2.5 rounded-[var(--v3-radius-sm)] px-2.5 text-[14px] transition-colors duration-(--v3-fast)',
                 active
                   ? 'bg-[var(--v3-selected)] text-[var(--v3-text-strong)]'
                   : 'text-[var(--v3-text-secondary)] hover:bg-[var(--v3-control)] hover:text-[var(--v3-text)]'
@@ -135,7 +135,7 @@ export function FilterSidebar({
           type="button"
           onClick={onSavedViewClick}
           className={cn(
-            'flex h-[38px] items-center justify-between rounded-[var(--v3-radius-sm)] px-2.5 text-[14px] transition-colors duration-[var(--v3-fast)]',
+            'flex h-[38px] items-center justify-between rounded-[var(--v3-radius-sm)] px-2.5 text-[14px] transition-colors duration-(--v3-fast)',
             savedViewActive
               ? 'bg-[var(--v3-selected)] text-[var(--v3-text-strong)]'
               : 'text-[var(--v3-text-secondary)] hover:bg-[var(--v3-control)] hover:text-[var(--v3-text)]'

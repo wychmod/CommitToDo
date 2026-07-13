@@ -28,10 +28,11 @@ describe('FlowVisualization', () => {
   });
 
   it('renders the canvas and SVG layers', () => {
-    render(<FlowVisualization />);
+    const { container } = render(<FlowVisualization />);
 
     expect(document.querySelector('canvas')).toBeInTheDocument();
     expect(document.querySelector('svg')).toBeInTheDocument();
+    expect(container.querySelector('.hero-flow')).toHaveClass('mb-4');
   });
 
   it('samples the flow paths after mount', () => {

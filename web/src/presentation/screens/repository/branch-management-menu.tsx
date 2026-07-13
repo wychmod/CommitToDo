@@ -171,7 +171,7 @@ function MenuItem({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-2 rounded-[var(--v3-radius-sm)] px-2.5 py-2 text-left text-[13px] transition-colors duration-[var(--v3-fast)]',
+        'flex w-full items-center gap-2 rounded-[var(--v3-radius-sm)] px-2.5 py-2 text-left text-[13px] transition-colors duration-(--v3-fast)',
         disabled
           ? 'cursor-not-allowed text-[var(--v3-text-disabled)]'
           : danger

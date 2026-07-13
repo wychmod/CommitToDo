@@ -33,7 +33,7 @@ export function SettingsSelect<T extends string | number>({
         if (option) onChange(option.value);
       }}
       className={cn(
-        'h-[34px] min-w-[136px] rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-3 text-[14px] text-[var(--v3-text)] transition-[border-color,background-color] duration-[var(--v3-fast)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:opacity-50 disabled:cursor-not-allowed',
+        'h-[34px] min-w-[136px] rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-3 text-[14px] text-[var(--v3-text)] transition-[border-color,background-color] duration-(--v3-fast) focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:opacity-50 disabled:cursor-not-allowed',
         className
       )}
     >

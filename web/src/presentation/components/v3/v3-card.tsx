@@ -31,7 +31,7 @@ export const V3Card = React.forwardRef<HTMLDivElement, V3CardProps>(
       <Comp
         ref={ref}
         className={cn(
-          'rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-card)] transition-[background-color,border-color,transform] duration-[var(--v3-fast)] ease-out hover:-translate-y-0.5 hover:border-[#465048] hover:bg-[var(--v3-card-hover)]',
+          'rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-card)] transition-[background-color,border-color,transform] duration-(--v3-fast) ease-out hover:-translate-y-0.5 hover:border-[var(--v3-border-hover)] hover:bg-[var(--v3-card-hover)]',
           className
         )}
         style={{

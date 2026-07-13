@@ -258,7 +258,7 @@ export function TodayWorkspaceScreen(): JSX.Element {
                 加载中…
               </div>
             ) : error ? (
-              <div className="mt-8 rounded-[var(--v3-radius-lg)] border border-[var(--v3-danger)] bg-[rgb(230_99_91/8%)] p-6">
+              <div className="mt-8 rounded-[var(--v3-radius-lg)] border border-[var(--v3-danger)] bg-[var(--v3-danger-soft)] p-6">
                 <h2 className="text-[18px] font-semibold text-[var(--v3-text-strong)]">
                   无法加载今日任务
                 </h2>
@@ -295,7 +295,7 @@ export function TodayWorkspaceScreen(): JSX.Element {
                     </div>
                     <div className="h-[4px] w-[297px] overflow-hidden rounded-full bg-[var(--v3-border-soft)]">
                       <div
-                        className="h-full rounded-full bg-[var(--v3-primary)] transition-all duration-[var(--v3-standard)]"
+                        className="h-full rounded-full bg-[var(--v3-primary)] transition-all duration-(--v3-standard)"
                         style={{ width: `${progressRatio * 100}%` }}
                         aria-hidden="true"
                       />
@@ -566,7 +566,7 @@ export function TodayWorkspaceScreen(): JSX.Element {
       {/* Toast */}
       <div
         className={cn(
-          'pointer-events-auto fixed bottom-14 right-4 z-[100] flex max-w-sm items-center gap-2 rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-card)] px-4 py-3 shadow-[var(--v3-shadow-panel)] transition-[opacity,transform] duration-[var(--v3-standard)]',
+          'pointer-events-auto fixed bottom-14 right-4 z-[100] flex max-w-sm items-center gap-2 rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-card)] px-4 py-3 shadow-[var(--v3-shadow-panel)] transition-[opacity,transform] duration-(--v3-standard)',
           toast.open
             ? 'translate-y-0 opacity-100'
             : 'translate-y-2 opacity-0 pointer-events-none'

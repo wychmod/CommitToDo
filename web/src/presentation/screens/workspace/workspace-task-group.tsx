@@ -52,18 +52,26 @@ function priorityLabel(priority: Priority): string {
   }
 }
 
-function statusChipClasses(status: TaskStatus): string {
+function statusChipClasses(status: TaskStatus, overdue: boolean): string {
+  if (overdue && status === TaskStatus.todo) {
+    return 'bg-[var(--v3-danger-soft)] text-[var(--v3-danger)]';
+  }
   switch (status) {
     case TaskStatus.done:
       return 'bg-[var(--v3-primary-soft)] text-[var(--v3-primary)]';
     case TaskStatus.inProgress:
-      return 'bg-[rgb(89_203_208/12%)] text-[var(--v3-launch)]';
+      return 'bg-[var(--v3-launch-soft)] text-[var(--v3-launch)]';
     case TaskStatus.cancelled:
       return 'bg-[var(--v3-control)] text-[var(--v3-text-muted)]';
     case TaskStatus.todo:
     default:
       return 'bg-[var(--v3-control)] text-[var(--v3-text-secondary)]';
   }
+}
+
+function statusLabel(status: TaskStatus, overdue: boolean): string {
+  if (overdue && status === TaskStatus.todo) return '逾期';
+  return TaskStatus.label(status);
 }
 
 export function WorkspaceTaskGroup({
@@ -158,10 +166,10 @@ export function WorkspaceTaskGroup({
                 <span
                   className={cn(
                     'flex h-6 items-center rounded-[var(--v3-radius-sm)] px-2 text-[12px] font-medium',
-                    statusChipClasses(task.status)
+                    statusChipClasses(task.status, overdue)
                   )}
                 >
-                  {TaskStatus.label(task.status)}
+                  {statusLabel(task.status, overdue)}
                 </span>
 
                 <span className="flex h-6 w-7 items-center justify-center rounded-[var(--v3-radius-sm)] bg-[var(--v3-control)] text-[12px] text-[var(--v3-text-secondary)]">

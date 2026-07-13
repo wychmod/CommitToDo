@@ -102,19 +102,19 @@ function choosePathIndex(progress: number): number {
   const r = Math.random();
 
   if (progress < 0.16) {
-    if (r < 0.50) return 0;
-    if (r < 0.75) return 1;
+    if (r < 0.64) return 0;
+    if (r < 0.82) return 1;
     return 2;
   }
 
   if (progress > 0.82) {
-    if (r < 0.72) return 0;
-    if (r < 0.86) return 1;
+    if (r < 0.76) return 0;
+    if (r < 0.88) return 1;
     return 2;
   }
 
-  if (r < 0.54) return 0;
-  if (r < 0.77) return 1;
+  if (r < 0.64) return 0;
+  if (r < 0.82) return 1;
   return 2;
 }
 
@@ -122,12 +122,9 @@ function createPathDust(): PathDust {
   const progress = sampleWeightedProgress();
   const pathIndex = choosePathIndex(progress);
   const endpointBloom =
-    progress < 0.15
-      ? 1 - progress / 0.15
-      : progress > 0.84
-        ? (progress - 0.84) / 0.16
-        : 0;
-  const branchSpread = pathIndex === 0 ? 3.8 : 5.8;
+    progress > 0.84 ? (progress - 0.84) / 0.16 : 0;
+  const isMergedStart = progress < 0.16;
+  const branchSpread = isMergedStart ? 1.6 : pathIndex === 0 ? 1.8 : 4.2;
   const spread = branchSpread + endpointBloom * randomBetween(16, 42);
   const isHighlight = Math.random() < 0.05;
   const branchGreenBias = pathIndex === 0 ? 0.10 : 0.26;

@@ -89,7 +89,7 @@ export function FlowVisualization(): JSX.Element {
   return (
     <div
       ref={containerRef}
-      className="hero-flow relative mx-[-20px] mt-[-69px] h-[220px] w-[calc(100%+40px)] max-w-[1576px] overflow-hidden"
+      className="hero-flow relative mx-[-20px] mb-4 mt-[-69px] h-[220px] w-[calc(100%+40px)] max-w-[1576px] overflow-hidden"
       aria-hidden="true"
     >
       <BranchPaths

@@ -129,7 +129,7 @@ export function TaskFormPanel({
                 type="button"
                 onClick={() => setStatus(option.value)}
                 className={cn(
-                  'h-8 rounded-[var(--v3-radius-sm)] px-3 text-[13px] transition-colors duration-[var(--v3-fast)]',
+                  'h-8 rounded-[var(--v3-radius-sm)] px-3 text-[13px] transition-colors duration-(--v3-fast)',
                   status === option.value
                     ? 'bg-[var(--v3-primary-soft)] text-[var(--v3-primary)]'
                     : 'bg-[var(--v3-control)] text-[var(--v3-text-secondary)] hover:text-[var(--v3-text)]'
@@ -149,7 +149,7 @@ export function TaskFormPanel({
                 type="button"
                 onClick={() => setPriority(option.value)}
                 className={cn(
-                  'h-8 rounded-[var(--v3-radius-sm)] px-3 text-[13px] transition-colors duration-[var(--v3-fast)]',
+                  'h-8 rounded-[var(--v3-radius-sm)] px-3 text-[13px] transition-colors duration-(--v3-fast)',
                   priority === option.value
                     ? 'bg-[var(--v3-primary-soft)] text-[var(--v3-primary)]'
                     : 'bg-[var(--v3-control)] text-[var(--v3-text-secondary)] hover:text-[var(--v3-text)]'

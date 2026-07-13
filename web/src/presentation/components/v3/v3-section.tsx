@@ -57,7 +57,7 @@ export const V3Section = React.forwardRef<HTMLElement, V3SectionProps>(
           'relative',
           padded && 'py-20',
           reveal &&
-            'transition-[opacity,transform] duration-[520ms] ease-[var(--v3-ease-enter)]',
+            'transition-[opacity,transform] duration-500 ease-(--v3-ease-enter)',
           reveal && (isInView ? 'translate-y-0 opacity-100' : 'translate-y-[18px] opacity-0'),
           className
         )}

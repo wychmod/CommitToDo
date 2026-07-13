@@ -23,7 +23,7 @@ export const V3IconButton = React.forwardRef<
     <Comp
       ref={ref}
       className={cn(
-        'inline-flex h-10 w-10 items-center justify-center rounded-[var(--v3-radius-md)] text-[var(--v3-text-secondary)] transition-[background-color,color] duration-[var(--v3-fast)] ease-out hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex h-10 w-10 items-center justify-center rounded-[var(--v3-radius-md)] text-[var(--v3-text-secondary)] transition-[background-color,color] duration-(--v3-fast) ease-out hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:pointer-events-none disabled:opacity-50',
         className
       )}
       {...props}

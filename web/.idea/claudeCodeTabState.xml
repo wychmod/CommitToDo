@@ -6,15 +6,27 @@
         <entry key="0">
           <value>
             <TabSessionState>
+              <option name="provider" value="codex" />
+              <option name="sessionId" value="019f5bb3-4481-7bf1-b0e2-c5f4154f4de8" />
+              <option name="cwd" value="D:\idea\Commit\web" />
+              <option name="model" value="gpt-5.5" />
+              <option name="permissionMode" value="bypassPermissions" />
+              <option name="reasoningEffort" value="high" />
+            </TabSessionState>
+          </value>
+        </entry>
+        <entry key="1">
+          <value>
+            <TabSessionState>
               <option name="provider" value="claude" />
-              <option name="sessionId" value="ac882640-06ee-4c26-a7ff-e4f69aaf98a9" />
-              <option name="cwd" value="$PROJECT_DIR$" />
-              <option name="model" value="claude-haiku-4-5" />
+              <option name="cwd" value="D:\idea\Commit\web" />
+              <option name="model" value="claude-sonnet-4-6" />
               <option name="permissionMode" value="bypassPermissions" />
             </TabSessionState>
           </value>
         </entry>
       </map>
     </option>
+    <option name="tabCount" value="2" />
   </component>
 </project>

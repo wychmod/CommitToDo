@@ -70,7 +70,7 @@ export function WorkspaceHeatmap({ tasks }: WorkspaceHeatmapProps): JSX.Element 
             return (
               <div
                 key={date.toISOString()}
-                className="h-[27px] w-[38px] rounded-[var(--v3-radius-sm)] transition-transform duration-[var(--v3-fast)] hover:scale-105"
+                className="h-[27px] w-[38px] rounded-[var(--v3-radius-sm)] transition-transform duration-(--v3-fast) hover:scale-105"
                 style={{ backgroundColor: levelColor[level] }}
                 title={`${format(date, 'yyyy 年 M 月 d 日')}，完成 ${count} 个任务`}
                 aria-label={`${format(date, 'M 月 d 日')}，完成 ${count} 个任务`}

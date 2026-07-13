@@ -15,14 +15,14 @@ import { cn } from '@/core/utils/formatters';
  * the Landing hero's primary CTA pattern.
  */
 const v3ButtonVariants = cva(
-  'inline-flex items-center justify-center gap-[10px] rounded-[var(--v3-radius-md)] text-[14px] font-semibold font-sans transition-[color,background-color,border-color,box-shadow,transform,filter] duration-[var(--v3-fast)] ease-out focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center gap-[10px] rounded-[var(--v3-radius-md)] text-[14px] font-semibold font-sans transition-[color,background-color,border-color,box-shadow,transform,filter] duration-(--v3-fast) ease-out focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
         primary:
           'h-[37px] px-[18px] text-[var(--v3-text-on-primary)] bg-[linear-gradient(180deg,var(--v3-primary-dim),var(--v3-primary))] hover:-translate-y-px hover:[filter:brightness(1.06)] hover:[box-shadow:var(--v3-glow-primary)] active:translate-y-0 active:[background:var(--v3-primary-active)] active:[box-shadow:none]',
         secondary:
-          'h-[37px] px-[18px] text-[var(--v3-text)] bg-[rgb(0_0_0/40%)] border border-[var(--v3-border)] hover:bg-[var(--v3-control)] hover:border-[#4a504c] active:bg-[#101312]',
+          'h-[37px] px-[18px] text-[var(--v3-text)] bg-[rgb(0_0_0/40%)] border border-[var(--v3-border)] hover:bg-[var(--v3-control)] hover:border-[var(--v3-border-hover)] active:bg-[var(--v3-control-active)]',
         ghost:
           'h-[37px] px-[18px] text-[var(--v3-text-secondary)] hover:text-[var(--v3-text-strong)] hover:bg-[var(--v3-control)]',
       },

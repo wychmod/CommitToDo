@@ -50,6 +50,15 @@
   --v3-danger: #e6635b;
   --v3-info: #68a1ff;
 
+  /* Semantic soft backgrounds */
+  --v3-launch-soft: rgb(89 203 208 / 12%);
+  --v3-warning-soft: rgb(227 163 60 / 12%);
+  --v3-danger-soft: rgb(230 99 91 / 12%);
+
+  /* Interactive surfaces */
+  --v3-border-hover: #465048;
+  --v3-control-active: #101312;
+
   /* Text */
   --v3-text-strong: #f5f5f2;
   --v3-text: #d9ddda;

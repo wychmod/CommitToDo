@@ -82,7 +82,7 @@ export function V3BottomStatusBar({
       <button
         type="button"
         onClick={openPalette}
-        className="inline-flex items-center gap-2 rounded-[var(--v3-radius-md)] px-2 py-1 text-[var(--v3-text-secondary)] transition-[background-color,color] duration-[var(--v3-fast)] hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)]"
+        className="inline-flex items-center gap-2 rounded-[var(--v3-radius-md)] px-2 py-1 text-[var(--v3-text-secondary)] transition-[background-color,color] duration-(--v3-fast) hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)]"
       >
         <Command size={16} strokeWidth={1.5} aria-hidden="true" />
         <kbd className="font-sans">{kbdHint}</kbd>

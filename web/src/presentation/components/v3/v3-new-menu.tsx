@@ -100,7 +100,7 @@ export function V3NewMenu({
                   disabled={item.disabled}
                   onClick={item.onSelect}
                   className={cn(
-                    'flex w-full items-center gap-2.5 rounded-[var(--v3-radius-sm)] px-2.5 py-2 text-left text-[14px] transition-[background-color,color] duration-[var(--v3-fast)] ease-out',
+                    'flex w-full items-center gap-2.5 rounded-[var(--v3-radius-sm)] px-2.5 py-2 text-left text-[14px] transition-[background-color,color] duration-(--v3-fast) ease-out',
                     item.disabled
                       ? 'cursor-not-allowed text-[var(--v3-text-disabled)]'
                       : 'text-[var(--v3-text)] hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)]'

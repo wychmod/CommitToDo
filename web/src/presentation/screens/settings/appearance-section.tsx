@@ -93,7 +93,7 @@ export function AppearanceSection({ onSaved }: AppearanceSectionProps): JSX.Elem
                   aria-label={`选择${color.name}色强调色`}
                   aria-pressed={selected}
                   className={cn(
-                    'h-8 w-8 rounded-full transition-[transform,box-shadow] duration-[var(--v3-fast)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] hover:scale-105',
+                    'h-8 w-8 rounded-full transition-[transform,box-shadow] duration-(--v3-fast) focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] hover:scale-105',
                     selected && '[box-shadow:0_0_0_2px_#000,0_0_0_4px_var(--v3-primary)]'
                   )}
                   style={{ backgroundColor: color.value }}

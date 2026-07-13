@@ -24,12 +24,12 @@ export interface WorkspaceTaskDetailProps {
 function priorityClasses(priority: Priority): string {
   switch (priority) {
     case Priority.high:
-      return 'bg-[rgb(230_99_91/12%)] text-[var(--v3-danger)]';
+      return 'bg-[var(--v3-danger-soft)] text-[var(--v3-danger)]';
     case Priority.low:
       return 'bg-[var(--v3-primary-soft)] text-[var(--v3-primary)]';
     case Priority.medium:
     default:
-      return 'bg-[rgb(227_163_60/12%)] text-[var(--v3-warning)]';
+      return 'bg-[var(--v3-warning-soft)] text-[var(--v3-warning)]';
   }
 }
 
@@ -38,7 +38,7 @@ function statusClasses(status: TaskStatus): string {
     case TaskStatus.done:
       return 'bg-[var(--v3-primary-soft)] text-[var(--v3-primary)]';
     case TaskStatus.inProgress:
-      return 'bg-[rgb(89_203_208/12%)] text-[var(--v3-launch)]';
+      return 'bg-[var(--v3-launch-soft)] text-[var(--v3-launch)]';
     case TaskStatus.cancelled:
       return 'bg-[var(--v3-control)] text-[var(--v3-text-muted)]';
     case TaskStatus.todo:
@@ -83,10 +83,14 @@ export function WorkspaceTaskDetail({
                     <span
                       className={cn(
                         'rounded-[var(--v3-radius-sm)] px-2 py-0.5 text-[12px] font-medium',
-                        statusClasses(task.status)
+                        task.isOverdue && task.status === TaskStatus.todo
+                          ? 'bg-[var(--v3-danger-soft)] text-[var(--v3-danger)]'
+                          : statusClasses(task.status)
                       )}
                     >
-                      {TaskStatus.label(task.status)}
+                      {task.isOverdue && task.status === TaskStatus.todo
+                        ? '逾期'
+                        : TaskStatus.label(task.status)}
                     </span>
                     <span
                       className={cn(
@@ -193,7 +197,7 @@ export function WorkspaceTaskDetail({
                     type="button"
                     variant="secondary"
                     onClick={onDelete}
-                    className="border-[var(--v3-danger)] text-[var(--v3-danger)] hover:bg-[rgb(230_99_91/12%)]"
+                    className="border-[var(--v3-danger)] text-[var(--v3-danger)] hover:bg-[var(--v3-danger-soft)]"
                   >
                     <Trash2 size={16} strokeWidth={1.5} aria-hidden="true" />
                     删除

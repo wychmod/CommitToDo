@@ -133,6 +133,11 @@ export function AboutScreen(): JSX.Element {
 | `--v3-border-soft` | `#1c211e` | 弱描边 |
 | `--v3-divider` | `#181c19` | 分隔线 |
 | `--v3-success` / `--v3-warning` / `--v3-danger` / `--v3-info` | `#80e48c` / `#e3a33c` / `#e6635b` / `#68a1ff` | 语义色 |
+| `--v3-launch-soft` | `rgb(89 203 208 / 12%)` | 次品牌色柔和底（进行中状态） |
+| `--v3-warning-soft` | `rgb(227 163 60 / 12%)` | 警告柔和底（中优先级） |
+| `--v3-danger-soft` | `rgb(230 99 91 / 12%)` | 危险柔和底（高优先级 / 逾期） |
+| `--v3-border-hover` | `#465048` | 控件 hover 描边 |
+| `--v3-control-active` | `#101312` | 控件 active 底 |
 
 **文本层级用法**：标题用 `--v3-text-strong`；正文用 `--v3-text`；辅助说明用 `--v3-text-secondary`；时间戳/元信息用 `--v3-text-muted`。不要越级。
 

@@ -29,7 +29,7 @@ export function BranchTabs({
             aria-selected={activeBranchId === branch.id}
             onClick={() => onSelect(branch.id)}
             className={cn(
-              'relative flex h-[48px] items-center gap-2.5 px-[28px] text-[14px] transition-colors duration-[var(--v3-fast)]',
+              'relative flex h-[48px] items-center gap-2.5 px-[28px] text-[14px] transition-colors duration-(--v3-fast)',
               activeBranchId === branch.id
                 ? 'font-semibold text-[var(--v3-text-strong)]'
                 : 'text-[var(--v3-text-secondary)] hover:text-[var(--v3-text)]'

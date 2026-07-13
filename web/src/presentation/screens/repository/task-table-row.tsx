@@ -42,7 +42,7 @@ export function TaskTableRow({
       }}
       tabIndex={0}
       className={cn(
-        'group relative grid h-[53px] cursor-pointer grid-cols-[42px_1fr_105px_105px_90px_110px_110px] items-center gap-2 px-3 text-[14px] outline-none transition-colors duration-[var(--v3-fast)] focus-visible:[box-shadow:var(--v3-focus-ring)]',
+        'group relative grid h-[53px] cursor-pointer grid-cols-[42px_1fr_105px_105px_90px_110px_110px] items-center gap-2 px-3 text-[14px] outline-none transition-colors duration-(--v3-fast) focus-visible:[box-shadow:var(--v3-focus-ring)]',
         selected
           ? 'bg-[var(--v3-primary-soft)] text-[var(--v3-text-strong)]'
           : 'text-[var(--v3-text)] hover:bg-[var(--v3-control)]'
@@ -64,7 +64,7 @@ export function TaskTableRow({
           }}
           aria-label={isCompleted ? '标记为未完成' : '标记为已完成'}
           className={cn(
-            'flex h-[18px] w-[18px] items-center justify-center rounded-[3px] border transition-colors duration-[var(--v3-fast)]',
+            'flex h-[18px] w-[18px] items-center justify-center rounded-[3px] border transition-colors duration-(--v3-fast)',
             isCompleted
               ? 'border-[var(--v3-primary)] bg-[var(--v3-primary)] text-[var(--v3-text-on-primary)]'
               : 'border-[var(--v3-border)] bg-transparent text-[var(--v3-text-muted)] hover:border-[var(--v3-primary)]'

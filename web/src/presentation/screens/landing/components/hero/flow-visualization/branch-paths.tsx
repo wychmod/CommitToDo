@@ -1,5 +1,13 @@
 import { forwardRef } from 'react';
 
+const upperBranchPath =
+  'M348 350 L486 350 C534 350 560 316 624 304 ' +
+  'C710 288 850 294 944 304 C1008 312 1044 350 1090 350 L1232 350';
+const lowerBranchPath =
+  'M348 350 L486 350 C534 350 560 384 624 396 ' +
+  'C710 412 850 406 944 396 C1008 388 1044 350 1090 350 L1232 350';
+const mainBranchPath = 'M348 350 L1232 350';
+
 export interface BranchPathsHandle {
   getPaths: () => SVGPathElement[];
 }
@@ -30,28 +38,28 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
         </defs>
 
         <g className="hero-flow__paths">
-          {/* Upper branch — elegant arc that gathers at endpoints and peaks at center */}
+          {/* The branches travel together before separating into a compact fan. */}
           <path
             id="flow-upper"
-            d="M348 350 C430 350 500 336 548 305 C594 276 652 276 720 282 C790 288 858 288 928 282 C1014 276 1074 300 1124 329 C1162 350 1200 354 1232 350"
+            d={upperBranchPath}
             stroke="url(#branchGradient)"
             strokeWidth="1"
             fill="none"
           />
 
-          {/* Lower branch — mirror of upper */}
+          {/* Lower branch mirrors the upper branch around the horizontal axis. */}
           <path
             id="flow-lower"
-            d="M348 350 C430 350 500 364 548 395 C594 424 652 424 720 418 C790 412 858 412 928 418 C1014 424 1074 400 1124 371 C1162 350 1200 346 1232 350"
+            d={lowerBranchPath}
             stroke="url(#branchGradient)"
             strokeWidth="1"
             fill="none"
           />
 
-          {/* Main branch — horizontal center line through the white node */}
+          {/* Main branch stays exactly horizontal through the white node. */}
           <path
             id="flow-main"
-            d="M348 350 L1232 350"
+            d={mainBranchPath}
             stroke="url(#pathGradient)"
             strokeWidth="1.45"
             fill="none"
@@ -59,7 +67,7 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
 
           {/* Green glow overlay for upper branch */}
           <path
-            d="M348 350 C430 350 500 336 548 305 C594 276 652 276 720 282 C790 288 858 288 928 282 C1014 276 1074 300 1124 329 C1162 350 1200 354 1232 350"
+            d={upperBranchPath}
             stroke="rgba(128, 228, 140, 0.12)"
             strokeWidth="0.9"
             fill="none"
@@ -68,7 +76,7 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
 
           {/* Green glow overlay for lower branch */}
           <path
-            d="M348 350 C430 350 500 364 548 395 C594 424 652 424 720 418 C790 412 858 412 928 418 C1014 424 1074 400 1124 371 C1162 350 1200 346 1232 350"
+            d={lowerBranchPath}
             stroke="rgba(128, 228, 140, 0.12)"
             strokeWidth="0.9"
             fill="none"
@@ -77,7 +85,7 @@ export const BranchPaths = forwardRef<SVGSVGElement, { className?: string }>(
 
           {/* Subtle white glow overlay for main path */}
           <path
-            d="M348 350 L1232 350"
+            d={mainBranchPath}
             stroke="rgba(245, 245, 242, 0.26)"
             strokeWidth="1.35"
             fill="none"

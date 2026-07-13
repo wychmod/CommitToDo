@@ -182,7 +182,7 @@ export function RepositorySection({
               }}
               onBlur={() => void handleNameBlur()}
               disabled={isSaving}
-              className="h-[36px] w-full max-w-[694px] rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-3 text-[14px] text-[var(--v3-text)] transition-[border-color,background-color] duration-[var(--v3-fast)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:opacity-50"
+              className="h-[36px] w-full max-w-[694px] rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-3 text-[14px] text-[var(--v3-text)] transition-[border-color,background-color] duration-(--v3-fast) focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:opacity-50"
             />
             {nameError ? (
               <span className="text-[13px] text-[var(--v3-danger)]">{nameError}</span>
@@ -198,7 +198,7 @@ export function RepositorySection({
             onBlur={() => void handleDescriptionBlur()}
             disabled={isSaving}
             placeholder="可选，描述这个仓库的用途"
-            className="h-[36px] w-full max-w-[694px] rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-3 text-[14px] text-[var(--v3-text)] transition-[border-color,background-color] duration-[var(--v3-fast)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:opacity-50 placeholder:text-[var(--v3-text-muted)]"
+            className="h-[36px] w-full max-w-[694px] rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-bg-near)] px-3 text-[14px] text-[var(--v3-text)] transition-[border-color,background-color] duration-(--v3-fast) focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] disabled:opacity-50 placeholder:text-[var(--v3-text-muted)]"
           />
         </SettingsRow>
 
