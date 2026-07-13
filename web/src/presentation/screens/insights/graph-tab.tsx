@@ -106,7 +106,7 @@ function GraphCanvas({
           <Background
             gap={28}
             size={1}
-            color="rgba(128, 228, 140, 0.10)"
+            color="var(--v3-primary-soft)"
           />
         </ReactFlow>
 

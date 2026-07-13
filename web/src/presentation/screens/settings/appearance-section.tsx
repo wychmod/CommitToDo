@@ -94,7 +94,7 @@ export function AppearanceSection({ onSaved }: AppearanceSectionProps): JSX.Elem
                   aria-pressed={selected}
                   className={cn(
                     'h-8 w-8 rounded-full transition-[transform,box-shadow] duration-(--v3-fast) focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)] hover:scale-105',
-                    selected && '[box-shadow:0_0_0_2px_#000,0_0_0_4px_var(--v3-primary)]'
+                    selected && '[box-shadow:0_0_0_2px_var(--v3-bg),0_0_0_4px_var(--v3-primary)]'
                   )}
                   style={{ backgroundColor: color.value }}
                 >

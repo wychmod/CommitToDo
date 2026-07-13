@@ -332,4 +332,42 @@ describe('SettingsScreen', () => {
 
     expect(screen.getByText('本地数据不可用')).toBeInTheDocument();
   });
+
+  it('calls load only once even when store state changes', async () => {
+    const { rerender } = render(
+      <MemoryRouter initialEntries={['/settings']}>
+        <Routes>
+          <Route path="/settings" element={<SettingsScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(mockLoad).toHaveBeenCalledTimes(1);
+    });
+
+    // Simulate a Zustand state update (new store reference) without changing
+    // the stable action references. The load effect must not re-run.
+    mockScreenStoreState = {
+      ...mockScreenStoreState,
+      scope: 'workspace',
+    };
+
+    rerender(
+      <MemoryRouter initialEntries={['/settings']}>
+        <Routes>
+          <Route path="/settings" element={<SettingsScreen />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: '工作区' })).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+    });
+
+    expect(mockLoad).toHaveBeenCalledTimes(1);
+  });
 });

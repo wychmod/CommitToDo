@@ -23,7 +23,7 @@ describe('V3Button', () => {
 
     const button = screen.getByRole('button');
     expect(button).toHaveClass('border');
-    expect(button).toHaveClass('bg-[rgb(0_0_0/40%)]');
+    expect(button).toHaveClass('bg-[var(--v3-control)]');
   });
 
   it('applies the small size classes when size="sm"', () => {

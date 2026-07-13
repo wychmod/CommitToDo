@@ -42,7 +42,7 @@ export function TaskTableRow({
       }}
       tabIndex={0}
       className={cn(
-        'group relative grid h-[53px] cursor-pointer grid-cols-[42px_1fr_105px_105px_90px_110px_110px] items-center gap-2 px-3 text-[14px] outline-none transition-colors duration-(--v3-fast) focus-visible:[box-shadow:var(--v3-focus-ring)]',
+        'group relative grid h-[53px] cursor-pointer grid-cols-[42px_minmax(0,1fr)_105px_105px_90px_110px_110px] items-center gap-2 px-3 text-[14px] outline-none transition-colors duration-(--v3-fast) focus-visible:[box-shadow:var(--v3-focus-ring)]',
         selected
           ? 'bg-[var(--v3-primary-soft)] text-[var(--v3-text-strong)]'
           : 'text-[var(--v3-text)] hover:bg-[var(--v3-control)]'

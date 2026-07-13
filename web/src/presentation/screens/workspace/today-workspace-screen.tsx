@@ -220,7 +220,7 @@ export function TodayWorkspaceScreen(): JSX.Element {
 
   return (
     <V3AppShell recentRepositories={repositories}>
-      <div className="flex min-h-[calc(100vh-68px-48px)]">
+      <div className="flex min-h-[calc(100vh-var(--v3-app-chrome))]">
         {/* Main task area */}
         <div className="flex min-w-0 flex-1 flex-col border-r border-[var(--v3-border-soft)]">
           <div className="px-8 py-7">
@@ -293,7 +293,7 @@ export function TodayWorkspaceScreen(): JSX.Element {
                         {progress.done} / {progress.total} 已完成
                       </span>
                     </div>
-                    <div className="h-[4px] w-[297px] overflow-hidden rounded-full bg-[var(--v3-border-soft)]">
+                    <div className="h-[4px] w-full max-w-[297px] overflow-hidden rounded-full bg-[var(--v3-border-soft)]">
                       <div
                         className="h-full rounded-full bg-[var(--v3-primary)] transition-all duration-(--v3-standard)"
                         style={{ width: `${progressRatio * 100}%` }}

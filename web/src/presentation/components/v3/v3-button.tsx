@@ -22,7 +22,7 @@ const v3ButtonVariants = cva(
         primary:
           'h-[37px] px-[18px] text-[var(--v3-text-on-primary)] bg-[linear-gradient(180deg,var(--v3-primary-dim),var(--v3-primary))] hover:-translate-y-px hover:[filter:brightness(1.06)] hover:[box-shadow:var(--v3-glow-primary)] active:translate-y-0 active:[background:var(--v3-primary-active)] active:[box-shadow:none]',
         secondary:
-          'h-[37px] px-[18px] text-[var(--v3-text)] bg-[rgb(0_0_0/40%)] border border-[var(--v3-border)] hover:bg-[var(--v3-control)] hover:border-[var(--v3-border-hover)] active:bg-[var(--v3-control-active)]',
+          'h-[37px] px-[18px] text-[var(--v3-text)] bg-[var(--v3-control)] border border-[var(--v3-border)] hover:border-[var(--v3-border-hover)] active:bg-[var(--v3-control-active)]',
         ghost:
           'h-[37px] px-[18px] text-[var(--v3-text-secondary)] hover:text-[var(--v3-text-strong)] hover:bg-[var(--v3-control)]',
       },

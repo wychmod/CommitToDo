@@ -5,7 +5,7 @@ import * as ToastPrimitive from '@radix-ui/react-toast';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BarChart3, GitGraph, ListTodo } from 'lucide-react';
 
-import { V3AppShell, V3Button, V3Card } from '@/presentation/components/v3';
+import { V3AppShell, V3Button, V3Card, V3LoadingState } from '@/presentation/components/v3';
 import { cn } from '@/core/utils/formatters';
 import { Commit } from '@/domain/entities/commit';
 import {
@@ -168,7 +168,7 @@ export function InsightsScreen(): JSX.Element {
       currentRepositoryId={scope.repositoryId}
       recentRepositories={homeRepositories}
     >
-      <div className="min-h-[calc(100vh-68px-48px)] bg-[var(--v3-bg)] px-5 py-6 desktop:px-8">
+      <div className="min-h-[calc(100vh-var(--v3-app-chrome))] bg-[var(--v3-bg)] px-5 py-6 desktop:px-8">
         <div className="flex flex-col gap-5 desktop:flex-row desktop:gap-6">
           <div className="flex min-w-0 flex-1 flex-col gap-5">
             <header className="flex flex-col gap-4 tablet:flex-row tablet:items-end tablet:justify-between">
@@ -227,9 +227,7 @@ export function InsightsScreen(): JSX.Element {
 
             {isLoading ? (
               <V3Card className="flex h-[400px] items-center justify-center">
-                <span className="text-[14px] text-[var(--v3-text-muted)]">
-                  正在加载洞察数据…
-                </span>
+                <V3LoadingState title="正在加载洞察数据…" />
               </V3Card>
             ) : hasNoCommitsAtAll ? (
               <EmptyAllCommits />

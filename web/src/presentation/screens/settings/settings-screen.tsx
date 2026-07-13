@@ -9,6 +9,8 @@ import {
   LogIn,
 } from 'lucide-react';
 
+import { useShallow } from 'zustand/react/shallow';
+
 import { V3AppShell, V3Button, V3Card } from '@/presentation/components/v3';
 import { useSettingsScreenStore } from './settings-screen-store';
 import { SettingsSegmentedControl } from './settings-segmented-control';
@@ -19,11 +21,60 @@ import { RepositorySection } from './repository-section';
 import { PwaInstallButton } from './pwa-install-button';
 
 export function SettingsScreen(): JSX.Element {
-  const store = useSettingsScreenStore();
+  const {
+    scope,
+    repositories,
+    currentRepositoryId,
+    branches,
+    storageStatus,
+    storageSizeBytes,
+    lastSavedAt,
+    saveStatus,
+    pwaStatus,
+    notificationPermission,
+    load,
+    setScope,
+    refreshSaveStatus,
+    requestNotificationPermission,
+    exportData,
+    updateCurrentRepository,
+    archiveCurrentRepository,
+    deleteCurrentRepository,
+    installPwa,
+    setDeferredPrompt,
+    setPwaInstalled,
+  } = useSettingsScreenStore(
+    useShallow((state) => ({
+      scope: state.scope,
+      repositories: state.repositories,
+      currentRepositoryId: state.currentRepositoryId,
+      branches: state.branches,
+      storageStatus: state.storageStatus,
+      storageSizeBytes: state.storageSizeBytes,
+      lastSavedAt: state.lastSavedAt,
+      saveStatus: state.saveStatus,
+      pwaStatus: state.pwaStatus,
+      notificationPermission: state.notificationPermission,
+      load: state.load,
+      setScope: state.setScope,
+      refreshSaveStatus: state.refreshSaveStatus,
+      requestNotificationPermission: state.requestNotificationPermission,
+      exportData: state.exportData,
+      updateCurrentRepository: state.updateCurrentRepository,
+      archiveCurrentRepository: state.archiveCurrentRepository,
+      deleteCurrentRepository: state.deleteCurrentRepository,
+      installPwa: state.installPwa,
+      setDeferredPrompt: state.setDeferredPrompt,
+      setPwaInstalled: state.setPwaInstalled,
+    }))
+  );
 
+  // Load settings once on mount. The whole store must NOT be a dependency,
+  // because Zustand returns a new object reference on every state change,
+  // which would cause this effect to run again and create an infinite loop.
   React.useEffect(() => {
-    void store.load();
-  }, [store]);
+    void load();
+  }, [load]);
 
   React.useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event): void => {
@@ -32,11 +83,11 @@ export function SettingsScreen(): JSX.Element {
         prompt: () => Promise<void>;
         userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
       };
-      store.setDeferredPrompt(prompt);
+      setDeferredPrompt(prompt);
     };
 
     const handleAppInstalled = (): void => {
-      store.setPwaInstalled();
+      setPwaInstalled();
     };
 
     if (typeof window !== 'undefined') {
@@ -53,16 +104,15 @@ export function SettingsScreen(): JSX.Element {
         window.removeEventListener('appinstalled', handleAppInstalled);
       }
     };
-  }, [store]);
+  }, [setDeferredPrompt, setPwaInstalled]);
 
   const currentRepository = React.useMemo(
-    () =>
-      store.repositories.find((r) => r.id === store.currentRepositoryId) ?? null,
-    [store.repositories, store.currentRepositoryId]
+    () => repositories.find((r) => r.id === currentRepositoryId) ?? null,
+    [repositories, currentRepositoryId]
   );
 
-  const saveStatusText = getSaveStatusText(store.saveStatus);
-  const saveStatusColor = getSaveStatusColor(store.saveStatus);
+  const saveStatusText = getSaveStatusText(saveStatus);
+  const saveStatusColor = getSaveStatusColor(saveStatus);
 
   const scopeOptions = [
     { value: 'app' as const, label: '应用' },
@@ -71,12 +121,12 @@ export function SettingsScreen(): JSX.Element {
   ];
 
   const handleSaved = (): void => {
-    store.refreshSaveStatus();
+    refreshSaveStatus();
   };
 
   return (
-    <V3AppShell currentRepositoryId={store.currentRepositoryId ?? undefined}>
-      <div className="flex min-h-[calc(100vh-68px-48px)]">
+    <V3AppShell currentRepositoryId={currentRepositoryId ?? undefined}>
+      <div className="flex min-h-[calc(100vh-var(--v3-app-chrome))]">
         {/* Central settings area */}
         <div className="flex-1 px-6 py-8 desktop:px-10">
           <header className="flex flex-col gap-2 desktop:flex-row desktop:items-start desktop:justify-between">
@@ -96,8 +146,8 @@ export function SettingsScreen(): JSX.Element {
               <SettingsSegmentedControl
                 ariaLabel="设置范围"
                 options={scopeOptions}
-                value={store.scope}
-                onChange={(value) => store.setScope(value)}
+                value={scope}
+                onChange={(value) => setScope(value)}
               />
               <span
                 className="text-[13px]"
@@ -109,31 +159,31 @@ export function SettingsScreen(): JSX.Element {
             </div>
           </header>
 
-          <div className="mt-10 flex max-w-[960px] flex-col gap-12">
-            {(store.scope === 'app' || store.scope === 'workspace') && (
+          <div className="mt-10 flex max-w-[960px] flex-col gap-10">
+            {(scope === 'app' || scope === 'workspace') && (
               <>
                 <AppearanceSection onSaved={handleSaved} />
                 <RemindersSection
-                  notificationPermission={store.notificationPermission}
-                  onRequestPermission={store.requestNotificationPermission}
+                  notificationPermission={notificationPermission}
+                  onRequestPermission={requestNotificationPermission}
                   onSaved={handleSaved}
                 />
                 <DataSection
-                  storageStatus={store.storageStatus}
-                  storageSizeBytes={store.storageSizeBytes}
-                  lastSavedAt={store.lastSavedAt}
-                  onExport={store.exportData}
+                  storageStatus={storageStatus}
+                  storageSizeBytes={storageSizeBytes}
+                  lastSavedAt={lastSavedAt}
+                  onExport={exportData}
                 />
               </>
             )}
 
-            {(store.scope === 'app' || store.scope === 'repository') && (
+            {(scope === 'app' || scope === 'repository') && (
               <RepositorySection
                 repository={currentRepository}
-                branches={store.branches}
-                onUpdate={store.updateCurrentRepository}
-                onArchive={store.archiveCurrentRepository}
-                onDelete={store.deleteCurrentRepository}
+                branches={branches}
+                onUpdate={updateCurrentRepository}
+                onArchive={archiveCurrentRepository}
+                onDelete={deleteCurrentRepository}
                 onSaved={handleSaved}
               />
             )}
@@ -173,10 +223,7 @@ export function SettingsScreen(): JSX.Element {
               />
             </V3Card>
 
-            <PwaInstallButton
-              status={store.pwaStatus}
-              onInstall={store.installPwa}
-            />
+            <PwaInstallButton status={pwaStatus} onInstall={installPwa} />
 
             <V3Card className="flex flex-col gap-3 p-5">
               <div className="flex items-center gap-3">

@@ -90,6 +90,10 @@
   /* Geometry */
   --v3-content: 1328px;
   --v3-header-height: 64px;
+  --v3-top-bar-height: 68px;
+  --v3-status-bar-height: 48px;
+  --v3-nav-width: 252px;
+  --v3-mobile-nav-height: 56px;
   --v3-radius-sm: 4px;
   --v3-radius-md: 6px;
   --v3-radius-lg: 8px;
@@ -109,4 +113,120 @@
   --v3-shadow-panel: 0 24px 80px rgb(0 0 0 / 38%);
   --v3-glow-primary: 0 0 24px rgb(128 228 140 / 24%);
   --v3-focus-ring: 0 0 0 2px #000000, 0 0 0 4px rgb(145 237 156 / 75%);
+
+  /* Overlays */
+  --v3-overlay: rgb(0 0 0 / 60%);
+
+  /* App chrome height consumed by page min-height calculations.
+   * Default (mobile) sums the top bar, status bar and mobile bottom nav.
+   * At >=1024px the mobile nav is hidden, so the desktop value drops it. */
+  --v3-app-chrome: calc(
+    var(--v3-top-bar-height) + var(--v3-status-bar-height) +
+      var(--v3-mobile-nav-height)
+  );
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --v3-app-chrome: calc(
+      var(--v3-top-bar-height) + var(--v3-status-bar-height)
+    );
+  }
+}
+
+/* Light theme override.
+ * The Landing page remains the authoritative dark reference; these values are
+ * consumed only by V3 app pages that live under a `data-theme="light"` root.
+ */
+[data-theme='light'] {
+  /* Canvas and surfaces */
+  --v3-bg: #f5fbf8;
+  --v3-bg-near: #ffffff;
+  --v3-header: #f8fcfb;
+  --v3-sidebar: #edf7f3;
+  --v3-panel: #e1f0ec;
+  --v3-panel-alt: #e8f5f0;
+  --v3-card: #f0f7f4;
+  --v3-card-hover: #e8f5f0;
+  --v3-control: #e1f0ec;
+  --v3-control-hover: #d6e9e4;
+  --v3-selected: #cdded8;
+
+  /* Brand and branch colors — same hue family, tuned for light backgrounds */
+  --v3-primary: #3a9e4d;
+  --v3-primary-solid: #3a9e4d;
+  --v3-primary-dim: #2e8b3d;
+  --v3-primary-hover: #45b35a;
+  --v3-primary-active: #267536;
+  --v3-primary-soft: rgb(58 158 77 / 10%);
+  --v3-main: #3a9e4d;
+  --v3-launch: #00a69f;
+  --v3-design: #3b82f6;
+
+  /* Semantic */
+  --v3-success: #2e8b3d;
+  --v3-warning: #a46a00;
+  --v3-danger: #c73355;
+  --v3-info: #2563eb;
+
+  /* Semantic soft backgrounds */
+  --v3-launch-soft: rgb(0 166 159 / 12%);
+  --v3-warning-soft: rgb(164 106 0 / 10%);
+  --v3-danger-soft: rgb(199 51 85 / 10%);
+
+  /* Interactive surfaces */
+  --v3-border-hover: rgb(23 86 82 / 28%);
+  --v3-control-active: #edf7f3;
+
+  /* Text */
+  --v3-text-strong: #102523;
+  --v3-text: #36534e;
+  --v3-text-secondary: #58726d;
+  --v3-text-muted: #7d958f;
+  --v3-text-faint: #95aaa6;
+  --v3-text-disabled: #bfd3ce;
+  --v3-text-on-primary: #f4fff9;
+
+  /* Lines */
+  --v3-border: rgb(23 86 82 / 16%);
+  --v3-border-soft: rgb(23 86 82 / 8%);
+  --v3-divider: rgb(23 86 82 / 10%);
+  --v3-focus: #3a9e4d;
+
+  /* Heatmap */
+  --v3-heat-0: #e6efeb;
+  --v3-heat-1: rgb(58 158 77 / 18%);
+  --v3-heat-2: rgb(58 158 77 / 35%);
+  --v3-heat-3: rgb(46 139 61 / 55%);
+  --v3-heat-4: rgb(46 139 61 / 80%);
+
+  /* Geometry */
+  --v3-content: 1328px;
+  --v3-header-height: 64px;
+  --v3-top-bar-height: 68px;
+  --v3-status-bar-height: 48px;
+  --v3-nav-width: 252px;
+  --v3-mobile-nav-height: 56px;
+  --v3-radius-sm: 4px;
+  --v3-radius-md: 6px;
+  --v3-radius-lg: 8px;
+  --v3-radius-xl: 12px;
+  --v3-radius-full: 999px;
+
+  /* Motion */
+  --v3-fast: 120ms;
+  --v3-standard: 200ms;
+  --v3-emphasis: 360ms;
+  --v3-hero-enter: 700ms;
+  --v3-ease: cubic-bezier(0.2, 0, 0, 1);
+  --v3-ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --v3-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Elevation */
+  --v3-shadow-panel: 0 24px 80px rgb(0 0 0 / 12%);
+  --v3-glow-primary: 0 0 24px rgb(58 158 77 / 24%);
+  --v3-focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px rgb(58 158 77 / 75%);
+
+  /* Overlays */
+  --v3-overlay: rgb(0 0 0 / 45%);
 }

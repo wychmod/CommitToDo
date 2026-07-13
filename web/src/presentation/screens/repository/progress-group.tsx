@@ -208,12 +208,12 @@ function statusPillStyle(tone: string): React.CSSProperties {
       };
     case 'inProgress':
       return {
-        backgroundColor: 'rgb(89 203 208 / 12%)',
+        backgroundColor: 'var(--v3-launch-soft)',
         color: 'var(--v3-launch)',
       };
     case 'cancelled':
       return {
-        backgroundColor: 'rgb(230 99 91 / 12%)',
+        backgroundColor: 'var(--v3-danger-soft)',
         color: 'var(--v3-danger)',
       };
     default:
@@ -228,7 +228,7 @@ function priorityPillStyle(priority: Priority): React.CSSProperties {
   switch (priority) {
     case Priority.high:
       return {
-        backgroundColor: 'rgb(230 99 91 / 12%)',
+        backgroundColor: 'var(--v3-danger-soft)',
         color: 'var(--v3-danger)',
       };
     case Priority.low:
@@ -238,7 +238,7 @@ function priorityPillStyle(priority: Priority): React.CSSProperties {
       };
     default:
       return {
-        backgroundColor: 'rgb(89 203 208 / 12%)',
+        backgroundColor: 'var(--v3-launch-soft)',
         color: 'var(--v3-launch)',
       };
   }

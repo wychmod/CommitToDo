@@ -102,7 +102,7 @@ export function V3LeftNavigation({
   return (
     <nav
       className={cn(
-        'fixed bottom-[48px] left-0 top-[68px] z-30 flex w-[252px] flex-col border-r border-[var(--v3-border-soft)] bg-[var(--v3-sidebar)]',
+        'fixed bottom-[var(--v3-status-bar-height)] left-0 top-[var(--v3-top-bar-height)] z-30 hidden w-[var(--v3-nav-width)] flex-col border-r border-[var(--v3-border-soft)] bg-[var(--v3-sidebar)] laptop:flex',
         className
       )}
       aria-label="主导航"

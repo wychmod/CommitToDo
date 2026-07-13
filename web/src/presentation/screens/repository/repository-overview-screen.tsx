@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 
 import { Task } from '@/domain/entities/task';
 import { formatRelativeTime } from '@/core/utils/formatters';
-import { V3AppShell, V3Button, V3Card, V3Section } from '@/presentation/components/v3';
+import { V3AppShell, V3Button, V3Card, V3LoadingState, V3Section } from '@/presentation/components/v3';
 import { useRepositoryOverviewStore } from '@/presentation/stores/repository-overview-store';
 import { BranchSummaryCard } from './branch-summary-card';
 import { ProgressGroup } from './progress-group';
@@ -119,8 +119,8 @@ export function RepositoryOverviewScreen(): JSX.Element {
   if (isLoading || !repository) {
     return (
       <V3AppShell currentRepositoryId={repositoryId}>
-        <div className="flex h-[calc(100vh-68px-48px)] items-center justify-center">
-          <span className="text-[14px] text-[var(--v3-text-muted)]">加载中…</span>
+        <div className="flex min-h-[calc(100vh-var(--v3-top-bar-height)-var(--v3-status-bar-height))] items-center justify-center">
+          <V3LoadingState />
         </div>
       </V3AppShell>
     );
@@ -131,7 +131,7 @@ export function RepositoryOverviewScreen(): JSX.Element {
       <V3Section
         contained={false}
         padded={false}
-        className="min-h-[calc(100vh-68px-48px)] px-6 py-6 desktop:px-8"
+        className="min-h-[calc(100vh-var(--v3-app-chrome))] px-6 py-6 desktop:px-8"
       >
         <div className="mx-auto grid grid-cols-1 gap-6 desktop:grid-cols-[284px_1fr_399px]">
           {/* Main column */}

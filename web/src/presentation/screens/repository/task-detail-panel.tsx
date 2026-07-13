@@ -1,4 +1,14 @@
-import { Calendar, CheckCircle2, Edit3, GitBranch, GitCommit, RefreshCcw, Trash2, X } from 'lucide-react';
+import {
+  Calendar,
+  CheckCircle2,
+  ChevronRight,
+  Edit3,
+  GitBranch,
+  GitCommit,
+  RefreshCcw,
+  Trash2,
+  X,
+} from 'lucide-react';
 
 import { cn } from '@/core/utils/formatters';
 import { Commit } from '@/domain/entities/commit';
@@ -104,7 +114,12 @@ export function TaskDetailPanel({
                   <span className="font-mono text-[12px] text-[var(--v3-text-muted)]">{formatShortHash(completeCommit.id)} · 刚刚</span>
                 </div>
               </div>
-              <span className="text-[var(--v3-text-muted)]"></span>
+              <ChevronRight
+                size={16}
+                strokeWidth={1.5}
+                aria-hidden="true"
+                className="text-[var(--v3-text-muted)]"
+              />
             </div>
           ) : relatedCommits.length > 0 ? (
             <ul className="space-y-2">

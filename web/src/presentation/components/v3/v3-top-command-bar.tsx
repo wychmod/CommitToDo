@@ -82,7 +82,7 @@ export function V3TopCommandBar({
   return (
     <header
       className={cn(
-        'fixed left-0 right-0 top-0 z-40 flex h-[68px] items-center justify-between border-b border-[var(--v3-border-soft)] bg-[var(--v3-header)] px-4',
+        'fixed left-0 right-0 top-0 z-40 flex h-[var(--v3-top-bar-height)] items-center justify-between border-b border-[var(--v3-border-soft)] bg-[var(--v3-header)] px-4',
         className
       )}
       role="banner"

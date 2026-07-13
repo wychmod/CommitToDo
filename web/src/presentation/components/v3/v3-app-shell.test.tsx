@@ -1,6 +1,6 @@
 import '@/core/theme/v3-tokens.css';
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
@@ -126,31 +126,47 @@ describe('V3AppShell', () => {
     expect(screen.getByRole('contentinfo')).toBeInTheDocument();
   });
 
+  function getDesktopNav(): HTMLElement {
+    return screen.getByRole('navigation', { name: '主导航' });
+  }
+
   it('renders the same five primary navigation items on /workspace', () => {
     renderShell('/workspace');
 
-    expect(screen.getByRole('link', { name: '今日' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '仓库概览' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '仓库任务' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '洞察' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '设置' })).toBeInTheDocument();
+    const nav = getDesktopNav();
+    expect(within(nav).getByRole('link', { name: '今日' })).toBeInTheDocument();
+    expect(
+      within(nav).getByRole('link', { name: '仓库概览' })
+    ).toBeInTheDocument();
+    expect(
+      within(nav).getByRole('link', { name: '仓库任务' })
+    ).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: '洞察' })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: '设置' })).toBeInTheDocument();
   });
 
   it('renders the same five primary navigation items when inside a repository', () => {
     renderShell('/repository/repo-1', 'repo-1');
 
-    expect(screen.getByRole('link', { name: '今日' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '仓库概览' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '仓库任务' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '洞察' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '设置' })).toBeInTheDocument();
+    const nav = getDesktopNav();
+    expect(within(nav).getByRole('link', { name: '今日' })).toBeInTheDocument();
+    expect(
+      within(nav).getByRole('link', { name: '仓库概览' })
+    ).toBeInTheDocument();
+    expect(
+      within(nav).getByRole('link', { name: '仓库任务' })
+    ).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: '洞察' })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: '设置' })).toBeInTheDocument();
   });
 
   it('navigates to the target route when a nav link is clicked', async () => {
     const user = userEvent.setup();
     renderShell('/workspace');
 
-    await user.click(screen.getByRole('link', { name: '洞察' }));
+    await user.click(
+      within(getDesktopNav()).getByRole('link', { name: '洞察' })
+    );
 
     expect(screen.getByTestId('current-path')).toHaveTextContent('/insights');
     expect(screen.getByTestId('insights-content')).toBeInTheDocument();
@@ -162,7 +178,9 @@ describe('V3AppShell', () => {
 
     expect(screen.getByTestId('current-path')).toHaveTextContent('/repository/repo-1');
 
-    await user.click(screen.getByRole('link', { name: '仓库任务' }));
+    await user.click(
+      within(getDesktopNav()).getByRole('link', { name: '仓库任务' })
+    );
 
     expect(screen.getByTestId('current-path')).toHaveTextContent('/repository/repo-1/tasks');
     expect(screen.getByTestId('repo-tasks-content')).toBeInTheDocument();
@@ -172,7 +190,10 @@ describe('V3AppShell', () => {
     const user = userEvent.setup();
     renderShell('/workspace');
 
-    await user.click(screen.getByRole('button', { name: '打开命令面板' }));
+    const header = screen.getByRole('banner');
+    await user.click(
+      within(header).getByRole('button', { name: '打开命令面板' })
+    );
 
     expect(openPaletteMock).toHaveBeenCalledTimes(1);
   });
@@ -207,13 +228,60 @@ describe('V3AppShell', () => {
 
     renderShell('/workspace');
 
-    expect(screen.getByRole('link', { name: '设计系统' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '营销活动' })).toBeInTheDocument();
+    const nav = getDesktopNav();
+    expect(
+      within(nav).getByRole('link', { name: '设计系统' })
+    ).toBeInTheDocument();
+    expect(
+      within(nav).getByRole('link', { name: '营销活动' })
+    ).toBeInTheDocument();
   });
 
   it('renders the command palette component', () => {
     renderShell('/workspace');
 
     expect(screen.getByTestId('command-palette')).toBeInTheDocument();
+  });
+
+  it('uses CSS variables for shell sizing', () => {
+    renderShell('/workspace');
+
+    const main = screen.getByRole('main');
+    expect(main.className).toContain('mt-[var(--v3-top-bar-height)]');
+    expect(main.className).toContain('laptop:ml-[var(--v3-nav-width)]');
+    expect(main.className).toContain(
+      'pb-[calc(var(--v3-status-bar-height)+var(--v3-mobile-nav-height))]'
+    );
+    expect(main.className).toContain('laptop:pb-[var(--v3-status-bar-height)]');
+  });
+
+  it('hides desktop navigation and shows mobile bottom nav on narrow viewports', () => {
+    renderShell('/workspace');
+
+    const desktopNav = screen.getByRole('navigation', { name: '主导航' });
+    expect(desktopNav).toHaveClass('hidden');
+    expect(desktopNav).toHaveClass('laptop:flex');
+
+    const mobileNav = screen.getByRole('navigation', { name: '移动端主导航' });
+    expect(mobileNav).toBeInTheDocument();
+    expect(mobileNav).toHaveClass('laptop:hidden');
+  });
+
+  it('renders mobile bottom nav links', () => {
+    renderShell('/workspace');
+
+    const mobileNav = screen.getByRole('navigation', { name: '移动端主导航' });
+    expect(
+      within(mobileNav).getByRole('link', { name: '今日' })
+    ).toBeInTheDocument();
+    expect(
+      within(mobileNav).getByRole('link', { name: '仓库' })
+    ).toBeInTheDocument();
+    expect(
+      within(mobileNav).getByRole('link', { name: '洞察' })
+    ).toBeInTheDocument();
+    expect(
+      within(mobileNav).getByRole('button', { name: '打开命令面板' })
+    ).toBeInTheDocument();
   });
 });

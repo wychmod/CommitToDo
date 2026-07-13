@@ -44,7 +44,7 @@ export function V3BottomStatusBar({
   return (
     <footer
       className={cn(
-        'fixed bottom-0 left-0 right-0 z-40 flex h-[48px] items-center justify-between border-t border-[var(--v3-border-soft)] bg-[var(--v3-header)] px-4 text-[13px]',
+        'fixed bottom-0 left-0 right-0 z-40 flex h-[var(--v3-status-bar-height)] items-center justify-between border-t border-[var(--v3-border-soft)] bg-[var(--v3-header)] px-4 text-[13px]',
         className
       )}
       role="contentinfo"

@@ -261,7 +261,7 @@ export function RepositoryTasksScreen(): JSX.Element {
   if (!isLoading && !repository) {
     return (
       <V3AppShell currentRepositoryId={repositoryId}>
-        <div className="flex min-h-[calc(100vh-68px-48px)] flex-col items-center justify-center gap-3 p-8 text-center">
+        <div className="flex min-h-[calc(100vh-var(--v3-app-chrome))] flex-col items-center justify-center gap-3 p-8 text-center">
           <p className="text-[18px] font-semibold text-[var(--v3-text-strong)]">仓库不存在</p>
           <p className="text-[14px] text-[var(--v3-text-secondary)]">
             这个仓库可能已被删除或链接已失效。
@@ -273,7 +273,7 @@ export function RepositoryTasksScreen(): JSX.Element {
 
   return (
     <V3AppShell currentRepositoryId={repositoryId}>
-      <div className="flex min-h-[calc(100vh-68px-48px)] flex-col gap-5 p-5 desktop:p-6">
+      <div className="flex min-h-[calc(100vh-var(--v3-app-chrome))] flex-col gap-5 p-5 desktop:p-6">
         <header className="flex flex-col gap-1">
           <span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--v3-primary)]">
             Repository Tasks

@@ -293,20 +293,55 @@ describe('RepositoryTasksScreen', () => {
     expect(screen.queryByRole('row', { name: /整理下周训练任务/i })).not.toBeInTheDocument();
   });
 
-  it('filters tasks by priority', async () => {
+  it('filters tasks by priority in the sidebar', async () => {
     const user = userEvent.setup();
     const { repositoryId } = await createDemoData();
     renderScreen(repositoryId);
 
     await waitForRow(/完成晨跑 5 km/i);
 
-    const priorityCheckbox = screen.getByLabelText('高');
+    const sidebar = screen.getByLabelText('任务筛选');
+    const priorityCheckbox = within(sidebar).getByLabelText('高');
     await user.click(priorityCheckbox);
 
     await waitFor(() => {
       expect(getRowByName(/准备周末长跑/i)).toBeInTheDocument();
     });
     expect(screen.queryByRole('row', { name: /完成晨跑 5 km/i })).not.toBeInTheDocument();
+  });
+
+  it('filters tasks by priority via the toolbar popover', async () => {
+    const user = userEvent.setup();
+    const { repositoryId } = await createDemoData();
+    renderScreen(repositoryId);
+
+    await waitForRow(/完成晨跑 5 km/i);
+
+    await user.click(screen.getByRole('button', { name: '优先级筛选' }));
+
+    const dialog = await screen.findByRole('dialog', { name: '优先级选项' });
+    const highOption = within(dialog).getByText('高');
+    await user.click(highOption);
+
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => {
+      expect(getRowByName(/准备周末长跑/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('row', { name: /完成晨跑 5 km/i })).not.toBeInTheDocument();
+
+    // Sidebar checkbox should reflect the same state.
+    const sidebar = screen.getByLabelText('任务筛选');
+    expect(within(sidebar).getByLabelText('高')).toBeChecked();
+  });
+
+  it('does not render a native priority multiple select', async () => {
+    const { repositoryId } = await createDemoData();
+    renderScreen(repositoryId);
+
+    await waitForRow(/完成晨跑 5 km/i);
+
+    expect(document.querySelector('select[multiple]')).not.toBeInTheDocument();
   });
 
   it('updates the detail panel when a task row is clicked', async () => {
