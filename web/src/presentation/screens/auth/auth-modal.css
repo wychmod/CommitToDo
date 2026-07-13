@@ -1,0 +1,224 @@
+/*
+ * Auth modal styles.
+ *
+ * Self-contained Presentation styles for the demo auth dialog. Colors, radii,
+ * shadows and motion all reference `--v3-*` tokens (no raw hex). Layout that
+ * Tailwind expresses well stays in the components; this file owns only what
+ * generic utilities cannot: the Radix data-state animations, the scrollable
+ * overlay, the mobile full-screen breakpoint, 100dvh / safe-area, the branch
+ * visual's one-shot fade and the loading spinner.
+ */
+
+/* ---------- Overlay: backdrop + scroll container ---------- */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  /* Slightly more bottom padding biases the modal above the vertical center. */
+  padding: 24px 24px 64px;
+  overflow-y: auto;
+  background: var(--v3-overlay);
+}
+
+/* ---------- Content: the panel ---------- */
+.auth-content {
+  position: relative;
+  margin-block: auto;
+  width: 488px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100dvh - 88px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--v3-card);
+  border: 1px solid var(--v3-border);
+  border-radius: var(--v3-radius-lg);
+  box-shadow: var(--v3-shadow-panel);
+}
+
+.auth-header {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 28px 0;
+}
+
+.auth-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 28px 24px;
+}
+
+/* Sticky brand/close row on mobile so the close button is always reachable. */
+.auth-trust {
+  flex-shrink: 0;
+  border-top: 1px solid var(--v3-divider);
+  padding: 14px 28px;
+}
+
+/* ---------- Close button (Dialog.Close) ---------- */
+.auth-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--v3-radius-md);
+  color: var(--v3-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  transition:
+    background-color var(--v3-fast) var(--v3-ease),
+    color var(--v3-fast) var(--v3-ease),
+    border-color var(--v3-fast) var(--v3-ease);
+}
+.auth-close:hover {
+  background: var(--v3-control);
+  color: var(--v3-text-strong);
+  border-color: var(--v3-border);
+}
+.auth-close:focus-visible {
+  outline: none;
+  box-shadow: var(--v3-focus-ring);
+}
+
+/* ---------- Branch visual: one-shot fade in ---------- */
+.auth-branch {
+  opacity: 0;
+  animation: auth-branch-in var(--v3-emphasis) var(--v3-ease-enter) forwards;
+}
+
+@keyframes auth-branch-in {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Loading spinner ---------- */
+.auth-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--v3-radius-full);
+  border: 2px solid var(--v3-border);
+  border-top-color: var(--v3-primary);
+  animation: auth-spin 0.7s linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Radix data-state animations ---------- */
+.auth-overlay[data-state='open'] {
+  animation: auth-overlay-in var(--v3-standard) var(--v3-ease-enter);
+}
+.auth-overlay[data-state='closed'] {
+  animation: auth-overlay-out var(--v3-fast) var(--v3-ease-exit);
+}
+.auth-content[data-state='open'] {
+  animation: auth-content-in var(--v3-standard) var(--v3-ease-enter);
+}
+.auth-content[data-state='closed'] {
+  animation: auth-content-out var(--v3-fast) var(--v3-ease-exit);
+}
+
+@keyframes auth-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes auth-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes auth-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes auth-content-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ---------- Mobile: full-screen dialog (< 768px) ---------- */
+@media (max-width: 767px) {
+  .auth-overlay {
+    padding: 0;
+    background: var(--v3-bg);
+  }
+  .auth-content {
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    min-height: 100dvh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+  .auth-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 16px 20px 0;
+    background: var(--v3-card);
+  }
+  .auth-close {
+    top: 12px;
+    right: 12px;
+  }
+  .auth-body {
+    padding: 14px 20px 24px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+  .auth-trust {
+    padding: 14px 20px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Reduced motion: cancel位移, keep instant state ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .auth-overlay[data-state='open'],
+  .auth-overlay[data-state='closed'],
+  .auth-content[data-state='open'],
+  .auth-content[data-state='closed'] {
+    animation: none;
+  }
+  .auth-branch {
+    animation: none;
+    opacity: 1;
+  }
+  .auth-spinner {
+    animation: none;
+  }
+}

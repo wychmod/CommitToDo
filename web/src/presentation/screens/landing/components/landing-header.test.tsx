@@ -1,13 +1,27 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { useDemoAuthStore } from '@/presentation/stores/demo-auth-store';
 import { LandingHeader } from './landing-header';
 
 function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
   return render(<MemoryRouter>{ui}</MemoryRouter>);
 }
 
+function resetStore(): void {
+  useDemoAuthStore.setState({ session: null, operation: null, error: null });
+}
+
 describe('LandingHeader', () => {
+  beforeEach(() => {
+    resetStore();
+  });
+
+  afterEach(() => {
+    resetStore();
+  });
+
   it('renders the brand', () => {
     renderWithRouter(<LandingHeader />);
 
@@ -31,11 +45,34 @@ describe('LandingHeader', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the login and get-started actions', () => {
+  it('points the guest login link to /login and get-started to /workspace', () => {
     renderWithRouter(<LandingHeader />);
 
-    expect(screen.getByText('登录')).toBeInTheDocument();
-    expect(screen.getByText('开始使用')).toBeInTheDocument();
+    const login = screen.getByText('登录');
+    expect(login).toHaveAttribute('href', '/login');
+    expect(login).toHaveAttribute('id', 'landing-login-trigger');
+
+    const start = screen.getByText('开始使用');
+    expect(start).toHaveAttribute('href', '/workspace');
+  });
+
+  it('shows the workspace entry instead of login for authenticated visitors', () => {
+    useDemoAuthStore.setState({
+      session: {
+        version: 1,
+        user: {
+          username: 'admin',
+          provider: 'credentials',
+          signedInAt: '2026-07-14T00:00:00.000Z',
+        },
+        persistence: 'local',
+      },
+    });
+
+    renderWithRouter(<LandingHeader />);
+
+    expect(screen.getByText('工作台')).toHaveAttribute('href', '/workspace');
+    expect(screen.queryByText('登录')).not.toBeInTheDocument();
   });
 
   it('renders the theme toggle button', () => {

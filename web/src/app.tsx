@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-
 const routerBasename = import.meta.env.VITE_APP_BASENAME || '/';
 import { ThemeProvider } from './core/theme/theme-provider';
 import { ToastProvider } from './presentation/components/common/toast-provider';
-import { LandingPage } from './presentation/screens/landing/landing-page';
+import { LandingAuthLayout } from './presentation/screens/auth/landing-auth-layout';
 import { TodayWorkspaceScreen } from './presentation/screens/workspace/today-workspace-screen';
 import { RepositoryOverviewScreen } from './presentation/screens/repository/repository-overview-screen';
 import { RepositoryTasksScreen } from './presentation/screens/repository/repository-tasks-screen';
@@ -21,8 +21,13 @@ function App(): JSX.Element {
       <ToastProvider>
         <BrowserRouter basename={routerBasename}>
           <Routes>
-            {/* Landing / brand stage */}
-            <Route path="/" element={<LandingPage />} />
+            {/* Landing / brand stage - shared with /login and /signup so the
+                Hero canvas and scroll stay mounted across auth routes. */}
+            <Route path="/" element={<LandingAuthLayout />}>
+              <Route index element={null} />
+              <Route path="login" element={null} />
+              <Route path="signup" element={null} />
+            </Route>
 
             {/* V3 app screens (each provides its own shell) */}
             <Route path="workspace" element={<TodayWorkspaceScreen />} />

@@ -29,11 +29,10 @@
           <value>
             <TabSessionState>
               <option name="provider" value="claude" />
-              <option name="sessionId" value="971b0b7a-9ff7-4142-bc1e-b93f022005ce" />
+              <option name="sessionId" value="f7bdb353-df67-482a-97b1-af7ceccfb580" />
               <option name="cwd" value="D:\idea\Commit\web" />
               <option name="model" value="claude-opus-4-8[1m]" />
               <option name="permissionMode" value="bypassPermissions" />
-              <option name="reasoningEffort" value="max" />
             </TabSessionState>
           </value>
         </entry>

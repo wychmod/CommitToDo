@@ -2,10 +2,13 @@ import { Moon, Sun } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { useSettingsStore } from '@/presentation/stores/settings-store';
+import { useDemoAuthStore } from '@/presentation/stores/demo-auth-store';
+import { selectIsAuthenticated } from '@/presentation/screens/auth/auth-types';
 
 export function LandingHeaderActions(): JSX.Element {
   const isDarkMode = useSettingsStore((s) => s.isDarkMode);
   const setDarkMode = useSettingsStore((s) => s.setDarkMode);
+  const isAuthenticated = useDemoAuthStore(selectIsAuthenticated);
 
   return (
     <div className="flex items-center gap-3">
@@ -37,12 +40,22 @@ export function LandingHeaderActions(): JSX.Element {
         )}
       </button>
 
-      <Link
-        to="/workspace"
-        className="v3-btn v3-btn-secondary hidden h-[34px] px-4 text-[13px] tablet:inline-flex"
-      >
-        登录
-      </Link>
+      {isAuthenticated ? (
+        <Link
+          to="/workspace"
+          className="v3-btn v3-btn-secondary hidden h-[34px] px-4 text-[13px] tablet:inline-flex"
+        >
+          工作台
+        </Link>
+      ) : (
+        <Link
+          id="landing-login-trigger"
+          to="/login"
+          className="v3-btn v3-btn-secondary hidden h-[34px] px-4 text-[13px] tablet:inline-flex"
+        >
+          登录
+        </Link>
+      )}
 
       <Link
         to="/workspace"

@@ -42,6 +42,12 @@ vi.mock('@/presentation/stores/settings-store', () => ({
     }),
 }));
 
+vi.mock('@/presentation/stores/demo-auth-store', () => ({
+  useDemoAuthStore: (
+    selector: (state: { session: null; signOut: () => void }) => unknown,
+  ) => selector({ session: null, signOut: vi.fn() }),
+}));
+
 let homeStoreState: {
   repositories: Repository[];
   load: () => void;
@@ -241,6 +247,15 @@ describe('V3AppShell', () => {
     renderShell('/workspace');
 
     expect(screen.getByTestId('command-palette')).toBeInTheDocument();
+  });
+
+  it('renders the guest user menu trigger in the top bar', () => {
+    renderShell('/workspace');
+
+    const header = screen.getByRole('banner');
+    expect(
+      within(header).getByRole('button', { name: '用户菜单' })
+    ).toBeInTheDocument();
   });
 
   it('uses CSS variables for shell sizing', () => {

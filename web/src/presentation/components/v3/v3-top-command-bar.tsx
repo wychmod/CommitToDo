@@ -14,7 +14,6 @@ import {
   Search,
   Star,
   Sun,
-  User,
 } from 'lucide-react';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +25,7 @@ import { useSettingsStore } from '@/presentation/stores/settings-store';
 import { useCommandPaletteStore } from '@/presentation/components/command-palette/command-palette.store';
 import { V3IconButton } from './v3-icon-button';
 import { V3NewMenu } from './v3-new-menu';
+import { V3UserMenu } from './v3-user-menu';
 
 export interface V3TopCommandBarProps {
   currentRepositoryId?: string;
@@ -160,7 +160,7 @@ export function V3TopCommandBar({
           <Bell size={16} strokeWidth={1.5} aria-hidden="true" />
         </V3IconButton>
 
-        <UserMenu />
+        <V3UserMenu />
       </div>
     </header>
   );
@@ -328,62 +328,6 @@ function RepositorySwitcher({
           >
             <Plus size={14} strokeWidth={1.5} aria-hidden="true" />
             <span>新建仓库</span>
-          </button>
-        </PopoverPrimitive.Content>
-      </PopoverPrimitive.Portal>
-    </PopoverPrimitive.Root>
-  );
-}
-
-function UserMenu(): JSX.Element {
-  const navigate = useNavigate();
-  const [open, setOpen] = React.useState(false);
-
-  return (
-    <PopoverPrimitive.Root open={open} onOpenChange={setOpen}>
-      <PopoverPrimitive.Trigger asChild>
-        <button
-          type="button"
-          aria-label="用户菜单"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] text-[var(--v3-text-secondary)] transition-[background-color,border-color,color] duration-(--v3-fast) hover:border-[var(--v3-border)] hover:bg-[var(--v3-control)] hover:text-[var(--v3-text-strong)] focus-visible:outline-none focus-visible:[box-shadow:var(--v3-focus-ring)]"
-        >
-          <User size={16} strokeWidth={1.5} aria-hidden="true" />
-        </button>
-      </PopoverPrimitive.Trigger>
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
-          align="end"
-          sideOffset={6}
-          className="z-50 min-w-[200px] rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-card)] p-1 shadow-[var(--v3-shadow-panel)]"
-        >
-          <div className="px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-[var(--v3-text-muted)]">
-              当前状态
-            </p>
-            <p className="mt-1 text-[14px] font-medium text-[var(--v3-text-strong)]">
-              本地模式
-            </p>
-            <p className="mt-0.5 text-[12px] text-[var(--v3-text-muted)]">
-              数据保存在本机 IndexedDB
-            </p>
-          </div>
-          <div className="my-1 h-px bg-[var(--v3-divider)]" aria-hidden="true" />
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              navigate('/settings');
-            }}
-            className="flex w-full items-center gap-2 rounded-[var(--v3-radius-sm)] px-2 py-1.5 text-left text-[13px] text-[var(--v3-text)] transition-colors hover:bg-[var(--v3-control)]"
-          >
-            <span>设置</span>
-          </button>
-          <button
-            type="button"
-            disabled
-            className="flex w-full items-center gap-2 rounded-[var(--v3-radius-sm)] px-2 py-1.5 text-left text-[13px] text-[var(--v3-text-disabled)]"
-          >
-            <span>退出本地模式（即将支持）</span>
           </button>
         </PopoverPrimitive.Content>
       </PopoverPrimitive.Portal>
