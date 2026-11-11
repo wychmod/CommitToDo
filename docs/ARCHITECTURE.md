@@ -123,11 +123,11 @@ Store 在构造时通过 DI 容器解析 UseCase，组件按选择器订阅，�
 | `/` | 落地页（嵌套 `/login`、`/signup`） | 公开 |
 | `/auth/callback` | OAuth 回调 | 公开 |
 | `/auth/local-data` | 本地数据归属选择 | 公开 |
-| `/workspace` | 今日工作台 | 登录 + 工作区归属 |
-| `/repository/:id` | 仓库概览 | 登录 + 工作区归属 |
-| `/repository/:id/tasks` | 仓库任务 | 登录 + 工作区归属 |
-| `/insights` | 洞察（`?tab=activity\|graph\|heatmap`） | 登录 + 工作区归属 |
-| `/settings` · `/settings/security` | 设置 / 账户安全 | 登录 + 工作区归属 |
+| `/workspace` | 今日工作台 | 登录 + 工作区归属（本地模式放行） |
+| `/repository/:id` | 仓库概览 | 登录 + 工作区归属（本地模式放行） |
+| `/repository/:id/tasks` | 仓库任务 | 登录 + 工作区归属（本地模式放行） |
+| `/insights` | 洞察（`?tab=activity\|graph\|heatmap`） | 登录 + 工作区归属（本地模式放行） |
+| `/settings` · `/settings/security` | 设置 / 账户安全 | 登录 + 工作区归属（本地模式放行） |
 
 另有一组旧路径（`/search`、`/heatmap`、`/graph`、`/repository/:id/{commits,graph,heatmap,search,settings}`、`/task/:id`）重定向到新路由，属于兼容层，不再扩展。
 
@@ -154,6 +154,19 @@ Store 在构造时通过 DI 容器解析 UseCase，组件按选择器订阅，�
 ### 7.3 配置边界
 
 真实 `EnvId`、Publishable Key、PG 连接串、SMTP/SMS 凭证、CAPTCHA token 一律通过环境变量或密钥管理注入，仓库内只保留 `.env.example` 与 `cloudbaserc.example.json`。
+
+---
+
+### 7.4 本地模式（无需登录）
+
+认证不是使用前提。`auth-store` 持有 `mode: 'local' | 'cloud'`，持久化在 `commit.auth-mode.v1`，默认 `local`：
+
+- **local**：`initialize()` 完全不触碰 CloudBase，状态直接置为 `guest`；`AuthenticatedRoute` 与 `WorkspaceOwnershipGuard` 直接放行；数据写入本地库 `commit-db`。
+- **cloud**：登录成功后写入该模式，数据切换到 `commit-db-{principalId}`。首次登录由归属守卫引导到 `/auth/local-data`，选择「认领本地数据」或「新建工作区」。
+- **退出登录**：解除工作区绑定并回到 `local`，需重新加载页面以切换数据库实例。
+- **云端不可用**：会话初始化失败时，错误页提供「使用本地数据」入口，不会把用户卡在错误页。
+
+因此本地开发不需要任何 CloudBase 配置即可跑通全部业务功能；CloudBase 只影响登录与账号安全能力。
 
 ---
 
@@ -192,7 +205,7 @@ Store 在构造时通过 DI 容器解析 UseCase，组件按选择器订阅，�
 
 按阻断程度排序：
 
-1. **认证未达上线条件**。缺目标环境的 Provider、密钥、PgSQL/RLS、函数权限验证；手机验证码链路未闭环（前端开关默认关闭）；重新认证、身份解绑、双账号合并未实现；无真实浏览器端到端验证。
+1. **认证未达上线条件**。缺目标环境的 Provider、密钥、PgSQL/RLS、函数权限验证；手机验证码链路未闭环（前端开关默认关闭）；重新认证、身份解绑、双账号合并未实现；无真实浏览器端到端验证。以上只影响登录能力，本地模式已可完整使用。
 2. **无同步能力**。数据只存在本机，换设备、换浏览器即丢失上下文；多端并存时会出现多个互不相通的数据库。
 3. **提醒未闭环**。通知服务只提供「申请权限」与「立即发送」两个能力，全仓无调用点，也没有截止前定时调度。
 4. **子任务与标签仅有模型**。`parentTaskId` 无界面入口，`tags` 无仓储与 UI。
