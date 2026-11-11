@@ -4,7 +4,7 @@ import * as React from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useDemoAuthStore } from '@/presentation/stores/demo-auth-store';
+import { useAuthStore } from '@/presentation/stores/auth-store';
 
 import { LandingAuthLayout } from './landing-auth-layout';
 import { authModeFromPathname } from './landing-auth-layout';
@@ -44,7 +44,14 @@ function renderAt(initialPath: string): ReturnType<typeof render> {
 }
 
 function resetStore(): void {
-  useDemoAuthStore.setState({ session: null, operation: null, error: null });
+  useAuthStore.setState({
+    status: 'guest',
+    session: null,
+    profile: null,
+    operation: null,
+    error: null,
+    initialize: async () => {},
+  });
 }
 
 describe('authModeFromPathname', () => {
@@ -117,20 +124,18 @@ describe('LandingAuthLayout', () => {
   });
 
   it('redirects authenticated visitors from /login to /workspace', async () => {
-    renderAt('/login');
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-
-    useDemoAuthStore.setState({
+    useAuthStore.setState({
+      status: 'authenticated',
+      initialize: async () => {},
       session: {
-        version: 1,
-        user: {
-          username: 'admin',
-          provider: 'credentials',
-          signedInAt: '2026-07-14T00:00:00.000Z',
-        },
-        persistence: 'local',
+        userId: 'principal-1',
+        email: 'user@example.com',
+        provider: 'email',
+        expiresAt: Date.now() + 3600_000,
       },
+      profile: null,
     });
+    renderAt('/login');
 
     await waitFor(() =>
       expect(screen.getByTestId('current-path')).toHaveTextContent('/workspace')

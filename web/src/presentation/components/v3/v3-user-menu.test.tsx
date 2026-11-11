@@ -3,8 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useDemoAuthStore } from '@/presentation/stores/demo-auth-store';
-import type { DemoAuthSession } from '@/presentation/screens/auth/auth-types';
+import { useAuthStore } from '@/presentation/stores/auth-store';
 
 import { V3UserMenu } from './v3-user-menu';
 
@@ -23,21 +22,13 @@ function renderMenu(initialPath = '/workspace'): ReturnType<typeof render> {
 }
 
 function resetStore(): void {
-  useDemoAuthStore.setState({ session: null, operation: null, error: null });
-}
-
-function makeSession(
-  provider: 'credentials' | 'github' = 'credentials'
-): DemoAuthSession {
-  return {
-    version: 1,
-    user: {
-      username: 'admin',
-      provider,
-      signedInAt: '2026-07-14T00:00:00.000Z',
-    },
-    persistence: 'local',
-  };
+  useAuthStore.setState({
+    status: 'guest',
+    session: null,
+    profile: null,
+    operation: null,
+    error: null,
+  });
 }
 
 describe('V3UserMenu', () => {
@@ -49,64 +40,114 @@ describe('V3UserMenu', () => {
     resetStore();
   });
 
-  it('shows local mode and demo login entry for guests', async () => {
+  it('shows local mode and login entry for guests', async () => {
     renderMenu();
 
     await userEvent.click(screen.getByRole('button', { name: '用户菜单' }));
 
     expect(screen.getByText('本地模式')).toBeInTheDocument();
     expect(screen.getByText('数据保存在本机 IndexedDB')).toBeInTheDocument();
-    expect(screen.getByText('登录演示账号')).toBeInTheDocument();
+    expect(screen.getByText('登录')).toBeInTheDocument();
     expect(screen.getByText('设置')).toBeInTheDocument();
   });
 
-  it('navigates to /login when the demo login entry is clicked', async () => {
+  it('navigates to /login when the login entry is clicked', async () => {
     renderMenu();
 
     await userEvent.click(screen.getByRole('button', { name: '用户菜单' }));
-    await userEvent.click(screen.getByText('登录演示账号'));
+    await userEvent.click(screen.getByText('登录'));
 
     expect(screen.getByTestId('current-path')).toHaveTextContent('/login');
   });
 
-  it('shows admin and the credentials provider label when authenticated', async () => {
-    useDemoAuthStore.setState({ session: makeSession('credentials') });
+  it('shows email and the email provider label when authenticated', async () => {
+    useAuthStore.setState({
+      status: 'authenticated',
+      session: {
+        userId: 'principal-1',
+        email: 'user@example.com',
+        provider: 'email',
+        expiresAt: Date.now() + 3600_000,
+      },
+      profile: {
+        principalId: 'principal-1',
+        email: 'user@example.com',
+        displayName: 'Test User',
+        avatarUrl: null,
+        locale: 'zh-CN',
+        securityVersion: 1,
+        identities: [],
+      },
+    });
     renderMenu();
 
-    await userEvent.click(screen.getByRole('button', { name: 'admin 用户菜单' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Test User 用户菜单' }));
 
-    expect(screen.getByText('admin')).toBeInTheDocument();
-    expect(screen.getByText('账号密码演示登录')).toBeInTheDocument();
+    expect(screen.getByText('Test User')).toBeInTheDocument();
+    expect(screen.getByText('user@example.com')).toBeInTheDocument();
+    expect(screen.getByText('邮箱登录')).toBeInTheDocument();
     expect(screen.getByText('业务数据仍保存在本机')).toBeInTheDocument();
     expect(screen.getByText('退出登录')).toBeInTheDocument();
   });
 
   it('shows the GitHub provider label for github sessions', async () => {
-    useDemoAuthStore.setState({ session: makeSession('github') });
+    useAuthStore.setState({
+      status: 'authenticated',
+      session: {
+        userId: 'principal-2',
+        email: null,
+        provider: 'github',
+        expiresAt: Date.now() + 3600_000,
+      },
+      profile: {
+        principalId: 'principal-2',
+        email: null,
+        displayName: 'GitHub User',
+        avatarUrl: null,
+        locale: 'zh-CN',
+        securityVersion: 1,
+        identities: [],
+      },
+    });
     renderMenu();
 
-    await userEvent.click(screen.getByRole('button', { name: 'admin 用户菜单' }));
+    await userEvent.click(screen.getByRole('button', { name: 'GitHub User 用户菜单' }));
 
-    expect(screen.getByText('GitHub 演示登录')).toBeInTheDocument();
+    expect(screen.getByText('GitHub 登录')).toBeInTheDocument();
   });
 
   it('signs out and returns to / on logout', async () => {
-    const signOutSpy = vi.fn(() => {
-      useDemoAuthStore.setState({ session: null, operation: null, error: null });
+    const signOutSpy = vi.fn(async () => {
+      useAuthStore.setState({ status: 'guest', session: null, profile: null });
     });
-    useDemoAuthStore.setState({
-      session: makeSession('credentials'),
+    useAuthStore.setState({
+      status: 'authenticated',
+      session: {
+        userId: 'principal-3',
+        email: 'user@example.com',
+        provider: 'email',
+        expiresAt: Date.now() + 3600_000,
+      },
+      profile: {
+        principalId: 'principal-3',
+        email: 'user@example.com',
+        displayName: 'User',
+        avatarUrl: null,
+        locale: 'zh-CN',
+        securityVersion: 1,
+        identities: [],
+      },
       signOut: signOutSpy,
     });
     renderMenu();
 
-    await userEvent.click(screen.getByRole('button', { name: 'admin 用户菜单' }));
+    await userEvent.click(screen.getByRole('button', { name: 'User 用户菜单' }));
     const logout = screen.getByRole('button', { name: '退出登录' });
     expect(logout).not.toBeDisabled();
     await userEvent.click(logout);
 
     expect(signOutSpy).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('current-path')).toHaveTextContent('/');
-    expect(useDemoAuthStore.getState().session).toBeNull();
+    expect(useAuthStore.getState().session).toBeNull();
   });
 });

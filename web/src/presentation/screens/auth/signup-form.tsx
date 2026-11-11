@@ -1,60 +1,60 @@
-import { Eye, EyeOff, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Github, Lock, Mail } from 'lucide-react';
 import * as React from 'react';
 
-import type {
-  AuthOperation,
-  DemoRegistrationResult,
-  SignupFormValues,
-} from './auth-types';
-import { firstSignupErrorField, validateSignupForm } from './auth-validation';
 import { AuthField } from './auth-field';
+import type { AuthOperation } from './auth-types';
+import { firstSignupErrorField, validateSignupForm } from './auth-validation';
 
-const SIGNUP_LOADING = '正在创建演示账户…';
+const SIGNUP_LOADING = '正在创建账户…';
 
 export interface SignupFormProps {
   operation: AuthOperation;
-  onSubmit(values: SignupFormValues): Promise<DemoRegistrationResult>;
-  onCompleted(username: 'admin'): void;
+  githubEnabled: boolean;
+  onSubmit(values: { email: string; password: string }): Promise<{ verificationId: string } | null>;
+  onCompleted(email: string): void;
   onNavigateLogin(): void;
+  onGithub(): Promise<void>;
 }
 
 export function SignupForm({
   operation,
+  githubEnabled,
   onSubmit,
   onCompleted,
   onNavigateLogin,
+  onGithub,
 }: SignupFormProps): JSX.Element {
-  const [username, setUsername] = React.useState('');
+  const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [acceptedTerms, setAcceptedTerms] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [errors, setErrors] = React.useState<{
-    username?: string;
+    email?: string;
     password?: string;
     confirmPassword?: string;
     acceptedTerms?: string;
   }>({});
 
-  const usernameRef = React.useRef<HTMLInputElement>(null);
+  const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
   const confirmRef = React.useRef<HTMLInputElement>(null);
   const termsRef = React.useRef<HTMLInputElement>(null);
 
-  const isBusy = operation === 'signup';
+  const isBusy = operation === 'signup-email' || operation === 'github';
 
   const focusField = (
-    field: 'username' | 'password' | 'confirmPassword' | 'acceptedTerms'
+    field: 'email' | 'password' | 'confirmPassword' | 'acceptedTerms'
   ): void => {
-    if (field === 'username') usernameRef.current?.focus();
+    if (field === 'email') emailRef.current?.focus();
     else if (field === 'password') passwordRef.current?.focus();
     else if (field === 'confirmPassword') confirmRef.current?.focus();
     else termsRef.current?.focus();
   };
 
   const clearFieldError = (
-    field: 'username' | 'password' | 'confirmPassword' | 'acceptedTerms'
+    field: 'email' | 'password' | 'confirmPassword' | 'acceptedTerms'
   ): void => {
     setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
   };
@@ -63,12 +63,7 @@ export function SignupForm({
     e.preventDefault();
     if (isBusy) return;
 
-    const values: SignupFormValues = {
-      username,
-      password,
-      confirmPassword,
-      acceptedTerms,
-    };
+    const values = { email, password, confirmPassword, acceptedTerms };
     const validationErrors = validateSignupForm(values);
     setErrors(validationErrors);
     const firstField = firstSignupErrorField(validationErrors);
@@ -77,29 +72,43 @@ export function SignupForm({
       return;
     }
 
-    await onSubmit(values);
-    // No real account is created; clear secrets before the dialog swaps views.
+    const result = await onSubmit({ email: email.trim(), password });
+    if (!result) return;
+
     setPassword('');
     setConfirmPassword('');
-    onCompleted('admin');
+    onCompleted(email.trim());
+  };
+
+  const handleGithub = async (): Promise<void> => {
+    if (!acceptedTerms) {
+      setErrors((current) => ({
+        ...current,
+        acceptedTerms: '请阅读并同意服务条款与隐私政策',
+      }));
+      termsRef.current?.focus();
+      return;
+    }
+    await onGithub();
   };
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
       <AuthField
-        id="signup-username"
-        label="账号"
-        icon={User}
-        placeholder="输入账号"
-        autoComplete="username"
-        name="username"
-        value={username}
+        id="signup-email"
+        label="邮箱"
+        icon={Mail}
+        placeholder="name@example.com"
+        autoComplete="email"
+        name="email"
+        type="email"
+        value={email}
         onChange={(e) => {
-          setUsername(e.target.value);
-          clearFieldError('username');
+          setEmail(e.target.value);
+          clearFieldError('email');
         }}
-        error={errors.username}
-        ref={usernameRef}
+        error={errors.email}
+        ref={emailRef}
         disabled={isBusy}
       />
 
@@ -107,7 +116,7 @@ export function SignupForm({
         id="signup-password"
         label="密码"
         icon={Lock}
-        placeholder="至少 5 个字符"
+        placeholder="至少 12 个字符"
         autoComplete="new-password"
         name="password"
         type={showPassword ? 'text' : 'password'}
@@ -229,6 +238,25 @@ export function SignupForm({
           <span>创建账户</span>
         )}
       </button>
+
+      {githubEnabled ? (
+        <>
+          <div className="flex items-center gap-3" aria-hidden="true">
+            <div className="h-px flex-1 bg-[var(--v3-divider)]" />
+            <span className="text-[12px] text-[var(--v3-text-muted)]">或</span>
+            <div className="h-px flex-1 bg-[var(--v3-divider)]" />
+          </div>
+          <button
+            type="button"
+            onClick={() => void handleGithub()}
+            disabled={isBusy}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] bg-[var(--v3-control)] text-[14px] font-medium text-[var(--v3-text)] transition-[background-color,border-color] duration-(--v3-fast) hover:border-[var(--v3-border-hover)] disabled:pointer-events-none disabled:opacity-60"
+          >
+            <Github size={16} strokeWidth={1.5} aria-hidden="true" />
+            <span>{operation === 'github' ? '正在跳转至 GitHub…' : '使用 GitHub 继续'}</span>
+          </button>
+        </>
+      ) : null}
 
       <p className="text-center text-[13px] text-[var(--v3-text-secondary)]">
         已有账户？

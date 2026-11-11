@@ -3,19 +3,18 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useDemoAuthStore } from '@/presentation/stores/demo-auth-store';
-import type {
-  DemoAuthResult,
-  DemoAuthSession,
-  DemoRegistrationResult,
-  DemoRecoveryResult,
-} from '@/presentation/screens/auth/auth-types';
-import type { DemoSignInInput } from '@/presentation/screens/auth/auth-types';
+import { useAuthStore } from '@/presentation/stores/auth-store';
 
 import { AuthDialog } from './auth-dialog';
 
 function resetStore(): void {
-  useDemoAuthStore.setState({ session: null, operation: null, error: null });
+  useAuthStore.setState({
+    status: 'guest',
+    session: null,
+    profile: null,
+    operation: null,
+    error: null,
+  });
 }
 
 interface DialogHandlers {
@@ -123,25 +122,14 @@ describe('AuthDialog structure', () => {
 
     await userEvent.click(screen.getByRole('button', { name: '忘记密码' }));
 
-    expect(screen.getByText('找回演示账号')).toBeInTheDocument();
-    expect(screen.getByText(/admin \/ admin/)).toBeInTheDocument();
+    expect(screen.getByText('重置密码')).toBeInTheDocument();
     expect(screen.queryAllByRole('tab')).toHaveLength(0);
   });
 
-  it('focuses the username input on open', () => {
+  it('focuses the email input on open', () => {
     renderDialog({ routeMode: 'login' });
 
-    expect(screen.getByPlaceholderText('输入账号')).toHaveFocus();
-  });
-
-  it('defaults remember-me to checked and allows toggling', async () => {
-    renderDialog({ routeMode: 'login' });
-
-    const remember = screen.getByRole('checkbox', { name: '记住我' });
-    expect(remember).toBeChecked();
-
-    await userEvent.click(remember);
-    expect(remember).not.toBeChecked();
+    expect(screen.getByPlaceholderText('name@example.com')).toHaveFocus();
   });
 
   it('toggles password visibility', async () => {
@@ -171,63 +159,23 @@ describe('AuthDialog login behavior', () => {
     resetStore();
     localStorage.clear();
     sessionStorage.clear();
-    // Replace the store actions with synchronous-ish implementations that
-    // defer the result state update to a microtask (after handleSubmit's
-    // `await`). This mirrors the real async flow while keeping every store
-    // update inside the test's act-wrapped flush. The real store's 450ms timer
-    // behavior is covered by demo-auth-store.test.ts.
-    useDemoAuthStore.setState({
-      signIn: async (input: DemoSignInInput): Promise<DemoAuthResult> => {
-        useDemoAuthStore.setState({ operation: 'login', error: null });
+    useAuthStore.setState({
+      signInWithEmail: async (_email: string, _password: string): Promise<boolean> => {
+        useAuthStore.setState({ operation: 'login-email', error: null });
         await Promise.resolve();
-        const username = input.username.trim();
-        if (username !== 'admin' || input.password !== 'admin') {
-          useDemoAuthStore.setState({
-            error: 'invalid-credentials',
-            operation: null,
-          });
-          return { ok: false, code: 'invalid-credentials' };
-        }
-        const session: DemoAuthSession = {
-          version: 1,
-          user: {
-            username: 'admin',
-            provider: 'credentials',
-            signedInAt: new Date().toISOString(),
+        useAuthStore.setState({
+          status: 'authenticated',
+          session: {
+            userId: 'principal-1',
+            email: _email,
+            provider: 'email',
+            expiresAt: Date.now() + 3600_000,
           },
-          persistence: input.remember ? 'local' : 'session',
-        };
-        useDemoAuthStore.setState({ session, operation: null });
-        return { ok: true, session };
+          operation: null,
+        });
+        return true;
       },
-      signInWithGithub: async (remember: boolean): Promise<DemoAuthResult> => {
-        useDemoAuthStore.setState({ operation: 'github', error: null });
-        await Promise.resolve();
-        const session: DemoAuthSession = {
-          version: 1,
-          user: {
-            username: 'admin',
-            provider: 'github',
-            signedInAt: new Date().toISOString(),
-          },
-          persistence: remember ? 'local' : 'session',
-        };
-        useDemoAuthStore.setState({ session, operation: null });
-        return { ok: true, session };
-      },
-      simulateRegistration: async (): Promise<DemoRegistrationResult> => {
-        useDemoAuthStore.setState({ operation: 'signup', error: null });
-        await Promise.resolve();
-        useDemoAuthStore.setState({ operation: null });
-        return { ok: true, suggestedUsername: 'admin' };
-      },
-      simulateRecovery: async (): Promise<DemoRecoveryResult> => {
-        useDemoAuthStore.setState({ operation: 'recovery', error: null });
-        await Promise.resolve();
-        useDemoAuthStore.setState({ operation: null });
-        return { ok: true, suggestedUsername: 'admin' };
-      },
-      clearError: () => useDemoAuthStore.setState({ error: null }),
+      clearError: () => useAuthStore.setState({ error: null }),
     });
   });
 
@@ -249,22 +197,27 @@ describe('AuthDialog login behavior', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '登录' }));
 
-    expect(screen.getByText('请输入账号')).toBeInTheDocument();
+    expect(screen.getByText('请输入邮箱')).toBeInTheDocument();
     expect(screen.getByText('请输入密码')).toBeInTheDocument();
     expect(onAuthenticated).not.toHaveBeenCalled();
   });
 
   it('shows a credential error for wrong creds and stays on the dialog', async () => {
+    useAuthStore.setState({
+      signInWithEmail: async (): Promise<boolean> => {
+        useAuthStore.setState({ error: 'Invalid login credentials', operation: null });
+        return false;
+      },
+    });
     const { onAuthenticated } = renderDialog();
 
-    typeInto(/输入账号/, 'wrong');
+    typeInto(/name@example\.com/, 'wrong@example.com');
     typeInto(/输入密码/, 'wrong');
     fireEvent.click(screen.getByRole('button', { name: '登录' }));
 
     expect(
-      await screen.findByText('账号或密码不正确，请使用 admin / admin')
+      await screen.findByText('邮箱或密码不正确，请重试。')
     ).toBeInTheDocument();
-    // Drain lingering microtasks/timers (Radix focus handling) inside act.
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
@@ -272,28 +225,33 @@ describe('AuthDialog login behavior', () => {
     expect(onAuthenticated).not.toHaveBeenCalled();
   });
 
-  it('logs in with admin/admin and calls onAuthenticated', async () => {
+  it('logs in with valid email/password and calls onAuthenticated', async () => {
     const { onAuthenticated } = renderDialog();
 
-    typeInto(/输入账号/, 'admin');
-    typeInto(/输入密码/, 'admin');
+    typeInto(/name@example\.com/, 'user@example.com');
+    typeInto(/输入密码/, 'password123');
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '登录' }));
       await Promise.resolve();
       await Promise.resolve();
-      // Success-feedback timer before onAuthenticated.
       await sleep(400);
     });
 
     expect(onAuthenticated).toHaveBeenCalledTimes(1);
-    expect(useDemoAuthStore.getState().session?.user.username).toBe('admin');
+    expect(useAuthStore.getState().session?.userId).toBe('principal-1');
   });
 
-  it('clears the credential error when the username changes', async () => {
+  it('clears the credential error when the email changes', async () => {
+    useAuthStore.setState({
+      signInWithEmail: async (): Promise<boolean> => {
+        useAuthStore.setState({ error: 'Invalid login credentials', operation: null });
+        return false;
+      },
+    });
     renderDialog();
 
-    typeInto(/输入账号/, 'wrong');
+    typeInto(/name@example\.com/, 'wrong@example.com');
     typeInto(/输入密码/, 'wrong');
 
     await act(async () => {
@@ -303,13 +261,13 @@ describe('AuthDialog login behavior', () => {
     });
 
     expect(
-      screen.getByText('账号或密码不正确，请使用 admin / admin')
+      screen.getByText('邮箱或密码不正确，请重试。')
     ).toBeInTheDocument();
 
-    typeInto(/输入账号/, 'wrongx');
+    typeInto(/name@example\.com/, 'wrong2@example.com');
 
     expect(
-      screen.queryByText('账号或密码不正确，请使用 admin / admin')
+      screen.queryByText('邮箱或密码不正确，请重试。')
     ).not.toBeInTheDocument();
   });
 });
@@ -334,31 +292,7 @@ function TestAuthDialog({
   );
 }
 
-function makeGithubSession(): DemoAuthSession {
-  return {
-    version: 1,
-    user: {
-      username: 'admin',
-      provider: 'github',
-      signedInAt: '2026-07-14T00:00:00.000Z',
-    },
-    persistence: 'local',
-  };
-}
-
-function makeCredentialsSession(): DemoAuthSession {
-  return {
-    version: 1,
-    user: {
-      username: 'admin',
-      provider: 'credentials',
-      signedInAt: '2026-07-14T00:00:00.000Z',
-    },
-    persistence: 'local',
-  };
-}
-
-describe('AuthDialog signup, recovery and github flows', () => {
+describe('AuthDialog signup and recovery flows', () => {
   const sleep = (ms: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -372,31 +306,48 @@ describe('AuthDialog signup, recovery and github flows', () => {
     resetStore();
     localStorage.clear();
     sessionStorage.clear();
-    useDemoAuthStore.setState({
-      signIn: async (input: DemoSignInInput): Promise<DemoAuthResult> => {
+    useAuthStore.setState({
+      signInWithEmail: async (): Promise<boolean> => {
         await Promise.resolve();
-        const username = input.username.trim();
-        if (username !== 'admin' || input.password !== 'admin') {
-          return { ok: false, code: 'invalid-credentials' };
-        }
-        const session = makeCredentialsSession();
-        return { ok: true, session };
+        return true;
       },
-      signInWithGithub: async (): Promise<DemoAuthResult> => {
+      signUpWithEmail: async (): Promise<{ verificationId: string } | null> => {
+        useAuthStore.setState({ operation: 'signup-email', error: null });
         await Promise.resolve();
-        const session = makeGithubSession();
-        useDemoAuthStore.setState({ session });
-        return { ok: true, session };
+        useAuthStore.setState({ operation: null });
+        return { verificationId: 'verify-123' };
       },
-      simulateRegistration: async (): Promise<DemoRegistrationResult> => {
+      verifyEmailOtp: async (): Promise<boolean> => {
+        useAuthStore.setState({ operation: 'verify-otp', error: null });
         await Promise.resolve();
-        return { ok: true, suggestedUsername: 'admin' };
+        useAuthStore.setState({
+          status: 'authenticated',
+          session: {
+            userId: 'principal-new',
+            email: 'new@example.com',
+            provider: 'email',
+            expiresAt: Date.now() + 3600_000,
+          },
+          operation: null,
+        });
+        return true;
       },
-      simulateRecovery: async (): Promise<DemoRecoveryResult> => {
-        await Promise.resolve();
-        return { ok: true, suggestedUsername: 'admin' };
+      requestPasswordReset: async (): Promise<boolean> => true,
+      completePasswordReset: async (
+        email: string
+      ): Promise<boolean> => {
+        useAuthStore.setState({
+          status: 'authenticated',
+          session: {
+            userId: 'principal-recovered',
+            email,
+            provider: 'email',
+          },
+          operation: null,
+        });
+        return true;
       },
-      clearError: () => useDemoAuthStore.setState({ error: null }),
+      clearError: () => useAuthStore.setState({ error: null }),
     });
   });
 
@@ -409,7 +360,7 @@ describe('AuthDialog signup, recovery and github flows', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '创建账户' }));
 
-    expect(screen.getByText('请输入账号')).toBeInTheDocument();
+    expect(screen.getByText('请输入邮箱')).toBeInTheDocument();
     expect(screen.getByText('请输入密码')).toBeInTheDocument();
     expect(screen.getByText('请确认密码')).toBeInTheDocument();
     expect(
@@ -417,12 +368,12 @@ describe('AuthDialog signup, recovery and github flows', () => {
     ).toBeInTheDocument();
   });
 
-  it('completes signup, switches to login with admin preset and notice', async () => {
+  it('completes signup and switches to OTP verification', async () => {
     render(<TestAuthDialog initialMode="signup" />);
 
-    typeInto(/输入账号/, 'someone');
-    typeInto(/至少 5 个字符/, 'secret');
-    typeInto(/再次输入密码/, 'secret');
+    typeInto(/name@example\.com/, 'new@example.com');
+    typeInto(/至少 12 个字符/, 'password12345');
+    typeInto(/再次输入密码/, 'password12345');
     fireEvent.click(screen.getByRole('checkbox'));
 
     await act(async () => {
@@ -431,73 +382,68 @@ describe('AuthDialog signup, recovery and github flows', () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByText('欢迎回来')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('输入账号')).toHaveValue('admin');
-    expect(
-      screen.getByText('演示注册完成，请使用 admin / admin 登录')
-    ).toBeInTheDocument();
+    expect(screen.getByText('验证邮箱')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('6 位数字')).toBeInTheDocument();
   });
 
-  it('recovers the demo account and returns to login with a notice', async () => {
-    render(<TestAuthDialog initialMode="login" />);
+  it('verifies OTP and calls onAuthenticated', async () => {
+    const onAuthenticated = vi.fn();
+    render(<TestAuthDialog initialMode="signup" onAuthenticated={onAuthenticated} />);
+
+    typeInto(/name@example\.com/, 'new@example.com');
+    typeInto(/至少 12 个字符/, 'password12345');
+    typeInto(/再次输入密码/, 'password12345');
+    fireEvent.click(screen.getByRole('checkbox'));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '创建账户' }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    fireEvent.input(screen.getByPlaceholderText('6 位数字'), {
+      target: { value: '123456' },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '验证并登录' }));
+      await Promise.resolve();
+      await Promise.resolve();
+      await sleep(400);
+    });
+
+    expect(onAuthenticated).toHaveBeenCalledTimes(1);
+    expect(useAuthStore.getState().session?.userId).toBe('principal-new');
+  });
+
+  it('recovers the account with an email code and a new password', async () => {
+    const onAuthenticated = vi.fn();
+    render(<TestAuthDialog initialMode="login" onAuthenticated={onAuthenticated} />);
 
     await userEvent.click(screen.getByRole('button', { name: '忘记密码' }));
-    expect(screen.getByText('找回演示账号')).toBeInTheDocument();
+    expect(screen.getByText('重置密码')).toBeInTheDocument();
+
+    fireEvent.input(screen.getByPlaceholderText('name@example.com'), {
+      target: { value: 'user@example.com' },
+    });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '恢复演示账号' }));
-      await Promise.resolve();
+      fireEvent.click(screen.getByRole('button', { name: '发送验证码' }));
       await Promise.resolve();
     });
 
-    expect(screen.getByText('欢迎回来')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('输入账号')).toHaveValue('admin');
-    expect(screen.getByText('演示密码已恢复为 admin')).toBeInTheDocument();
-  });
-
-  it('signs in with GitHub and calls onAuthenticated', async () => {
-    const onAuthenticated = vi.fn();
-    render(<TestAuthDialog initialMode="login" onAuthenticated={onAuthenticated} />);
+    expect(screen.getByText(/验证码已发送/)).toBeInTheDocument();
+    typeInto(/6 位数字/, '123456');
+    typeInto(/至少 12 个字符/, 'new-password-123');
+    typeInto(/再次输入新密码/, 'new-password-123');
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '使用 GitHub 继续' }));
+      fireEvent.click(screen.getByRole('button', { name: '更新密码' }));
       await Promise.resolve();
       await Promise.resolve();
-      await sleep(400);
     });
 
-    expect(onAuthenticated).toHaveBeenCalledTimes(1);
-    expect(useDemoAuthStore.getState().session?.user.provider).toBe('github');
-  });
-
-  it('still authenticates when storage is unavailable', async () => {
-    const onAuthenticated = vi.fn();
-    useDemoAuthStore.setState({
-      signIn: async (): Promise<DemoAuthResult> => {
-        await Promise.resolve();
-        return {
-          ok: true,
-          session: makeCredentialsSession(),
-          warning: 'storage-unavailable',
-        };
-      },
-    });
-
-    render(<TestAuthDialog initialMode="login" onAuthenticated={onAuthenticated} />);
-
-    typeInto(/输入账号/, 'admin');
-    typeInto(/输入密码/, 'admin');
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '登录' }));
-      await Promise.resolve();
-      await Promise.resolve();
-      await sleep(400);
-    });
-
-    expect(onAuthenticated).toHaveBeenCalledTimes(1);
-    expect(
-      screen.getByText('已登录，但当前会话无法持久保存')
-    ).toBeInTheDocument();
+    expect(onAuthenticated).toHaveBeenCalledOnce();
+    expect(useAuthStore.getState().session?.userId).toBe('principal-recovered');
   });
 });

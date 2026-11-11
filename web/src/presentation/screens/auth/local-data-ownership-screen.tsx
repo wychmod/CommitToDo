@@ -12,7 +12,13 @@ import type { LocalWorkspaceResolution } from '@/application/usecases/auth/resol
 
 export function LocalDataOwnershipScreen(): JSX.Element {
   const navigate = useNavigate();
-  const { profile, resolveLocalWorkspace, claimLocalWorkspace, signOut } = useAuthStore();
+  const {
+    profile,
+    resolveLocalWorkspace,
+    claimLocalWorkspace,
+    createLocalWorkspace,
+    signOut,
+  } = useAuthStore();
   const [resolution, setResolution] = React.useState<LocalWorkspaceResolution | null>(null);
 
   React.useEffect(() => {
@@ -23,14 +29,16 @@ export function LocalDataOwnershipScreen(): JSX.Element {
 
   const handleClaim = async (): Promise<void> => {
     if (!principalId) return;
-    await claimLocalWorkspace(principalId);
-    navigate('/workspace', { replace: true });
+    const requiresReload = await claimLocalWorkspace(principalId);
+    if (requiresReload) window.location.reload();
+    else navigate('/workspace', { replace: true });
   };
 
   const handleCreateNew = async (): Promise<void> => {
     if (!principalId) return;
-    await claimLocalWorkspace(principalId);
-    navigate('/workspace', { replace: true });
+    const requiresReload = await createLocalWorkspace(principalId);
+    if (requiresReload) window.location.reload();
+    else navigate('/workspace', { replace: true });
   };
 
   const handleSwitchAccount = async (): Promise<void> => {

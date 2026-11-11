@@ -7,7 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { V3AppShell, V3Button, V3Card } from '@/presentation/components/v3';
 import { useAuthStore } from '@/presentation/stores/auth-store';
 import type { AuthIdentity } from '@/domain/entities/auth-identity';
+import type { SecurityEvent } from '@/domain/repositories/i-auth-security-repository';
 import { BindPhoneDialog } from './bind-phone-dialog';
+import { readCloudBaseAuthFeatures } from '@/core/cloudbase/cloudbase-config';
 
 /**
  * Account security screen for managing login methods, phone binding,
@@ -15,8 +17,13 @@ import { BindPhoneDialog } from './bind-phone-dialog';
  */
 export function AccountSecurityScreen(): JSX.Element {
   const navigate = useNavigate();
-  const { profile, session } = useAuthStore();
+  const { profile, session, securityEvents, loadSecurityEvents } = useAuthStore();
   const [bindPhoneOpen, setBindPhoneOpen] = React.useState(false);
+  const authFeatures = readCloudBaseAuthFeatures();
+
+  React.useEffect(() => {
+    void loadSecurityEvents();
+  }, [loadSecurityEvents]);
 
   return (
     <V3AppShell>
@@ -48,11 +55,12 @@ export function AccountSecurityScreen(): JSX.Element {
             {/* Login methods */}
             <LoginMethodsSection
               identities={profile?.identities ?? []}
+              phoneBindingEnabled={authFeatures.phone}
               onBindPhone={() => setBindPhoneOpen(true)}
             />
 
             {/* Security activity */}
-            <SecurityActivitySection />
+            <SecurityActivitySection events={securityEvents} />
 
             {/* Back to settings */}
             <V3Button variant="secondary" onClick={() => navigate('/settings')}>
@@ -62,7 +70,9 @@ export function AccountSecurityScreen(): JSX.Element {
         </div>
       </div>
 
-      <BindPhoneDialog open={bindPhoneOpen} onOpenChange={setBindPhoneOpen} />
+      {authFeatures.phone ? (
+        <BindPhoneDialog open={bindPhoneOpen} onOpenChange={setBindPhoneOpen} />
+      ) : null}
     </V3AppShell>
   );
 }
@@ -112,10 +122,11 @@ function AccountSummaryCard({
 
 interface LoginMethodsSectionProps {
   identities: AuthIdentity[];
+  phoneBindingEnabled: boolean;
   onBindPhone(): void;
 }
 
-function LoginMethodsSection({ identities, onBindPhone }: LoginMethodsSectionProps): JSX.Element {
+function LoginMethodsSection({ identities, phoneBindingEnabled, onBindPhone }: LoginMethodsSectionProps): JSX.Element {
   const emailIdentity = identities.find((i) => i.provider === 'email');
   const phoneIdentity = identities.find((i) => i.provider === 'phone');
   const githubIdentity = identities.find((i) => i.provider === 'github');
@@ -139,7 +150,7 @@ function LoginMethodsSection({ identities, onBindPhone }: LoginMethodsSectionPro
           masked={phoneIdentity?.identifierMasked ?? null}
           verified={!!phoneIdentity?.verifiedAt}
           isPrimary={phoneIdentity?.isPrimary ?? false}
-          bindable={!phoneIdentity}
+          bindable={phoneBindingEnabled && !phoneIdentity}
           onBind={onBindPhone}
         />
         <IdentityRow
@@ -216,20 +227,30 @@ function IdentityRow({
   );
 }
 
-function SecurityActivitySection(): JSX.Element {
+function SecurityActivitySection({ events }: { events: SecurityEvent[] }): JSX.Element {
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-[18px] font-semibold text-[var(--v3-text-strong)]">
         最近安全活动
       </h2>
-      <V3Card className="flex flex-col items-center justify-center gap-3 p-8 text-center">
-        <Shield size={32} strokeWidth={1} className="text-[var(--v3-text-muted)]" aria-hidden="true" />
-        <p className="text-[14px] text-[var(--v3-text-secondary)]">
-          暂无安全活动记录
-        </p>
-        <p className="text-[12px] text-[var(--v3-text-muted)]">
-          登录、绑定、改密等操作将显示在这里
-        </p>
+      <V3Card className="flex flex-col gap-3 p-5">
+        {events.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-4 text-center">
+            <Shield size={32} strokeWidth={1} className="text-[var(--v3-text-muted)]" aria-hidden="true" />
+            <p className="text-[14px] text-[var(--v3-text-secondary)]">暂无安全活动记录</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-[var(--v3-divider)]">
+            {events.map((event) => (
+              <li key={event.id} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                <span className="text-[13px] text-[var(--v3-text-strong)]">{event.eventType}</span>
+                <time className="text-[12px] text-[var(--v3-text-muted)]">
+                  {new Date(event.createdAt).toLocaleString()}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )}
       </V3Card>
     </section>
   );

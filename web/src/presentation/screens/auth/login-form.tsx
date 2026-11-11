@@ -1,31 +1,25 @@
-import { Check, Eye, EyeOff, Github, Lock, User } from 'lucide-react';
+import { Check, Eye, EyeOff, Github, Lock, Mail } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/core/utils/formatters';
-import type {
-  AuthErrorCode,
-  AuthOperation,
-  DemoAuthResult,
-  LoginFormValues,
-} from './auth-types';
+import type { AuthErrorCode, AuthOperation } from './auth-types';
 import { firstLoginErrorField, validateLoginForm } from './auth-validation';
 import { AuthField } from './auth-field';
 
-const CREDENTIAL_ERROR = '账号或密码不正确，请使用 admin / admin';
 const SUCCESS_FEEDBACK_MS = 320;
-const LOGIN_SUCCESS = '登录成功';
-const GITHUB_SUCCESS = 'GitHub 演示登录成功';
-const GITHUB_LOADING = '正在模拟 GitHub 登录…';
 const LOGIN_LOADING = '正在登录…';
-const STORAGE_WARNING = '已登录，但当前会话无法持久保存';
+const LOGIN_SUCCESS = '登录成功';
+const GITHUB_SUCCESS = 'GitHub 登录成功';
+const GITHUB_LOADING = '正在跳转至 GitHub…';
 
 export interface LoginFormProps {
-  usernamePreset?: string;
+  emailPreset?: string;
   operation: AuthOperation;
   authError: AuthErrorCode;
   notice?: string;
-  onSubmit(values: LoginFormValues): Promise<DemoAuthResult>;
-  onGithub(remember: boolean): Promise<DemoAuthResult>;
+  githubEnabled: boolean;
+  onSubmit(email: string, password: string): Promise<boolean>;
+  onGithub(): Promise<void>;
   onForgotPassword(): void;
   onNavigateSignup(): void;
   onAuthenticated(): void;
@@ -33,10 +27,11 @@ export interface LoginFormProps {
 }
 
 export function LoginForm({
-  usernamePreset,
+  emailPreset,
   operation,
   authError,
   notice,
+  githubEnabled,
   onSubmit,
   onGithub,
   onForgotPassword,
@@ -44,24 +39,20 @@ export function LoginForm({
   onAuthenticated,
   onClearAuthError,
 }: LoginFormProps): JSX.Element {
-  const [username, setUsername] = React.useState(usernamePreset ?? '');
+  const [email, setEmail] = React.useState(emailPreset ?? '');
   const [password, setPassword] = React.useState('');
-  const [remember, setRemember] = React.useState(true);
   const [showPassword, setShowPassword] = React.useState(false);
-  const [errors, setErrors] = React.useState<{ username?: string; password?: string }>({});
+  const [errors, setErrors] = React.useState<{ email?: string; password?: string }>({});
   const [successLabel, setSuccessLabel] = React.useState<string | null>(null);
-  const [storageWarning, setStorageWarning] = React.useState(false);
 
-  const usernameRef = React.useRef<HTMLInputElement>(null);
+  const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
   const successTimer = React.useRef<number | null>(null);
 
-  // Preset (e.g. after registration/recovery) updates only the username.
   React.useEffect(() => {
-    setUsername(usernamePreset ?? '');
-  }, [usernamePreset]);
+    setEmail(emailPreset ?? '');
+  }, [emailPreset]);
 
-  // Never leave a pending navigation timer after unmount/close.
   React.useEffect(() => {
     return () => {
       if (successTimer.current !== null) {
@@ -70,32 +61,31 @@ export function LoginForm({
     };
   }, []);
 
-  const isLoginLoading = operation === 'login';
+  const isLoginLoading = operation === 'login-email';
   const isGithubLoading = operation === 'github';
   const isBusy = isLoginLoading || isGithubLoading || successLabel !== null;
-  const showCredentialError = authError === 'invalid-credentials';
 
-  const focusField = (field: 'username' | 'password'): void => {
-    if (field === 'username') usernameRef.current?.focus();
+  const focusField = (field: 'email' | 'password'): void => {
+    if (field === 'email') emailRef.current?.focus();
     else passwordRef.current?.focus();
   };
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setUsername(e.target.value);
-    setErrors((prev) => (prev.username ? { ...prev, username: undefined } : prev));
-    if (showCredentialError) onClearAuthError();
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setEmail(e.target.value);
+    setErrors((prev) => (prev.email ? { ...prev, email: undefined } : prev));
+    if (authError) onClearAuthError();
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setPassword(e.target.value);
     setErrors((prev) => (prev.password ? { ...prev, password: undefined } : prev));
-    if (showCredentialError) onClearAuthError();
+    if (authError) onClearAuthError();
   };
 
-  const finishWithSuccess = (label: string, navigate: () => void): void => {
+  const finishWithSuccess = (label: string): void => {
     setSuccessLabel(label);
     successTimer.current = window.setTimeout(() => {
-      navigate();
+      onAuthenticated();
     }, SUCCESS_FEEDBACK_MS);
   };
 
@@ -103,7 +93,7 @@ export function LoginForm({
     e.preventDefault();
     if (isBusy) return;
 
-    const validationErrors = validateLoginForm({ username, password, remember });
+    const validationErrors = validateLoginForm({ email, password });
     setErrors(validationErrors);
     const firstField = firstLoginErrorField(validationErrors);
     if (firstField) {
@@ -111,27 +101,21 @@ export function LoginForm({
       return;
     }
 
-    const result = await onSubmit({ username, password, remember });
-    if (!result.ok) {
-      // Store surfaces authError -> rendered below; move focus to username.
-      focusField('username');
+    const ok = await onSubmit(email.trim(), password);
+    if (!ok) {
+      focusField('email');
       return;
     }
-    if (result.warning === 'storage-unavailable') {
-      setStorageWarning(true);
-    }
-    finishWithSuccess(LOGIN_SUCCESS, onAuthenticated);
+    finishWithSuccess(LOGIN_SUCCESS);
   };
 
   const handleGithub = async (): Promise<void> => {
     if (isBusy) return;
-    const result = await onGithub(remember);
-    if (!result.ok) return;
-    if (result.warning === 'storage-unavailable') {
-      setStorageWarning(true);
-    }
-    finishWithSuccess(GITHUB_SUCCESS, onAuthenticated);
+    setSuccessLabel(GITHUB_LOADING);
+    await onGithub();
   };
+
+  const serverErrorMessage = mapAuthErrorToMessage(authError);
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
@@ -145,27 +129,28 @@ export function LoginForm({
         </p>
       ) : null}
 
-      {showCredentialError ? (
+      {serverErrorMessage ? (
         <p
           role="alert"
           aria-live="assertive"
           className="rounded-[var(--v3-radius-md)] border border-[var(--v3-danger-soft)] bg-[var(--v3-danger-soft)] px-3 py-2 text-[12px] text-[var(--v3-danger)]"
         >
-          {CREDENTIAL_ERROR}
+          {serverErrorMessage}
         </p>
       ) : null}
 
       <AuthField
-        id="login-username"
-        label="账号"
-        icon={User}
-        placeholder="输入账号"
-        autoComplete="username"
-        name="username"
-        value={username}
-        onChange={handleUsernameChange}
-        error={errors.username}
-        ref={usernameRef}
+        id="login-email"
+        label="邮箱"
+        icon={Mail}
+        placeholder="name@example.com"
+        autoComplete="email"
+        name="email"
+        type="email"
+        value={email}
+        onChange={handleEmailChange}
+        error={errors.email}
+        ref={emailRef}
         disabled={isBusy}
       />
 
@@ -199,17 +184,7 @@ export function LoginForm({
         }
       />
 
-      <div className="flex items-center justify-between">
-        <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-[13px] text-[var(--v3-text-secondary)]">
-          <input
-            type="checkbox"
-            checked={remember}
-            onChange={(e) => setRemember(e.target.checked)}
-            disabled={isBusy}
-            className="h-4 w-4 accent-[var(--v3-primary)]"
-          />
-          记住我
-        </label>
+      <div className="flex items-center justify-end">
         <button
           type="button"
           onClick={onForgotPassword}
@@ -246,23 +221,13 @@ export function LoginForm({
         )}
       </button>
 
-      {storageWarning ? (
-        <p
-          role="status"
-          aria-live="polite"
-          className="text-center text-[12px] text-[var(--v3-warning)]"
-        >
-          {STORAGE_WARNING}
-        </p>
-      ) : null}
-
-      <div className="flex items-center gap-3" aria-hidden="true">
+      {githubEnabled ? <div className="flex items-center gap-3" aria-hidden="true">
         <div className="h-px flex-1 bg-[var(--v3-divider)]" />
         <span className="text-[12px] text-[var(--v3-text-muted)]">或</span>
         <div className="h-px flex-1 bg-[var(--v3-divider)]" />
-      </div>
+      </div> : null}
 
-      <button
+      {githubEnabled ? <button
         type="button"
         onClick={handleGithub}
         disabled={isBusy}
@@ -284,7 +249,7 @@ export function LoginForm({
             <span>使用 GitHub 继续</span>
           </>
         )}
-      </button>
+      </button> : null}
 
       <p className="text-center text-[13px] text-[var(--v3-text-secondary)]">
         还没有账户？
@@ -299,4 +264,19 @@ export function LoginForm({
       </p>
     </form>
   );
+}
+
+function mapAuthErrorToMessage(error: AuthErrorCode): string | null {
+  switch (error) {
+    case 'invalid-credentials':
+      return '邮箱或密码不正确，请重试。';
+    case 'email-already-in-use':
+      return '该邮箱已被注册。';
+    case 'rate-limited':
+      return '操作过于频繁，请稍后再试。';
+    case 'server-error':
+      return '服务暂时不可用，请稍后重试。';
+    default:
+      return null;
+  }
 }

@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppDatabase } from '@/data/db/app-database';
 import { container } from '@/core/di/injection-container';
 import { useTodayWorkspaceStore } from '@/presentation/stores/today-workspace-store';
-import type { Repository } from '@/domain/entities/repository';
+import { Repository } from '@/domain/entities/repository';
 
 import { TodayWorkspaceScreen } from './today-workspace-screen';
 
@@ -267,19 +267,25 @@ describe('TodayWorkspaceScreen', () => {
   });
 
   it('shows a CTA when there are no tasks for the selected filter', async () => {
-    renderScreen();
-
-    await waitFor(() => {
-      expect(screen.getByText('完成晨跑 5 km')).toBeInTheDocument();
-    }, { timeout: 5000 });
-
+    const originalLoad = useTodayWorkspaceStore.getState().load;
     act(() => {
-      useTodayWorkspaceStore.setState({ tasks: [] });
+      useTodayWorkspaceStore.setState({
+        load: async () => undefined,
+        repositories: [Repository.create('Test workspace')],
+        branches: [],
+        tasks: [],
+        isLoading: false,
+        error: null,
+      });
     });
+    renderScreen();
 
     await waitFor(() => {
       expect(screen.getByText('今天没有截止任务')).toBeInTheDocument();
     });
     expect(screen.getAllByRole('button', { name: '快速添加任务' }).length).toBeGreaterThanOrEqual(1);
+    act(() => {
+      useTodayWorkspaceStore.setState({ load: originalLoad });
+    });
   });
 });

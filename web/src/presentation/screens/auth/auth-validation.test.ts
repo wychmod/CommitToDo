@@ -12,15 +12,14 @@ import type {
 } from './auth-types';
 
 const validLogin: LoginFormValues = {
-  username: 'admin',
-  password: 'admin',
-  remember: true,
+  email: 'admin@example.com',
+  password: 'password12345',
 };
 
 const validSignup: SignupFormValues = {
-  username: 'someone',
-  password: 'secret',
-  confirmPassword: 'secret',
+  email: 'someone@example.com',
+  password: 'password12345',
+  confirmPassword: 'password12345',
   acceptedTerms: true,
 };
 
@@ -31,44 +30,48 @@ describe('validateLoginForm', () => {
     expect(errors).toEqual({});
   });
 
-  it('flags an empty username', () => {
-    const errors = validateLoginForm({ ...validLogin, username: '' });
+  it('flags an empty email', () => {
+    const errors = validateLoginForm({ ...validLogin, email: '' });
 
-    expect(errors.username).toBe('请输入账号');
+    expect(errors.email).toBe('请输入邮箱');
     expect(errors.password).toBeUndefined();
     expect(errors.form).toBeUndefined();
   });
 
-  it('treats a whitespace-only username as empty', () => {
-    const errors = validateLoginForm({ ...validLogin, username: '   ' });
+  it('flags an invalid email', () => {
+    const errors = validateLoginForm({ ...validLogin, email: 'not-an-email' });
 
-    expect(errors.username).toBe('请输入账号');
+    expect(errors.email).toBe('请输入有效的邮箱地址');
   });
 
-  it('flags an empty password but keeps a valid username', () => {
+  it('treats a whitespace-only email as empty', () => {
+    const errors = validateLoginForm({ ...validLogin, email: '   ' });
+
+    expect(errors.email).toBe('请输入邮箱');
+  });
+
+  it('flags an empty password but keeps a valid email', () => {
     const errors = validateLoginForm({ ...validLogin, password: '' });
 
     expect(errors.password).toBe('请输入密码');
-    expect(errors.username).toBeUndefined();
+    expect(errors.email).toBeUndefined();
   });
 
   it('flags both fields when both are empty', () => {
     const errors = validateLoginForm({
-      username: '',
+      email: '',
       password: '',
-      remember: true,
     });
 
-    expect(errors.username).toBe('请输入账号');
+    expect(errors.email).toBe('请输入邮箱');
     expect(errors.password).toBe('请输入密码');
   });
 
-  it('does not compare credentials against admin/admin', () => {
-    // Credential matching lives in the store, not in the sync validator.
+  it('does not compare credentials against any fixed value', () => {
+    // Credential matching lives in the repository / store, not in the sync validator.
     const errors = validateLoginForm({
-      username: 'wrong',
+      email: 'wrong@example.com',
       password: 'wrong',
-      remember: false,
     });
 
     expect(errors).toEqual({});
@@ -90,16 +93,22 @@ describe('validateSignupForm', () => {
     expect(errors).toEqual({});
   });
 
-  it('flags an empty username', () => {
-    const errors = validateSignupForm({ ...validSignup, username: '' });
+  it('flags an empty email', () => {
+    const errors = validateSignupForm({ ...validSignup, email: '' });
 
-    expect(errors.username).toBe('请输入账号');
+    expect(errors.email).toBe('请输入邮箱');
   });
 
-  it('treats a whitespace-only username as empty', () => {
-    const errors = validateSignupForm({ ...validSignup, username: '\t' });
+  it('flags an invalid email', () => {
+    const errors = validateSignupForm({ ...validSignup, email: 'invalid' });
 
-    expect(errors.username).toBe('请输入账号');
+    expect(errors.email).toBe('请输入有效的邮箱地址');
+  });
+
+  it('treats a whitespace-only email as empty', () => {
+    const errors = validateSignupForm({ ...validSignup, email: '\t' });
+
+    expect(errors.email).toBe('请输入邮箱');
   });
 
   it('flags an empty password', () => {
@@ -109,14 +118,14 @@ describe('validateSignupForm', () => {
     expect(errors.confirmPassword).toBeUndefined();
   });
 
-  it('flags a password shorter than 5 characters', () => {
+  it('flags a password shorter than 8 characters', () => {
     const errors = validateSignupForm({
       ...validSignup,
       password: '1234',
       confirmPassword: '1234',
     });
 
-    expect(errors.password).toBe('密码至少需要 5 个字符');
+    expect(errors.password).toBe('密码至少需要 12 个字符');
   });
 
   it('flags an empty confirm password separately from a mismatch', () => {
@@ -157,10 +166,10 @@ describe('firstLoginErrorField', () => {
     expect(firstLoginErrorField({})).toBeNull();
   });
 
-  it('prefers username over password', () => {
+  it('prefers email over password', () => {
     expect(
-      firstLoginErrorField({ username: '请输入账号', password: '请输入密码' })
-    ).toBe('username');
+      firstLoginErrorField({ email: '请输入邮箱', password: '请输入密码' })
+    ).toBe('email');
   });
 
   it('returns password when only password errors', () => {
@@ -177,15 +186,15 @@ describe('firstSignupErrorField', () => {
     expect(firstSignupErrorField({})).toBeNull();
   });
 
-  it('follows the visual field order username -> password -> confirmPassword -> acceptedTerms', () => {
+  it('follows the visual field order email -> password -> confirmPassword -> acceptedTerms', () => {
     expect(
       firstSignupErrorField({
-        username: 'e',
+        email: 'e',
         password: 'e',
         confirmPassword: 'e',
         acceptedTerms: 'e',
       })
-    ).toBe('username');
+    ).toBe('email');
 
     expect(
       firstSignupErrorField({

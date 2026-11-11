@@ -10,6 +10,7 @@ import { container } from '@/core/di/injection-container';
 import type { AuthSessionStatus, AuthSessionSummary } from '@/domain/entities/auth-session';
 import type { UserProfile } from '@/domain/entities/user-profile';
 import type { IAuthRepository } from '@/domain/repositories/i-auth-repository';
+import type { SecurityEvent } from '@/domain/repositories/i-auth-security-repository';
 import { InitializeAuthSessionUseCase } from '@/application/usecases/auth/initialize-auth-session-usecase';
 import { SignInWithEmailUseCase } from '@/application/usecases/auth/sign-in-with-email-usecase';
 import { SignUpWithEmailUseCase } from '@/application/usecases/auth/sign-up-with-email-usecase';
@@ -36,10 +37,12 @@ export interface AuthState {
   status: AuthSessionStatus;
   session: AuthSessionSummary | null;
   profile: UserProfile | null;
+  securityEvents: SecurityEvent[];
   operation: AuthOperation;
   error: string | null;
 
   initialize(): Promise<void>;
+  refreshSession(): Promise<void>;
   signInWithEmail(email: string, password: string): Promise<boolean>;
   signUpWithEmail(email: string, password: string): Promise<{ verificationId: string } | null>;
   verifyEmailOtp(verificationId: string, code: string): Promise<boolean>;
@@ -47,11 +50,14 @@ export interface AuthState {
   verifyPhoneOtp(verificationId: string, code: string): Promise<boolean>;
   startGithubAuth(intent: 'login' | 'signup', returnTo: string): Promise<void>;
   requestPasswordReset(email: string): Promise<boolean>;
+  completePasswordReset(email: string, code: string, password: string): Promise<boolean>;
   completeOAuthCallback(input: { provider: 'github'; code: string; state: string }): Promise<boolean>;
   signOut(): Promise<void>;
   refreshProfile(): Promise<void>;
+  loadSecurityEvents(): Promise<void>;
   resolveLocalWorkspace(): Promise<import('@/application/usecases/auth/resolve-local-workspace-usecase').LocalWorkspaceResolution>;
-  claimLocalWorkspace(principalId: string): Promise<void>;
+  claimLocalWorkspace(principalId: string): Promise<boolean>;
+  createLocalWorkspace(principalId: string): Promise<boolean>;
   clearError(): void;
 }
 
@@ -63,17 +69,44 @@ const completeOAuthCallbackUseCase = container.resolve(CompleteOAuthCallbackUseC
 const bootstrapProfileUseCase = container.resolve(BootstrapUserProfileUseCase);
 const resolveLocalWorkspaceUseCase = container.resolve(ResolveLocalWorkspaceUseCase);
 const startGithubAuthUseCase = container.resolve(StartGithubAuthUseCase);
+let unsubscribeAuthState: (() => void) | null = null;
+
+function ensureAuthStateSubscription(
+  set: (partial: Partial<AuthState>) => void
+): void {
+  if (unsubscribeAuthState) return;
+
+  const authRepository = container.resolve<IAuthRepository>('IAuthRepository');
+  unsubscribeAuthState = authRepository.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT' || !session) {
+      set({ status: 'guest', session: null, profile: null, operation: null });
+      return;
+    }
+
+    if (
+      event === 'INITIAL_SESSION' ||
+      event === 'SIGNED_IN' ||
+      event === 'TOKEN_REFRESHED' ||
+      event === 'USER_UPDATED' ||
+      event === 'BIND_IDENTITY'
+    ) {
+      set({ status: 'authenticated', session });
+    }
+  });
+}
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   status: 'initializing',
   session: null,
   profile: null,
+  securityEvents: [],
   operation: null,
   error: null,
 
   initialize: async () => {
     set({ status: 'initializing', error: null });
     try {
+      ensureAuthStateSubscription(set);
       const session = await initializeUseCase.execute();
       if (session) {
         set({ status: 'authenticated', session });
@@ -83,6 +116,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch {
       set({ status: 'error', session: null, profile: null });
+    }
+  },
+
+  refreshSession: async () => {
+    try {
+      const authRepository = container.resolve<IAuthRepository>('IAuthRepository');
+      const session = await authRepository.refreshSession();
+      if (session) {
+        set({ status: 'authenticated', session, error: null });
+      } else {
+        set({ status: 'guest', session: null, profile: null });
+      }
+    } catch (err) {
+      set({ status: 'error', error: normalizeError(err) });
     }
   },
 
@@ -169,8 +216,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ operation: 'recovery', error: null });
     try {
       const authRepository = container.resolve<IAuthRepository>('IAuthRepository');
-      await authRepository.resetPassword(email);
+      await authRepository.requestPasswordReset(email);
       set({ operation: null });
+      return true;
+    } catch (err) {
+      set({ error: normalizeError(err), operation: null });
+      return false;
+    }
+  },
+
+  completePasswordReset: async (email, code, password) => {
+    set({ operation: 'recovery', error: null });
+    try {
+      const authRepository = container.resolve<IAuthRepository>('IAuthRepository');
+      const session = await authRepository.completePasswordReset({ email, code, password });
+      set({ status: 'authenticated', session, operation: null });
+      await get().refreshProfile();
       return true;
     } catch (err) {
       set({ error: normalizeError(err), operation: null });
@@ -210,15 +271,40 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  loadSecurityEvents: async () => {
+    try {
+      const repository = container.resolve<import('@/domain/repositories/i-auth-security-repository').IAuthSecurityRepository>('IAuthSecurityRepository');
+      const securityEvents = await repository.listSecurityEvents();
+      set({ securityEvents });
+    } catch {
+      set({ securityEvents: [] });
+    }
+  },
+
   resolveLocalWorkspace: async () => {
     const principalId = get().profile?.principalId ?? get().session?.userId;
-    if (!principalId) return { type: 'no-legacy-data' as const };
+    if (!principalId) {
+      throw new Error('Authenticated principal is unavailable.');
+    }
     return resolveLocalWorkspaceUseCase.execute(principalId);
   },
 
   claimLocalWorkspace: async (principalId) => {
     const repository = container.resolve<import('@/domain/repositories/i-local-workspace-repository').ILocalWorkspaceRepository>('ILocalWorkspaceRepository');
-    await repository.setOwner({ principalId, claimedAt: new Date().toISOString() });
+    await repository.claimLegacyWorkspace({
+      principalId,
+      claimedAt: new Date().toISOString(),
+    });
+    return repository.activateWorkspace(principalId);
+  },
+
+  createLocalWorkspace: async (principalId) => {
+    const repository = container.resolve<import('@/domain/repositories/i-local-workspace-repository').ILocalWorkspaceRepository>('ILocalWorkspaceRepository');
+    await repository.createWorkspace({
+      principalId,
+      claimedAt: new Date().toISOString(),
+    });
+    return repository.activateWorkspace(principalId);
   },
 
   clearError: () => set({ error: null }),

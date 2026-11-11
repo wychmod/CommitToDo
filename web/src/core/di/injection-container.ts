@@ -28,7 +28,37 @@ import { ImportDataUseCase } from '../../application/usecases/import-data-usecas
 import { WebFileSaveService } from '../../platform/web-file-save-service';
 import { WebNotificationService } from '../../platform/web-notification-service';
 
+import { IAuthRepository } from '../../domain/repositories/i-auth-repository';
+import { IAuthSecurityRepository } from '../../domain/repositories/i-auth-security-repository';
+import { ILocalWorkspaceRepository } from '../../domain/repositories/i-local-workspace-repository';
+import { CloudBaseAuthRepository } from '../../data/repositories/cloudbase-auth-repository';
+import { CloudBaseAuthSecurityRepository } from '../../data/repositories/cloudbase-auth-security-repository';
+import { DexieLocalWorkspaceRepository } from '../../data/repositories/dexie-local-workspace-repository';
+
+import {
+  InitializeAuthSessionUseCase,
+  SignInWithEmailUseCase,
+  SignUpWithEmailUseCase,
+  RequestAuthChallengeUseCase,
+  VerifyPhoneAuthUseCase,
+  StartGithubAuthUseCase,
+  CompleteOAuthCallbackUseCase,
+  BootstrapUserProfileUseCase,
+  BindPhoneUseCase,
+  ReauthenticateUseCase,
+  SignOutUseCase,
+  ResolveLocalWorkspaceUseCase,
+} from '../../application/usecases/auth';
+
 container.registerInstance(AppDatabase, appDatabase);
+
+container.register<IAuthRepository>('IAuthRepository', { useClass: CloudBaseAuthRepository });
+container.register<IAuthSecurityRepository>('IAuthSecurityRepository', {
+  useClass: CloudBaseAuthSecurityRepository,
+});
+container.register<ILocalWorkspaceRepository>('ILocalWorkspaceRepository', {
+  useClass: DexieLocalWorkspaceRepository,
+});
 
 container.register<IRepositoryRepository>('IRepositoryRepository', {
   useFactory: () => new DexieRepositoryRepository(container.resolve(AppDatabase)),
@@ -147,5 +177,80 @@ container.register(ImportDataUseCase, {
 
 container.registerInstance(WebFileSaveService, new WebFileSaveService());
 container.registerInstance(WebNotificationService, new WebNotificationService());
+
+container.register(InitializeAuthSessionUseCase, {
+  useFactory: () => new InitializeAuthSessionUseCase(container.resolve<IAuthRepository>('IAuthRepository')),
+});
+
+container.register(SignInWithEmailUseCase, {
+  useFactory: () =>
+    new SignInWithEmailUseCase(
+      container.resolve<IAuthRepository>('IAuthRepository'),
+      container.resolve<IAuthSecurityRepository>('IAuthSecurityRepository')
+    ),
+});
+
+container.register(SignUpWithEmailUseCase, {
+  useFactory: () =>
+    new SignUpWithEmailUseCase(container.resolve<IAuthRepository>('IAuthRepository')),
+});
+
+container.register(RequestAuthChallengeUseCase, {
+  useFactory: () =>
+    new RequestAuthChallengeUseCase(
+      container.resolve<IAuthSecurityRepository>('IAuthSecurityRepository')
+    ),
+});
+
+container.register(VerifyPhoneAuthUseCase, {
+  useFactory: () =>
+    new VerifyPhoneAuthUseCase(
+      container.resolve<IAuthRepository>('IAuthRepository'),
+      container.resolve<IAuthSecurityRepository>('IAuthSecurityRepository')
+    ),
+});
+
+container.register(StartGithubAuthUseCase, {
+  useFactory: () =>
+    new StartGithubAuthUseCase(container.resolve<IAuthRepository>('IAuthRepository')),
+});
+
+container.register(CompleteOAuthCallbackUseCase, {
+  useFactory: () =>
+    new CompleteOAuthCallbackUseCase(
+      container.resolve<IAuthRepository>('IAuthRepository'),
+      container.resolve<IAuthSecurityRepository>('IAuthSecurityRepository')
+    ),
+});
+
+container.register(BootstrapUserProfileUseCase, {
+  useFactory: () =>
+    new BootstrapUserProfileUseCase(
+      container.resolve<IAuthSecurityRepository>('IAuthSecurityRepository')
+    ),
+});
+
+container.register(BindPhoneUseCase, {
+  useFactory: () =>
+    new BindPhoneUseCase(
+      container.resolve<IAuthSecurityRepository>('IAuthSecurityRepository')
+    ),
+});
+
+container.register(ReauthenticateUseCase, {
+  useFactory: () =>
+    new ReauthenticateUseCase(container.resolve<IAuthRepository>('IAuthRepository')),
+});
+
+container.register(SignOutUseCase, {
+  useFactory: () => new SignOutUseCase(container.resolve<IAuthRepository>('IAuthRepository')),
+});
+
+container.register(ResolveLocalWorkspaceUseCase, {
+  useFactory: () =>
+    new ResolveLocalWorkspaceUseCase(
+      container.resolve<ILocalWorkspaceRepository>('ILocalWorkspaceRepository')
+    ),
+});
 
 export { container };

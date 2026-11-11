@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { LandingPage } from '@/presentation/screens/landing/landing-page';
-import { useDemoAuthStore } from '@/presentation/stores/demo-auth-store';
-import { selectIsAuthenticated } from './auth-types';
+import { useAuthStore } from '@/presentation/stores/auth-store';
+import { sanitizeReturnTo } from '@/core/auth/auth-return-to';
 import { AuthDialog } from './auth-dialog';
 
 /**
@@ -29,16 +29,25 @@ export function authModeFromPathname(
 export function LandingAuthLayout(): JSX.Element {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const isAuthenticated = useDemoAuthStore(selectIsAuthenticated);
+  const [searchParams] = useSearchParams();
+  const status = useAuthStore((s) => s.status);
+  const initialize = useAuthStore((s) => s.initialize);
 
   const mode = authModeFromPathname(pathname);
+  const isAuthenticated = status === 'authenticated';
   const open = mode !== null && !isAuthenticated;
+  const returnTo = searchParams.get('returnTo') ?? undefined;
+
+  useEffect(() => {
+    void initialize();
+  }, [initialize]);
 
   useEffect(() => {
     if (isAuthenticated && (pathname === '/login' || pathname === '/signup')) {
-      navigate('/workspace', { replace: true });
+      const target = sanitizeReturnTo(returnTo);
+      navigate(target, { replace: true });
     }
-  }, [isAuthenticated, pathname, navigate]);
+  }, [isAuthenticated, pathname, navigate, returnTo]);
 
   const handleOpenChange = (next: boolean): void => {
     if (!next) navigate('/', { replace: true });
@@ -50,10 +59,14 @@ export function LandingAuthLayout(): JSX.Element {
       <AuthDialog
         open={open}
         routeMode={mode === 'signup' ? 'signup' : 'login'}
+        returnTo={returnTo}
         onOpenChange={handleOpenChange}
         onNavigateLogin={() => navigate('/login')}
         onNavigateSignup={() => navigate('/signup')}
-        onAuthenticated={() => navigate('/workspace', { replace: true })}
+        onAuthenticated={() => {
+          const target = sanitizeReturnTo(returnTo);
+          navigate(target, { replace: true });
+        }}
       />
       <Outlet />
     </>

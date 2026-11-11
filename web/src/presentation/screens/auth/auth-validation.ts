@@ -1,32 +1,42 @@
 /**
  * Pure, synchronous form validation for the auth modal.
  *
- * Credential matching against `admin` / `admin` is intentionally NOT done here
- * - that lives in the demo auth store so the validator stays free of side
- * effects and secrets. These functions only enforce required / length /
- * consistency rules and never mutate their input.
+ * Validation is local and side-effect free. Server-level errors (e.g.
+ * invalid-credentials) are surfaced through the auth store instead.
  */
 import type {
   LoginFormErrors,
   LoginFormValues,
+  OtpFormErrors,
+  OtpFormValues,
+  RecoveryFormErrors,
+  RecoveryFormValues,
   SignupFormErrors,
   SignupFormValues,
 } from './auth-types';
 
-const USERNAME_REQUIRED = '请输入账号';
+const EMAIL_REQUIRED = '请输入邮箱';
+const EMAIL_INVALID = '请输入有效的邮箱地址';
 const PASSWORD_REQUIRED = '请输入密码';
-const PASSWORD_TOO_SHORT = '密码至少需要 5 个字符';
+const PASSWORD_TOO_SHORT = '密码至少需要 12 个字符';
 const CONFIRM_REQUIRED = '请确认密码';
 const CONFIRM_MISMATCH = '两次输入的密码不一致';
 const TERMS_REQUIRED = '请阅读并同意服务条款与隐私政策';
+const CODE_REQUIRED = '请输入验证码';
+const CODE_LENGTH = '验证码为 6 位数字';
 
-const MIN_PASSWORD_LENGTH = 5;
+const MIN_PASSWORD_LENGTH = 12;
+const OTP_LENGTH = 6;
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function validateLoginForm(values: LoginFormValues): LoginFormErrors {
   const errors: LoginFormErrors = {};
 
-  if (values.username.trim().length === 0) {
-    errors.username = USERNAME_REQUIRED;
+  if (values.email.trim().length === 0) {
+    errors.email = EMAIL_REQUIRED;
+  } else if (!EMAIL_RE.test(values.email.trim())) {
+    errors.email = EMAIL_INVALID;
   }
 
   if (values.password.length === 0) {
@@ -39,12 +49,12 @@ export function validateLoginForm(values: LoginFormValues): LoginFormErrors {
 export function validateSignupForm(values: SignupFormValues): SignupFormErrors {
   const errors: SignupFormErrors = {};
 
-  if (values.username.trim().length === 0) {
-    errors.username = USERNAME_REQUIRED;
+  if (values.email.trim().length === 0) {
+    errors.email = EMAIL_REQUIRED;
+  } else if (!EMAIL_RE.test(values.email.trim())) {
+    errors.email = EMAIL_INVALID;
   }
 
-  // Only validate the confirmation once the primary password itself is valid,
-  // so an empty/short password does not also surface a confusing mismatch.
   let primaryPasswordValid = false;
   if (values.password.length === 0) {
     errors.password = PASSWORD_REQUIRED;
@@ -54,9 +64,6 @@ export function validateSignupForm(values: SignupFormValues): SignupFormErrors {
     primaryPasswordValid = true;
   }
 
-  // The empty-confirm check always runs (required field). The mismatch check
-  // only runs once the primary password is valid, so an empty/short password
-  // does not also surface a confusing mismatch.
   if (values.confirmPassword.length === 0) {
     errors.confirmPassword = CONFIRM_REQUIRED;
   } else if (primaryPasswordValid && values.confirmPassword !== values.password) {
@@ -70,18 +77,43 @@ export function validateSignupForm(values: SignupFormValues): SignupFormErrors {
   return errors;
 }
 
+export function validateOtpForm(values: OtpFormValues): OtpFormErrors {
+  const errors: OtpFormErrors = {};
+  const digits = values.code.replace(/\s/g, '');
+
+  if (digits.length === 0) {
+    errors.code = CODE_REQUIRED;
+  } else if (digits.length !== OTP_LENGTH || !/^\d+$/.test(digits)) {
+    errors.code = CODE_LENGTH;
+  }
+
+  return errors;
+}
+
+export function validateRecoveryForm(values: RecoveryFormValues): RecoveryFormErrors {
+  const errors: RecoveryFormErrors = {};
+
+  if (values.email.trim().length === 0) {
+    errors.email = EMAIL_REQUIRED;
+  } else if (!EMAIL_RE.test(values.email.trim())) {
+    errors.email = EMAIL_INVALID;
+  }
+
+  return errors;
+}
+
 export function firstLoginErrorField(
   errors: LoginFormErrors
-): 'username' | 'password' | null {
-  if (errors.username) return 'username';
+): 'email' | 'password' | null {
+  if (errors.email) return 'email';
   if (errors.password) return 'password';
   return null;
 }
 
 export function firstSignupErrorField(
   errors: SignupFormErrors
-): 'username' | 'password' | 'confirmPassword' | 'acceptedTerms' | null {
-  if (errors.username) return 'username';
+): 'email' | 'password' | 'confirmPassword' | 'acceptedTerms' | null {
+  if (errors.email) return 'email';
   if (errors.password) return 'password';
   if (errors.confirmPassword) return 'confirmPassword';
   if (errors.acceptedTerms) return 'acceptedTerms';

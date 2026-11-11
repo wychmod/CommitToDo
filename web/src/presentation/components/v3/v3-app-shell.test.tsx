@@ -42,12 +42,6 @@ vi.mock('@/presentation/stores/settings-store', () => ({
     }),
 }));
 
-vi.mock('@/presentation/stores/demo-auth-store', () => ({
-  useDemoAuthStore: (
-    selector: (state: { session: null; signOut: () => void }) => unknown,
-  ) => selector({ session: null, signOut: vi.fn() }),
-}));
-
 let homeStoreState: {
   repositories: Repository[];
   load: () => void;

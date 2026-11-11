@@ -54,7 +54,11 @@ export function OAuthCallbackScreen(): JSX.Element {
       }
 
       try {
-        await completeOAuthCallback({ provider: 'github', code, state });
+        const completed = await completeOAuthCallback({ provider: 'github', code, state });
+        if (!completed) {
+          setStatus('profileBootstrapError');
+          return;
+        }
         const returnTo = sanitizeReturnTo(stored.returnTo);
         navigate(returnTo, { replace: true });
         setStatus('success');

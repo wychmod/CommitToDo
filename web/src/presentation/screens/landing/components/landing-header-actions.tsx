@@ -2,13 +2,12 @@ import { Moon, Sun } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { useSettingsStore } from '@/presentation/stores/settings-store';
-import { useDemoAuthStore } from '@/presentation/stores/demo-auth-store';
-import { selectIsAuthenticated } from '@/presentation/screens/auth/auth-types';
+import { useAuthStore } from '@/presentation/stores/auth-store';
 
 export function LandingHeaderActions(): JSX.Element {
   const isDarkMode = useSettingsStore((s) => s.isDarkMode);
   const setDarkMode = useSettingsStore((s) => s.setDarkMode);
-  const isAuthenticated = useDemoAuthStore(selectIsAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.status === 'authenticated');
 
   return (
     <div className="flex items-center gap-3">

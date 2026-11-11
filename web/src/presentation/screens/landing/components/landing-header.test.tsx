@@ -2,7 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { useDemoAuthStore } from '@/presentation/stores/demo-auth-store';
+import { useAuthStore } from '@/presentation/stores/auth-store';
+
 import { LandingHeader } from './landing-header';
 
 function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
@@ -10,7 +11,13 @@ function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
 }
 
 function resetStore(): void {
-  useDemoAuthStore.setState({ session: null, operation: null, error: null });
+  useAuthStore.setState({
+    status: 'guest',
+    session: null,
+    profile: null,
+    operation: null,
+    error: null,
+  });
 }
 
 describe('LandingHeader', () => {
@@ -57,16 +64,15 @@ describe('LandingHeader', () => {
   });
 
   it('shows the workspace entry instead of login for authenticated visitors', () => {
-    useDemoAuthStore.setState({
+    useAuthStore.setState({
+      status: 'authenticated',
       session: {
-        version: 1,
-        user: {
-          username: 'admin',
-          provider: 'credentials',
-          signedInAt: '2026-07-14T00:00:00.000Z',
-        },
-        persistence: 'local',
+        userId: 'principal-1',
+        email: 'user@example.com',
+        provider: 'email',
+        expiresAt: Date.now() + 3600_000,
       },
+      profile: null,
     });
 
     renderWithRouter(<LandingHeader />);

@@ -23,7 +23,11 @@ export function WorkspaceOwnershipGuard({ children }: WorkspaceOwnershipGuardPro
       const result = await resolveLocalWorkspace();
       if (cancelled) return;
 
-      if (result.type === 'no-legacy-data' || result.type === 'claimed-by-current') {
+      if (result.type === 'claimed-by-current') {
+        if (result.requiresReload) {
+          window.location.reload();
+          return;
+        }
         setResolved('owned');
       } else {
         setResolved('mismatch');

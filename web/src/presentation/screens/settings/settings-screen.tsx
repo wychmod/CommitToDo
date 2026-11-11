@@ -1,17 +1,23 @@
 import '@/core/theme/v3-tokens.css';
 
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Cloud,
   Shield,
+  ShieldCheck,
   Wifi,
   User,
   LogIn,
+  LogOut,
+  Github,
+  Mail,
 } from 'lucide-react';
 
 import { useShallow } from 'zustand/react/shallow';
 
 import { V3AppShell, V3Button, V3Card } from '@/presentation/components/v3';
+import { useAuthStore } from '@/presentation/stores/auth-store';
 import { useSettingsScreenStore } from './settings-screen-store';
 import { SettingsSegmentedControl } from './settings-segmented-control';
 import { AppearanceSection } from './appearance-section';
@@ -225,33 +231,93 @@ export function SettingsScreen(): JSX.Element {
 
             <PwaInstallButton status={pwaStatus} onInstall={installPwa} />
 
-            <V3Card className="flex flex-col gap-3 p-5">
-              <div className="flex items-center gap-3">
-                <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full bg-[var(--v3-control)] text-[var(--v3-primary)]">
-                  <User size={18} strokeWidth={1.5} aria-hidden="true" />
-                </span>
-                <div>
-                  <p className="text-[16px] font-semibold text-[var(--v3-text-strong)]">
-                    账户
-                  </p>
-                  <p className="text-[13px] text-[var(--v3-text-secondary)]">
-                    本地模式
-                  </p>
-                </div>
-              </div>
-              <p className="text-[13px] text-[var(--v3-text-secondary)]">
-                当前使用本地模式，数据仅保存在此设备。
-              </p>
-              <V3Button variant="secondary" className="w-full" disabled
-              >
-                <LogIn size={16} strokeWidth={1.5} aria-hidden="true" />
-                登录
-              </V3Button>
-            </V3Card>
+            <AccountCard />
           </div>
         </aside>
       </div>
     </V3AppShell>
+  );
+}
+
+function AccountCard(): JSX.Element {
+  const status = useAuthStore((s) => s.status);
+  const session = useAuthStore((s) => s.session);
+  const profile = useAuthStore((s) => s.profile);
+  const signOut = useAuthStore((s) => s.signOut);
+  const navigate = useNavigate();
+
+  const isAuthenticated = status === 'authenticated' && session !== null;
+  const provider = session?.provider === 'github' ? 'github' : 'email';
+  const ProviderIcon = provider === 'github' ? Github : Mail;
+  const email = profile?.email;
+
+  const handleLogin = (): void => {
+    navigate('/login');
+  };
+
+  const handleLogout = async (): Promise<void> => {
+    await signOut();
+    navigate('/', { replace: true });
+  };
+
+  return (
+    <V3Card className="flex flex-col gap-3 p-5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full bg-[var(--v3-control)] text-[var(--v3-primary)]">
+          <User size={18} strokeWidth={1.5} aria-hidden="true" />
+        </span>
+        <div>
+          <p className="text-[16px] font-semibold text-[var(--v3-text-strong)]">
+            账户
+          </p>
+          <p className="text-[13px] text-[var(--v3-text-secondary)]">
+            {isAuthenticated ? (
+              <span className="flex items-center gap-1">
+                <ProviderIcon size={12} strokeWidth={1.5} aria-hidden="true" />
+                {provider === 'github' ? 'GitHub 登录' : '邮箱登录'}
+              </span>
+            ) : (
+              '本地模式'
+            )}
+          </p>
+        </div>
+      </div>
+      {isAuthenticated && email ? (
+        <p className="text-[13px] text-[var(--v3-text-secondary)]">
+          {email}
+        </p>
+      ) : null}
+      <p className="text-[13px] text-[var(--v3-text-secondary)]">
+        {isAuthenticated
+          ? '业务数据仍保存在本机，账户信息用于跨设备识别。'
+          : '当前使用本地模式，数据仅保存在此设备。'}
+      </p>
+      {isAuthenticated ? (
+        <div className="flex flex-col gap-2">
+          <V3Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => navigate('/settings/security')}
+          >
+            <ShieldCheck size={16} strokeWidth={1.5} aria-hidden="true" />
+            账户与安全
+          </V3Button>
+          <V3Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => void handleLogout()}
+          >
+            <LogOut size={16} strokeWidth={1.5} aria-hidden="true" />
+            退出登录
+          </V3Button>
+        </div>
+      ) : (
+        <V3Button variant="secondary" className="w-full" onClick={handleLogin}>
+          <LogIn size={16} strokeWidth={1.5} aria-hidden="true" />
+          登录
+        </V3Button>
+      )}
+    </V3Card>
   );
 }
 
