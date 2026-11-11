@@ -4,7 +4,7 @@
 >
 > 文档阶段：1 / 4（需求规格）
 >
-> 视觉基准：`C:/Users/Administrator.SY-202401060959/AppData/Local/Temp/codex-clipboard-7a4d7ab4-3938-47a3-b9f8-e6ece1daf59e.png`
+> 视觉基准：由评审环境提供，不在仓库中保存本机绝对路径。
 >
 > 后续文档：本规格批准后生成 `plan.md`，再依次生成 `task.md` 和
 > `checklist.md`。四份文档全部批准前不得开始实现。

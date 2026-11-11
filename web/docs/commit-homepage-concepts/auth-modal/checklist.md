@@ -11,7 +11,7 @@
 > 执行基线：`./task.md`（已批准）
 >
 > 视觉基准：
-> `C:/Users/Administrator.SY-202401060959/AppData/Local/Temp/codex-clipboard-7a4d7ab4-3938-47a3-b9f8-e6ece1daf59e.png`
+> 视觉参考图：由评审环境提供，不在仓库中保存本机绝对路径。
 >
 > 硬门槛：本文件批准前不得开始实现。批准后严格按 `task.md` 开发，完成后按本
 > Checklist 逐项验收；任何失败项修复并复验后才可勾选。
