@@ -7,6 +7,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@cloudbase/node-sdk": "^3.16.0"
+    "pg": "^8.11.0"
   }
 }
