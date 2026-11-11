@@ -19,7 +19,10 @@ export function getCloudBaseApp(): ReturnType<typeof cloudbase.init> {
     env: config.envId,
     region: config.region,
     accessKey: config.publishableKey,
-    auth: { detectSessionInUrl: true },
+    // OAuth callbacks are validated by OAuthCallbackScreen before the SDK
+    // exchanges the code. Automatic URL detection would consume the callback
+    // before our one-time state check runs.
+    auth: { detectSessionInUrl: false },
   });
 
   return app;

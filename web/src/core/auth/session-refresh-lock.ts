@@ -9,19 +9,15 @@ export class SessionRefreshLock {
   private promise: Promise<unknown> | null = null;
 
   async run<T>(fn: () => Promise<T>): Promise<T> {
-    while (this.promise) {
-      try {
-        await this.promise;
-      } catch {
-        // ignore previous refresh failures
-      }
-    }
+    const existing = this.promise;
+    if (existing) return existing as Promise<T>;
 
-    this.promise = fn();
+    const current = fn();
+    this.promise = current;
     try {
-      return await this.promise as T;
+      return await current;
     } finally {
-      this.promise = null;
+      if (this.promise === current) this.promise = null;
     }
   }
 }

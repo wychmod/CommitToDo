@@ -15,6 +15,7 @@ import {
   type PhoneAuthInput,
   type StartOAuthInput,
   type CompleteOAuthInput,
+  type CompletePasswordResetInput,
 } from '@/domain/repositories/i-auth-repository';
 import type { CloudBaseAuthSession, CloudBaseAuthUser, CloudBaseOtpResponse } from '@/core/cloudbase/cloudbase-types';
 
@@ -33,9 +34,19 @@ function toSessionSummary(session: CloudBaseAuthSession): AuthSessionSummary {
 
 @injectable()
 export class CloudBaseAuthRepository implements IAuthRepository {
-  private readonly auth = getCloudBaseAuth();
   private readonly refreshLock = new SessionRefreshLock();
   private readonly pendingVerifications = new Map<string, CloudBaseOtpResponse['verifyOtp']>();
+  private readonly pendingPasswordResets = new Map<
+    string,
+    (attributes: { nonce: string; password: string }) => Promise<{
+      data: { session: CloudBaseAuthSession | null };
+      error: { code?: string; message?: string } | null;
+    }>
+  >();
+
+  private get auth(): ReturnType<typeof getCloudBaseAuth> {
+    return getCloudBaseAuth();
+  }
 
   async getSession(): Promise<AuthSessionSummary | null> {
     const { data, error } = await this.auth.getSession();
@@ -125,21 +136,10 @@ export class CloudBaseAuthRepository implements IAuthRepository {
   }
 
   async startGithubAuth(input: StartOAuthInput): Promise<{ url: string }> {
-    const state = generateRandomState();
-    const nonce = generateRandomState();
-    saveOAuthState({
-      state,
-      nonce,
-      provider: 'github',
-      intent: input.intent,
-      returnTo: input.returnTo,
-      createdAt: Date.now(),
-    });
-
     const { data, error } = await this.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: input.returnTo,
+        redirectTo: buildOAuthCallbackUrl(),
         skipBrowserRedirect: true,
       },
     });
@@ -148,8 +148,24 @@ export class CloudBaseAuthRepository implements IAuthRepository {
       throw new AuthRepositoryError(mapAuthError(error), error?.message);
     }
 
-    // CloudBase generates its own state; we keep ours in sessionStorage for
-    // additional validation on callback.
+    const oauthUrl = new URL(data.url);
+    const state = oauthUrl.searchParams.get('state');
+    if (!state) {
+      throw new AuthRepositoryError(
+        'OAUTH_STATE_INVALID',
+        'OAuth provider did not return a state value.'
+      );
+    }
+
+    saveOAuthState({
+      state,
+      nonce: generateRandomState(),
+      provider: 'github',
+      intent: input.intent,
+      returnTo: input.returnTo,
+      createdAt: Date.now(),
+    });
+
     return { url: data.url };
   }
 
@@ -167,8 +183,39 @@ export class CloudBaseAuthRepository implements IAuthRepository {
     return toSessionSummary(data.session);
   }
 
-  async resetPassword(email: string): Promise<void> {
-    await this.auth.resetPassword({ email });
+  async requestPasswordReset(email: string): Promise<void> {
+    const { data, error } = await this.auth.resetPasswordForEmail(email);
+    if (error) {
+      throw new AuthRepositoryError(mapAuthError(error), error.message);
+    }
+    if (!data?.updateUser) {
+      throw new AuthRepositoryError('SERVICE_TEMPORARILY_UNAVAILABLE');
+    }
+    this.pendingPasswordResets.set(
+      email.trim().toLowerCase(),
+      data.updateUser as (attributes: { nonce: string; password: string }) => Promise<{
+        data: { session: CloudBaseAuthSession | null };
+        error: { code?: string; message?: string } | null;
+      }>
+    );
+  }
+
+  async completePasswordReset(input: CompletePasswordResetInput): Promise<AuthSessionSummary> {
+    const key = input.email.trim().toLowerCase();
+    const updateUser = this.pendingPasswordResets.get(key);
+    if (!updateUser) {
+      throw new AuthRepositoryError('CHALLENGE_EXPIRED', 'Password reset request expired.');
+    }
+
+    const { data, error } = await updateUser({
+      nonce: input.code,
+      password: input.password,
+    });
+    this.pendingPasswordResets.delete(key);
+    if (error || !data?.session) {
+      throw new AuthRepositoryError(mapAuthError(error), error?.message);
+    }
+    return toSessionSummary(data.session);
   }
 
   async reauthenticate(password: string): Promise<AuthSessionSummary> {
@@ -205,6 +252,13 @@ export class CloudBaseAuthRepository implements IAuthRepository {
     const subscription = (result as unknown as { data: { subscription: { unsubscribe: () => void } } }).data.subscription;
     return () => subscription.unsubscribe();
   }
+}
+
+function buildOAuthCallbackUrl(): string {
+  const basePath = (import.meta.env.VITE_APP_BASENAME as string | undefined) || '/';
+  const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
+  const url = new URL(`${normalizedBase}auth/callback`, window.location.origin);
+  return url.toString();
 }
 
 function generateRandomState(): string {

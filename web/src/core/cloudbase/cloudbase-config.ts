@@ -11,6 +11,18 @@ export interface CloudBaseAuthConfig {
   publishableKey: string;
 }
 
+export interface CloudBaseAuthFeatures {
+  phone: boolean;
+  github: boolean;
+}
+
+export function readCloudBaseAuthFeatures(): CloudBaseAuthFeatures {
+  return {
+    phone: import.meta.env.VITE_AUTH_PHONE_ENABLED === 'true',
+    github: import.meta.env.VITE_AUTH_GITHUB_ENABLED === 'true',
+  };
+}
+
 export function readCloudBaseAuthConfig(): CloudBaseAuthConfig {
   const envId = import.meta.env.VITE_CLOUDBASE_ENV_ID as string | undefined;
   const region = (import.meta.env.VITE_CLOUDBASE_REGION as string | undefined) || 'ap-shanghai';

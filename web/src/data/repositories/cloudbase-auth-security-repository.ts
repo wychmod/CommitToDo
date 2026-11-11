@@ -24,7 +24,11 @@ const GATEWAY_URL = import.meta.env.VITE_AUTH_GATEWAY_URL as string | undefined;
 @injectable()
 export class CloudBaseAuthSecurityRepository implements IAuthSecurityRepository {
   async requestChallenge(input: RequestChallengeInput): Promise<AuthChallenge> {
-    return this.post<AuthChallenge>('/v1/auth/challenges', input);
+    const idempotencyKey =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    return this.post<AuthChallenge>('/v1/auth/challenges', input, idempotencyKey);
   }
 
   async verifyChallenge(input: VerifyChallengeInput): Promise<AuthChallengeResult> {
@@ -72,12 +76,13 @@ export class CloudBaseAuthSecurityRepository implements IAuthSecurityRepository 
     return this.parseResponse<T>(response);
   }
 
-  private async post<T>(path: string, body: unknown): Promise<T> {
+  private async post<T>(path: string, body: unknown, idempotencyKey?: string): Promise<T> {
     const url = this.resolveUrl(path);
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
         ...(await this.authHeaders()),
       },
       body: JSON.stringify(body),

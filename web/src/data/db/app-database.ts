@@ -17,6 +17,17 @@ export interface TaskTagRecord {
   createdAt: string;
 }
 
+export const legacyDatabaseName = 'commit-db';
+export const activeDatabaseStorageKey = 'commit.active-workspace-db.v1';
+
+export function resolveActiveDatabaseName(): string {
+  if (typeof localStorage === 'undefined') return legacyDatabaseName;
+  const configured = localStorage.getItem(activeDatabaseStorageKey);
+  return configured?.startsWith(`${legacyDatabaseName}-`)
+    ? configured
+    : legacyDatabaseName;
+}
+
 export class AppDatabase extends Dexie {
   repositories!: Table<RepositoryRecord, string>;
   branches!: Table<BranchRecord, string>;
@@ -25,8 +36,8 @@ export class AppDatabase extends Dexie {
   tags!: Table<TagRecord, string>;
   taskTags!: Table<TaskTagRecord, [string, string]>;
 
-  constructor() {
-    super('commit-db');
+  constructor(databaseName = legacyDatabaseName) {
+    super(databaseName);
 
     this.version(1).stores({
       repositories: 'id, isArchived, isDeleted',
@@ -94,4 +105,4 @@ export class AppDatabase extends Dexie {
   }
 }
 
-export const appDatabase = new AppDatabase();
+export const appDatabase = new AppDatabase(resolveActiveDatabaseName());
