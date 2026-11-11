@@ -104,7 +104,7 @@ npm run dev          # http://localhost:5173
 | 检查 | 状态 |
 |---|---|
 | `npx tsc -b` | 通过 |
-| `npm test` | 289 个用例，288 通过（1 例为分支 Tab 查询时序竞态，待修） |
+| `npm test` | 289 个用例全部通过；其中 1 例依赖数据加载时序（仓库任务页分支 Tab），高负载下偶发失败 |
 | `npm run build` | 通过；主 chunk 659 kB（gzip 210 kB），超过 500 kB 告警阈值，待分包 |
 
 ---
