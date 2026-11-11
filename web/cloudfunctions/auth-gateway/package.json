@@ -1,0 +1,13 @@
+{
+  "name": "auth-gateway",
+  "version": "1.0.0",
+  "description": "Commit authentication gateway for rate limiting, risk checks, profile bootstrap and identity binding.",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.16.0",
+    "pg": "^8.12.0"
+  }
+}
