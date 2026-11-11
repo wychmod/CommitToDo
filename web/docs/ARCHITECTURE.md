@@ -9,12 +9,12 @@
 
 ## 1. 项目概述
 
-Commit Web 端是现有 Flutter 桌面/移动应用的功能对等 Web 版本，作为 Monorepo 的 `web/` 子目录存在。Web 端采用 **Vite 6 + React 18 + TypeScript 5 + Tailwind CSS 4 + Radix UI + Dexie.js** 技术栈，数据完全存储于浏览器 IndexedDB，支持响应式布局、深色/浅色主题切换与 PWA 安装。
+Commit Web 端是仓库当前唯一的客户端实现，位于 `web/` 子目录。Web 端采用 **Vite 6 + React 18 + TypeScript 5 + Tailwind CSS 4 + Radix UI + Dexie.js** 技术栈，数据完全存储于浏览器 IndexedDB，支持响应式布局、深色/浅色主题切换与 PWA 安装。
 
 ### 核心设计目标
 
 1. **功能对等**：覆盖仓库、分支、任务、提交历史、全局搜索、热力图、Git Graph 等核心能力。
-2. **原生 Web 体验**：使用 DOM 原生交互，拒绝 Flutter Web 的 Canvas 渲染模型。
+2. **原生 Web 体验**：使用 DOM 原生交互，保证首屏性能、可访问性与响应式能力。
 3. **设计一致性**：严格以 `docs/DESIGN.md` 为唯一视觉来源，通过 CSS Variables 映射 `AppThemeColors`。
 4. **架构可扩展**：采用 Repository 接口模式，Dexie.js 只是当前本地实现，未来可无缝切换为远程后端。
 
@@ -26,11 +26,11 @@ Commit Web 端是现有 Flutter 桌面/移动应用的功能对等 Web 版本，
 
 | 挑战 | 解决策略 |
 |------|----------|
-| 本地存储从 SQLite 迁移到 Web | 使用 Dexie.js 封装 IndexedDB，schema 与 Flutter 端 6 张表对齐 |
+| 本地存储 | 使用 Dexie.js 封装 IndexedDB，schema 覆盖 6 张表 |
 | 主题系统跨技术栈映射 | `AppThemeColors` → CSS Variables + `.dark/.light` class 切换，Tailwind 引用变量 |
 | 响应式布局复刻 | `ResponsiveLayout` / `SplitView` → `useBreakpoint` hook + 条件渲染 |
-| Git Graph 可视化 | ReactFlow 12 替代 Flutter CustomPainter，支持 pinch-to-zoom 与虚拟化 |
-| 状态管理模式映射 | Riverpod `Notifier + State` → Zustand 每屏独立 store |
+| Git Graph 可视化 | ReactFlow 12 实现分支-提交关系图，支持 pinch-to-zoom 与虚拟化 |
+| 状态管理 | 每屏独立 Zustand store，一屏一店 |
 | DI 容器映射 | get_it/injectable → tsyringe |
 
 ### 2.2 框架与库选型（含版本）
@@ -38,7 +38,7 @@ Commit Web 端是现有 Flutter 桌面/移动应用的功能对等 Web 版本，
 | 维度 | 选型 | 版本 | 理由 |
 |------|------|------|------|
 | 框架 | React | 18.3.x | 生态成熟，原生 DOM 交互 |
-| 语言 | TypeScript | 5.5.x | 类型安全，便于与 Dart 模型对齐 |
+| 语言 | TypeScript | 5.5.x | 类型安全，便于约束领域模型 |
 | 构建工具 | Vite | 6.0.x | 极速 HMR、生产构建优秀、PWA 插件成熟 |
 | 样式 | Tailwind CSS | 4.0.x | 原子化 CSS，精准映射 DESIGN.md token |
 | UI 基础 | Radix UI | latest | Headless 无障碍基础组件 |
@@ -48,14 +48,14 @@ Commit Web 端是现有 Flutter 桌面/移动应用的功能对等 Web 版本，
 | Git Graph | ReactFlow | 12.x | 内置 pan/zoom、自定义节点/连线 |
 | 虚拟列表 | @tanstack/react-virtual | 3.x | 长列表性能优化 |
 | 日期处理 | date-fns | 4.x | 轻量，替代 intl |
-| UUID | uuid | 10.x | 与 Dart 端一致生成 v4 UUID |
+| UUID | uuid | 10.x | 统一生成 v4 UUID |
 | DI | tsyringe | 4.8.x | 轻量 DI 容器，类比 get_it |
 | 图标 | lucide-react | latest | 对标 AppIcons (Heroicons) |
 | PWA | vite-plugin-pwa | latest | Service Worker + manifest |
 
 ### 2.3 架构模式
 
-采用 **分层架构**，与 Flutter 端对齐：
+采用 **分层架构**，依赖只能向下：
 
 ```
 Presentation (Screens + Stores + Components)
@@ -613,14 +613,14 @@ sequenceDiagram
 ### 7.1 命名约定
 
 - **文件命名**：kebab-case，React 组件文件使用 `.tsx`，纯逻辑文件使用 `.ts`。
-- **类/接口命名**：实体类使用 PascalCase；Repository 接口以 `I` 前缀开头（如 `ITaskRepository`），与 Flutter 端保持一致。
-- **枚举**：TypeScript `const enum` 或普通 enum，字段与 Flutter 端完全一致，包含 `value` 和 `label`，并提供 `fromValue` 静态方法。
+- **类/接口命名**：实体类使用 PascalCase；Repository 接口以 `I` 前缀开头（如 `ITaskRepository`）。
+- **枚举**：TypeScript `const enum` 或普通 enum，字段包含 `value` 与 `label`，并提供 `fromValue` 解析方法。
 - **Hooks**：以 `use` 前缀开头，如 `useBreakpoint`、`useIsDesktop`。
-- **Zustand Store**：以 `useXxxStore` 命名，对应 Flutter 端 `XxxNotifier + XxxState`。
+- **Zustand Store**：以 `useXxxStore` 命名，承载单屏状态与动作。
 
 ### 7.2 数据层约定
 
-- **ID 生成**：统一使用 `uuid` 的 `v4()`，与 Flutter 端 `Uuid().v4()` 对齐。
+- **ID 生成**：统一使用 `uuid` 的 `v4()`。
 - **时间存储**：所有 `createdAt` / `updatedAt` / `completedAt` / `dueDate` 以 ISO 8601 UTC 字符串存入 IndexedDB，业务层使用 `Date` 对象。
 - **软删除**：所有实体均有 `isDeleted` 字段。Repository 的 `getAll` / `getBy*` 默认过滤 `isDeleted = false`；`delete` 方法执行软删除（更新 `isDeleted = true`），不物理删除。
 - **Dexie 索引**：主键为 `id`（string），业务查询字段建立索引：`repositories(isDeleted)`、`branches(repositoryId, isDeleted)`、`tasks(branchId, status, dueDate, parentTaskId, isDeleted)`、`commits(taskId, branchId)`。
@@ -638,7 +638,7 @@ sequenceDiagram
 
 ### 7.4 错误处理
 
-- **UseCase**：参数校验失败抛 `Error`（或自定义 `ValidationError`），信息使用中文，与 Flutter 端一致。
+- **UseCase**：参数校验失败抛 `Error`（或自定义 `ValidationError`），信息使用中文。
 - **Store**：所有异步操作 `try/catch`，错误信息写入 `state.error`，UI 通过 `ErrorWidget` 或 Toast 展示。
 - **Dexie 操作**：统一在 Repository 层捕获并重新抛出带上下文的错误。
 
@@ -661,7 +661,7 @@ sequenceDiagram
 ### 7.7 图标系统
 
 - 统一使用 `AppIconName` 枚举 + `AppIcon` 组件映射到 `lucide-react`。
-- 36 个图标名与 Flutter 端 `AppIcons` 对齐，例如：
+- 图标名集中定义于 `app-icons.tsx`，例如：
   - `repository` → `Folder`
   - `repositoryOpen` → `FolderOpen`
   - `heatmap` → `BarChart3`
@@ -693,36 +693,16 @@ sequenceDiagram
 
 | # | 问题 | 架构建议 | 默认处理方案 |
 |---|------|----------|--------------|
-| 1 | PWA 与 Flutter 端导出格式是否需端到端兼容测试 | **建议当前 Sprint 内做一次**。Web 端导出格式必须与 Flutter 端 `DataExportService` 输出一致（version=1、字段名、日期格式）。 | 工程师按 version 1 实现 Web 导出/导入，完成后由 PM/QA 与 Flutter 端做一轮 JSON 互导测试；若发现差异，以 `shared/schemas/export-schema.json` 为准修正。 |
-| 2 | Web 通知提醒逻辑是否与 Flutter 端完全一致 | Web 端后台能力受限，**建议做简化**。 | 仅在任务截止前 `reminderHours` 小时触发一次 Web Notification；不实现重复提醒或精确到分钟的后台轮询。通知开关状态保存到 `localStorage`。 |
+| 1 | 导出格式是否需要版本兼容测试 | **建议保留一次回归验证**。导出格式固定为 version=1（字段名、日期格式约定不变）。 | 修改导出结构时补一次 JSON 往返测试，确保导入能解析历史文件。 |
+| 2 | 通知提醒做到什么程度 | Web 端后台能力受限，**建议简化**。 | 仅在任务截止前 `defaultLeadMinutes` 触发一次 Web Notification；不实现重复提醒或后台轮询。开关状态保存到 `localStorage`。 |
 | 3 | 标签系统 `tags` / `taskTags` 表在 P0 是否需完整 UI | 从 PRD P0 范围看，标签非核心功能；但数据层已设计 6 张表，应保持数据层完整。 | **P0 保留数据层**（tags/taskTags 表 + 可选 Repository 方法），**P0 不实现标签 UI**；P1 再补标签编辑、筛选与展示。 |
-| 4 | 桌面小组件是否适用于 Web 端 | Web 端无系统级桌面小组件能力（PWA 小组件尚在早期），不适用。 | Web 端不实现桌面小组件，该需求仅保留在 Flutter 端。 |
-| 5 | 是否预留用户账号/后端同步 UI 占位 | 当前 PRD 明确「数据同步：暂不实现」，且本地应用无账户体系。 | **完全隐藏**账号/登录/同步 UI；Repository 接口与 DI 容器已预留扩展点，未来新增后端时通过新增 `Remote*Repository` 并切换 DI 注册实现，无需改动展示层。 |
+| 5 | 账号与同步的扩展点如何保留 | 账号体系已实现（邮箱 / 手机 / GitHub），业务数据仍为本地存储。 | 认证仅在需要时出现；同步能力未实现，新增后端时通过 `Remote*Repository` 替换 DI 注册，展示层不改。 |
 
 ---
 
 ## 9. 附录
 
-### 9.1 与 Flutter 端核心映射对照
-
-| Flutter 端 | Web 端 |
-|------------|--------|
-| `lib/domain/entities/*.dart` | `src/domain/entities/*.ts` |
-| `lib/domain/repositories/i_*.dart` | `src/domain/repositories/i-*.ts` |
-| `lib/domain/usecases/**/*.dart` | `src/application/usecases/**/*.ts` |
-| `lib/data/database/*` | `src/data/db/app-database.ts` |
-| `lib/data/repositories/local_*.dart` | `src/data/repositories/dexie-*.ts` |
-| `lib/core/theme/app_theme_colors.dart` | `src/core/theme/colors.ts` + CSS Variables |
-| `lib/core/theme/dimensions.dart` | `src/core/theme/dimensions.ts` + Tailwind config |
-| `lib/core/theme/app_icons.dart` | `src/presentation/icons/app-icons.tsx` |
-| `lib/presentation/widgets/common/responsive_layout.dart` | `src/core/hooks/use-breakpoint.ts` |
-| `lib/presentation/widgets/common/split_view.dart` | `src/presentation/components/common/split-view.tsx` |
-| `lib/presentation/widgets/common/hero_empty_state.dart` | `src/presentation/components/common/hero-empty-state.tsx` |
-| `lib/presentation/widgets/common/app_segmented_control.dart` | `src/presentation/components/common/app-segmented-control.tsx` |
-| `lib/presentation/screens/home/home_notifier.dart` | `src/presentation/stores/home-store.ts` |
-| `lib/presentation/screens/repository/repository_notifier.dart` | `src/presentation/stores/repository-store.ts` |
-
-### 9.2 数据库 Schema（Dexie.js）
+### 9.1 数据库 Schema（Dexie.js）
 
 ```typescript
 class AppDatabase extends Dexie {

@@ -14,8 +14,8 @@
 |------|------|
 | **Project Name** | `commit_web` |
 | **Programming Language** | Vite + React 18 + TypeScript 5 + Tailwind CSS 4 + Radix UI + Dexie.js |
-| **项目位置** | Monorepo 子目录 `web/`，与 Flutter `lib/` 并存 |
-| **原始需求** | 为现有 Flutter 桌面/移动应用 Commit 新增一个独立的 Web 端版本，作为 Monorepo 的 `web/` 子目录存在；采用 React 技术栈，以 IndexedDB 为本地存储，全功能覆盖「仓库-分支-任务-提交」核心模型，并支持响应式布局、主题切换与 PWA 安装。 |
+| **项目位置** | 仓库子目录 `web/` |
+| **原始需求** | 建设 Commit 的 Web 客户端，位于 `web/` 子目录；采用 React 技术栈，以 IndexedDB 为本地存储，全功能覆盖「仓库-分支-任务-提交」核心模型，并支持响应式布局、主题切换与 PWA 安装。 |
 
 ---
 
@@ -23,15 +23,15 @@
 
 ### 2.1 Product Goals
 
-1. **功能对等**：Web 端在核心功能（仓库/分支/任务/搜索/提交历史）上与 Flutter 端完全对等，成为用户可选的跨平台入口。  
-2. **原生 Web 体验**：采用 React + DOM 原生交互范式，不采用 Flutter Web，确保首屏性能、可访问性与响应式体验优于 Canvas 渲染方案。  
-3. **设计一致性**：Web 端严格复用 `docs/DESIGN.md` 作为唯一视觉事实来源，保证深/浅主题、组件规范、交互密度与 Flutter 端一致。  
+1. **功能完整**：覆盖仓库 / 分支 / 任务 / 搜索 / 提交历史全部核心能力。  
+2. **原生 Web 体验**：采用 React + DOM 原生交互范式，保证首屏性能、可访问性与响应式体验。  
+3. **设计一致性**：严格复用 `docs/DESIGN.md` 作为唯一视觉事实来源，保证深 / 浅主题、组件规范、交互密度统一。  
 4. **离线优先 + PWA**：通过 IndexedDB 实现本地数据持久化，并通过 PWA 支持可安装、离线可用、主屏图标与状态栏适配。  
 
-### 2.2 与 Flutter 端关系
+### 2.2 与仓库其他部分的关系
 
-- **数据独立**：Web 端数据存储在浏览器 IndexedDB，与 Flutter 端 SQLite 不直接互通；两端通过统一的 JSON 导出/导入格式交换数据。  
-- **架构映射**：Web 端 `domain/application/data/presentation` 分层与 Flutter 端对齐；Repository 接口抽象为后续数据同步预留扩展空间。  
+- **数据独立**：业务数据存储在浏览器 IndexedDB，本地优先，不依赖服务端；跨设备交换依靠 JSON 导出/导入。  
+- **架构分层**：`domain / application / data / presentation` 四层分离，Repository 接口抽象为后续同步预留扩展空间。  
 - **设计共享**：`docs/DESIGN.md` 是唯一视觉来源；`AppThemeColors` 通过 CSS Variables 映射，`AppIcons` 通过 Lucide React 映射。  
 
 ### 2.3 目标用户
@@ -64,7 +64,7 @@
 | P0-3 | **主题系统** | 实现 `isDarkMode` 布尔切换与 `themeColor` 自定义，设置持久化到 `localStorage`，切换无闪烁。 |
 | P0-4 | **响应式布局骨架** | 实现 `AppLayout`（≥840px 侧边导航 200px + 3px 选中色条，<840px 底部导航 48px）、`SplitView`（≥1024px 双栏，<1024px 单栏）、`useBreakpoint` 系列 hooks。 |
 | P0-5 | **PWA 基础** | 配置 `manifest.json`、Service Worker、viewport meta、theme-color meta 与安全区 CSS；支持添加到主屏幕。 |
-| P0-6 | **Domain 层移植** | 将 `Task`、`Branch`、`Repository`、`Commit` 实体与 `TaskStatus`、`Priority`、`CommitType` 枚举移植为 TypeScript，保持与 Flutter 端字段一致。 |
+| P0-6 | **Domain 层移植** | 将 `Task`、`Branch`、`Repository`、`Commit` 实体与 `TaskStatus`、`Priority`、`CommitType` 枚举移植为 TypeScript，字段定义以 `docs/ARCHITECTURE.md` 为准。 |
 | P0-7 | **Dexie.js 数据层** | 实现 6 张表（repositories、branches、tasks、commits、tags、taskTags）与对应索引，实现 4 个 Repository 接口。 |
 | P0-8 | **仓库管理** | 支持创建、编辑、删除（软删除）、列表查看仓库；新建仓库自动创建 `main` 分支。 |
 | P0-9 | **分支管理** | 支持创建、切换、合并、删除（软删除）分支；`main` 分支不可删除；合并时未完成任务移动到目标分支。 |
@@ -81,7 +81,7 @@
 | P1-2 | **Git Graph 可视化** | 使用 ReactFlow 实现分支-提交关系图；支持节点点击、贝塞尔连线、缩放/平移；移动端支持双指缩放，默认缩放 0.8x。 |
 | P1-3 | **提交历史** | 在任务详情页展示 Commit 时间线，支持按创建/更新/合并/完成/删除类型筛选。 |
 | P1-4 | **数据导出** | 支持导出完整数据为 JSON、任务列表为 CSV、仓库概览为 Markdown。 |
-| P1-5 | **数据导入** | 支持从 JSON 导入数据，与 Flutter 端导出格式保持一致；导入时校验版本号并提示冲突。 |
+| P1-5 | **数据导入** | 支持从 JSON 导入数据，导出格式见 `docs/ARCHITECTURE.md`；导入时校验版本号并提示冲突。 |
 | P1-6 | **虚拟列表** | 在任务列表与提交历史中集成 `@tanstack/react-virtual`，保证长列表滚动流畅。 |
 
 #### P2 — 增强（Web 通知、动画细化等）
@@ -106,13 +106,13 @@ Web 端视觉与交互必须严格以 `docs/DESIGN.md`（版本 2.0.0）为唯�
 | 组件规范 | §7 Components | 还原 `button-primary/secondary/tertiary/danger`、`task-card`、`repository-card`、`status-badge`、`branch-indicator`、`commit-row`、`dialog`、`toast` 等。 |
 | 展示面/操作面/数据面 | §4.4、§13 | 首页空状态用 `HeroEmptyState`（渐变图标 + 渐变标题）；列表页用 `Dense List`；热力图/Git Graph 用 `Data Canvas`；设置页用 `Settings Stack`。 |
 | 响应式规则 | §9 Responsive Behavior | 断点：Mobile <768px、Mobile-Lg 768~1023px、Tablet ≥1024px、Desktop ≥1280px、Desktop-XL ≥1440px；卡片网格 1-up → 2-up → 3-up。 |
-| 移动端模式 | §8.8 | 底部导航（48px）、BottomSheet、FAB、下拉刷新等 Flutter 模式映射到 Radix UI / 自定义组件。 |
+| 移动端模式 | §8.8 | 底部导航（48px）、BottomSheet、FAB、下拉刷新等移动端模式，用 Radix UI 与自定义组件实现。 |
 | 深色/浅色模式 | §9.4 | 浅色模式 surface/ink 反转，accent/语义色/heatmap/branchColors 不变。 |
 
 ### 3.3 技术约束
 
 - **技术栈**：React 18 + TypeScript 5 + Vite 6 + Tailwind CSS 4 + Radix UI + Zustand + React Router 7 + Dexie.js 4。  
-- **状态管理**：每屏独立 Zustand store，对应 Flutter 端 `Notifier + State` 模式。  
+- **状态管理**：每屏独立 Zustand store，承载该屏状态与动作。  
 - **本地存储**：IndexedDB（Dexie.js），设置项使用 `localStorage`。  
 - **数据同步**：当前阶段不实现，但 Repository 接口必须抽象以预留远程实现。  
 - **浏览器兼容**：Chrome/Edge/Firefox/Safari 最新两个主版本；移动端 Safari/Chrome 支持 PWA。  
@@ -122,10 +122,10 @@ Web 端视觉与交互必须严格以 `docs/DESIGN.md`（版本 2.0.0）为唯�
 
 ## 4. 待确认问题（Open Questions）
 
-1. **PWA 与 Flutter 端导出格式**：JSON 导出/导入是否需要在当前 Sprint 内与 Flutter 端做一次端到端兼容测试？  
-2. **通知策略**：Web 通知的提醒逻辑（任务截止前 N 小时）是否与 Flutter 端完全一致，还是允许针对 Web 端做简化？  
+1. **导出格式兼容性**：JSON 导出/导入是否需要保留一次端到端往返测试？  
+2. **通知策略**：提醒逻辑做到「截止前 N 分钟触发一次」是否足够，是否需要重复提醒？  
 3. **标签系统**：`tags` 与 `task_tags` 表在 P0 中是否需要完整实现 UI，还是仅保留数据层支持？  
-4. **桌面小组件**：原 PRD 中桌面小组件（P1）是否适用于 Web 端，还是仅保留 Flutter 端？  
+4. **桌面小组件**：依赖系统级能力，Web 端不实现；是否作为独立端的需求另行考虑？  
 5. **数据同步路线图**：是否需要在本次 Web 端开发中预留用户账号/后端同步的 UI 占位，还是完全隐藏？  
 
 ---
@@ -135,7 +135,7 @@ Web 端视觉与交互必须严格以 `docs/DESIGN.md`（版本 2.0.0）为唯�
 ### 5.1 参考文档
 
 - `docs/WEB_INTEGRATION_DESIGN.md` — Web 端技术架构、移动端适配策略、开发计划。  
-- `docs/PRD.md` — 现有 Flutter 端产品需求文档。  
+- `docs/PRD.md` — 仓库级产品需求文档。  
 - `docs/DESIGN.md` — 唯一视觉设计规范。  
 
 ### 5.2 版本规划（基于 WEB_INTEGRATION_DESIGN.md §10）

@@ -1,10 +1,10 @@
 # CommitToDo Web · Claude 协作规范
 
 > 本文件是 Claude Code 在 `web/` 子项目内工作的**硬性约束**。完整规范见 `AGENTS.md`，V3 视觉规范见 `docs/v3/STYLE_GUIDE.md`。
-> 仓库根目录的 `CLAUDE.md` 描述的是 **Flutter 应用**，与 `web/` 无关，在 `web/` 内以本文件为准。
+> 仓库级规范见根目录 `AGENTS.md`，本文件只补充 `web/` 专属约束。
 
 ## 工作目录
-当前项目：`D:\idea\Commit\web`（React + TS + Vite + Tailwind）。这是一个独立于根 Flutter 项目的 Web 前端。
+当前项目：`D:\idea\Commit\web`（React + TS + Vite + Tailwind），仓库唯一客户端实现。
 
 ## 不可逾越的红线
 1. **不得修改落地页**：`src/presentation/screens/landing/**` 及 `landing-theme.css` 是只读的 V3 参考实现。

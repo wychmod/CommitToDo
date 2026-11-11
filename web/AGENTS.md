@@ -5,7 +5,7 @@
 > 配套文档：`docs/v3/STYLE_GUIDE.md`（V3 风格指南）、`docs/ARCHITECTURE.md`（架构总览）。
 > 最后更新：2026-07-10
 
-> 注意：仓库根目录的 `CLAUDE.md` / `AGENTS.md` 描述的是 **Flutter 应用**（Dart），与 `web/` 子项目无关。在 `web/` 内工作时以**本文件**为准。
+> 注意：仓库级规范见根目录 `AGENTS.md`（分层、命名、测试门禁）。本文件只补充 `web/` 专属约定；两者冲突时以根规范为准。
 
 ---
 

@@ -10,7 +10,9 @@
 
 ## 0. 文档定位与适用范围
 
-本文件是 Commit 项目 UI 的**唯一视觉事实来源**。所有 `lib/core/theme/*` token、所有 `lib/presentation/**` 组件、所有屏幕布局，必须以本文件为准。代码与本文冲突时，**以本文件为准并修正代码**。
+本文件是 Commit 项目 UI 的**唯一视觉事实来源**。所有 `web/src/core/theme/*` 令牌、所有 `web/src/presentation/**` 组件、所有屏幕布局，必须以本文件为准。代码与本文冲突时，**以本文件为准并修正代码**。
+
+本文只描述与平台无关的视觉规则：色彩、字阶、间距、圆角、层级、组件形态。任何具体框架的 API 都不应写进这里。
 
 本文件遵循 [Stitch DESIGN.md 规范](https://stitch.withgoogle.com/docs/design-md/specification/)，并针对 Commit 的 Git-隐喻任务管理场景做了扩展。
 
@@ -140,7 +142,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 - **IBM Plex Sans** — 标题 + 正文，单一连续声音（替代 Linear Display/Text）。fallback: `-apple-system, system-ui, Segoe UI, Roboto`。
 - **JetBrains Mono** — branch name / commit id / label / 等宽技术标签（替代 Linear Mono，且 Linear 官方推荐 JetBrains Mono 作为 mono 替代）。fallback: `ui-monospace, SF Mono, Menlo`。
 
-> 字体文件待 `assets/fonts/` 就位后启用（见 `pubspec.yaml` 注释）。缺失时回退平台默认字体，不阻断构建。
+> 字体文件待就位后启用；缺失时回退到平台默认字体，不阻断构建。
 
 ### 3.2 Hierarchy
 
@@ -375,8 +377,8 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 - 不加大气渐变或聚光卡片（展示面渐变是受控局部装饰）。
 - 不 pill 圆 CTA。
 - 不用投影堆叠卡片（深色面投影无效）。
-- 不用 Emoji 做 UI 图标（用 Heroicons SVG，见 `lib/core/theme/app_icons.dart`）。
-- 不用 `GestureDetector` 做可见交互（用 `Semantics` + `InkWell`，见 `overview.md`）。
+- 不用 Emoji 做 UI 图标（用 Heroicons SVG，见 `web/src/presentation/icons/app-icons.tsx`）。
+- 不用 `div + onClick` 模拟按钮（用原生 `button` 并补齐 `aria-*`）。
 
 ---
 
@@ -425,7 +427,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 - 卡片 rounded.lg 12px；按钮 rounded.md 8px；CTA 绝不 pill。
 - 深色面不用投影，靠 surface ladder + hairline。
 - 列表项用 task-card 规范（左侧 3px 优先级色条 + 右侧 status pill）。
-- 组件取色优先用 `AppThemeColors.of(context)`，保证浅色模式跟随主题，不直接写死 `AppColors.surface1`。
+- 组件取色一律用 `var(--color-*)` 变量，保证明暗切换自动跟随，不直接写死具体色值。
 ```
 
 颜色速查：canvas `#0F172A` · primary `#3B82F6` · success `#10B981` · error `#EF4444` · ink `#F1F5F9`。
@@ -436,7 +438,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 1. 一次只改一个组件，用本文件 §7 的 token 名引用。
 2. 新增区块时，先决定它落在哪一阶 surface。
 3. 默认正文 `{typography.body}` weight 400。
-4. 改完跑 `flutter analyze` + `flutter test`。
+4. 改完在 `web/` 内跑 `npm run lint` + `npx tsc -b` + `npm test`。
 5. 新增变体作为独立组件条目记入 §7。
 6. 蓝色克制：品牌标识、主 CTA、focus、链接强调。
 7. 展示面优先放 display 字号 + 渐变 accent；操作面回归 body + 纯色。
@@ -447,14 +449,14 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 
 | DESIGN token | 代码位置 |
 |---|---|
-| `{colors.*}` | `lib/core/theme/colors.dart` → `AppColors.*` |
-| `{typography.*}` | `lib/core/theme/typography.dart` → `AppTypography.*` |
-| `{spacing.*}` / `{rounded.*}` | `lib/core/theme/dimensions.dart` → `AppDimensions.*` |
-| 组件主题 | `lib/core/theme/app_theme.dart` → `ThemeData` |
-| 图标 | `lib/core/theme/app_icons.dart` → `AppIcon` / `AppIconName` |
-| 组件实现 | `lib/presentation/widgets/**` |
+| `{colors.*}` | `web/src/core/theme/colors.ts` → `colorTokens` / `lightColorTokens` → CSS 变量 `--color-*` |
+| `{typography.*}` | `web/src/core/theme/typography.ts` |
+| `{spacing.*}` / `{rounded.*}` | `web/src/core/theme/dimensions.ts` + `tailwind.config.ts` 的 theme extend |
+| 组件主题 | `web/src/core/theme/app-theme.ts` + `theme-provider.tsx` |
+| 图标 | `web/src/presentation/icons/app-icons.tsx` |
+| 组件实现 | `web/src/presentation/components/**` |
 
-> 当前 token 层与本文件存在差异（字距缺失、surface ladder 命名未对齐、圆角档位不全等），见配套《开发改动计划》逐项修正。
+> 令牌改动必须同时落到 CSS 变量与 Tailwind 配置两处，否则会出现「类名生效但内联变量未更新」的错位。
 
 ---
 
@@ -472,7 +474,7 @@ Commit 的屏幕可归为五类构成模式。先选对模式，再套对应组�
 - **场景**：task list、repository list、search results、commit history。
 - **结构**：单列卡片列表，item 间距 `xs`(8)；卡片用 `task-card` / `repository-card` / `commit-row`。
 - **分组**：组标题用 `headline` + `eyebrow` 分类标记，组间距 `section`(96)（移动端 `xxl`(48)）。
-- **交互**：整卡 `InkWell` + hover lift；右滑/长按等手势不替代可见按钮。
+- **交互**：整卡可点击 + hover 抬升；右滑/长按等手势不替代可见按钮。
 
 ### 13.3 Data Canvas（数据面）
 - **场景**：heatmap、git graph。
@@ -489,7 +491,7 @@ Commit 的屏幕可归为五类构成模式。先选对模式，再套对应组�
 ### 13.5 Detail Split（详情页）
 - **场景**：repository detail、task detail。
 - **桌面**：左主列表（`LayoutBuilder` 分配 1/3 ~ 1/2）+ 右详情侧栏（`surface1` 底、hairline 左分隔）。
-- **移动**：单栏，详情为独立 screen；AppBar 左侧返回按钮用 `button-tertiary`。
+- **移动**：单栏，详情为独立页面；顶栏左侧返回按钮用 `button-tertiary`。
 - **内容**：标题 `headline`；meta 用 `mono-sm` + `inkSubtle`；操作按钮组右对齐（secondary + primary）。
 
 ### 13.6 Do's & Don'ts for Pages
