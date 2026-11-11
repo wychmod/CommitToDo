@@ -13,10 +13,15 @@ interface WorkspaceOwnershipGuardProps {
 }
 
 export function WorkspaceOwnershipGuard({ children }: WorkspaceOwnershipGuardProps): JSX.Element {
-  const { session, profile, resolveLocalWorkspace } = useAuthStore();
+  const { session, profile, mode, resolveLocalWorkspace } = useAuthStore();
   const [resolved, setResolved] = React.useState<'checking' | 'owned' | 'mismatch'>('checking');
 
   React.useEffect(() => {
+    if (mode === 'local') {
+      setResolved('owned');
+      return;
+    }
+
     let cancelled = false;
 
     async function check() {
@@ -36,7 +41,12 @@ export function WorkspaceOwnershipGuard({ children }: WorkspaceOwnershipGuardPro
 
     void check();
     return () => { cancelled = true; };
-  }, [session, profile, resolveLocalWorkspace]);
+  }, [session, profile, mode, resolveLocalWorkspace]);
+
+  if (mode === 'local') {
+    // 本地模式没有账号，本机库就是当前工作区，无需归属校验。
+    return <>{children}</>;
+  }
 
   if (resolved === 'checking') {
     return (

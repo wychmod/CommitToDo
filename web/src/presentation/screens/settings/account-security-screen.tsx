@@ -17,13 +17,52 @@ import { readCloudBaseAuthFeatures } from '@/core/cloudbase/cloudbase-config';
  */
 export function AccountSecurityScreen(): JSX.Element {
   const navigate = useNavigate();
-  const { profile, session, securityEvents, loadSecurityEvents } = useAuthStore();
+  const { profile, session, mode, securityEvents, loadSecurityEvents } = useAuthStore();
   const [bindPhoneOpen, setBindPhoneOpen] = React.useState(false);
   const authFeatures = readCloudBaseAuthFeatures();
 
   React.useEffect(() => {
+    if (mode === 'local') return;
     void loadSecurityEvents();
-  }, [loadSecurityEvents]);
+  }, [mode, loadSecurityEvents]);
+
+  if (mode === 'local') {
+    return (
+      <V3AppShell>
+        <div className="flex min-h-[calc(100vh-var(--v3-app-chrome))]">
+          <div className="flex-1 px-6 py-8 desktop:px-10">
+            <header className="flex flex-col gap-2">
+              <div>
+                <span className="text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--v3-primary)]">
+                  Security
+                </span>
+                <h1 className="mt-1 text-[42px] font-bold leading-[1.05] text-[var(--v3-text-strong)]">
+                  账户与安全
+                </h1>
+                <p className="mt-2 text-[15px] text-[var(--v3-text-secondary)]">
+                  当前处于本地模式，未登录任何账号。
+                </p>
+              </div>
+            </header>
+
+            <div className="mt-10 max-w-[720px]">
+              <V3Card className="flex flex-col gap-3 p-6">
+                <h2 className="text-[16px] font-semibold text-[var(--v3-text-strong)]">
+                  登录后可管理登录方式
+                </h2>
+                <p className="text-[13px] leading-relaxed text-[var(--v3-text-secondary)]">
+                  登录仅用于账号与安全能力，本地数据不会被上传。登录后可以选择把当前本地数据认领到该账号，或另建一份独立工作区。
+                </p>
+                <div className="mt-1">
+                  <V3Button onClick={() => navigate('/login')}>去登录</V3Button>
+                </div>
+              </V3Card>
+            </div>
+          </div>
+        </div>
+      </V3AppShell>
+    );
+  }
 
   return (
     <V3AppShell>

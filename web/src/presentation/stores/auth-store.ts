@@ -20,6 +20,33 @@ import { BootstrapUserProfileUseCase } from '@/application/usecases/auth/bootstr
 import { ResolveLocalWorkspaceUseCase } from '@/application/usecases/auth/resolve-local-workspace-usecase';
 import { StartGithubAuthUseCase } from '@/application/usecases/auth/start-github-auth-usecase';
 
+/**
+ * 认证模式。
+ *
+ * - `local`：不依赖登录，直接使用本机 IndexedDB，登录是可选升级。
+ * - `cloud`：已登录，数据存放在 `commit-db-{principalId}` 命名空间。
+ *
+ * 默认 `local`，因此首次访问无需任何 CloudBase 配置即可进入工作台。
+ */
+export type AuthMode = 'local' | 'cloud';
+
+const AUTH_MODE_KEY = 'commit.auth-mode.v1';
+
+function readPersistedMode(): AuthMode {
+  if (typeof localStorage === 'undefined') return 'local';
+  return localStorage.getItem(AUTH_MODE_KEY) === 'cloud' ? 'cloud' : 'local';
+}
+
+function persistMode(mode: AuthMode): void {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.setItem(AUTH_MODE_KEY, mode);
+}
+
+function markCloudMode(set: (partial: Partial<AuthState>) => void): void {
+  persistMode('cloud');
+  set({ mode: 'cloud' });
+}
+
 export type AuthOperation =
   | 'initialize'
   | 'login-email'
@@ -35,6 +62,7 @@ export type AuthOperation =
 
 export interface AuthState {
   status: AuthSessionStatus;
+  mode: AuthMode;
   session: AuthSessionSummary | null;
   profile: UserProfile | null;
   securityEvents: SecurityEvent[];
@@ -58,6 +86,8 @@ export interface AuthState {
   resolveLocalWorkspace(): Promise<import('@/application/usecases/auth/resolve-local-workspace-usecase').LocalWorkspaceResolution>;
   claimLocalWorkspace(principalId: string): Promise<boolean>;
   createLocalWorkspace(principalId: string): Promise<boolean>;
+  /** 放弃账号工作区，回到无需登录的本地模式。 */
+  enterLocalMode(): void;
   clearError(): void;
 }
 
@@ -97,6 +127,7 @@ function ensureAuthStateSubscription(
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   status: 'initializing',
+  mode: readPersistedMode(),
   session: null,
   profile: null,
   securityEvents: [],
@@ -104,6 +135,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
 
   initialize: async () => {
+    if (get().mode === 'local') {
+      set({ status: 'guest', session: null, profile: null, error: null });
+      return;
+    }
+
     set({ status: 'initializing', error: null });
     try {
       ensureAuthStateSubscription(set);
@@ -137,6 +173,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ operation: 'login-email', error: null });
     try {
       const session = await signInWithEmailUseCase.execute({ email, password });
+      markCloudMode(set);
       set({ status: 'authenticated', session, operation: null });
       await get().refreshProfile();
       return true;
@@ -166,6 +203,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const authRepository = container.resolve<IAuthRepository>('IAuthRepository');
       const session = await authRepository.verifyOtp(verificationId, code);
+      markCloudMode(set);
       set({ status: 'authenticated', session, operation: null });
       await get().refreshProfile();
       return true;
@@ -193,6 +231,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const authRepository = container.resolve<IAuthRepository>('IAuthRepository');
       const session = await authRepository.verifyOtp(verificationId, code);
+      markCloudMode(set);
       set({ status: 'authenticated', session, operation: null });
       await get().refreshProfile();
       return true;
@@ -230,6 +269,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const authRepository = container.resolve<IAuthRepository>('IAuthRepository');
       const session = await authRepository.completePasswordReset({ email, code, password });
+      markCloudMode(set);
       set({ status: 'authenticated', session, operation: null });
       await get().refreshProfile();
       return true;
@@ -243,6 +283,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ operation: 'github', error: null });
     try {
       const session = await completeOAuthCallbackUseCase.execute(input);
+      markCloudMode(set);
       set({ status: 'authenticated', session, operation: null });
       await get().refreshProfile();
       return true;
@@ -256,7 +297,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ operation: 'signout', error: null });
     try {
       await signOutUseCase.execute();
-      set({ status: 'guest', session: null, profile: null, operation: null });
+      const workspace = container.resolve<
+        import('@/domain/repositories/i-local-workspace-repository').ILocalWorkspaceRepository
+      >('ILocalWorkspaceRepository');
+      const bindingChanged = workspace.deactivateWorkspace();
+      persistMode('local');
+      set({
+        mode: 'local',
+        status: 'guest',
+        session: null,
+        profile: null,
+        operation: null,
+      });
+      if (bindingChanged && typeof window !== 'undefined') {
+        window.location.assign('/');
+      }
     } catch (err) {
       set({ error: normalizeError(err), operation: null });
     }
@@ -305,6 +360,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       claimedAt: new Date().toISOString(),
     });
     return repository.activateWorkspace(principalId);
+  },
+
+  enterLocalMode: () => {
+    const workspace = container.resolve<
+      import('@/domain/repositories/i-local-workspace-repository').ILocalWorkspaceRepository
+    >('ILocalWorkspaceRepository');
+    const bindingChanged = workspace.deactivateWorkspace();
+    persistMode('local');
+    set({
+      mode: 'local',
+      status: 'guest',
+      session: null,
+      profile: null,
+      operation: null,
+      error: null,
+    });
+    if (bindingChanged && typeof window !== 'undefined') {
+      window.location.assign('/');
+    }
   },
 
   clearError: () => set({ error: null }),

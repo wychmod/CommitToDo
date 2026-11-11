@@ -16,7 +16,7 @@ interface AuthenticatedRouteProps {
 }
 
 export function AuthenticatedRoute({ children }: AuthenticatedRouteProps): JSX.Element {
-  const { status, session, initialize } = useAuthStore();
+  const { status, mode, session, initialize, enterLocalMode } = useAuthStore();
   const location = useLocation();
 
   React.useEffect(() => {
@@ -25,12 +25,16 @@ export function AuthenticatedRoute({ children }: AuthenticatedRouteProps): JSX.E
     }
   }, [status, initialize]);
 
+  if (mode === 'local') {
+    return <>{children}</>;
+  }
+
   if (status === 'initializing') {
     return <AuthInitializingView />;
   }
 
   if (status === 'error') {
-    return <AuthErrorView onRetry={initialize} />;
+    return <AuthErrorView onRetry={initialize} onContinueLocally={enterLocalMode} />;
   }
 
   if (status === 'guest' || !session) {
@@ -58,19 +62,32 @@ function AuthInitializingView(): JSX.Element {
 
 interface AuthErrorViewProps {
   onRetry(): Promise<void>;
+  onContinueLocally(): void;
 }
 
-function AuthErrorView({ onRetry }: AuthErrorViewProps): JSX.Element {
+function AuthErrorView({ onRetry, onContinueLocally }: AuthErrorViewProps): JSX.Element {
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-[var(--v3-bg)] text-[var(--v3-text-strong)]">
       <p className="text-[14px]">会话初始化失败</p>
-      <button
-        type="button"
-        onClick={() => void onRetry()}
-        className="rounded-[var(--v3-radius-md)] bg-[var(--v3-primary)] px-4 py-2 text-[14px] text-[var(--v3-text-on-primary)]"
-      >
-        重试
-      </button>
+      <p className="max-w-[320px] text-center text-[13px] text-[var(--v3-text-muted)]">
+        云端会话不可用时，可以继续使用本地数据，功能不受影响。
+      </p>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => void onRetry()}
+          className="rounded-[var(--v3-radius-md)] bg-[var(--v3-primary)] px-4 py-2 text-[14px] text-[var(--v3-text-on-primary)]"
+        >
+          重试
+        </button>
+        <button
+          type="button"
+          onClick={onContinueLocally}
+          className="rounded-[var(--v3-radius-md)] border border-[var(--v3-border)] px-4 py-2 text-[14px] text-[var(--v3-text)]"
+        >
+          使用本地数据
+        </button>
+      </div>
     </div>
   );
 }

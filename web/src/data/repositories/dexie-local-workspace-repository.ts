@@ -97,6 +97,13 @@ export class DexieLocalWorkspaceRepository implements ILocalWorkspaceRepository 
     return changed;
   }
 
+  deactivateWorkspace(): boolean {
+    const previous = localStorage.getItem(activeDatabaseStorageKey);
+    if (previous === null) return false;
+    localStorage.removeItem(activeDatabaseStorageKey);
+    return true;
+  }
+
   resolveNamespace(principalId: string): string {
     return `${legacyDatabaseName}-${principalId}`;
   }

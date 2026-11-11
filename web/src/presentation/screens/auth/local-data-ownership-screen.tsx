@@ -5,7 +5,7 @@
  * the logged-in principal does not match the local owner.
  */
 import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '@/presentation/stores/auth-store';
 import type { LocalWorkspaceResolution } from '@/application/usecases/auth/resolve-local-workspace-usecase';
@@ -14,6 +14,7 @@ export function LocalDataOwnershipScreen(): JSX.Element {
   const navigate = useNavigate();
   const {
     profile,
+    mode,
     resolveLocalWorkspace,
     claimLocalWorkspace,
     createLocalWorkspace,
@@ -22,10 +23,17 @@ export function LocalDataOwnershipScreen(): JSX.Element {
   const [resolution, setResolution] = React.useState<LocalWorkspaceResolution | null>(null);
 
   React.useEffect(() => {
-    void resolveLocalWorkspace().then(setResolution);
-  }, [resolveLocalWorkspace]);
+    if (mode === 'local') return;
+    void resolveLocalWorkspace()
+      .then(setResolution)
+      .catch(() => setResolution(null));
+  }, [mode, resolveLocalWorkspace]);
 
   const principalId = profile?.principalId;
+
+  if (mode === 'local') {
+    return <Navigate to="/workspace" replace />;
+  }
 
   const handleClaim = async (): Promise<void> => {
     if (!principalId) return;
