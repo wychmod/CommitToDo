@@ -11,7 +11,6 @@
 
 const http = require('http');
 const { URL } = require('url');
-const cloudbase = require('@cloudbase/node-sdk');
 const db = require('./db');
 
 const CORS_ALLOWED_ORIGINS = (process.env.AUTH_ALLOWED_ORIGINS || '')
@@ -19,27 +18,28 @@ const CORS_ALLOWED_ORIGINS = (process.env.AUTH_ALLOWED_ORIGINS || '')
   .map((s) => s.trim())
   .filter(Boolean);
 const ENV_ID = process.env.TCB_ENV_ID || process.env.CLOUDBASE_ENV_ID || '';
-const DEV_MODE = process.env.AUTH_DEV_MODE === '1';
-
-const app = ENV_ID ? cloudbase.init({ env: ENV_ID }) : null;
+const AUTH_API_BASE_URL = (process.env.AUTH_CLOUDBASE_AUTH_API_BASE_URL || '').replace(/\/$/, '');
 
 const CHALLENGE_TTL_SECONDS = 600; // 10 minutes
 const CHALLENGE_MAX_ATTEMPTS = 5;
-const RATE_LIMIT_WINDOW = 60;
-const RATE_LIMIT_MAX = 5;
+const SMS_DAILY_BUDGET = Number(process.env.AUTH_SMS_DAILY_BUDGET || 100);
+const MAX_BODY_BYTES = 32 * 1024;
+const CAPTCHA_VERIFY_URL = process.env.AUTH_CAPTCHA_VERIFY_URL || '';
+const CAPTCHA_VERIFY_TOKEN = process.env.AUTH_CAPTCHA_VERIFY_TOKEN || '';
 
 function getRequestId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function corsHeaders(origin) {
-  const allowed = CORS_ALLOWED_ORIGINS.includes(origin)
-    ? origin
-    : CORS_ALLOWED_ORIGINS[0] || '*';
+  const allowed = CORS_ALLOWED_ORIGINS.includes('*')
+    ? '*'
+    : CORS_ALLOWED_ORIGINS.includes(origin) ? origin : null;
   return {
-    'Access-Control-Allow-Origin': allowed,
+    ...(allowed ? { 'Access-Control-Allow-Origin': allowed } : {}),
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Request-Id',
+    'Access-Control-Allow-Headers':
+      'Content-Type, Authorization, Idempotency-Key, X-Device-Id, X-Request-Id',
     'Access-Control-Max-Age': '86400',
   };
 }
@@ -53,9 +53,16 @@ function sendJson(res, statusCode, data, headers) {
 }
 
 function readJsonBody(req) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let raw = '';
+    let size = 0;
     req.on('data', (chunk) => {
+      size += Buffer.byteLength(chunk);
+      if (size > MAX_BODY_BYTES) {
+        reject(new Error('REQUEST_BODY_TOO_LARGE'));
+        req.destroy();
+        return;
+      }
       raw += chunk;
     });
     req.on('end', () => {
@@ -63,13 +70,9 @@ function readJsonBody(req) {
         resolve({});
         return;
       }
-      try {
-        resolve(JSON.parse(raw));
-      } catch {
-        resolve({});
-      }
+      try { resolve(JSON.parse(raw)); } catch { reject(new Error('INVALID_JSON')); }
     });
-    req.on('error', () => resolve({}));
+    req.on('error', reject);
   });
 }
 
@@ -80,33 +83,49 @@ function clientIp(req) {
 }
 
 /**
- * Resolve the caller's auth_uid and principal_id from a Bearer token.
- * Returns null when unauthenticated or the token cannot be verified.
+ * Resolve the caller's CloudBase user from the official HTTP API, then map it
+ * to the application principal. The gateway never decodes or trusts JWT body
+ * claims itself.
  */
 async function verifySession(authHeader) {
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  if (!app) return null;
+  if (!AUTH_API_BASE_URL || !ENV_ID) return null;
   const token = authHeader.slice('Bearer '.length).trim();
   try {
-    const info = await app.auth().verifyToken(token);
-    const uid = info && (info.uid || info.user_id || info.sub);
+    const response = await fetch(`${AUTH_API_BASE_URL}/auth/v1/user/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        client_id: ENV_ID,
+      },
+    });
+    if (!response.ok) return null;
+    const payload = await response.json();
+    const info = payload?.data || payload?.user || payload;
+    const uid = info && (info.user_id || info.sub);
     if (!uid) return null;
     const { rows } = await db.query(
       'SELECT principal_id FROM auth_subjects WHERE auth_uid = $1 AND revoked_at IS NULL LIMIT 1',
       [uid]
     );
     const principalId = rows[0] ? rows[0].principal_id : null;
-    return { uid, principalId };
+    return {
+      uid,
+      principalId,
+      email: info.email || null,
+      phone: info.phone || info.phone_number || null,
+      provider: info.providers?.[0]?.provider || info.provider || null,
+    };
   } catch (err) {
-    console.error('[verifySession] token verification failed:', err.message);
+    console.error('[verifySession] CloudBase user lookup failed:', err.message);
     return null;
   }
 }
 
-async function consumeRateQuota(scopeType, scopeKeyHash, action) {
+async function consumeRateQuota(scopeType, scopeKeyHash, action, windowSeconds, maxCount) {
   const { rows } = await db.query(
     'SELECT * FROM consume_rate_quota($1, $2, $3, $4, 1)',
-    [scopeType, scopeKeyHash, action, RATE_LIMIT_WINDOW]
+    [scopeType, scopeKeyHash, action, windowSeconds]
   );
   if (!rows[0]) return { allowed: true, blockedUntil: null };
   const blockedUntil = rows[0].blocked_until;
@@ -115,15 +134,34 @@ async function consumeRateQuota(scopeType, scopeKeyHash, action) {
   }
   // Enforce max by inspecting the returned count (consume_rate_quota returns
   // the running count for this window).
-  const count = rows[0].count;
-  if (count > RATE_LIMIT_MAX) {
+  const count = Number(rows[0].count || 0);
+  if (count > maxCount) {
     await db.query(
       'UPDATE auth_rate_limits SET blocked_until = now() + interval \'10 minutes\' WHERE scope_type=$1 AND scope_key_hash=$2 AND action=$3 AND window_started_at = (SELECT window_started_at FROM auth_rate_limits WHERE scope_type=$1 AND scope_key_hash=$2 AND action=$3 ORDER BY window_started_at DESC LIMIT 1)',
       [scopeType, scopeKeyHash, action]
     );
-    return { allowed: false, blockedUntil: new Date(Date.now() + 10 * 60 * 1000) };
+    return { allowed: false, blockedUntil: new Date(Date.now() + 10 * 60 * 1000), count };
   }
-  return { allowed: true, blockedUntil: null };
+  return { allowed: true, blockedUntil: null, count };
+}
+
+async function verifyCaptcha(token, req) {
+  if (!CAPTCHA_VERIFY_URL || !CAPTCHA_VERIFY_TOKEN || !token) return false;
+  try {
+    const response = await fetch(CAPTCHA_VERIFY_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${CAPTCHA_VERIFY_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token, ip: clientIp(req) }),
+    });
+    if (!response.ok) return false;
+    const result = await response.json();
+    return result.success === true;
+  } catch {
+    return false;
+  }
 }
 
 async function writeSecurityEvent(principalId, eventType, riskLevel, req, metadata) {
@@ -188,9 +226,10 @@ async function getProfile(principalId) {
   };
 }
 
-async function handleChallenges(req, res, headers) {
+async function handleChallenges(req, res, headers, session) {
   const body = await readJsonBody(req);
-  const { purpose, channel, target, device } = body || {};
+  const { purpose, channel, target, device, captchaToken } = body || {};
+  const idempotencyKey = req.headers['idempotency-key'];
 
   if (!['signup', 'signin', 'bind', 'recovery'].includes(purpose)) {
     sendJson(res, 400, { ok: false, code: 'BAD_PURPOSE', message: 'Invalid purpose.' }, headers);
@@ -204,24 +243,68 @@ async function handleChallenges(req, res, headers) {
     sendJson(res, 400, { ok: false, code: 'BAD_TARGET', message: 'Invalid target.' }, headers);
     return;
   }
+  if ((purpose === 'bind' || purpose === 'recovery') && !session?.principalId) {
+    sendJson(res, 401, { ok: false, code: 'AUTH_REQUIRED', message: 'Authentication required.' }, headers);
+    return;
+  }
+  if (idempotencyKey && (typeof idempotencyKey !== 'string' || idempotencyKey.length > 128)) {
+    sendJson(res, 400, { ok: false, code: 'BAD_IDEMPOTENCY_KEY', message: 'Invalid idempotency key.' }, headers);
+    return;
+  }
+
+  if (idempotencyKey) {
+    const existing = await db.query(
+      `SELECT id, purpose, channel
+         FROM verification_challenges
+        WHERE idempotency_key = $1 AND expires_at > now()
+        LIMIT 1`,
+      [idempotencyKey]
+    );
+    if (existing.rows[0]) {
+      const id = String(existing.rows[0].id);
+      sendJson(res, 200, {
+        ok: true,
+        data: {
+          id,
+          challengeId: id,
+          purpose: existing.rows[0].purpose,
+          channel: existing.rows[0].channel,
+          retryAfterSeconds: 60,
+        },
+      }, headers);
+      return;
+    }
+  }
 
   const ip = clientIp(req);
   const targetHash = db.hashTarget(target);
   const ipHash = db.hashIpPrefix(ip);
   const deviceHash = db.hashDevice(device);
 
-  // Rate limit across target / ip / device scopes.
-  for (const scope of [
-    { type: 'target', key: targetHash },
-    { type: 'ip', key: ipHash },
-    { type: 'device', key: deviceHash },
-  ]) {
+  const isSms = channel === 'sms';
+  const targetRules = isSms
+    ? [[60, 1, false], [900, 3, true], [3600, 5, false], [86400, 10, false]]
+    : [[60, 1, false], [900, 5, true], [3600, 8, false], [86400, 20, false]];
+  const scopes = [
+    ...targetRules.map(([seconds, max, captcha]) => ({ type: 'target', key: targetHash, seconds, max, captcha })),
+    { type: 'ip', key: ipHash, seconds: 3600, max: isSms ? 8 : 20, captcha: true },
+    { type: 'device', key: deviceHash, seconds: 3600, max: isSms ? 5 : 10, captcha: true },
+  ];
+  let captchaRequired = false;
+  for (const scope of scopes) {
     if (!scope.key) continue;
-    const quota = await consumeRateQuota(scope.type, scope.key, 'challenge');
+    const quota = await consumeRateQuota(
+      scope.type,
+      scope.key,
+      `send_${channel}:${scope.type}:${scope.seconds}`,
+      scope.seconds,
+      scope.max
+    );
+    if (scope.captcha && quota.count >= Math.ceil(scope.max * 0.6)) captchaRequired = true;
     if (!quota.allowed) {
       const retryAfter = quota.blockedUntil
         ? Math.ceil((new Date(quota.blockedUntil).getTime() - Date.now()) / 1000)
-        : RATE_LIMIT_WINDOW;
+        : 60;
       sendJson(
         res,
         429,
@@ -232,20 +315,45 @@ async function handleChallenges(req, res, headers) {
     }
   }
 
+  if (isSms) {
+    const budget = await db.query(
+      `SELECT COUNT(*)::int AS sent_today
+         FROM verification_challenges
+        WHERE channel = 'sms' AND created_at >= date_trunc('day', now())`,
+      []
+    );
+    const sentToday = Number(budget.rows[0]?.sent_today || 0);
+    if (sentToday >= SMS_DAILY_BUDGET || (sentToday >= Math.floor(SMS_DAILY_BUDGET * 0.95) && !['bind', 'recovery'].includes(purpose))) {
+      sendJson(res, 429, { ok: false, code: 'SMS_BUDGET_EXHAUSTED', message: 'SMS delivery is temporarily unavailable.' }, headers);
+      return;
+    }
+    if (sentToday >= Math.floor(SMS_DAILY_BUDGET * 0.85)) captchaRequired = true;
+  }
+
+  if (captchaRequired && !(await verifyCaptcha(captchaToken, req))) {
+    sendJson(res, 403, { ok: false, code: 'CAPTCHA_REQUIRED', message: 'Additional verification is required.' }, headers);
+    return;
+  }
+
   const code = db.generateCode();
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_SECONDS * 1000);
   const { rows } = await db.query(
     `INSERT INTO verification_challenges
-      (purpose, channel, target_hash, principal_id, ip_prefix_hash, device_hash, status, expires_at)
-     VALUES ($1, $2, $3, NULL, $4, $5, 'pending', $6)
+      (purpose, channel, target_hash, principal_id, ip_prefix_hash, device_hash, status, expires_at, code_hash, idempotency_key)
+     VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, $8, $9)
      RETURNING id`,
-    [purpose, channel, targetHash, ipHash, deviceHash, expiresAt]
+    [purpose, channel, targetHash, session?.principalId || null, ipHash, deviceHash, expiresAt, db.hashCode(code), idempotencyKey || null]
   );
   const challengeId = String(rows[0].id);
 
-  // Delivery to SMS / email provider. When the provider is not configured the
-  // code is only logged; in DEV_MODE it is returned to the client for testing.
-  await deliverCode(channel, target, code);
+  try {
+    await deliverCode(channel, target, code);
+  } catch (error) {
+    await db.query("UPDATE verification_challenges SET status = 'blocked' WHERE id = $1", [challengeId]);
+    console.error('[deliverCode] delivery failed:', error.message);
+    sendJson(res, 503, { ok: false, code: 'SERVICE_TEMPORARILY_UNAVAILABLE', message: 'Verification delivery is temporarily unavailable.' }, headers);
+    return;
+  }
 
   const payload = {
     ok: true,
@@ -254,17 +362,50 @@ async function handleChallenges(req, res, headers) {
       challengeId,
       purpose,
       channel,
-      retryAfterSeconds: CHALLENGE_TTL_SECONDS,
+      retryAfterSeconds: 60,
     },
   };
-  if (DEV_MODE) payload.devCode = code;
   sendJson(res, 200, payload, headers);
 }
 
 async function deliverCode(channel, target, code) {
-  // TODO: wire to CloudBase SMS / Email provider once configured. Until then
-  // the code is logged; DEV_MODE also exposes it to the client for E2E tests.
-  console.log(`[deliverCode] channel=${channel} target=${db.maskTarget(channel, target)} code=${code}`);
+  if (channel === 'email') {
+    const nodemailer = require('nodemailer');
+    if (!process.env.SMTP_HOST || !process.env.SMTP_FROM) throw new Error('SMTP is not configured');
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 465),
+      secure: (process.env.SMTP_SECURE || 'true') === 'true',
+      auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+    });
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM,
+      to: target,
+      subject: '[Commit] 验证码',
+      text: `你的 Commit 验证码是 ${code}，10 分钟内有效。`,
+    });
+    return;
+  }
+
+  const tencentcloud = require('tencentcloud-sdk-nodejs');
+  const client = new tencentcloud.sms.v20210111.Client({
+    credential: {
+      secretId: process.env.TENCENTCLOUD_SECRET_ID,
+      secretKey: process.env.TENCENTCLOUD_SECRET_KEY,
+      token: process.env.TENCENTCLOUD_SESSION_TOKEN,
+    },
+    region: process.env.AUTH_SMS_REGION || 'ap-shanghai',
+    profile: { signMethod: 'TC3-HMAC-SHA256' },
+  });
+  const response = await client.SendSms({
+    PhoneNumberSet: [target],
+    SmsSdkAppId: process.env.AUTH_SMS_SDK_APP_ID,
+    SignName: process.env.AUTH_SMS_SIGN_NAME,
+    TemplateId: process.env.AUTH_SMS_TEMPLATE_ID,
+    TemplateParamSet: [code, String(CHALLENGE_TTL_SECONDS / 60)],
+  });
+  const status = response.SendStatusSet && response.SendStatusSet[0];
+  if (!status || status.Code !== 'Ok') throw new Error('SMS provider rejected the message');
 }
 
 async function handleVerifyChallenge(req, res, pathname, headers) {
@@ -276,6 +417,10 @@ async function handleVerifyChallenge(req, res, pathname, headers) {
   }
   const body = await readJsonBody(req);
   const code = body && body.code;
+  if (typeof code !== 'string' || !/^\d{6}$/.test(code)) {
+    sendJson(res, 400, { ok: false, code: 'BAD_CODE', message: 'Invalid verification code.' }, headers);
+    return;
+  }
 
   const { rows } = await db.query(
     'SELECT * FROM verification_challenges WHERE id = $1',
@@ -297,7 +442,7 @@ async function handleVerifyChallenge(req, res, pathname, headers) {
     return;
   }
 
-  const expected = db.hashCode(code || '');
+  const expected = db.hashCode(code);
   if (expected !== challenge.code_hash) {
     await db.query(
       'UPDATE verification_challenges SET attempt_count = $2 WHERE id = $1',
@@ -308,7 +453,7 @@ async function handleVerifyChallenge(req, res, pathname, headers) {
   }
 
   await db.query(
-    "UPDATE verification_challenges SET status = 'verified', attempt_count = $2, verified_at = now() WHERE id = $1",
+    "UPDATE verification_challenges SET status = 'verified', attempt_count = $2, verified_at = now() WHERE id = $1 AND status = 'pending'",
     [challengeId, attempts]
   );
 
@@ -321,7 +466,7 @@ async function handleBootstrap(req, res, session, headers) {
     return;
   }
   const body = await readJsonBody(req);
-  const { email, phone, displayName } = body || {};
+  const { displayName } = body || {};
 
   const existing = await db.query(
     'SELECT principal_id FROM auth_subjects WHERE auth_uid = $1 AND revoked_at IS NULL LIMIT 1',
@@ -343,11 +488,21 @@ async function handleBootstrap(req, res, session, headers) {
     await db.query('UPDATE principals SET display_name = $2 WHERE id = $1', [principalId, displayName]);
   }
 
-  if (email) {
-    await upsertIdentity(principalId, 'email', email, email);
+  if (session.email) {
+    await upsertIdentity(
+      principalId,
+      'email',
+      session.email,
+      db.maskTarget('email', session.email)
+    );
   }
-  if (phone) {
-    await upsertIdentity(principalId, 'phone', phone, phone);
+  if (session.phone) {
+    await upsertIdentity(
+      principalId,
+      'phone',
+      session.phone,
+      db.maskTarget('sms', session.phone)
+    );
   }
 
   const profile = await getProfile(principalId);
@@ -356,12 +511,24 @@ async function handleBootstrap(req, res, session, headers) {
 
 async function upsertIdentity(principalId, provider, identifier, masked) {
   const hash = db.hashTarget(identifier);
+  const existing = await db.query(
+    `SELECT principal_id FROM user_identities
+      WHERE provider = $1 AND provider_subject = $2 AND revoked_at IS NULL
+      LIMIT 1`,
+    [provider, identifier]
+  );
+  if (existing.rows[0] && String(existing.rows[0].principal_id) !== String(principalId)) {
+    const error = new Error('Identity is already linked to another account');
+    error.code = provider === 'phone' ? 'PHONE_ALREADY_BOUND' : 'IDENTITY_ALREADY_LINKED';
+    throw error;
+  }
   await db.query(
     `INSERT INTO user_identities
       (principal_id, provider, provider_subject, identifier_hash, identifier_masked, is_primary, verified_at)
      VALUES ($1, $2, $3, $4, $5, true, now())
-     ON CONFLICT (provider, provider_subject)
-     DO UPDATE SET identifier_hash = $4, identifier_masked = $5, revoked_at = NULL, verified_at = now()`,
+      ON CONFLICT (provider, provider_subject)
+      DO UPDATE SET identifier_hash = $4, identifier_masked = $5, revoked_at = NULL, verified_at = now()
+      WHERE user_identities.principal_id = EXCLUDED.principal_id`,
     [principalId, provider, identifier, hash, masked]
   );
 }
@@ -459,6 +626,10 @@ const server = http.createServer(async (req, res) => {
   const cors = corsHeaders(origin);
 
   if (req.method === 'OPTIONS') {
+    if (origin && !cors['Access-Control-Allow-Origin']) {
+      sendJson(res, 403, { ok: false, code: 'ORIGIN_NOT_ALLOWED', message: 'Origin is not allowed.' }, {});
+      return;
+    }
     res.writeHead(204, cors);
     res.end();
     return;
@@ -472,15 +643,26 @@ const server = http.createServer(async (req, res) => {
       sendJson(
         res,
         200,
-        { ok: true, requestId, env: ENV_ID ? 'configured' : 'missing', db: db.isConfigured },
+        {
+          ok: true,
+          requestId,
+          env: ENV_ID ? 'configured' : 'missing',
+          db: db.isConfigured,
+          cors: CORS_ALLOWED_ORIGINS.length > 0,
+        },
         cors
       );
       return;
     }
 
+    if (!db.isConfigured) {
+      sendJson(res, 503, { ok: false, requestId, code: 'SERVICE_NOT_CONFIGURED', message: 'Authentication service is not configured.' }, cors);
+      return;
+    }
+
     const isPublic =
       pathname === '/v1/auth/challenges' || pathname.startsWith('/v1/auth/challenges/');
-    const session = isPublic ? null : await verifySession(req.headers.authorization);
+    const session = await verifySession(req.headers.authorization);
 
     if (!isPublic && !session) {
       sendJson(
@@ -493,7 +675,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === '/v1/auth/challenges' && req.method === 'POST') {
-      await handleChallenges(req, res, cors);
+      await handleChallenges(req, res, cors, session);
       return;
     }
 
@@ -513,17 +695,17 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === '/v1/auth/reauth' && req.method === 'POST') {
-      sendJson(res, 200, { ok: true, requestId, reauthenticatedAt: new Date().toISOString() }, cors);
+      sendJson(res, 501, { ok: false, requestId, code: 'REAUTH_NOT_CONFIGURED', message: 'Reauthentication is not configured.' }, cors);
       return;
     }
 
     if (pathname === '/v1/auth/identities/phone' && req.method === 'POST') {
-      await handleBindPhone(req, res, session, cors);
+      sendJson(res, 403, { ok: false, requestId, code: 'REAUTH_REQUIRED', message: 'Recent reauthentication is required.' }, cors);
       return;
     }
 
     if (pathname.startsWith('/v1/auth/identities/') && req.method === 'DELETE') {
-      sendJson(res, 200, { ok: true, requestId }, cors);
+      sendJson(res, 501, { ok: false, requestId, code: 'IDENTITY_UNLINK_NOT_CONFIGURED', message: 'Identity unlink is not configured.' }, cors);
       return;
     }
 
@@ -533,17 +715,23 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === '/v1/auth/merge-requests' && req.method === 'POST') {
-      await handleMergeRequest(req, res, session, cors);
+      sendJson(res, 501, { ok: false, requestId, code: 'MERGE_PROOF_REQUIRED', message: 'Dual-account proof is required.' }, cors);
       return;
     }
 
     sendJson(res, 404, { ok: false, requestId, code: 'NOT_FOUND', message: 'Endpoint not found.' }, cors);
   } catch (err) {
     console.error(`[${requestId}] unhandled error:`, err.message);
+    const badRequest = err.message === 'INVALID_JSON' || err.message === 'REQUEST_BODY_TOO_LARGE';
     sendJson(
       res,
-      500,
-      { ok: false, requestId, code: 'SERVICE_TEMPORARILY_UNAVAILABLE', message: 'Service temporarily unavailable.' },
+      badRequest ? 400 : 500,
+      {
+        ok: false,
+        requestId,
+        code: badRequest ? err.message : (err.code || 'SERVICE_TEMPORARILY_UNAVAILABLE'),
+        message: badRequest ? 'Invalid request body.' : 'Service temporarily unavailable.',
+      },
       cors
     );
   }

@@ -3,8 +3,8 @@
  *
  * Uses a direct PostgreSQL connection (server-side, service role equivalent) so
  * it bypasses client RLS. The connection string is injected by CloudBase as an
- * environment variable. Hashing uses Node's built-in crypto (SHA-256) to fill
- * the char(64) hash columns in the schema.
+ * environment variable. Hashing uses server-side HMAC peppers; no identifier
+ * or OTP is stored in plaintext.
  */
 
 const { Pool } = require('pg');
@@ -27,14 +27,24 @@ const pool = new Pool({
   ssl: process.env.PG_NO_SSL === '1' ? false : { rejectUnauthorized: false },
 });
 
-const CHALLENGE_PEPPER = process.env.AUTH_CHALLENGE_PEPPER || 'dev-challenge-pepper';
+const HMAC_PEPPER = process.env.AUTH_HMAC_PEPPER || process.env.AUTH_CHALLENGE_PEPPER || '';
+const CHALLENGE_PEPPER = process.env.AUTH_CHALLENGE_PEPPER || HMAC_PEPPER;
+
+if (!HMAC_PEPPER || !CHALLENGE_PEPPER) {
+  console.error('[auth-gateway] AUTH_HMAC_PEPPER and AUTH_CHALLENGE_PEPPER are required');
+}
 
 function sha256Hex(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
+function hmacHex(value) {
+  if (!HMAC_PEPPER) throw new Error('AUTH_HMAC_PEPPER is not configured');
+  return crypto.createHmac('sha256', HMAC_PEPPER).update(value).digest('hex');
+}
+
 function hashTarget(target) {
-  return sha256Hex(`target:${String(target).toLowerCase()}`);
+  return hmacHex(`target:${String(target).trim().toLowerCase()}`);
 }
 
 function hashIpPrefix(ip) {
@@ -42,12 +52,12 @@ function hashIpPrefix(ip) {
   const prefix = ip.includes(':')
     ? ip.split(':').slice(0, 4).join(':')
     : ip.split('.').slice(0, 3).join('.');
-  return sha256Hex(`ip:${prefix}`);
+  return hmacHex(`ip:${prefix}`);
 }
 
 function hashDevice(device) {
   if (!device) return null;
-  return sha256Hex(`device:${device}`);
+  return hmacHex(`device:${device}`);
 }
 
 function maskEmail(email) {
@@ -74,7 +84,8 @@ function generateCode() {
 }
 
 function hashCode(code) {
-  return sha256Hex(`${code}:${CHALLENGE_PEPPER}`);
+  if (!CHALLENGE_PEPPER) throw new Error('AUTH_CHALLENGE_PEPPER is not configured');
+  return crypto.createHmac('sha256', CHALLENGE_PEPPER).update(String(code)).digest('hex');
 }
 
 module.exports = {
@@ -87,5 +98,5 @@ module.exports = {
   maskTarget,
   generateCode,
   hashCode,
-  isConfigured: Boolean(connectionString),
+  isConfigured: Boolean(connectionString && HMAC_PEPPER && CHALLENGE_PEPPER),
 };
