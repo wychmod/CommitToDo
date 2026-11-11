@@ -40,6 +40,12 @@ export interface CompleteOAuthInput {
   state: string;
 }
 
+export interface CompletePasswordResetInput {
+  email: string;
+  code: string;
+  password: string;
+}
+
 export interface IAuthRepository {
   getSession(): Promise<AuthSessionSummary | null>;
   refreshSession(): Promise<AuthSessionSummary | null>;
@@ -49,7 +55,8 @@ export interface IAuthRepository {
   startPhoneAuth(input: PhoneAuthInput): Promise<{ verificationId: string; retryAfterSeconds: number }>;
   startGithubAuth(input: StartOAuthInput): Promise<{ url: string }>;
   completeOAuthCallback(input: CompleteOAuthInput): Promise<AuthSessionSummary>;
-  resetPassword(email: string): Promise<void>;
+  requestPasswordReset(email: string): Promise<void>;
+  completePasswordReset(input: CompletePasswordResetInput): Promise<AuthSessionSummary>;
   reauthenticate(password: string): Promise<AuthSessionSummary>;
   signOut(): Promise<void>;
   onAuthStateChange(callback: (event: string, session: AuthSessionSummary | null) => void): () => void;

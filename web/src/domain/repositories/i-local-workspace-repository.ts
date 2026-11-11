@@ -12,6 +12,9 @@ export interface LocalWorkspaceSummary {
 export interface ILocalWorkspaceRepository {
   getLegacyWorkspaceSummary(): Promise<LocalWorkspaceSummary | null>;
   getOwner(): Promise<LocalWorkspaceOwner | null>;
-  setOwner(owner: LocalWorkspaceOwner): Promise<void>;
+  hasWorkspace(principalId: string): Promise<boolean>;
+  claimLegacyWorkspace(owner: LocalWorkspaceOwner): Promise<void>;
+  createWorkspace(owner: LocalWorkspaceOwner): Promise<void>;
+  activateWorkspace(principalId: string): boolean;
   resolveNamespace(principalId: string): string;
 }
