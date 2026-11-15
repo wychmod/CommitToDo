@@ -1,5 +1,9 @@
 # Commit Web CloudBase 登录注册实施拆分与分阶段路线图
 
+> **文档状态：前提已变更（2026-11-13 标注）** 本文件是 2026-07-20 的登录注册方案，其「必须登录才能使用」的前提已被本地模式推翻（`AuthMode` 支持 `local`，未登录可直接进入工作区）。
+>
+> 认证体系能否上线的实际状态以 `web/docs/cloudbase-authentication-implementation-audit.md` 为准；本文件的阶段划分**不再等于当前计划**。
+
 **文档版本**：1.0  
 **规划日期**：2026-07-20  
 **上游方案**：`docs/cloudbase-authentication-plan.md`  

@@ -1,6 +1,6 @@
 # CloudBase Authentication Implementation Audit
 
-审计基准：`cloudbase-authentication-plan.md`、`cloudbase-authentication-implementation-roadmap.md`、
+审计基准：`cloudbase-authentication-plan.md`、`cloudbase-authentication-implementation-roadmap.md`（两份已归档至 `docs/archive/2026-07/`）、
 CloudBase Web SDK `@cloudbase/js-sdk@3.6.3` 类型声明，以及 Cloud Functions 运行时规范。
 
 本文件只记录仓库内可验证的事实。CloudBase 控制台状态、真实 EnvId、OAuth Client、PG 连接串、

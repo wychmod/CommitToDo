@@ -1,5 +1,9 @@
 # CommitToDo Web · V3 工程化风格指南
 
+> **品牌说明（2026-11-13）** 标题中的 `CommitToDo` 是历史名称，产品对外名称已定为 `Commit`（见 [`docs/PRODUCT-STRATEGY.md`](../../../docs/PRODUCT-STRATEGY.md) §2）。
+>
+> 本文件的技术内容**仍然有效**，仅名称待统一。
+
 > 文档类型：**新页面开发合同** / Engineering Style Guide
 > 适用范围：`web/` 项目中所有「新增页面」的前端开发
 > 参考实现：`src/presentation/screens/landing/`（落地页，v3 设计语言的唯一权威实例）

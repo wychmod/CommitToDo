@@ -1,5 +1,8 @@
 # Commit Web 端产品需求文档（PRD）
 
+> **文档状态**：本文件为 2026-07 的 Web 端实现需求，产品方向已于 2026-11-13 更新。
+> 现行产品定义以 [`docs/PRODUCT-STRATEGY.md`](../../docs/PRODUCT-STRATEGY.md)、[`docs/PRD.md`](../../docs/PRD.md)、[`docs/ROADMAP.md`](../../docs/ROADMAP.md) 为准。
+
 **版本**: 1.0.0  
 **语言**: 中文  
 **创建日期**: 2026-07-05  

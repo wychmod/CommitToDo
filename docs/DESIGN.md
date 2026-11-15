@@ -1,7 +1,7 @@
 # Commit — DESIGN.md
 
-> **版本**: 2.0.0
-> **更新日期**: 2026-06-28
+> **版本**: 2.1.0
+> **更新日期**: 2026-11-13
 > **设计语言**: Linear-inspired Developer Dark
 > **基准参考**: [Linear DESIGN.md](./DESIGN.reference.linear.md)（仅作溯源参考，本项目实际规范以本文件为准）
 > **地位**: 本项目**唯一**的设计样式规范文档（visual design single source of truth）。旧版 `UI_DESIGN.deprecated.md` 已废弃。
@@ -24,6 +24,23 @@
   - **Mono 用途扩展**到 branch name / commit id / label（Git 隐喻刚需）。
   - **保留全套语义色**（priority / status / heatmap / branchColors）——任务管理 App 的状态色是刚需，不能像 Linear 营销页那样砍掉。
   - **新增 Git 专属组件规范**（task-card / branch-indicator / heatmap / git-graph / commit-row）。
+
+### 0.1 与产品方向的对齐（2026-11-13，优先于下文冲突项）
+
+本文 2.0.0 版写于「Git 隐喻任务管理器」时期。产品方向已调整为「两种视角，一种语言」（见 [`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §7）。**令牌层仍然全部有效**，**组件层有三处需按新方向重做**：
+
+| 本文原规定 | 冲突点 | 现行做法 |
+|---|---|---|
+| Mono 用于 branch name / commit id（§1、§3） | 界面不得出现分支名与提交哈希 | Mono 仅用于日期、数字、代码块、快捷键 |
+| `branch-indicator` 分支指示器（§7） | 名称与内容都是 Git 语义 | 改为「并行线标签」：中文标签 + 颜色，不显示分支名 |
+| `git-graph`（§7.8） | 节点会带 ref / 哈希 / commit message | 改为「关系图 / 人生树」：节点为「一句话 + 日期 + 主线色」，禁止哈希与英文前缀 |
+
+以下两项**尚未编写**，属现行缺口：
+
+- 页面级构图：今天 / 主线 / 历程 在两种模式下的信息层级与栅格。
+- 知识注解（FR-39）的折叠样式、字号与触发位置。
+
+**冲突处理**：本文与 [`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §7.2「界面铁律」冲突时，**以 §7.2 为准**；本文相应条目应在下次修订中删除或改写。
 
 ---
 
@@ -498,3 +515,12 @@ Commit 的屏幕可归为五类构成模式。先选对模式，再套对应组�
 - **Do**：展示面用 display + 渐变；操作面回归 body + 纯色；数据面密度优先。
 - **Don't**：把 hero 的大字距/渐变用到列表卡片；给列表卡片加投影；在数据面塞大段说明文字（用 tooltip/图例替代）。
 - **Don't**：在桌面端把详情页做成全屏弹窗，应保留列表上下文。
+
+---
+
+## 14. 变更记录
+
+| 版本 | 日期 | 变更 |
+|---|---|---|
+| 2.1.0 | 2026-11-13 | 新增 §0.1 与产品方向的对齐：标注 mono / branch-indicator / git-graph 三处与新界面铁律的冲突及替代做法；列出页面级构图与知识注解两项缺口 |
+| 2.0.0 | 2026-06-28 | 重写为唯一设计规范，对齐 Linear 令牌体系 |
