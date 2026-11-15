@@ -1,8 +1,8 @@
-# Commit
+# CommitToDo
 
 **把人生当成一条主线，把每件小事变成一次提交。**
 
-Commit 的目标形态是一款本地优先的个人任务与人生主线工具：任务完成即提交，提交挂在主线上，主线归属人生领域；所有提交连起来，就是可回看、可分叉、可合并的历程。
+CommitToDo 的目标形态是一款本地优先的个人任务与人生主线工具：任务完成即提交，提交挂在主线上，主线归属人生领域；所有提交连起来，就是可回看、可分叉、可合并的历程。
 
 **目标用户**：程序员 / 技术型知识工作者（主用户，MVP 与 V1 的验收对象）；大众用户自 V2 起进入验收范围，见 [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) §3。
 
@@ -127,7 +127,7 @@ npm run dev          # http://localhost:5173
 | [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) | 产品定位、命名决策、主用户、两条硬约束、原则与风险 |
 | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | 现状架构、目标模型约束、数据迁移与已知缺口 |
 | [`docs/DESIGN.md`](./docs/DESIGN.md) | 设计令牌与组件规范（唯一设计规范） |
-| [`web/docs/v3/STYLE_GUIDE.md`](./web/docs/v3/STYLE_GUIDE.md) | 新增页面的开发合同（技术内容有效，标题中旧名待统一） |
+| [`web/docs/v3/STYLE_GUIDE.md`](./web/docs/v3/STYLE_GUIDE.md) | 新增页面的开发合同（技术内容有效） |
 | [`web/docs/ARCHITECTURE.md`](./web/docs/ARCHITECTURE.md) | Web 端实现细节（实现层，不定义产品） |
 | [`docs/DESIGN.reference.linear.md`](./docs/DESIGN.reference.linear.md) | Linear 设计文档，仅作设计溯源参考 |
 

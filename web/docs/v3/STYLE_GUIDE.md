@@ -1,8 +1,8 @@
 # CommitToDo Web · V3 工程化风格指南
 
-> **品牌说明（2026-11-13）** 标题中的 `CommitToDo` 是历史名称，产品对外名称已定为 `Commit`（见 [`docs/PRODUCT-STRATEGY.md`](../../../docs/PRODUCT-STRATEGY.md) §2）。
+> **文档状态（2026-11-15）** 本文件的技术内容仍然有效，作为「新增页面」的开发合同使用。
 >
-> 本文件的技术内容**仍然有效**，仅名称待统一。
+> 标题中的 `CommitToDo` 与现行产品名一致（见 `docs/PRODUCT-STRATEGY.md` §2），无需改名。
 
 > 文档类型：**新页面开发合同** / Engineering Style Guide
 > 适用范围：`web/` 项目中所有「新增页面」的前端开发

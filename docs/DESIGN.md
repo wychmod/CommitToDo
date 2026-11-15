@@ -1,4 +1,4 @@
-# Commit — DESIGN.md
+# CommitToDo — DESIGN.md
 
 > **版本**: 3.0.0
 > **更新日期**: 2026-11-15
