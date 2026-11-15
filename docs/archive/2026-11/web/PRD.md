@@ -1,7 +1,10 @@
 # Commit Web 端产品需求文档（PRD）
 
-> **文档状态**：本文件为 2026-07 的 Web 端实现需求，产品方向已于 2026-11-13 更新。
-> 现行产品定义以 [`docs/PRODUCT-STRATEGY.md`](../../docs/PRODUCT-STRATEGY.md)、[`docs/PRD.md`](../../docs/PRD.md)、[`docs/ROADMAP.md`](../../docs/ROADMAP.md) 为准。
+> **已归档（2026-11-15）· 历史方案，已失效，不得据此实现。**
+>
+> 本文是 2026-07 的 Web 端实现需求，按「仓库 / 分支 / 任务 / 提交」组织。现行产品定义见 `docs/FRAMEWORK.md` 与 `docs/PRODUCT-STRATEGY.md`。
+>
+> 保留原因：记录当时的功能范围，可用于核对「已经实现了什么」。
 
 **版本**: 1.0.0  
 **语言**: 中文  

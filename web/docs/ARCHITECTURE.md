@@ -1,12 +1,12 @@
 # Commit Web 端架构设计文档
 
 > **文档状态**：本文件描述 2026-07 的 Web 实现细节，仍按「仓库 / 分支 / 任务 / 提交」命名。
-> 目标领域模型见根目录 [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) §12；阶段规划见 [`docs/ROADMAP.md`](../../docs/ROADMAP.md)。
+> 目标形态见根目录 `docs/FRAMEWORK.md`；现状架构与目标模型约束见 `docs/ARCHITECTURE.md`。本文件只讲实现，不定义产品。
 
 **版本**: 1.0.0  
 **创建日期**: 2026-07-05  
 **作者**: 架构师 高见远  
-**关联文档**: `docs/PRD.md`、`docs/WEB_INTEGRATION_DESIGN.md`、`docs/DESIGN.md`  
+**关联文档**: `docs/FRAMEWORK.md`、`docs/DESIGN.md`
 
 ---
 

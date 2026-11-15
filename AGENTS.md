@@ -1,7 +1,7 @@
 # Commit 工程规范
 
-**版本**: 2.3.0
-**更新日期**: 2026-11-13
+**版本**: 2.4.0
+**更新日期**: 2026-11-15
 **适用范围**: 本仓库全部代码与文档
 
 ---
@@ -14,16 +14,15 @@
 |---|---|---|
 | `AGENTS.md`（本文件） | 全仓库 | 分层、命名、代码风格、测试、门禁、提交 |
 | `web/AGENTS.md` | `web/` | V3 风格系统、只读区域、Web 专属约定 |
-| `docs/PRODUCT-STRATEGY.md` | 全仓库 | 产品定位、命名、核心模型、原则与风险 |
-| `docs/ROADMAP.md` | 全仓库 | MVP / V1 / V2 阶段规划、验收与门禁 |
-| `docs/ARCHITECTURE.md` | 全仓库 | 现状架构、目标模型、数据模型、已知缺口 |
+| `docs/FRAMEWORK.md` | 全仓库 | **产品框架**：三层结构、7 个对象、信息架构、65 项功能域、徽章体系、版本切分（v0.1 评审中） |
+| `docs/PRODUCT-STRATEGY.md` | 全仓库 | 产品定位、命名、主用户、两条硬约束、原则与风险 |
+| `docs/ARCHITECTURE.md` | 全仓库 | 现状架构、目标模型约束、数据模型、已知缺口 |
 | `docs/DESIGN.md` | 全仓库 | 设计令牌与组件规范（平台无关） |
-| `docs/PRD.md` | 全仓库 | 产品需求、功能编号与验收要点 |
-| `docs/FRAMEWORK.md` | 全仓库 | 产品框架 v0.1：对象、信息架构、功能域、徽章体系（评审中，定稿后作为重写 PRD 的骨架） |
 | `docs/archive/` | 全仓库 | 已失效的历史文档（只读，见其 `README.md` 索引） |
 
-> **读取顺序**：修改产品行为前先读 `docs/PRODUCT-STRATEGY.md` + `docs/PRD.md`；改代码前读 `docs/ARCHITECTURE.md`。
-> **历史文档**：已失效的 2026-07 旧方案（含已移除的「模拟登录」）全部移入 `docs/archive/`，**不得据此实现任何功能**。索引与失效原因见 `docs/archive/README.md`。
+> **读取顺序**：改产品行为前先读 `docs/FRAMEWORK.md`（对象与功能）+ `docs/PRODUCT-STRATEGY.md`（为什么这样做）；改代码前读 `docs/ARCHITECTURE.md`；动界面前读 `docs/DESIGN.md`。
+> **单一出处**：对象、页面、功能编号、版本切分只在 `docs/FRAMEWORK.md` 定义，其他文档引用而不复述。
+> **历史文档**：已失效的旧方案（2026-07 的旧视觉与登录方案、2026-11 的旧 PRD / ROADMAP）全部移入 `docs/archive/`，**不得据此实现任何功能**。索引与失效原因见 `docs/archive/README.md`。
 
 ---
 
@@ -222,13 +221,15 @@ npm run build       # 生产构建
 
 ## 10. 文档维护
 
-- 架构变更同步更新 `docs/ARCHITECTURE.md`；设计令牌变更同步更新 `docs/DESIGN.md`。
-- 产品定位与阶段变化同步更新 `docs/PRODUCT-STRATEGY.md` 与 `docs/ROADMAP.md`；功能需求变化同步更新 `docs/PRD.md`。
+- 架构变更同步更新 `docs/ARCHITECTURE.md`；设计令牌与组件变更同步更新 `docs/DESIGN.md`。
+- 对象、页面、功能编号、徽章、版本切分只在 `docs/FRAMEWORK.md` 增删改；定位与用户变化更新 `docs/PRODUCT-STRATEGY.md`。
 - 规范变更在本文件「修订记录」留痕，不静默修改。
 
 ### 修订记录
 
 | 版本 | 日期 | 变更 |
+|---|---|---|
+| 2.4.0 | 2026-11-15 | `docs/PRD.md` 与 `docs/ROADMAP.md` 移入归档，§0 增补 `docs/FRAMEWORK.md` 为产品唯一出处并加「单一出处」规则；§10 维护责任同步调整 |
 |---|---|---|
 | 2.3.0 | 2026-11-13 | 历史文档整体迁入 `docs/archive/` 并在 §0 登记；`web/docs/` 只保留现行文档 |
 | 2.2.0 | 2026-11-13 | §0 增加读取顺序与「历史文档」红线：`web/docs/` 下 2026-07 的旧方案不得作为实现依据 |

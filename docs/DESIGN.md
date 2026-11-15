@@ -1,7 +1,7 @@
 # Commit — DESIGN.md
 
-> **版本**: 2.1.0
-> **更新日期**: 2026-11-13
+> **版本**: 3.0.0
+> **更新日期**: 2026-11-15
 > **设计语言**: Linear-inspired Developer Dark
 > **基准参考**: [Linear DESIGN.md](./DESIGN.reference.linear.md)（仅作溯源参考，本项目实际规范以本文件为准）
 > **地位**: 本项目**唯一**的设计样式规范文档（visual design single source of truth）。旧版 `UI_DESIGN.deprecated.md` 已废弃。
@@ -14,33 +14,16 @@
 
 本文只描述与平台无关的视觉规则：色彩、字阶、间距、圆角、层级、组件形态。任何具体框架的 API 都不应写进这里。
 
-本文件遵循 [Stitch DESIGN.md 规范](https://stitch.withgoogle.com/docs/design-md/specification/)，并针对 Commit 的 Git-隐喻任务管理场景做了扩展。
+本文件遵循 [Stitch DESIGN.md 规范](https://stitch.withgoogle.com/docs/design-md/specification/)，并针对 Commit 的「待办 → 记录 → 历程」场景做了扩展。
 
 **与 Linear 原文的差异声明**（为什么不是照搬）：
 - Linear 原文是**营销官网**设计语言；Commit 是**实用 App**。本文件保留了 Linear 的「四阶 surface ladder / hairline 边框 / 负字距排版 / 极简 chrome / 不用投影」骨架，但：
-  - **accent 由紫改蓝**（保留项目原有 `#3B82F6`，Git 冷峻气质更契合）。
+  - **accent 由紫改蓝**（保留项目原有 `#3B82F6`，冷峻克制的工具气质更契合）。
   - **canvas 用 slate `#0F172A`** 而非 Linear 的近纯黑 `#010102`（更适合长时间阅读的 App 场景）。
   - **字体保留 `JetBrains Mono` + `IBM Plex Sans`**（Linear 官方推荐的 mono 替代就是 JetBrains Mono，零迁移成本）。
-  - **Mono 用途扩展**到 branch name / commit id / label（Git 隐喻刚需）。
-  - **保留全套语义色**（priority / status / heatmap / branchColors）——任务管理 App 的状态色是刚需，不能像 Linear 营销页那样砍掉。
-  - **新增 Git 专属组件规范**（task-card / branch-indicator / heatmap / git-graph / commit-row）。
-
-### 0.1 与产品方向的对齐（2026-11-13，优先于下文冲突项）
-
-本文 2.0.0 版写于「Git 隐喻任务管理器」时期。产品方向已调整为「两种视角，一种语言」（见 [`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §7）。**令牌层仍然全部有效**，**组件层有三处需按新方向重做**：
-
-| 本文原规定 | 冲突点 | 现行做法 |
-|---|---|---|
-| Mono 用于 branch name / commit id（§1、§3） | 界面不得出现分支名与提交哈希 | Mono 仅用于日期、数字、代码块、快捷键 |
-| `branch-indicator` 分支指示器（§7） | 名称与内容都是 Git 语义 | 改为「并行线标签」：中文标签 + 颜色，不显示分支名 |
-| `git-graph`（§7.8） | 节点会带 ref / 哈希 / commit message | 改为「关系图 / 人生树」：节点为「一句话 + 日期 + 主线色」，禁止哈希与英文前缀 |
-
-以下两项**尚未编写**，属现行缺口：
-
-- 页面级构图：今天 / 主线 / 历程 在两种模式下的信息层级与栅格。
-- 知识注解（FR-39）的折叠样式、字号与触发位置。
-
-**冲突处理**：本文与 [`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §7.2「界面铁律」冲突时，**以 §7.2 为准**；本文相应条目应在下次修订中删除或改写。
+  - **Mono 用途收窄**到日期、数字、快捷键、代码块（界面不出现分支名与提交哈希，见 `PRODUCT-STRATEGY.md` §5.1）。
+  - **保留全套语义色**（priority / status / heatmap / 线色）——任务管理 App 的状态色是刚需，不能像 Linear 营销页那样砍掉。
+  - **新增产品专属组件规范**（待办卡 / 并行线标签 / 热力图 / 人生树画布 / 记录行）。
 
 ---
 
@@ -48,11 +31,11 @@
 
 Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 Linear 的近纯黑略浅、带蓝灰调，是全系统最深的面，也是 App 的默认背景。其上是一个**四阶 surface ladder**（`surface-1` → `surface-4`）承载卡片、面板、浮层，用发丝级 hairline 边框（`hairline` → `hairline-strong` → `hairline-tertiary`）区隔，**不依赖投影**。前景文字为浅灰 ink `#F1F5F9`。
 
-唯一的彩色 accent 是 **Commit Blue** `{colors.primary}` `#3B82F6`，仅用于：品牌标识、focus ring、主 CTA、链接强调。它有一个更亮的 hover 态 `{colors.primary-hover}` `#60A5FA` 和一个聚焦态 `{colors.primary-focus}` `#2563EB`。**展示面**（空状态、Git Graph 标题、热力图标题、设置页头部）允许使用 `{colors.primary-gradient}`（`#3B82F6 → #8B5CF6`）做克制渐变以获得「眼前一亮」的高端感；**操作面**（列表、表单）保持纯色克制。
+唯一的彩色 accent 是 **Commit Blue** `{colors.primary}` `#3B82F6`，仅用于：品牌标识、focus ring、主 CTA、链接强调。它有一个更亮的 hover 态 `{colors.primary-hover}` `#60A5FA` 和一个聚焦态 `{colors.primary-focus}` `#2563EB`。**展示面**（空状态、人生树标题、热力图标题、设置页头部）允许使用 `{colors.primary-gradient}`（`#3B82F6 → #8B5CF6`）做克制渐变以获得「眼前一亮」的高端感；**操作面**（列表、表单）保持纯色克制。
 
-字体三族：**IBM Plex Sans**（标题 + 正文，单一连续声音）、**JetBrains Mono**（branch name / commit id / label / 等宽技术标签）。Display 字重 600、body 400，display 带激进的负字距（80px 时 -3.0px），eyebrow 用正字距（+0.4px）。
+字体三族：**IBM Plex Sans**（标题 + 正文，单一连续声音）、**JetBrains Mono**（日期 / 数字 / 快捷键 / 代码块等等宽场景）。Display 字重 600、body 400，display 带激进的负字距（80px 时 -3.0px），eyebrow 用正字距（+0.4px）。
 
-页面节奏由**信息密度**主导——Commit 是实用工具，没有 Linear 营销页的产品截图大图，取而代之的是密集的**任务列表、热力图、Git Graph、分支指示器**。chrome 刻意极简，让内容做主角。
+页面节奏由**信息密度**主导——Commit 是实用工具，没有 Linear 营销页的产品截图大图，取而代之的是密集的**待办列表、热力图、人生树、并行线标签**。chrome 刻意极简，让内容做主角。
 
 **Key Characteristics:**
 - **Slate dark-canvas system** — `{colors.canvas}` `#0F172A` 是系统锚定面（非纯黑，避免冰冷）。
@@ -61,7 +44,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 - Display 负字距激进（-3.0px @ 80px）；body 持平 -0.05px；eyebrow 正字距 +0.4px。
 - 卡片用 `{rounded.lg}` 12px 圆角 + 1px hairline 边框——CTA 用 `{rounded.md}` 8px，**绝不 pill 圆 CTA**。
 - **信息密度优先**——列表/网格/图表是主角，chrome 是深色画框。
-- **完整语义色体系**——priority / status / heatmap / branchColors 是任务管理的刚需，与 Linear 营销页「仅 success」不同。
+- **完整语义色体系**——priority / status / heatmap / 线色是任务管理的刚需，与 Linear 营销页「仅 success」不同。
 - 不加大气渐变、不加聚光卡片、深色面几乎不用投影。
 
 ---
@@ -126,7 +109,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 | `{colors.status-done}` | `#10B981` | 已完成 |
 | `{colors.status-cancelled}` | `#6B7280` | 已取消 |
 
-### 2.8 Heatmap（热力图色阶，GitHub 式绿色阶）
+### 2.8 Heatmap（热力图色阶，GitHub 式绿色阶，7 阶）
 | Token | Hex | 用途 |
 |---|---|---|
 | `{colors.heatmap-empty}` | `#1E293B` | 无提交日 |
@@ -135,7 +118,9 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 | `{colors.heatmap-3}` | `#047857` | level 3 |
 | `{colors.heatmap-4}` | `#10B981` | level 4（满） |
 
-### 2.9 Branch Colors（Git Graph 分支色环，7 色循环）
+### 2.9 Line Colors（并行线 / 主线的 7 色循环）
+
+> 令牌名沿用代码中的 `{colors.branchColors}`；界面称「线色」，不显示分支名。
 `#3B82F6` · `#8B5CF6` · `#F59E0B` · `#10B981` · `#EC4899` · `#06B6D4` · `#F97316`
 
 ### 2.10 Inverse（浅色面，用于 dark canvas 上的反白 CTA）
@@ -157,7 +142,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 
 ### 3.1 Font Families
 - **IBM Plex Sans** — 标题 + 正文，单一连续声音（替代 Linear Display/Text）。fallback: `-apple-system, system-ui, Segoe UI, Roboto`。
-- **JetBrains Mono** — branch name / commit id / label / 等宽技术标签（替代 Linear Mono，且 Linear 官方推荐 JetBrains Mono 作为 mono 替代）。fallback: `ui-monospace, SF Mono, Menlo`。
+- **JetBrains Mono** — 日期 / 数字 / 快捷键 / 代码块等等宽场景（替代 Linear Mono，且 Linear 官方推荐 JetBrains Mono 作为 mono 替代）。fallback: `ui-monospace, SF Mono, Menlo`。
 
 > 字体文件待就位后启用；缺失时回退到平台默认字体，不阻断构建。
 
@@ -165,11 +150,11 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 
 | Token | Size | Weight | Line Height | Letter Spacing | Font | Use |
 |---|---|---|---|---|---|---|
-| `{typography.display-xl}` | 48px | 600 | 1.05 | -2.0px | IBM Plex Sans | 首页空状态大标题、Git Graph 主标题（移动端缩到 32px） |
+| `{typography.display-xl}` | 48px | 600 | 1.05 | -2.0px | IBM Plex Sans | 首页空状态大标题、人生树主标题（移动端缩到 32px） |
 | `{typography.display-lg}` | 40px | 600 | 1.10 | -1.5px | IBM Plex Sans | 页面主标题 |
 | `{typography.display-md}` | 32px | 600 | 1.15 | -1.0px | IBM Plex Sans | 区块大标题 |
 | `{typography.headline}` | 24px | 600 | 1.20 | -0.6px | IBM Plex Sans | 页面标题、卡片组标题 |
-| `{typography.card-title}` | 17px | 500 | 1.25 | -0.4px | IBM Plex Sans | 任务卡标题、仓库卡标题 |
+| `{typography.card-title}` | 17px | 500 | 1.25 | -0.4px | IBM Plex Sans | 待办卡标题、项目卡标题 |
 | `{typography.subhead}` | 20px | 400 | 1.40 | -0.2px | IBM Plex Sans | 引导正文 |
 | `{typography.body-lg}` | 17px | 400 | 1.50 | -0.1px | IBM Plex Sans | 重要正文 |
 | `{typography.body}` | 15px | 400 | 1.50 | -0.05px | IBM Plex Sans | 默认正文 |
@@ -177,14 +162,14 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 | `{typography.caption}` | 11px | 400 | 1.40 | 0 | IBM Plex Sans | caption、meta、状态 |
 | `{typography.button}` | 14px | 500 | 1.20 | 0 | IBM Plex Sans | 所有按钮标签 |
 | `{typography.eyebrow}` | 12px | 500 | 1.30 | +0.4px | IBM Plex Sans | 区块 eyebrow（正字距，标记分类） |
-| `{typography.mono}` | 13px | 500 | 1.50 | 0 | JetBrains Mono | branch name / commit id / label |
+| `{typography.mono}` | 13px | 500 | 1.50 | 0 | JetBrains Mono | 日期 / 数字 / 快捷键 / 代码块 |
 | `{typography.mono-sm}` | 11px | 500 | 1.40 | 0 | JetBrains Mono | 小号等宽标签、时间戳 |
 
 ### 3.3 Principles
 - **激进的负字距**用于 display（display-xl 48px 时 -2.0px ≈ 4%）。移动端 display 缩放时字距相应收窄。
 - **单一声音**：display 600 → body 400，同族不同字重，不用 700+。
 - **eyebrow 正字距** +0.4px，与负字距 display 形成对比，标记 taxonomy。
-- **Mono 用于 Git 语义场景**：branch name、commit hash、label、ID、时间戳——这是 Commit 区别于 Linear 营销页的扩展（Linear 仅在截图内用 mono）。
+- **Mono 只用于等宽语义**：日期、数字、快捷键、代码块、ID。**不用于分支名与提交哈希**——界面上不出现这两样东西（`PRODUCT-STRATEGY.md` §5.1）。
 
 ---
 
@@ -208,9 +193,9 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 ### 4.4 分层策略（Commit 专属，解决「高端惊艳」与「高频实用」张力）
 | 层 | 场景 | 处理 |
 |---|---|---|
-| **展示面** | 空状态、Git Graph、热力图标题、设置页头部、首屏 hero | 放大留白 + display 字号 + 蓝紫渐变 accent + hairline 面框 |
+| **展示面** | 空状态、人生树、热力图标题、设置页头部、首屏 hero | 放大留白 + display 字号 + 蓝紫渐变 accent + hairline 面框 |
 | **操作面** | 任务列表、表单、设置项、搜索结果 | 回归克制：body 字号、纯色、surface-1 卡、紧凑间距 |
-| **数据面** | 热力图网格、Git Graph 节点 | 密度优先，hairline 网格，语义色编码 |
+| **数据面** | 热力图网格、人生树节点 | 密度优先，hairline 网格，语义色编码 |
 
 ---
 
@@ -238,22 +223,24 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 | Token | Value | Use |
 |---|---|---|
 | `{rounded.xs}` | 4px | 小 chip、status badge、热力图格子 |
-| `{rounded.sm}` | 6px | inline tag、commit hash chip |
+| `{rounded.sm}` | 6px | inline tag、日期 chip |
 | `{rounded.md}` | 8px | **所有按钮、表单输入** |
-| `{rounded.lg}` | 12px | 任务卡、仓库卡、feature 卡 |
-| `{rounded.xl}` | 16px | 大面板、Git Graph 容器、模态 |
+| `{rounded.lg}` | 12px | 待办卡、项目卡、feature 卡 |
+| `{rounded.xl}` | 16px | 大面板、人生树容器、模态 |
 | `{rounded.xxl}` | 24px | 空状态、CTA banner |
 | `{rounded.pill}` | 9999px | status pill、tab toggle |
 | `{rounded.full}` | 9999px | 头像、圆形图标容器 |
 
 ### 6.2 摄影与插画几何
-- Commit 无营销大图；几何由**数据可视化**（热力图格子、Git Graph 节点/连线）承担。
+- Commit 无营销大图；几何由**数据可视化**（热力图格子、人生树节点与连线）承担。
 - 头像用 `{rounded.full}`，32–40px。
 - 图标容器（优先级圆点、状态圆点）用 `{rounded.full}` 8px。
 
 ---
 
 ## 7. Components
+
+> **组件名以本文件为准。** `web/` 现有实现中的 `branch-indicator` / `git-graph` / `commit-row` 属旧命名，重构时按本文件改为 `line-tag` / `tree-canvas` / `record-row`；在新页面上不要继续使用旧组件。
 
 ### 7.1 Buttons
 **`button-primary`** — Commit Blue CTA，全页默认主 CTA。
@@ -278,16 +265,16 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 - selected：`{colors.surface-2}` 底、`{colors.ink}` 字——选中即 surface lift。
 
 ### 7.3 Cards
-**`task-card`**（Commit 核心组件）— 列表中的任务项。
+**`task-card`**（Commit 核心组件）— 列表中的待办项。
 - 底 `{colors.surface-1}`、字 `{colors.ink}`、`{typography.body}`、`{rounded.lg}`、padding 16。1px `{colors.hairline}`。
 - 左侧 3px 优先级色条（`{colors.priority-*}`）。
-- 标题 `{typography.card-title}`；meta（分支名/截止日）`{typography.mono-sm}` + `{colors.ink-subtle}`。
+- 标题 `{typography.card-title}`；meta（所属并行线 / 截止日）`{typography.mono-sm}` + `{colors.ink-subtle}`。
 - 右侧 status pill（见 7.5）。
 - hover → lift 到 `{colors.surface-2}` + 1px `{colors.hairline-strong}`。
 
-**`repository-card`** — 仓库项。
+**`repository-card`** — 项目项。
 - 底 `{colors.surface-1}`、`{rounded.lg}`、padding 16、1px `{colors.hairline}`。
-- 仓库名 `{typography.card-title}`；分支数/任务数用 `{typography.mono-sm}` 计数。
+- 项目名 `{typography.card-title}`；并行线数 / 待办数用 `{typography.mono-sm}` 计数。
 
 **`feature-card`** / **`panel-card`** — 通用面板。
 - 底 `{colors.surface-1}`、`{rounded.lg}`、padding 24、1px `{colors.hairline}`。
@@ -317,30 +304,35 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 **`count-badge`** — 计数徽章。
 - 底 `{colors.surface-2}`、字 `{colors.ink-muted}`、`{typography.mono-sm}`、`{rounded.pill}`、padding 2/8。
 
-### 7.6 Branch Indicator（Git 专属）
-**`branch-indicator`**
-- 分支色环取色（`{colors.branchColors}` 循环）+ `{typography.mono}` 分支名。
-- `{colors.ink-muted}` 前缀图标（git-branch）+ 分支色圆点 + 等宽分支名。
+### 7.6 并行线标签（Line Tag）
+**`line-tag`**
+- 线色圆点（取 `{colors.branchColors}` 循环）+ **中文标签**，`{typography.caption}`。
+- 标签文本是用户起的名字（如「内容侧」「后端」），**不显示分支名，不显示前缀图标**。
 - `{rounded.sm}` chip 容器，padding 4/8，底 `{colors.surface-2}` @ 50%。
+- 同一项目内线色不重复；跨项目可复用。
 
-### 7.7 Heatmap（Git 专属，数据面）
+### 7.7 Heatmap（数据面）
 **`heatmap-cell`**
 - `{colors.heatmap-*}` 色阶、`{rounded.xs}` 4px、gap 3px。
 - 空 cell `{colors.heatmap-empty}`；hover → 1px `{colors.hairline-strong}` 边框 + tooltip（`{colors.surface-3}` 底 + `{typography.caption}`）。
 - 月份/星期标签 `{typography.mono-sm}` + `{colors.ink-subtle}`。
 - 图例「Less → More」`{typography.caption}` + 5 格色阶。
 
-### 7.8 Git Graph（Git 专属，数据面）
-**`git-graph-canvas`**
-- 底 `{colors.canvas}`、`{rounded.xl}` 容器、padding 24。
-- 节点：分支色 + `{rounded.full}` 8px；commit 节点带 ring。
-- 连线：分支色 2px 贝塞尔，merge 节点高亮 `{colors.primary}`。
+### 7.8 人生树画布（Tree Canvas，数据面）
+**`tree-canvas`**
+- 底 `{colors.canvas}`、`{rounded.xl}` 容器、padding 24。**横轴是真实时间**，间距按天 / 月缩放。
+- 节点：线色 + `{rounded.full}` 8px；**节点文字只有一句话与日期**，`{typography.body-sm}` + `{typography.mono-sm}`。
+- **禁止**：哈希、分支名、`feat(...)` 前缀、ref 标记（`PRODUCT-STRATEGY.md` §5.1）。
+- 里程碑节点：直径 ×1.6 + 1px `{colors.primary}` ring，是图上唯一「重」的元素。
+- 连线：线色 2px 贝塞尔；汇合节点高亮 `{colors.primary}`。
+- **停滞段**：该段连线改 2px 虚线 `{colors.hairline-strong}`，末端标「已停滞 N 天」，`{typography.caption}` + `{colors.ink-subtle}`；此标注用中性色，不用红色。
 - 缩放控件：`button-secondary` 圆形（`{rounded.full}` 36px），右下角浮动。
 
-### 7.9 Commit Row（Git 专属）
-**`commit-row`**
+### 7.9 记录行（Record Row）
+**`record-row`**
 - 底 `{colors.canvas}`、`{typography.body}`、`{rounded.xs}`、padding 16/0。1px `{colors.hairline}` 下分隔。
-- commit hash `{typography.mono-sm}` + `{colors.primary}`；message `{typography.body}`；时间 `{typography.mono-sm}` + `{colors.ink-subtle}`。
+- 结构：**一句话**（主，`{typography.body}`）+ 日期（`{typography.mono-sm}` + `{colors.ink-subtle}`）+ 线色圆点。
+- **不显示哈希、不显示「提交」字样**。记录不可改，所以行内无编辑入口，只有「查看」与「追加更正」。
 
 ### 7.10 Navigation
 **`top-nav`** / **`app-bar`**
@@ -385,7 +377,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 - CTA 用 `{rounded.md}` 8px——绝不 pill 圆 CTA。
 - 卡片用 `{rounded.lg}` 12px + 1px hairline。
 - 深色面靠 surface ladder + hairline，几乎不用投影。
-- branch name / commit id / label 一律 JetBrains Mono。
+- 日期 / 数字 / 快捷键 / 代码块一律 JetBrains Mono。
 
 ### Don't
 - 不用纯黑 `#000000` 做 canvas。
@@ -418,7 +410,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 ### 9.3 Collapsing Strategy
 - 顶部导航：<768px 折叠为 hamburger。
 - 卡片网格：3-up → 2-up @1024px → 1-up @768px。
-- Git Graph：<768px 启用双指缩放，隐藏侧栏。
+- 人生树：<768px 启用双指缩放，隐藏侧栏。
 - display 字号：display-xl 48px → 32px @768px。
 
 ### 9.4 Light Mode（可选，系统跟随）
@@ -426,7 +418,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 - canvas `#F8FAFC`、surface-1 `#FFFFFF`、surface-2 `#F1F5F9`、surface-3 `#E2E8F0`、surface-4 `#CBD5E1`。
 - ink `#0F172A`、ink-muted `#475569`、ink-subtle `#64748B`、ink-tertiary `#94A3B8`。
 - hairline `#E2E8F0`、hairline-strong `#CBD5E1`、hairline-tertiary `#94A3B8`。
-- accent / semantic / heatmap / branchColors 色值不变（仅 surface 系反转）。
+- accent / semantic / heatmap / 线色色值不变（仅 surface 系反转）。
 - 浅色模式**允许**轻微投影（`shadowSm`），深色模式不用。
 - 顶部边缘高光：深色为 `#FFFFFF @ 6%`；浅色背景已浅，改用 `#000000 @ 6%` 顶部微阴影达到同等「像素级边框」质感。
 
@@ -440,7 +432,7 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 按 docs/DESIGN.md 渲染 Commit 的 <组件名>。
 - 深色模式：canvas #0F172A，卡片 surface-1 #1E293B + 1px hairline #1E293B。
 - accent 蓝 #3B82F6 仅用于 CTA/focus/链接；展示面可用 #3B82F6→#8B5CF6 渐变。
-- 字体：标题/正文 IBM Plex Sans，branch/commit/label 用 JetBrains Mono。
+- 字体：标题/正文 IBM Plex Sans，日期/数字/快捷键用 JetBrains Mono。
 - 卡片 rounded.lg 12px；按钮 rounded.md 8px；CTA 绝不 pill。
 - 深色面不用投影，靠 surface ladder + hairline。
 - 列表项用 task-card 规范（左侧 3px 优先级色条 + 右侧 status pill）。
@@ -482,21 +474,21 @@ Commit 的画布是**深色 slate canvas** `{colors.canvas}` `#0F172A`——比 
 Commit 的屏幕可归为五类构成模式。先选对模式，再套对应组件，可避免「把展示面样式错放到操作面」的常见问题。
 
 ### 13.1 Hero Empty State（展示面）
-- **场景**：首屏无仓库、search 无结果、首次启动。
+- **场景**：首屏无项目、search 无结果、首次启动。
 - **结构**：垂直居中，`displayXl` 标题 + 蓝紫渐变装饰（`primaryGradient`）+ `inkMuted` 引导文 + `button-primary`。
 - **容器**：`empty-state-card`——canvas 底、`rounded.xxl`、padding 48。
 - **节奏**：标题 ↔ 引导文 `md`(16)；引导文 ↔ CTA `lg`(24)。
 
 ### 13.2 Dense List（操作面）
-- **场景**：task list、repository list、search results、commit history。
-- **结构**：单列卡片列表，item 间距 `xs`(8)；卡片用 `task-card` / `repository-card` / `commit-row`。
+- **场景**：待办列表、项目列表、搜索结果、记录列表。
+- **结构**：单列卡片列表，item 间距 `xs`(8)；卡片用 `task-card` / `repository-card` / `record-row`。
 - **分组**：组标题用 `headline` + `eyebrow` 分类标记，组间距 `section`(96)（移动端 `xxl`(48)）。
 - **交互**：整卡可点击 + hover 抬升；右滑/长按等手势不替代可见按钮。
 
 ### 13.3 Data Canvas（数据面）
-- **场景**：heatmap、git graph。
+- **场景**：heatmap、人生树。
 - **结构**：`displayMd` 区块标题 + `eyebrow` 分类；主体占满可用宽度，四周 `lg`(24) 留白。
-- **可视化**：热力图格子 `rounded.xs`(4) + `heatmapGap`(3)；Git Graph 容器 canvas 底 + `rounded.xl`(16) + padding 24。
+- **可视化**：热力图格子 `rounded.xs`(4) + `heatmapGap`(3)；人生树容器 canvas 底 + `rounded.xl`(16) + padding 24。
 - **控件**：缩放/图例/筛选用 `button-secondary` 圆形或 `segmented`。
 
 ### 13.4 Settings Stack（设置页）
@@ -522,5 +514,6 @@ Commit 的屏幕可归为五类构成模式。先选对模式，再套对应组�
 
 | 版本 | 日期 | 变更 |
 |---|---|---|
+| 3.0.0 | 2026-11-15 | **删除旧模型表述**：原 §0.1「与产品方向的对齐」整节移除（旧文本已就地改写，无需再对齐）；§2.9 分支色环改为线色、§3 字阶与 Mono 用途去掉分支名与提交哈希、§7.6 分支指示器重写为并行线标签、§7.8 Git Graph 重写为人生树画布（含停滞虚线与禁止项）、§7.9 commit row 重写为记录行；组件名以本文件为准，`web/` 现有 `branch-indicator` / `git-graph` / `commit-row` 在重构时改名 |
 | 2.1.0 | 2026-11-13 | 新增 §0.1 与产品方向的对齐：标注 mono / branch-indicator / git-graph 三处与新界面铁律的冲突及替代做法；列出页面级构图与知识注解两项缺口 |
 | 2.0.0 | 2026-06-28 | 重写为唯一设计规范，对齐 Linear 令牌体系 |
