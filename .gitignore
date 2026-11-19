@@ -22,6 +22,10 @@
 **/secrets/
 *.tsbuildinfo
 tsconfig.*.tsbuildinfo
+/2026-11-19/rebuild/
+**/cdp-profile*/
+**/chrome-profile/
+/web/build.log
 /.agents/
 /.claude/
 /CUsersAdministrator.SY-202401060959.codexskills/
