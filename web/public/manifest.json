@@ -1,4 +1,5 @@
 {
+  "_stale": "TODO(2026-11-19): 本文件当前无引用（index.html 的 manifest 链接与 vite-plugin-pwa 均已移除），theme_color / background_color 属旧视觉体系。保留待视觉方向确认后决定删除或重写。",
   "name": "CommitToDo",
   "short_name": "CommitToDo",
   "description": "像 Git 一样优雅的任务管理",

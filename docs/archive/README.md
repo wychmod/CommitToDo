@@ -63,6 +63,8 @@
 
 另：`commit-homepage-concepts/` 下的 8 张参考截图（`今日.png`、`仓库概览.png`、`登录.png` 等）随该目录一并归档，供 `v3-system-redesign` 的设计稿对照。
 
+> ⚠️ 已过时（2026-11-19）：登录后端与前端认证代码已全部删除，`web/` 旧实现亦已清空。因此上表「真实登录已实现」「`web/src` 中 0 处引用」不再成立；`cloudbase-authentication-*` 两行的「现行替代」指向的 `web/docs/cloudbase-authentication-implementation-audit.md` 也已删除，暂无替代。逐项清单见 [`../STALE.md`](../STALE.md)。
+
 ## 3. 使用约束
 
 - **不得据此实现任何功能。** 尤其 `auth-modal/` 描述的是已删除的演示登录流程。

@@ -2,6 +2,8 @@
 
 **把每件小事变成一次提交，长成一棵看得见的分支树。**
 
+> ⚠️ **已过时（2026-11-19）**：本文件中的「目录结构」「快速开始」「已实现的能力」「技术栈」「质量基线」以及文档表中 `web/docs/ARCHITECTURE.md` 一行，描述的是 2026-11-19 已清空的旧 Web 实现，待重写。产品定位、框架与路线图部分仍然有效。逐项清单见 [`docs/STALE.md`](./docs/STALE.md)。
+
 CommitToDo 的目标形态是一款本地优先的个人任务与人生历程工具：待办完成即提交，提交挂在分支上；整棵树只有一个根，最多 3 层，分支可以并回父分支。所有提交连起来，就是可回看、可分叉、可合并的历程。
 
 **目标用户**：程序员 / 技术型知识工作者（主用户，MVP 与 V1 的验收对象）；大众用户自 V2 起进入验收范围，见 [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) §3。
@@ -9,6 +11,8 @@ CommitToDo 的目标形态是一款本地优先的个人任务与人生历程工
 **只有一套词**：分支 / 待办 / 提交 / 里程碑 / 徽章。**界面上不出现哈希、分支路径这类英文标识符**——图上的一条记录就是「第一次半马 · 2025 年 4 月 6 日」。停滞的分支会显式变成虚线；借自 Git 的机制用一句话注解解释，默认折叠。见 [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) §5。
 
 当前唯一已实现并能正常运行的是 **Web 端**（`web/`），仍使用「仓库 / 分支 / 任务 / 提交」的旧命名。**目标形态已重写**，见 [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md)：单根分支树 + 5 个对象（分支 / 待办 / 提交 / 里程碑 / 徽章）、四个一级入口、58 项功能。代码尚未按新框架改造。
+
+> ⚠️ 已过时：`web/` 的旧实现已于 2026-11-19 整体清空，现行代码只有一个最小外壳（`/` 一条路由 + 占位页），不再使用上述旧命名，也未按新框架实现。
 
 ---
 
@@ -22,6 +26,8 @@ Commit/
 │   └── docs/               #   Web 专属文档
 ├── docs/                   # 仓库级文档
 ```
+
+> ⚠️ 已过时：`web/src` 的六层架构与 `web/docs/` 均已不存在；现行 `web/src` 只有 `main.tsx`、`app.tsx`、`pages/home-page.tsx`、`index.css`。`web/public/` 仅余未引用的静态资产。待重写。
 
 ---
 
@@ -41,11 +47,17 @@ npm run dev          # http://localhost:5173
 | `npm run lint` | ESLint 全量扫描 |
 | `npm test` | Vitest 单次运行 |
 
+> ⚠️ 已过时：`npm run lint` 与 `npm test` 已随旧门禁删除（ESLint / Vitest 依赖与配置均已移除）；现行脚本只有 `dev`、`build`、`preview`。
+
 首次访问进入落地页，点「进入工作台」即可开始使用——**不需要注册或登录**。当前版本**不做账号与同步**，数据只写入浏览器 IndexedDB（本地模式是唯一形态）；换设备靠 V1 的导出 / 导入或异地备份。落地页残留的登录入口将在重做时移除。
+
+> ⚠️ 已过时：落地页、「进入工作台」、IndexedDB 写入与登录入口残留均已随旧实现删除；现行站点只渲染一个占位页。
 
 ---
 
 ## 已实现的能力
+
+> ⚠️ 已过时：本节全部内容对应 2026-11-19 已删除的旧实现，无一项在现行代码中存在。保留原文仅供追溯，待重写。
 
 ### 核心模型
 
@@ -87,6 +99,8 @@ npm run dev          # http://localhost:5173
 
 ## 技术栈
 
+> ⚠️ 已过时：现行依赖只保留 `react`、`react-dom`、`react-router-dom` 与 `vite` / `typescript` 工具链；下表所列 Tailwind、Radix、Zustand、tsyringe、Dexie、ReactFlow、Vitest、PWA 均已从 `package.json` 移除。新选型待定。
+
 | 层 | 选型 |
 |---|---|
 | UI | React 18 · TypeScript 5（strict）· TailwindCSS 3.4 · Radix UI |
@@ -101,6 +115,8 @@ npm run dev          # http://localhost:5173
 ---
 
 ## 质量基线
+
+> ⚠️ 已过时：下表数字与命令均来自已删除的实现（测试已移除，`tsc -b` 现由 `npm run build` 内部执行）。旧的四条门禁不再适用，待新规范定稿后重写。
 
 | 检查 | 状态 |
 |---|---|
@@ -122,6 +138,8 @@ npm run dev          # http://localhost:5173
 | [`web/docs/ARCHITECTURE.md`](./web/docs/ARCHITECTURE.md) | Web 端实现细节（实现层，不定义产品） |
 | 视觉规范 | **待重新设计**。旧版（`DESIGN.md`、V3 风格指南等 6 份）已整体归档，仓库内暂不设视觉事实来源 |
 
+> ⚠️ 已过时：表中 `web/docs/ARCHITECTURE.md` 已于 2026-11-19 删除，链接失效；`docs/ARCHITECTURE.md` 的「现状架构」部分（§1–§11）同样已过时，仅 §12 目标模型与 §13 变更记录有效。
+
 > 工程规范与 Agent 约束文件（`AGENTS.md`、`CLAUDE.md` 及 `web/` 下同名文件）已随改版一并移除，待新方案定稿后重写。
 
 ### 历史文档（已归档，不作为实现依据）
@@ -139,6 +157,8 @@ npm run dev          # http://localhost:5173
 | 2026-07 | `commit-homepage-concepts/功能整理与页面清单.md` | 已被 `docs/FRAMEWORK.md` 取代 |
 | 2026-07 | `cloudbase-authentication-{plan,implementation-roadmap}.md` | 「必须登录」前提已被本地模式推翻 |
 | 2026-07 | `screenshots/`（7 张）+ `commit-homepage-concepts/` 内 8 张参考截图 | 界面已重构，无文档引用 |
+
+> ⚠️ 路径变更：上表列出的 `docs/DESIGN.md`、`docs/DESIGN.reference.linear.md`、`web/docs/v3/*`、`web/docs/PRD.md`、`web/docs/TASKS.md` 的原始路径均已不存在，现位于 `docs/archive/2026-11/` 下（视觉体系在 `visual-system/`，Web 文档在 `web/`）。
 
 ---
 
