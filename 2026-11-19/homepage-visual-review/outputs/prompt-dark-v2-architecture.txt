@@ -1,0 +1,44 @@
+A high-end website homepage visual comp, dark edition, "branch as architecture", single flat UI artboard, 16:10 landscape, 1512×950, crisp 2x detail, no browser chrome, no device mockup, no watermark.
+
+CONCEPT: one idea carried by one line. A single continuous filament enters the frame as a trunk, splits into two suspension-bridge arcs that open into a wide lens, and terminates in one machined node. Nothing else in the frame emits light.
+
+CANVAS & COMPOSITION
+- Near-black graphite #08090A with a barely perceptible cool gradient and 5% film grain. No haze, no vignette wash.
+- Asymmetric 62/38 split. The left 62% is held as negative space for the headline; the right 38% is the vertical band where the product window enters and is cropped by the bottom and right edges.
+- The filament enters at x=0, y=86%, runs as a single trunk to x=33%, y=74%, there splits into a lower arc and an upper arc that open into a wide lens with a maximum vertical gap of 26% of frame height at x=54%, and reconverges at x=71%, y=38% into the node. The fork and the merge must be legible as geometry at a glance.
+- The upper arc passes behind the last line of the headline at 10% opacity where they overlap, so typography and structure occupy visibly different depth planes.
+
+FILAMENT — precision, not neon
+- Stroke width 0.75px to 1px, never 4–6px. Matte anodized graphite with a cool specular edge.
+- The filament must not be self-luminous. It is lit only by the node: within 25% of the node it carries a mint specular highlight, then fades to a 12%-white hairline, then dies into black along the rest of its length.
+- Shallow depth of field: the far arc is out of focus by 3px, the near arc is tack sharp.
+- Exactly one 90px-long motion streak on the lower arc, 30px before the node, as if a long exposure caught the final instant of arrival. No dust, no particles, no sparkles.
+
+THE NODE — the only light source in the entire frame
+- At 71% / 38%: a 20px sphere seated in a machined titanium collar, a 2px white-hot core, a controlled 60px falloff. No orbital rings, no atom loops, no lens flare spikes.
+- Three concentric 1px ripple rings at 5% white, spaced 26px apart, reading as contact pressure rather than decoration.
+
+TYPOGRAPHY
+- Wordmark top-left at 14px / 600, bone white; four nav items at 12px, muted #6E746F. No button anywhere in the header.
+- Eyebrow at x=72, y=128: 10px mono, letter-spacing 0.22em, #6E746F: "COMMITTODO — BRANCH-BASED TO-DO".
+- Headline at x=72, y=170: Chinese display type at 148px, weight 700, line-height 0.90, letter-spacing -0.03em, bone white #F2F3EE. Line 1 "把目标分支化". Line 2 "把进展提交掉" with the two characters "提交" in mint #6BFFA0. The second line extends past the left edge of the product window so type and structure interlock.
+- Sub-copy at x=72, y=506: 17px / 1.6, max width 400, #8B918B: "一条主干，随时分叉，做完就合并。每次推进，都留在时间线上。"
+- One CTA at x=72, y=584: text only, 15px bone white, followed by a 1px 40px-long rule and an arrow. No filled capsule anywhere in the frame.
+
+PRODUCT WINDOW
+- A matte black plate #0A0B0A entering from the right edge at x=62%, y=46%, cropped by the bottom and right edges. 1px #2B2F2C border, 2px corner radius, one 1px specular highlight along its top edge that fades out after 45% of its width, plus a single 6px glass sliver on the top edge holding a dim mint reflection.
+- Inside, two panes only. Left: a vertical branch tree, 3 rows at 15px, 6px mint status squares, hairline connectors, one active row subtly lifted. Right: 3 task rows at 14px, and below them a vertical commit timeline of 4 entries with 12px mono hashes and 11px timestamps.
+- All UI text minimum 12px, sharp, correctly spelled, real Chinese copy, no lorem ipsum, no fake glyphs.
+
+NEGATIVE SPACE
+- The upper-right quadrant stays almost empty but not dead: an engineering measurement grid of 1px hairlines at 3% white on a 96px pitch, clipped to that quadrant only, plus one oversized numeral "01" at 480px in 2% white, positioned so the node overlaps its counter. It must feel like a drafting sheet, never like a watermark.
+
+PALETTE: graphite black, bone white, one mint #6BFFA0. No second hue. No blue, purple, orange or cyan anywhere.
+
+LIGHT: a single key source (the node), one cool titanium rim on the window's top edge, everything else held in shadow. Blacks truly black, no grey haze.
+
+MATERIALS: matte black anodized plate, brushed titanium collar, 0.75px etched filament, 5% grain, exactly one glass sliver.
+
+AVOID: thick neon tubes, uniform glow along every line, atom or orbit rings, lens flare, glow haze, particle dust, two filled white pills, five-column dashboard walls, 16px rounded cards, gradient buttons, cyan or purple accents, floating dashboard tiles, watermark, garbled text.
+
+MOOD: a technical drawing of a suspension bridge lit by a single lamp — quiet, exact, expensive.

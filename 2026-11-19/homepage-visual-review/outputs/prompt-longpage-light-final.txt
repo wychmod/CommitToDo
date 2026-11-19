@@ -1,0 +1,56 @@
+A single very tall vertical artboard for a developer-tool homepage: 1512×4200 px, aspect 1:2.78, read top to bottom as four stacked bands. Light edition, "paper and ink": warm paper, ink type, one drawn hairline that behaves like a plotter trace. Flat UI comp, crisp 2x detail, no browser chrome, no device mockup, no watermark, no visible section dividers. This brief is complete and self-contained.
+
+GLOBAL
+- Paper #F4F1E9 with 3% paper-fiber grain and a barely visible 2% warm falloff toward the lower-left corner. No gradients anywhere else. No haze, no vignette.
+- Left editorial margin 72px; right content edge 1440px.
+- One continuous 1.25px ink filament travels the entire 4200px height, drawn as #161815 with a 0.6px lighter core #3A3D38 that suggests a pen groove. Nothing on the page emits light: no glow, no bloom, no halo, no specular highlight. Depth is expressed only by opacity and stroke weight.
+- One full-height printed column rule: 1px, #1A1C19 at 55% opacity, at x=907 (60% of the width), running from the very top edge of the canvas to the very bottom edge, crossing all four bands. It sits behind the type and behind the product card.
+- The branch filament crosses this column rule deliberately. In band 1 both hero arcs pass through it; in bands 2 and 3 the horizontal exit lines cross it at y=1780, y=2160 and y=3000. Every crossing must be a clean 90°-style intersection of two 1px lines with no gap, no shadow and no highlight. The crossings are intentional and are part of the composition.
+- Hierarchy comes from ink value, 1px rules and type scale only: no cards, no shadows, no blur. Section separation is achieved by 96px of empty paper, a 10px mono number, and the line's own 90° turns — nothing else.
+- Type scale is fixed in absolute pixels and must NOT scale with the canvas height: display 148, section display 64, section heading 28, body 15, mono 10. Chinese display face with squarish terminals (MiSans-like); technical mono for numbers and hashes.
+- One accent only: deep green #0E5B37, used as position or state — two characters in the headline, one filled square in the tree, one terminal disc. All other color is paper, ink and grey.
+- No vertical stretching of elements. Bands are composed, not stretched.
+
+BAND 1 — y 0 to 950 — "a goal forks, progress commits"
+- 64px top bar with a 1px #C9C6BC rule along its bottom edge: wordmark 14px / 700 #101210 at x=72; four nav labels 12px #4A5049 ending at x=1440; no button in the bar.
+- Eyebrow at x=72, y=128: 10px mono, 0.22em tracking, #6E726A: "COMMITTODO — BRANCH-BASED TO-DO".
+- Headline at x=72, y=170: 148px, weight 700, line-height 0.90, tracking -0.03em, #101210. Line 1 "把目标分支化". Line 2 "把进展提交掉" with the two characters "提交" in #0E5B37.
+- Sub-copy at x=72, y=506: 15px / 1.6, max width 400, #4A5049: "一条主干，随时分叉，做完就合并。"
+- CTA at x=72, y=584: text only, 15px #101210, preceded by a 40px 1px #161815 rule and an arrow. No filled pill anywhere on the page.
+- Filament: enters at (0,818), runs as a trunk to (498,703), splits into two catenary arcs opening to a 26% band-height gap, and reconverges at (1074,361). The far arc is drawn at 45% opacity to read as depth; the near arc is solid.
+- The merge point at (1074,361) is a 16px solid disc of #0E5B37, surrounded by a 3px paper-white knockout collar. Around it sit three concentric 1px ink rings at 8% black, spaced 26px apart — printed registration rings, not light.
+- From the merge point, a 1px ink line runs horizontally to the right edge (1512,361) and exits the canvas.
+- Product card: paper-white #FBFAF6 from x=937, y=437, cropped by the bottom edge of band 1 and by the right edge; 1px #161815 border, 3px radius, and the page's single shadow: 0 24px 48px -32px rgba(16,18,16,0.28), downward only. A 36px solid ink #101210 cap runs across its top with a 10px paper-white mono label "CommitToDo — 分支视图" and a 1px paper-white hairline beneath it. Inside: 40px rows, a three-row branch tree at 15px #101210 with 1px #C9C6BC connectors, four task rows at 14px with 1px #E4E1D8 row rules, six 6px #0E5B37 status squares, one row inverted (ink fill, paper text) as the selected state, and one focused input with a 1px #161815 border. At most twelve short Chinese labels in total — no paragraphs, no fake glyphs.
+
+BAND 2 — y 950 to 2050 — "forking is structure, not a tag"
+- Line re-enters from the LEFT edge at (0,1080), runs to (498,1080), turns 90° downward, and becomes a vertical spine to (498,1780). Three 160px horizontal stubs leave the spine at y=1180, 1380 and 1580; each stub ends in a 15px Chinese label at x=674. The spine's final move is a 90° turn to the right, exiting at (1512,1780), crossing the column rule at x=907.
+- Section number "01" at x=72, y=990: 10px mono, #9A9D94.
+- Section heading at x=72, y=1024: 28px, weight 600, #101210: "分叉是结构，不是标签".
+- Body at x=72, y=1072: 15px / 1.6, max width 340, #4A5049: "父子关系是画出来的，不是打标签打出来的。" Two lines maximum.
+- The three stub labels, 15px #101210: "main / 主线", "launch / 子分支", "design / 已合并". A 6px filled #0E5B37 square sits on the spine at the first and third stub; the second is a hollow 1px #161815 square — state is expressed by fill, never by a second hue.
+- Nothing else in this band: the right half stays empty paper except the three stubs, the column rule and the exit line.
+
+BAND 3 — y 2050 to 3150 — "every completion leaves an immutable entry"
+- Line re-enters from the LEFT edge at (0,2160), runs to (726,2160), turns 90° downward into a timeline spine to (726,3000). Four 7px square nodes sit at y=2260, 2420, 2580, 2740, drawn as solid #101210 squares with a 2px paper collar. At each node, an 11px mono hash sits at x=750 and a 12px timestamp at x=1030, both #6E726A, with the first entry in #101210. Final 90° turn to the right, exiting at (1512,3000) and crossing the column rule twice, at y=2160 and y=3000.
+- Section number "02" at x=72, y=2100: 10px mono, #9A9D94.
+- Section heading at x=72, y=2134: 28px, weight 600, #101210: "每次完成，都留下不可变的一条".
+- Body at x=72, y=2182: 15px / 1.6, max width 340, #4A5049: "提交是只能追加的记录。回看时，顺序永远成立。"
+- No cards around the entries. The spine, the four nodes and the mono text are the entire component.
+
+BAND 4 — y 3150 to 4200 — "the data stays with you"
+- Line re-enters from the LEFT edge at (0,3400), runs horizontally to (756,3400) and TERMINATES there. The terminus is a 20px solid disc of #0E5B37 with a 3px paper knockout collar. The line does not exit the canvas; it ends where the action begins.
+- Section number "03" at x=72, y=3180: 10px mono, #9A9D94.
+- Closing headline at x=72, y=3218: 64px, weight 700, line-height 0.95, max width 660, #101210: "你的分支，你的机器，你的记录。"
+- Body at x=72, y=3312: 15px / 1.6, max width 420, #4A5049: "全部数据留在本机。没有账号，没有同步，没有云端副本。"
+- The page's single filled control at (756,3374): a 52px-tall, 0-radius solid ink #101210 rectangle with 15px paper-white text "开始第一条分支 →". The ink filament touches its left edge.
+- Footer rule at y=4060: 1px #161815 at 30% opacity from x=72 to x=1440. Below it, four 10px mono labels spaced evenly in #6E726A: "PRODUCT · PRINCIPLES · CHANGELOG · GITHUB". No logo row, no social icons, no copyright paragraph.
+
+PALETTE: paper #F4F1E9, card #FBFAF6, ink #101210, secondary #4A5049, tertiary #6E726A, muted #9A9D94, rule-soft #E4E1D8, rule #C9C6BC, rule-strong #161815, accent #0E5B37, accent hover #0A4529, accent wash #E3EDE5, warning #8A4B12 on #F0E6D8, danger #A03024 on #F4E3DF. No blue, cyan, purple or gradients anywhere.
+
+SEMANTIC COLOR: warning and danger appear only as a 6px dot plus 12px text, never as a filled chip.
+
+AVOID: pure white #FFFFFF backgrounds, electric mint or neon green, glowing or blurred lines, bloom, glassmorphism, 24px rounded cards, colored status pills, stacked feature cards, three-column grids, section background bands, dividers between bands, drop shadows as hierarchy, oversized decorative numerals other than the three 10px mono numbers, emoji, mock browser windows, watermark, garbled text.
+
+TEXT DISCIPLINE (critical for a 4200px image): only the copy listed above may appear. Inside the product card keep at most twelve short Chinese labels; if any small text cannot be rendered crisply, draw the row as a 1px hairline plus a 4%-black bar instead of inventing glyphs. A clean hairline row is always better than fake text.
+
+MOOD: a Swiss technical monograph printed on uncoated stock — one drawn line crossing four quiet rooms, with a product sheet laid into the first.

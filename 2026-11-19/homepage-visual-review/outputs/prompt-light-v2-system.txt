@@ -1,0 +1,50 @@
+A high-end website homepage visual comp for a design system that must scale from a hero to a dense working app. Light edition, "paper and ink", single flat UI artboard, 16:10 landscape, 1512×950, crisp 2x detail, no browser chrome, no device mockup, no watermark.
+
+THE SYSTEM — paper is not a reversed dark theme; it is a print language that must survive a full table:
+1. Hierarchy is carried by ink value, 1px rules and type scale. No glow, no blur, no glass. Separation is always a line before it is ever a shadow.
+2. One accent: deep green #0E5B37, used only as position or state — two characters in the headline, the merge node, one active indicator. Everything else is paper, ink and grey.
+3. One structural motif: a 1px rule. At hero scale it is a drawn plotter trace; on a page a full-height column rule; in a list a row rule; in a tree a connector; in a timeline a spine; on a focused input an ink edge. Same element at six scales.
+4. Three rule colors, three jobs: #161815 for structure and frames, #C9C6BC for section and column rules, #E4E1D8 for row rules. All 1px. Nothing thicker except the 1.25px hero filament.
+5. Surfaces are flat paper. Two tiers only: paper #F4F1E9 and card #FBFAF6, separated by a 1px #161815 border. Exactly one shadow may exist on a page, and only under a floating window.
+6. Controls are 36–40px tall, 2px radius, 1px #161815 border, white fill. Exactly one filled ink control per screen.
+
+HERO COMPOSITION (marketing scale only)
+- Paper #F4F1E9 with 3% paper-fiber grain and a barely visible 2% warm falloff toward the lower-left. No gradients elsewhere.
+- Editorial 60/40 split with one full-height 1px column rule at x=60%, #1A1C19 at 55% opacity, running edge to edge. It is a printed column rule, never a rounded UI divider.
+- The branch is a plotter trace: it enters at x=0, y=82%, runs as a trunk to x=30%, y=70%, splits into two catenary arcs that open into a lens with a 22% frame-height gap at x=48%, and converges at x=64%, y=42% into a solid ink-green node. Both arcs cross the column rule; the lower arc crosses exactly at the node.
+- The upper arc passes behind the last line of the headline so the line is threaded through the typography.
+
+LINES
+- Hero arc: 1.25px solid #161815 with a 0.6px lighter core #3A3D38, suggesting a pen groove. No glow, no blur, no halo.
+- Far arc drops to 45% opacity to imply depth; nothing else is transparent.
+- The node is a 16px solid disc of #0E5B37 with a 3px paper-white knockout collar and nothing else.
+- In UI, the same language becomes hairline connectors at #C9C6BC and row rules at #E4E1D8.
+
+TYPOGRAPHY — a scale that survives density
+- Scale: display 156 / 96 (marketing only), H1 40, H2 28, H3 20, body 17 marketing / 15 app, secondary 13, caption 12, mono 11–12 for hashes, timestamps and labels. Chinese display face with squarish terminals (MiSans-like), technical mono for data.
+- Wordmark top-left 14px / 700 ink; four nav items 12px #4A5049. No button in the header.
+- Eyebrow at x=72, y=124: 10px mono, 0.24em tracking, #6E726A: "COMMITTODO — BRANCH-BASED TO-DO".
+- Headline at x=72, y=162: 156px, weight 800, line-height 0.88, tracking -0.035em, ink #101210. Line 1 "把目标分支化". Line 2 "把进展提交掉" with "提交" in #0E5B37. The second line overhangs the vertical column rule so the type breaks the grid.
+- Sub-copy at x=72, y=500: 17px / 1.6, max width 380, #4A5049: "一条主干，随时分叉，做完就合并。每次推进，都留在时间线上。"
+- CTA at x=72, y=574: a solid ink #101210 rectangle, 50px tall, 0 radius, paper-white 15px text "开始第一条分支 →". This is the only filled control on the paper.
+- Mono footnote at x=72, y=878: 10px #8A8D84, 0.16em tracking: "LOCAL-FIRST · NO ACCOUNT · INDEXEDDB".
+
+PRODUCT WINDOW — must read as a real dense app, not a poster prop
+- Paper-white card #FBFAF6 at x=56%, y=46%, cropped by the bottom and right edges; 3px radius, 1px #161815 border, and the page's single shadow: 0 24px 48px -32px rgba(16,18,16,0.28), downward only.
+- A 36px solid ink #101210 cap across the top with a 10px paper-white mono label "CommitToDo — 分支视图" and a 1px paper-white hairline beneath it. This cap is the portable inverted block: the same device becomes a table header, a selected row and the primary button in the app.
+- Two panes only, drawn like printed UI. Left: branch tree, 40px rows, 15px ink labels, 1px connectors, one 6px green active square, 14px indent per level. Right: four task rows at 40px with 14px text, then a commit timeline of four entries with a 1px spine, 11px mono hashes, 12px timestamps, separated by 1px #E4E1D8 rules.
+- Invert exactly one row inside the card (ink fill, paper text) to prove the inverted-block device works at row scale.
+- Show one focused input (40px, 1px ink border, 2px radius, no shadow).
+- All UI text minimum 12px, sharp, correctly spelled, real Chinese copy, no lorem ipsum, no fake glyphs.
+
+SEMANTIC COLOR — the only other hues allowed, always as a 6px dot plus 12px text, never as a filled chip: warning #8A4B12 on #F0E6D8, danger #A03024 on #F4E3DF. Success uses the deep brand green.
+
+EDITORIAL LAYER (marketing only, removable): the full-height column rule and one 10px mono footnote. Nothing else decorates the paper.
+
+PALETTE: paper #F4F1E9, card #FBFAF6, ink #101210, secondary #4A5049, tertiary #6E726A, muted #9A9D94, rule-strong #161815, rule #C9C6BC, rule-soft #E4E1D8, accent #0E5B37 / hover #0A4529 / wash #E3EDE5. No blue, cyan, purple or gradients.
+
+WHY IT STILL HAS IMPACT ON PAPER — and why the impact survives a table: the contrast comes from a 15x type-scale ratio, one ink block (the 156px headline and the 36px cap), and the full-height column rule. All three devices are page-scale-agnostic; none of them depends on emptiness.
+
+AVOID: pure white #FFFFFF background, electric mint or neon green (it disappears on paper), glowing or blurred lines, glassmorphism, 24px rounded cards, colored status pills, icon rows, three-column feature grids, "trusted by" logo strips, gradient blobs, shadow on every element, watermark, garbled text.
+
+MOOD: a Swiss technical monograph printed on uncoated stock, with one product sheet laid into the spread — and a full table of contents printed on the next page.
