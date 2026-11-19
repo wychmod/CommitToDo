@@ -2,7 +2,7 @@
 
 **状态**: 只读，不得作为实现依据
 **建立日期**: 2026-11-13
-**最近更新**: 2026-11-15（新增 2026-11 批次）
+**最近更新**: 2026-11-19（新增旧 Web 实现批次 `legacy-impl/`）
 
 本目录存放**已失效、已被取代或前提已变更**的历史文档。它们被移出 `web/docs/` 的唯一原因是：那是一个活跃目录，留在里面会被误读为现行需求。
 
@@ -20,6 +20,16 @@
 不归档：现行规范、仍被引用的实现细节、明确标注为「参考素材」的设计基准。
 
 ## 2. 索引
+
+### 2026-11 · 旧 Web 实现（整份归档）
+
+2026-11-19 清空 `web/` 旧实现并重建为最小外壳，描述旧实现的文档与无人引用的静态资产整体移入 [`legacy-impl/`](./2026-11/legacy-impl/README.md)。该目录自带索引，说明归档原因、对应提交与文件清单。
+
+| 文件 | 原位置 | 失效原因 | 现行替代 |
+|---|---|---|---|
+| [`legacy-impl/ARCHITECTURE.md`](./2026-11/legacy-impl/ARCHITECTURE.md) | `docs/ARCHITECTURE.md` | §1–§11 描述已删除的实现 | 新工程规范待定；产品模型见 `docs/FRAMEWORK.md` |
+| [`legacy-impl/STALE.md`](./2026-11/legacy-impl/STALE.md) | `docs/STALE.md` | 过期项盘点，所列内容均已归档 | 无 |
+| [`legacy-impl/public/`](./2026-11/legacy-impl/public/) | `web/public/` | PWA manifest、robots 与 3 个图标均无引用 | 无（视觉方案待定） |
 
 ### 2026-11 · 旧产品框架（被重新设计取代）
 
@@ -55,15 +65,15 @@
 |---|---|---|---|
 | [`UI_DESIGN_PROPOSAL.md`](./2026-07/UI_DESIGN_PROPOSAL.md) | 1,336 行的 Web 端 UI/UX 提案（v2.0.0） | `CommitToDo` 品牌与「企业级 UI 规格」方向废弃；全仓库无引用 | 无（旧视觉体系已于 2026-11-15 整体归档） |
 | [`commit-homepage-concepts/功能整理与页面清单.md`](./2026-07/commit-homepage-concepts/功能整理与页面清单.md) | 2026-07 页面与功能清单 | 以「仓库 / 分支」为信息架构 | `docs/FRAMEWORK.md` |
-| [`commit-homepage-concepts/auth-modal/`](./2026-07/commit-homepage-concepts/auth-modal/spec.md) | 模拟认证弹窗 Spec / Plan / Task / Checklist（4 份） | 功能已在 `adc1828` 整体移除，`web/src` 中 0 处引用 | 无（真实登录已实现） |
+| [`commit-homepage-concepts/auth-modal/`](./2026-07/commit-homepage-concepts/auth-modal/spec.md) | 模拟认证弹窗 Spec / Plan / Task / Checklist（4 份） | 功能已在 `adc1828` 整体移除，`web/src` 已随 2026-11-19 清空 | 无（登录后端与前端认证代码均已删除） |
 | [`commit-homepage-concepts/v3-system-redesign/`](./2026-07/commit-homepage-concepts/v3-system-redesign/00-总览与页面关系.md) | 页面级设计稿与对照审计（7 份） | 视觉规格可参考，但品牌与信息架构已废弃；`06` 的审计结论基于 2026-07 的代码 | `docs/PRODUCT-STRATEGY.md`、`docs/FRAMEWORK.md` |
-| [`cloudbase-authentication-plan.md`](./2026-07/cloudbase-authentication-plan.md) | 登录注册专项规划（938 行） | 「必须登录才能使用」的前提被本地模式推翻 | `web/docs/cloudbase-authentication-implementation-audit.md` |
+| [`cloudbase-authentication-plan.md`](./2026-07/cloudbase-authentication-plan.md) | 登录注册专项规划（938 行） | 「必须登录才能使用」的前提被本地模式推翻 | 无（审计文档随 `web/docs/` 于 2026-11-19 删除） |
 | [`cloudbase-authentication-implementation-roadmap.md`](./2026-07/cloudbase-authentication-implementation-roadmap.md) | 登录注册实施拆分（1,050 行） | 同上；阶段划分不再等于当前计划 | 同上 |
 | [`screenshots/`](./2026-07/screenshots/) | 2026-07 的页面截图（7 张） | 界面已重构，且无任何文档引用 | 无 |
 
 另：`commit-homepage-concepts/` 下的 8 张参考截图（`今日.png`、`仓库概览.png`、`登录.png` 等）随该目录一并归档，供 `v3-system-redesign` 的设计稿对照。
 
-> ⚠️ 已过时（2026-11-19）：登录后端与前端认证代码已全部删除，`web/` 旧实现亦已清空。因此上表「真实登录已实现」「`web/src` 中 0 处引用」不再成立；`cloudbase-authentication-*` 两行的「现行替代」指向的 `web/docs/cloudbase-authentication-implementation-audit.md` 也已删除，暂无替代。逐项清单见 [`../STALE.md`](../STALE.md)。
+> 2026-11-19：登录后端与前端认证代码已全部删除，`web/` 旧实现亦已清空；上表描述的是历史状态，相关文件可直接查看，旧实现细节见 [`legacy-impl/`](./2026-11/legacy-impl/README.md)。
 
 ## 3. 使用约束
 

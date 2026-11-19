@@ -4,20 +4,9 @@
 /web/node_modules/
 /web/dist/
 /.playwright-cli/
-# TODO(2026-11-19): /web/output/screenshots/ 指向已删除的目录，规则不再命中任何内容，待清理。
-/web/output/screenshots/
 /web/.playwright-cli/
 /web/.env
 /web/.env.*
-!/web/.env.example
-/web/cloudfunctions/**/.env
-# TODO(2026-11-19): /web/cloudfunctions、/web/cloudbaserc* 已于 2026-11-19 随登录后端删除，第 12 行的 !/web/.env.example 也指向已删除文件；以下条目不再命中任何内容，待清理。
-/web/cloudfunctions/**/.env.*
-!/web/cloudfunctions/.env.example
-/web/cloudfunctions/**/node_modules/
-/web/cloudbaserc.json
-/web/cloudbaserc.*.json
-!/web/cloudbaserc.example.json
 **/*.pem
 **/*.key
 **/*.p12
@@ -30,4 +19,4 @@ tsconfig.*.tsbuildinfo
 /web/build.log
 /.agents/
 /.claude/
-/CUsersAdministrator.SY-202401060959.codexskills/
+/CUsersAdministrator.SY-202401060959.codexskills/

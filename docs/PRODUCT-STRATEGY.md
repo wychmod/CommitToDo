@@ -7,7 +7,7 @@
 
 本文只回答三件事：**CommitToDo 是什么、为谁做、守什么底线**。
 
-对象定义、信息架构、功能清单、徽章体系、版本切分一律以 [`FRAMEWORK.md`](./FRAMEWORK.md) 为唯一出处；技术落地见 [`ARCHITECTURE.md`](./ARCHITECTURE.md)；视觉规范待重新设计，旧版已整体归档至 `docs/archive/2026-11/visual-system/`（不得引用）。**本文不复述它们的内容，避免两处维护。**
+对象定义、信息架构、功能清单、徽章体系、版本切分一律以 [`FRAMEWORK.md`](./FRAMEWORK.md) 为唯一出处；技术落地待新工程规范定稿后重写（旧架构文档已归档至 `docs/archive/2026-11/legacy-impl/ARCHITECTURE.md`，不得引用）；视觉规范待重新设计，旧版已整体归档至 `docs/archive/2026-11/visual-system/`（不得引用）。**本文不复述它们的内容，避免两处维护。**
 
 ---
 
