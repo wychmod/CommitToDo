@@ -1,3 +1,6 @@
+> **状态**: 已归档（2026-11-15），只读，不得作为实现依据。
+> **归档原因**: 随 `DESIGN.md` 一并归档，仅保留为设计溯源素材。
+
 # Linear DESIGN.md（原文参考）
 
 > 来源：https://getdesign.md/linear.app/design-md
