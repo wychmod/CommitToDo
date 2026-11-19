@@ -1,14 +1,14 @@
 # CommitToDo
 
-**把人生当成一条主线，把每件小事变成一次提交。**
+**把每件小事变成一次提交，长成一棵看得见的分支树。**
 
-CommitToDo 的目标形态是一款本地优先的个人任务与人生主线工具：任务完成即提交，提交挂在主线上，主线归属人生领域；所有提交连起来，就是可回看、可分叉、可合并的历程。
+CommitToDo 的目标形态是一款本地优先的个人任务与人生历程工具：待办完成即提交，提交挂在分支上；整棵树只有一个根，最多 3 层，分支可以并回父分支。所有提交连起来，就是可回看、可分叉、可合并的历程。
 
 **目标用户**：程序员 / 技术型知识工作者（主用户，MVP 与 V1 的验收对象）；大众用户自 V2 起进入验收范围，见 [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) §3。
 
-**两种视角，都说人话**：项目模式管交付（项目 / 并行线 / 待办），人生模式管历程（领域 / 主线 / 小事）。**界面上不出现哈希、分支名这类英文标识符**——图上的一条记录就是「第一次半马 · 2025 年 4 月 6 日」。历程视图在人生模式下叫**人生树**，停滞的主线会显式变成虚线；借自 Git 的机制用一句话注解解释，默认折叠。见 [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) §5。
+**只有一套词**：分支 / 待办 / 提交 / 里程碑 / 徽章。**界面上不出现哈希、分支路径这类英文标识符**——图上的一条记录就是「第一次半马 · 2025 年 4 月 6 日」。停滞的分支会显式变成虚线；借自 Git 的机制用一句话注解解释，默认折叠。见 [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) §5。
 
-当前唯一已实现并能正常运行的是 **Web 端**（`web/`），仍使用「仓库 / 分支 / 任务 / 提交」的旧命名。**目标形态已重写**，见 [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md)：七个对象（领域 / 项目 / 并行线 / 待办 / 记录 / 里程碑 / 徽章）、四个一级入口、65 项功能。代码尚未按新框架改造。
+当前唯一已实现并能正常运行的是 **Web 端**（`web/`），仍使用「仓库 / 分支 / 任务 / 提交」的旧命名。**目标形态已重写**，见 [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md)：单根分支树 + 5 个对象（分支 / 待办 / 提交 / 里程碑 / 徽章）、四个一级入口、58 项功能。代码尚未按新框架改造。
 
 ---
 
@@ -18,13 +18,9 @@ CommitToDo 的目标形态是一款本地优先的个人任务与人生主线工
 Commit/
 ├── web/                    # Web 客户端（React + TypeScript）
 │   ├── src/                #   应用源码，六层架构
-│   ├── cloudfunctions/     #   认证后端云函数（Node 18）
-│   ├── cloudbase/          #   PostgreSQL 迁移脚本
 │   ├── public/             #   PWA 图标与 manifest
 │   └── docs/               #   Web 专属文档
 ├── docs/                   # 仓库级文档
-├── AGENTS.md               # 工程规范（分层、命名、测试、门禁）
-└── CLAUDE.md               # 规范入口指引
 ```
 
 ---
@@ -45,7 +41,7 @@ npm run dev          # http://localhost:5173
 | `npm run lint` | ESLint 全量扫描 |
 | `npm test` | Vitest 单次运行 |
 
-首次访问进入落地页，点「进入工作台」即可开始使用——**不需要注册或登录**。默认是本地模式，数据写入浏览器 IndexedDB。登录是可选升级，仅用于账号与安全能力；未配置云环境变量时也不会阻塞使用。
+首次访问进入落地页，点「进入工作台」即可开始使用——**不需要注册或登录**。当前版本**不做账号与同步**，数据只写入浏览器 IndexedDB（本地模式是唯一形态）；换设备靠 V1 的导出 / 导入或异地备份。落地页残留的登录入口将在重做时移除。
 
 ---
 
@@ -79,11 +75,9 @@ npm run dev          # http://localhost:5173
 
 ### 认证
 
-- **本地模式为默认**：无需登录即可使用全部功能，数据留在本机
-- 可选登录：邮箱注册 / 登录、手机验证码、GitHub OAuth、验证码找回
-- 登录后可将当前本地数据认领到账号，或另建独立工作区
-- 会话刷新单飞锁、OAuth state 一次性消费、路由守卫
-- 后端为云函数 + PostgreSQL（RLS + HMAC 哈希 + 限流与幂等）
+- **本地模式是唯一形态**：无需登录，数据只存本机
+- 原登录后端（3 个云函数 + PostgreSQL 迁移）已于 2026-11-16 删除，不做账号与同步
+- 前端残留的登录页、`auth-store` 与路由守卫将在重做时移除
 
 ### 体验
 
@@ -102,7 +96,7 @@ npm run dev          # http://localhost:5173
 | 存储 | Dexie 4（IndexedDB） |
 | 图形 | @xyflow/react 12 · 自绘 SVG 热力图 |
 | 测试 | Vitest · Testing Library · jsdom · fake-indexeddb |
-| 后端 | CloudBase 云函数（Node 18）· PostgreSQL |
+| 后端 | 无（旧登录后端已删除） |
 
 ---
 
@@ -111,7 +105,7 @@ npm run dev          # http://localhost:5173
 | 检查 | 状态 |
 |---|---|
 | `npx tsc -b` | 通过 |
-| `npm test` | 289 个用例全部通过；其中 1 例依赖数据加载时序（仓库任务页分支 Tab），高负载下偶发失败 |
+| `npm test` | 291 个用例全部通过；其中 1 例依赖数据加载时序（仓库任务页分支 Tab），高负载下偶发失败 |
 | `npm run build` | 通过；JS 1,796 kB（gzip 493 kB）、CSS 110 kB（gzip 20 kB），超过 500 kB 告警阈值，待分包 |
 
 ---
@@ -122,14 +116,13 @@ npm run dev          # http://localhost:5173
 
 | 文档 | 内容 |
 |---|---|
-| [`AGENTS.md`](./AGENTS.md) | 工程规范：分层、命名、代码风格、测试、门禁 |
-| [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md) | **产品框架**：三层结构、7 个对象、4 个入口、65 项功能、24 枚徽章、版本切分（v0.1，评审中） |
+| [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md) | **产品框架**：三层结构、单根分支树 + 5 个对象、4 个入口、58 项功能、21 枚徽章、版本切分（v0.3，已定稿） |
 | [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) | 产品定位、命名决策、主用户、两条硬约束、原则与风险 |
 | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | 现状架构、目标模型约束、数据迁移与已知缺口 |
-| [`docs/DESIGN.md`](./docs/DESIGN.md) | 设计令牌与组件规范（唯一设计规范） |
-| [`web/docs/v3/STYLE_GUIDE.md`](./web/docs/v3/STYLE_GUIDE.md) | 新增页面的开发合同（技术内容有效） |
 | [`web/docs/ARCHITECTURE.md`](./web/docs/ARCHITECTURE.md) | Web 端实现细节（实现层，不定义产品） |
-| [`docs/DESIGN.reference.linear.md`](./docs/DESIGN.reference.linear.md) | Linear 设计文档，仅作设计溯源参考 |
+| 视觉规范 | **待重新设计**。旧版（`DESIGN.md`、V3 风格指南等 6 份）已整体归档，仓库内暂不设视觉事实来源 |
+
+> 工程规范与 Agent 约束文件（`AGENTS.md`、`CLAUDE.md` 及 `web/` 下同名文件）已随改版一并移除，待新方案定稿后重写。
 
 ### 历史文档（已归档，不作为实现依据）
 
@@ -139,7 +132,8 @@ npm run dev          # http://localhost:5173
 |---|---|---|
 | 2026-11 | `docs/PRD.md`（2.3.0，39 条 FR）+ `docs/ROADMAP.md`（1.3.0，M/V1/V2 编号） | 已被 `docs/FRAMEWORK.md` 取代 |
 | 2026-11 | `web/docs/PRD.md` + `web/docs/TASKS.md`（2026-07 实现需求与任务清单） | 属旧命名时期，产品定义部分已失效 |
-| 2026-07 | `UI_DESIGN_PROPOSAL.md` | 已被 `docs/DESIGN.md` 取代 |
+| 2026-11 | 旧视觉体系 6 份：`docs/DESIGN.md`、`docs/DESIGN.reference.linear.md`、`web/docs/v3/*`（4 份） | 视觉体系整体重做，全部作废；**新版规范尚未产出** |
+| 2026-07 | `UI_DESIGN_PROPOSAL.md` | 已被旧版 `DESIGN.md` 取代，后者亦已归档 |
 | 2026-07 | `commit-homepage-concepts/auth-modal/`（4 份） | 演示登录已在 `adc1828` 移除 |
 | 2026-07 | `commit-homepage-concepts/v3-system-redesign/`（7 份） | 视觉可参考，信息架构已废弃 |
 | 2026-07 | `commit-homepage-concepts/功能整理与页面清单.md` | 已被 `docs/FRAMEWORK.md` 取代 |
@@ -150,15 +144,15 @@ npm run dev          # http://localhost:5173
 
 ## 路线图
 
-阶段口径以 [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md) §7 为准（v0.1，评审中）：
+阶段口径以 [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md) §7 为准（v0.3，已定稿）：
 
 | 阶段 | 一句话目标 | 规模 |
 |---|---|---|
-| **MVP** | 验证「待办 → 记录 → 树上有节点」这个闭环有人要 | 29 项；不含并行线、年轮、完整徽章、照片、同步 |
-| **V1** | 让「人生」这件事成立 | 28 项；并行线与合并、年轮、24 枚徽章、模板、补记、分享图 |
-| **V2** | 让长期使用与换设备成为可能 | 8 项；账号、加密同步、第二端、AI 录入、彩蛋徽章 |
+| **MVP** | 验证「待办 → 提交 → 树上有节点」这个闭环有人要 | 29 项；不含放下、归档、年轮、完整徽章、模板、同步 |
+| **V1** | 让「人生」这件事成立 | 22 项；合并的完整形态、放下、归档、年轮、21 枚徽章、补记、批量导入、分享图、月回顾、异地备份、匿名统计 |
+| **V2** | 让长期使用与换设备成为可能 | 7 项；账号、端到端加密同步、第二端、彩蛋徽章、帮助与常见问题、分支模板 |
 
-**MVP 的验收只有一句话**：5 个真实用户用它记录两周，第 15 天有人主动打开人生树往回看。
+**MVP 的验收只有一句话**：5 个真实用户用它记录两周，第 15 天有人主动打开时间树往回看。
 
 **已确定**：以 TypeScript 技术栈承载多端，优先把 Web 端做完整；MVP 不依赖账号，本地模式是默认形态。
 
