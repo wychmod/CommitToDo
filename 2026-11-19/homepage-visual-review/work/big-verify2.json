@@ -1,0 +1,83 @@
+[
+  {
+    "slug": "big-huawei",
+    "url": "https://consumer.huawei.com/cn/",
+    "wait": 9000,
+    "info": {
+      "title": "华为 - 消费者业务官网",
+      "finalUrl": "https://consumer.huawei.com/cn/",
+      "bg": "rgb(255, 255, 255)",
+      "ff": "Manrope, Arial, \"Helvetica Neue\", Helvetica, sans-serif",
+      "scrollH": 8623,
+      "h1": "CN",
+      "h1fs": "16px",
+      "h1lh": "24px",
+      "h1fw": "500",
+      "h1ls": "normal",
+      "h1w": 0,
+      "headerH": 58,
+      "headerBg": "rgba(0, 0, 0, 0)",
+      "mainW": 1440,
+      "btnH": 24,
+      "btnR": "0px",
+      "btnBg": "rgb(241, 243, 245)",
+      "btnFs": "12px",
+      "btnW": 1440
+    },
+    "shot": "big-huawei.jpg"
+  },
+  {
+    "slug": "big-feishu",
+    "url": "https://www.feishu.cn/",
+    "wait": 9000,
+    "info": {
+      "title": "飞书｜字节跳动旗下AI工作平台 - 飞书官网",
+      "finalUrl": "https://www.feishu.cn/",
+      "bg": "rgb(255, 255, 255)",
+      "ff": "\"Helvetica Neue\", Helvetica, \"PingFang SC\", \"Microsoft YaHei",
+      "scrollH": 9433,
+      "h1": "[2026] 飞书项目新品发布会",
+      "h1fs": "38px",
+      "h1lh": "46.0001px",
+      "h1fw": "700",
+      "h1ls": "normal",
+      "h1w": 438,
+      "headerH": null,
+      "headerBg": null,
+      "mainW": null,
+      "btnH": 149,
+      "btnR": "0px",
+      "btnBg": "rgb(255, 255, 255)",
+      "btnFs": "16px",
+      "btnW": 240
+    },
+    "shot": "big-feishu.jpg"
+  },
+  {
+    "slug": "big-alipay",
+    "url": "https://www.alipay.com/",
+    "wait": 9000,
+    "info": {
+      "title": "支付宝",
+      "finalUrl": "https://www.alipay.com/",
+      "bg": "rgb(255, 255, 255)",
+      "ff": "\"Microsoft YaHei\", tahoma, arial, \"Hiragino Sans GB\"",
+      "scrollH": 905,
+      "h1": null,
+      "h1fs": null,
+      "h1lh": null,
+      "h1fw": null,
+      "h1ls": null,
+      "h1w": null,
+      "headerH": null,
+      "headerBg": null,
+      "mainW": null,
+      "btnH": null,
+      "btnR": null,
+      "btnBg": null,
+      "btnFs": null,
+      "btnW": null
+    },
+    "shot": "big-alipay.jpg"
+  }
+]
