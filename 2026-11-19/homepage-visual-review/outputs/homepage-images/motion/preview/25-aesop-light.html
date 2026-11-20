@@ -1,0 +1,164 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · Aesop · 暖光手稿</title>
+  <style>:root{--bg:#f2eee4;--surface:#f8f5ed;--ink:#382b20;--muted:#63564a;--line:#b9ac9a;--accent:#8b4b32;--soft:#e4d9c8;--path-health:#437256;--path-life:#865d37;color-scheme:light}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .ae3{--serif:"Noto Serif CJK SC","Songti SC","SimSun","Georgia",serif;font-family:"Microsoft YaHei UI","Aptos",sans-serif;background:var(--bg);color:var(--ink)}.ae3 a{color:inherit;text-decoration:none}.ae3 h1,.ae3 h2,.ae3 h3,.ae3 p,.ae3 figure{margin:0}
+  .ae3 .ae-header{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;padding:0 54px;min-height:83px;border-bottom:1px solid var(--line);font-size:13px}.ae3 .ae-word{font:500 29px Georgia,var(--serif);letter-spacing:-1px}.ae3 .ae-word span{color:var(--accent)}.ae3 nav{display:flex;justify-content:center;gap:40px;white-space:nowrap}.ae3 .ae-header>a:last-child{justify-self:end}
+  .ae3 .ae-hero{display:grid;grid-template-columns:43% 57%;min-height:691px;align-items:stretch;background:var(--surface)}.ae3 .ae-hero-copy{align-self:center;padding:72px 60px 75px 79px}.ae3 .ae-tag{display:block;font-size:12px;letter-spacing:.12em;font-weight:600;color:var(--accent);margin-bottom:18px}.ae3 h1,.ae3 h2{font-family:var(--serif);font-weight:600;letter-spacing:-.045em;line-height:1.17}.ae3 h1{font-size:71px;margin-bottom:24px}.ae3 .ae-hero p,.ae3 .ae-archive p{font-size:16px;line-height:1.9;color:var(--muted);max-width:370px}.ae3 .ae-btn{display:flex;align-items:center;justify-content:space-between;gap:20px;width:280px;max-width:100%;margin-top:31px;padding:17px;border:1px solid var(--line);font-size:14px;line-height:1.2}.ae3 .ae-btn span{font-size:19px;line-height:1}.ae3 .ae-still{height:691px;position:relative;overflow:hidden}.ae3 .ae-still img{width:100%;height:100%;object-fit:cover;object-position:59% center;display:block}.ae3 .ae-still figcaption{position:absolute;bottom:20px;right:23px;color:#fff4de;padding:5px 9px;background:#2f201b88;font-size:10px}
+  .ae3 .ae-shelf{display:grid;grid-template-columns:250px minmax(0,1fr);gap:29px;padding:106px 56px 103px}.ae3 .ae-section-intro h2{font-size:48px;margin-bottom:22px}.ae3 .ae-section-intro p{font-size:14px;line-height:1.85;color:var(--muted);max-width:210px}.ae3 .ae-shelf-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+  .ae3 .ae-tray{min-height:310px;display:grid;place-items:center;overflow:hidden;background:var(--soft);border:1px solid var(--line);position:relative}.ae3 .ae-tray:before{content:"";position:absolute;inset:0;background:linear-gradient(132deg,#fff1ce29 0,transparent 41%,#39201616 41%);pointer-events:none}.ae3 .ae-slip{position:relative;background:#f6e9d2;color:#422f24;width:192px;height:176px;padding:21px 14px;box-shadow:9px 12px 20px #35241655;transform:rotate(-8deg);font-family:var(--serif)}.ae3 .ae-slip small{color:#8b664e;font:500 10px "Microsoft YaHei UI",sans-serif}.ae3 .ae-slip strong{display:block;font-size:24px;margin:3px 0 10px}.ae3 .ae-slip div{margin-top:4px;border-top:1px solid #bc9e81;font-size:12px;line-height:1.72;white-space:nowrap}.ae3 .tray-stone{background:color-mix(in srgb,var(--soft),#a5755d 35%)}.ae3 .ae-mark{width:205px;height:128px;padding:23px 18px;background:linear-gradient(137deg,#8b5340,#5e3429 69%);border:1px solid #573d33;box-shadow:6px 8px 0 #653b31,12px 15px 24px #3d201b6b;color:#f5e3c9;transform:rotate(8deg);position:relative}.ae3 .ae-mark strong,.ae3 .ae-mark span{display:block}.ae3 .ae-mark small{font-size:10px}.ae3 .ae-mark strong{font:600 21px/1.7 var(--serif)}.ae3 .ae-mark span{font-size:10px;color:#e4c1a5}
+  .ae3 .tray-wash{background:color-mix(in srgb,var(--soft),#697763 34%)}.ae3 .ae-ledger{position:relative;background:#ded9bc;color:#445241;width:191px;height:133px;padding:15px 17px;border:1px solid #a69f81;box-shadow:6px 8px 0 #aca588,11px 15px 16px #34281965;transform:rotate(-6deg);font:600 9px "Microsoft YaHei UI",sans-serif}.ae3 .ae-ledger i{display:block;position:relative;height:1px;margin:12px 0;background:#66846c}.ae3 .ae-ledger i:after{content:"";position:absolute;top:-3px;left:29%;width:7px;height:7px;border-radius:50%;background:#66846c;box-shadow:55px 0 #66846c}.ae3 .ae-ledger i:nth-of-type(2):after{left:16%}.ae3 .ae-ledger span{position:absolute;bottom:11px;color:#697261}.ae3 .ae-shelf h3{font:600 22px/1.2 var(--serif);margin:19px 0 6px}.ae3 .ae-shelf-items p{color:var(--muted);font-size:13px;line-height:1.6}
+  .ae3 .ae-archive{display:grid;grid-template-columns:59% 41%;align-items:center;min-height:610px;background:var(--soft)}.ae3 .ae-archive figure{height:610px;overflow:hidden}.ae3 .ae-archive img{width:100%;height:100%;object-fit:cover;display:block}.ae3 .ae-archive>div{padding:60px 71px}.ae3 .ae-archive h2{font-size:54px;line-height:1.19;margin-bottom:19px}
+  .ae3 .ae-quote{text-align:center;padding:108px 36px 98px;background:var(--surface)}.ae3 .ae-quote h2{font-size:53px}.ae3 .ae-quote p{font-size:14px;color:var(--muted);line-height:1.7;margin:19px 0 0}.ae3 .ae-quote .ae-btn{margin:32px auto 0;text-align:left;width:238px}
+  .ae3 .ae-footer{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:22px;padding:54px 65px;background:#382b24;color:#f1e4d4;font-size:12px;line-height:1.7}.dark .ae3 .ae-footer{background:#1d1916}.ae3 .ae-footer strong{display:block;padding-bottom:12px;border-bottom:1px solid #a3917d;margin-bottom:10px}.ae3 .ae-footer a:not(.ae-word){display:block;margin:6px 0}.ae3 .ae-footer p{color:#d4c5b3;margin-top:4px}
+  
+.brand-motion{isolation:isolate}.brand-motion h1,.brand-motion h2,.brand-motion p,.brand-motion figure{margin:0}
+.brand-motion a:focus-visible,.brand-motion button:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+.brand-motion .bm-link{color:inherit;display:inline-flex;align-items:center;gap:16px;min-height:44px;padding:0 20px;text-decoration:none;border:1px solid currentColor;border-radius:24px;font-size:14px;font-weight:700}
+.brand-motion .bm-link b{font-size:18px;font-weight:500}.brand-motion .bm-quiet{font-size:13px;letter-spacing:.08em}
+.brand-motion .bm-wrap{max-width:1260px;margin-inline:auto;width:calc(100% - 112px)}
+.brand-motion .bm-stage-title{font-family:var(--stage-font,"Microsoft YaHei UI",sans-serif);font-weight:800;line-height:1.1;letter-spacing:-.055em}
+@media (prefers-reduced-motion:reduce){.brand-motion *,.brand-motion *::before,.brand-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+  .bae-hero{display:grid;grid-template-columns:39% 61%;min-height:731px;background:var(--bg);color:var(--ink)}.bae-intro{padding:131px 10% 71px 14%;align-self:center}.bae-intro small,.bae-paper small{font-size:13px;color:var(--muted);letter-spacing:.12em}.bae-intro h1,.bae-paper h2{font-family:"Noto Serif SC","Songti SC",SimSun,"Times New Roman",serif;font-weight:500;line-height:1.22;letter-spacing:-.085em}.bae-intro h1{font-size:70px;margin:16px 0 23px}.bae-intro p{font-size:17px;line-height:1.68;color:var(--muted);margin:0 0 29px}.bae-intro .bm-link{border-color:var(--line);border-radius:0}.bae-photo{margin:0;position:relative;isolation:isolate;min-height:731px;overflow:hidden;background:#48362a}.bae-photo img{position:absolute;inset:-5%;width:110%;height:110%;max-width:none;object-fit:cover;object-position:48% center;transform-origin:65% 48%;animation:aesop-look 16s ease-in-out infinite alternate}.dark .bae-photo img{filter:brightness(.83) saturate(.8)}.bae-photo i{position:absolute;inset:-18% -5%;background:linear-gradient(129deg,#f3d2a900 37%,#ffdda766 54%,#f3d2a900 74%);mix-blend-mode:screen;animation:aesop-window 14s ease-in-out infinite alternate}.bae-photo figcaption{position:absolute;bottom:0;left:0;padding:13px 23px;background:#33271cb4;color:#f3e8d3;font-size:12px}
+  .bae-paper{display:grid;grid-template-columns:1fr .77fr;align-items:center;gap:60px;padding:69px 10%;background:var(--soft);color:var(--ink);min-height:350px;overflow:hidden}.bae-paper h2{font-size:47px;margin:10px 0 12px}.bae-paper p{font-size:15px;color:var(--muted)}.bae-paper blockquote{margin:0;max-width:405px;padding:29px 44px 32px;background:var(--surface);border:1px solid var(--line);box-shadow:20px 26px 35px -22px #56433058;transform:rotate(-5deg);transform-origin:50% 70%;display:grid;gap:13px}.bae-paper blockquote strong{font:500 33px/1.28 "Noto Serif SC",SimSun,serif;letter-spacing:-.08em}.bae-paper blockquote span{font-size:13px;color:var(--accent);padding-top:8px;border-top:1px solid var(--line)}
+  .brand-motion .ae-archive figure{overflow:hidden}.brand-motion .ae-archive img{transition:transform 1.25s ease;transform-origin:43% 55%}.brand-motion .ae-archive figure:hover img{transform:scale(1.065)}
+  @supports(animation-timeline:view()){.bae-paper blockquote{animation:aesop-corner linear both;animation-timeline:view();animation-range:entry 0% cover 55%}}@keyframes aesop-corner{from{rotate:-4deg;translate:0 25px}to{rotate:2deg;translate:0 0}}@keyframes aesop-look{from{transform:scale(1)}to{transform:scale(1.059) translateX(-7px)}}@keyframes aesop-window{from{opacity:.15;translate:-24px 0}to{opacity:.53;translate:40px 6px}}
+  
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="light"><div class="page aesop light" data-theme="light"><div class="brand-motion"><div class="ae3">
+    <header class="ae-header"><a class="ae-word" href="#ae-start">CommitToDo<span>.</span></a><nav><a href="#ae-shelf">日常实践</a><a href="#ae-archive">个人历程</a><a href="#ae-local">本机与备份</a></nav><a href="#ae-start">开始记录&nbsp; ↗</a></header>
+    <main>
+      <section class="bae-hero" id="ae-start"><div class="bae-intro"><small>手上与手边</small><h1>把一件事<br>写到纸面上。</h1><p>今天写下的待办，完成后成为一条自己的提交。</p><a class="bm-link" href="#bae-paper">看一件事怎么留下 <b>→</b></a></div>
+  <figure class="bae-photo"><img src="assets/brands-aesop-hero-095e9d7e933e.png" alt="日光下，手指触到压纹纸与织物"><i></i><figcaption>一次记录，一份个人历程</figcaption></figure></section><section class="bae-paper" id="bae-paper"><div><small>个人档案</small><h2>事情可以做完，<br>那一刻可以留下。</h2><p>把事情留在分支里，只有你需要回看时才打开。</p></div><blockquote><small>11 月 20 日　生活 / 阅读</small><strong>读完一章，<br>记下喜欢的句子。</strong><span>09:42　已写入历程</span></blockquote></section>
+      <section class="ae-shelf" id="ae-shelf">
+        <div class="ae-section-intro"><span class="ae-tag">把事情做完</span><h2>一件事的<br>三个时刻</h2><p>眼下要做的、做完留下的、后来可以回看的。在同一棵分支树上，各自有位置。</p></div>
+        <div class="ae-shelf-items">
+          <article><div class="ae-tray tray-paper"><div class="ae-slip"><small>星期五</small><strong>今天</strong><div>□　读完剩下的两页</div><div>□　给老朋友回一封信</div><div>✓　整理工作台</div></div></div><h3>写下来</h3><p>先放进今天，或交给一条分支。</p></article>
+          <article><div class="ae-tray tray-stone"><div class="ae-mark"><small>09:42</small><strong>整理工作台</strong><span>生活　•　一次提交</span></div></div><h3>留下来</h3><p>勾下完成，自动生成一次提交。</p></article>
+          <article><div class="ae-tray tray-wash"><div class="ae-ledger"><small>工作　　健康　　生活</small><i></i><i></i><i></i><span>11.14　　　　 11.20</span></div></div><h3>再回看</h3><p>沿着各条分支，看点滴如何积累。</p></article>
+        </div>
+      </section>
+      <section class="ae-archive" id="ae-archive"><figure><img src="assets/brands-aesop-study-0750972e9b3a.png" alt="窗光落在木质档案室与摊开的笔记本上"></figure><div><span class="ae-tag">个人历程</span><h2>慢一点，<br>看清一路做过的事。</h2><p>树上有刚刚完成的事，也有值得停下来回看的一段。可以为重要的日子加一枚里程碑。</p><a class="ae-btn" href="#ae-local">了解如何保存个人历程 <span>→</span></a></div></section>
+      <section class="ae-quote" id="ae-local"><h2>每天完成一点，<br>就有一段路可以回望。</h2><p>数据保存在本机。离线可用，也可随时导出备份。</p><a class="ae-btn" href="#ae-start">写下第一件事 <span>→</span></a></section>
+    </main>
+    <footer class="ae-footer"><div><a class="ae-word" href="#ae-start">CommitToDo<span>.</span></a><p>本地优先的个人任务与历程工具</p></div><div><strong>日常实践</strong><a href="#ae-shelf">今天和分支</a><a href="#ae-archive">个人历程</a></div><div><strong>数据由你保管</strong><a href="#ae-local">本地保存</a><a href="#ae-local">备份与导出</a></div><div><strong>开始</strong><a href="#ae-start">第一条待办</a><p>简体中文</p></div></footer>
+  </div></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

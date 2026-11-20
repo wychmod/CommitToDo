@@ -1,0 +1,334 @@
+<!doctype html><html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · Vercel · 分光棱镜</title>
+  <style>:root{--bg:#080808;--surface:#101010;--ink:#FAFAFA;--muted:#A0A0A0;--line:#303030;--accent:#EFEFEF;--soft:#181818;--path-health:#95c5a7;--path-life:#d0b489;color-scheme:dark}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .d2 { font-family:"Aptos","Microsoft YaHei UI",sans-serif; color:var(--ink); line-height:1.55; }
+  .d2 * { box-sizing:border-box; }
+  .d2 h1,.d2 h2,.d2 h3,.d2 p,.d2 figure { margin:0; }
+  .d2 h1,.d2 h2,.d2 h3 { text-wrap:initial; }
+  .d2 a { color:inherit; text-decoration:none; }
+  .d2 .rail { width:min(1264px,calc(100% - 152px)); margin-inline:auto; }
+  .d2 .actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .d2 .act { display:inline-flex; align-items:center; justify-content:center; gap:17px; padding:12px 18px; background:var(--ink); color:var(--bg); border:1px solid var(--ink); border-radius:7px; font-size:14px; line-height:1.4; white-space:nowrap; }
+  .d2 .act.ghost { color:var(--ink); background:transparent; border-color:var(--line); }
+  .d2 .mono { font-family:"Cascadia Mono",Consolas,"Microsoft YaHei UI",monospace; font-size:12px; }
+  .d2 .muted { color:var(--muted); }
+  .d2 .pin { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-right:8px; }
+  .d2 .word { font:680 21px/.9 Bahnschrift,"Aptos",sans-serif; letter-spacing:-.055em; white-space:nowrap; }
+  .d2 .word i { display:inline-block; width:14px; height:14px; margin-right:8px; vertical-align:baseline; background:currentColor; transform:rotate(-23deg); clip-path:polygon(32% 0,72% 0,72% 24%,100% 24%,100% 62%,70% 62%,70% 100%,28% 100%,28% 72%,0 72%,0 34%,32% 34%); }
+  .d2 .micro { font:12px/1.55 "Cascadia Mono",Consolas,"Microsoft YaHei UI",monospace; color:var(--muted); }
+  .d2 .serif { font-family:"Noto Serif CJK SC","Songti SC",SimSun,serif; }
+  .d2 .d2-chart { position:relative; height:200px; background:linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% 40px; overflow:hidden; }
+  .d2 .d2-chart .chart-line { position:absolute; inset:0; background:var(--tone,var(--accent)); }
+  .d2 .d2-chart .chart-node { position:absolute; left:var(--x); top:var(--y); width:8px; height:8px; border-radius:50%; background:var(--tone,var(--accent)); transform:translate(-50%,-50%); }
+  .d2 .legend { display:flex; justify-content:space-between; gap:16px; }
+
+    .vc .vc-nav { border-bottom:1px solid var(--line); }
+    .vc .vc-nav .rail { display:flex; align-items:center; gap:35px; height:66px; }
+    .vc .vc-nav nav { display:flex; gap:24px; font-size:13px; color:var(--muted); }
+    .vc .vc-nav .act { margin-left:auto; border-radius:5px; padding:7px 14px; }
+    .vc .vc-nav .word i { border-radius:50%; clip-path:none; box-shadow:inset 0 0 0 4px var(--bg); border:1px solid currentColor; }
+    .vc .vc-frame { border-inline:1px solid var(--line); }
+    .vc .vc-cell { position:relative; min-width:0; }
+    .vc .vc-cell:before,.vc .vc-cell:after { content:'+'; position:absolute; width:15px; height:15px; line-height:15px; text-align:center; font:14px/15px Consolas,monospace; color:var(--muted); background:var(--bg); z-index:3; }
+    .vc .vc-cell:before { left:-8px; top:-8px; }
+    .vc .vc-cell:after { right:-8px; bottom:-8px; }
+    .vc .vc-hero { min-height:960px; text-align:center; display:grid; justify-items:center; align-content:start; overflow:hidden; }
+    .vc .vc-hero h1 { margin:101px 0 14px; font:750 86px/1.09 "Aptos Display","Microsoft YaHei UI",sans-serif; letter-spacing:-.091em; }
+    .vc .vc-hero p { color:var(--muted); font-size:18px; margin-bottom:27px; }
+    .vc .vc-hero .act { border-radius:6px; }
+    .vc .vc-optic { width:100%; height:530px; margin-top:42px; position:relative; display:grid; place-items:center; overflow:hidden; background:linear-gradient(var(--line) 1px,transparent 1px) center / 100% 53px,linear-gradient(90deg,var(--line) 1px,transparent 1px) center / 53px 100%; }
+    .vc .vc-optic:before { content:''; position:absolute; inset:0; background:linear-gradient(var(--bg),transparent 31%,transparent 78%,var(--bg)); }
+    .vc .vc-optic-inner { position:relative; width:530px; height:407px; display:grid; place-items:center; transform:rotate(-12deg) translate(9px,-18px); }
+    .vc .vc-optic-inner i { position:absolute; left:51%; top:52%; width:calc(var(--w)*1px); height:calc(var(--h)*2.16px); border:1px solid color-mix(in srgb,var(--ink) 60%,var(--line)); box-shadow:inset 0 0 30px var(--soft); border-radius:3px; transform:translate(-50%,-50%) translateX(calc((var(--n) - 9)*15px)) skewY(calc((var(--n) - 9)*2deg)); background:color-mix(in srgb,var(--bg) 6%,transparent); }
+    .vc .vc-optic-inner b { position:absolute; width:24px; height:24px; background:var(--ink); transform:rotate(45deg); box-shadow:0 0 0 11px var(--bg),0 0 0 12px var(--line); }
+    .vc .vc-id,.vc .vc-coords { position:absolute; bottom:19px; color:var(--muted); }
+    .vc .vc-id { left:21px; }.vc .vc-coords { right:21px; }
+    .vc .vc-reliable { border-block:1px solid var(--line); display:grid; grid-template-columns:1fr 1fr 1fr; }
+    .vc .vc-reliable div { min-height:103px; padding:28px 24px; display:flex; align-items:center; justify-content:center; gap:13px; font-size:14px; }
+    .vc .vc-reliable div+div { border-left:1px solid var(--line); }
+    .vc .vc-reliable b { font:650 27px/1 Bahnschrift,sans-serif; letter-spacing:-.08em; }
+    .vc .vc-caption { padding:64px 38px 35px; border-bottom:1px solid var(--line); }
+    .vc .vc-caption h2 { font-size:42px; font-weight:650; letter-spacing:-.065em; }
+    .vc .vc-matrix { display:grid; grid-template-columns:1.08fr .92fr; }
+    .vc .vc-matrix article { padding:36px; min-height:313px; border-bottom:1px solid var(--line); }
+    .vc .vc-matrix article:nth-child(2n+1) { border-right:1px solid var(--line); }
+    .vc .vc-matrix h3 { font-size:21px; margin-bottom:7px; letter-spacing:-.035em; }
+    .vc .vc-matrix p { color:var(--muted); font-size:14px; }
+    .vc .vc-visual { min-height:155px; margin-top:26px; border:1px solid var(--line); background:var(--surface); display:flex; justify-content:center; align-items:center; gap:16px; }
+    .vc .vc-visual code { border:1px solid var(--line); font-size:12px; padding:7px 10px; white-space:nowrap; }
+    .vc .vc-visual .d2-chart { width:90%; height:150px; }
+    .vc .vc-bars { flex-direction:column; gap:8px; }
+    .vc .vc-bars i { display:block; height:14px; width:var(--w); background:var(--soft); border:1px solid var(--line); margin-right:17%; }
+    .vc .vc-flags { flex-direction:column; align-items:stretch; padding:20px 32px; gap:10px; }
+    .vc .vc-flags div { display:flex; justify-content:space-between; align-items:center; font-size:14px; }
+    .vc .vc-flags b { padding:2px 7px; background:var(--soft); border:1px solid var(--line); font-size:12px; font-weight:500; }
+    .vc .vc-latest { padding:82px 38px; border-bottom:1px solid var(--line); }
+    .vc .vc-latest h2 { font-size:42px; letter-spacing:-.065em; }
+    .vc .vc-entries { margin-top:30px; border-top:1px solid var(--line); }
+    .vc .vc-entries div { display:grid; grid-template-columns:148px 1fr 24px; gap:18px; border-bottom:1px solid var(--line); padding:20px 0; align-items:center; }
+    .vc .vc-entries strong { font-size:16px; }
+    .vc .vc-end { text-align:center; min-height:375px; padding:102px 35px 90px; }
+    .vc .vc-end h2 { font-size:54px; letter-spacing:-.07em; margin-bottom:20px; }
+    .vc .vc-footer { border-top:1px solid var(--line); padding:64px 0; min-height:227px; }
+    .vc .vc-footer .rail { display:flex; gap:35px; justify-content:space-between; align-items:start; }
+    .vc .vc-footer nav { display:grid; grid-template-columns:repeat(2,auto); column-gap:36px; row-gap:12px; color:var(--muted); font-size:14px; }
+    .vc .vc-footer .mono { border:1px solid var(--line); padding:8px 12px; color:var(--muted); border-radius:6px; }
+  
+.motion-product {
+  font-family: "Aptos", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+}
+.motion-product .mp-hero {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+}
+.motion-product .mp-width {
+  width: min(1280px,calc(100% - 110px));
+  margin-inline: auto;
+}
+.motion-product .mp-title {
+  margin: 0;
+  font-size: clamp(42px, 6.15vw, 95px);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -.085em;
+}
+.motion-product .mp-lead {
+  max-width: 460px;
+  margin: 19px 0 25px;
+  font-size: 17px;
+  line-height: 1.68;
+}
+.motion-product .mp-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 8px;
+  padding: 11px 17px;
+  background: var(--mp-action, var(--ink));
+  color: var(--mp-action-ink, var(--bg));
+  font-size: 13px;
+  font-weight: 660;
+  text-decoration: none;
+}
+.motion-product .mp-act:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.motion-product .mp-mono {
+  font: 11px/1.4 "IBM Plex Mono", "Cascadia Mono", Consolas, "Microsoft YaHei UI", monospace;
+}
+.motion-product .mp-proof {
+  position: relative;
+  isolation: isolate;
+  border-block: 1px solid var(--line);
+}
+.motion-product .mp-proof h2 {
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.11;
+  letter-spacing: -.065em;
+  margin: 0;
+}
+.motion-product .mp-proof p {
+  margin: 12px 0 0;
+  line-height: 1.65;
+  font-size: 15px;
+  color: var(--muted);
+}
+.motion-product .mp-proof h3 { margin: 0; }
+@media (max-width: 800px) {
+  .motion-product .mp-width { width: calc(100% - 36px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion-product *, .motion-product *::before, .motion-product *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+  .motion-product .ml-fly,
+  .motion-product .mn-control,
+  .motion-product .mn-toggle { display: none; }
+}
+
+.mp-vercel .mv-hero { --mv-ray:#323338; background:var(--bg); min-height:740px; border-bottom:1px solid var(--line); overflow:hidden; }
+.dark .mp-vercel .mv-hero { --mv-ray:#e5e7ec; }
+.mp-vercel .mv-grid { position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(90deg,transparent 0 89px,var(--line) 89px 90px),repeating-linear-gradient(0deg,transparent 0 89px,var(--line) 89px 90px);opacity:.48;mask-image:radial-gradient(ellipse at 64% 55%,black,transparent 77%); }
+.mp-vercel .mv-copy { position:relative;z-index:3;padding:138px 60px 0;max-width:620px; }
+.mp-vercel .mv-copy p {color:var(--muted);max-width:340px;}
+.mp-vercel .mv-assembly {position:absolute;inset:7% 0 2%;perspective:1100px;z-index:-1;overflow:hidden;}
+.mp-vercel .mv-prism {position:absolute;width:294px;height:305px;left:57%;top:25%;transform-style:preserve-3d;transform:rotateX(-9deg) rotateY(-22deg);animation:mv-tilt 7.6s ease-in-out infinite alternate;}
+.mp-vercel .mv-prism i {position:absolute;inset:0;display:block;clip-path:polygon(50% 1%,98% 92%,2% 92%);background:linear-gradient(148deg,#e6edff 3%,#566a8c 29%,#c1efff 62%,#6376c0 80%,#e4ecff);border:0;opacity:.85;filter:brightness(1.16);transform:translate3d(0,0,60px);}
+.mp-vercel .mv-prism i:nth-child(1) {transform:translate3d(36px,-15px,-33px);background:linear-gradient(148deg,#9eafff,#4b6892 43%,#bed1e2 62%,#5c6c82);}
+.mp-vercel .mv-prism i:nth-child(2) {transform:translate3d(18px,-7px,15px);background:linear-gradient(150deg,#dce5ff,#bde7ff 40%,#7379ba 80%);}
+.mp-vercel .mv-prism i:nth-child(3) {opacity:.78;background:linear-gradient(145deg,#e2f4ff 3%,#77a6ac77 35%,#92b4f4bb 62%,#333d64 83%,#e8f3ff);}
+@keyframes mv-tilt {from {transform:rotateX(-9deg) rotateY(-22deg);}to {transform:rotateX(6deg) rotateY(6deg) translateY(-13px);}}
+.mp-vercel .mv-beam {position:absolute;top:49%;height:2px;left:35%;width:28%;background:linear-gradient(90deg,transparent,var(--mv-ray));transform:rotate(-8deg);transform-origin:right;}
+.mp-vercel .mv-beam.out {left:66%;top:48%;width:45%;height:164px;transform:none;clip-path:polygon(0 50%,100% 3%,100% 97%);background:linear-gradient(165deg,#7761e9 23%,#81cee5 42%,#97eacb 54%,#c2db84 68%,#ebb992 85%);opacity:.65;filter:blur(1px);animation:mv-light 7.6s ease-in-out infinite alternate;}
+@keyframes mv-light {from { opacity:.4;transform:scaleY(.76); } to { opacity:.82;transform:scaleY(1.18); }}
+.mp-vercel .mv-mark {position:absolute;width:18px;height:18px; top:15%;right:14%;background:linear-gradient(var(--line),var(--line)) center/1px 100% no-repeat,linear-gradient(var(--line),var(--line)) center/100% 1px no-repeat;}
+.mp-vercel .mv-mark.bottom {top:80%;right:34%;}
+.mp-vercel .mv-caption {position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:16px 30px;border-top:1px solid var(--line);color:var(--muted);}
+.mp-vercel .mv-proof { display:grid;grid-template-columns:.72fr 1.28fr;gap:60px;padding:70px 50px;background:var(--surface); }
+.mp-vercel .mv-shell { display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);align-content:center; }
+.mp-vercel .mv-shell div { display:grid;align-content:center;min-height:104px;gap:9px;padding:20px;background:var(--surface);font-size:13px; }
+.mp-vercel .mv-shell small { color:var(--muted); }
+.mp-vercel .mv-shell div { position:relative; }
+.mp-vercel .mv-shell div::before { content:""; position:absolute; left:0; top:0; width:100%; height:1px; background:var(--ink); transform-origin:left; opacity:.3; }
+@supports (animation-timeline: view()) {
+  .mp-vercel .mv-shell div::before { animation:mv-check linear both; animation-timeline:view(); animation-range:entry 0% cover 25%; }
+  .mp-vercel .mv-shell div:nth-child(2)::before {animation-range:entry 13% cover 38%;}
+  .mp-vercel .mv-shell div:nth-child(3)::before {animation-range:entry 23% cover 49%;}
+}
+@keyframes mv-check {from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="dark"><div class="page vercel dark" data-theme="dark"><div class="motion-product mp-vercel"><div class="d2 vc">
+  <header class="vc-nav"><div class="rail"><a class="word" href="#"><i></i>CommitToDo</a><nav><a href="#capabilities">产品</a><a href="#log">提交示例</a><a href="#start">数据归属</a></nav><a class="act" href="#start">打开应用</a></div></header>
+  <main class="rail vc-frame">
+    <section class="mp-hero mv-hero"><div class="mv-grid" aria-hidden="true"></div>
+    <div class="mv-copy"><h1 class="mp-title">一次完成，<br>三向可见。</h1><p class="mp-lead">待办变成提交，沿所属分支进入可以回看的时间树。</p><a class="mp-act" href="#capabilities">查看工作方式<span aria-hidden="true">↗</span></a></div>
+    <div class="mv-assembly" aria-hidden="true"><div class="mv-beam in"></div><div class="mv-beam out"></div>
+      <div class="mv-prism"><i></i><i></i><i></i></div><div class="mv-mark top"></div><div class="mv-mark bottom"></div>
+    </div>
+    <div class="mv-caption"><small class="mp-mono">待办 → 提交</small><small class="mp-mono">工作 / 健康 / 生活</small></div>
+  </section><section class="mp-proof mv-proof"><div><h2>数据随时可查。</h2><p>每次完成只记一次，并留在本机。</p></div><div class="mv-shell">
+    <div><small class="mp-mono">事件</small><b>完成待办</b></div><div><small class="mp-mono">分支</small><b>工作 / 产品设计</b></div><div><small class="mp-mono">结果</small><b>已写入一条提交</b></div>
+  </div></section>
+    <section class="vc-reliable vc-cell"><div><b>01</b> 根分支</div><div><b>03</b> 分支深度上限</div><div><b>1 : 1</b> 完成与提交</div></section>
+    <section id="capabilities"><div class="vc-caption"><h2>一套结构，四个入口。</h2></div><div class="vc-matrix">
+      <article><h3>今天</h3><p>把要做的事排成一眼能读的队列。</p><div class="vc-visual vc-bars"><i style="--w:66%"></i><i style="--w:55%"></i><i style="--w:42%"></i><i style="--w:59%"></i></div></article>
+      <article><h3>分支</h3><p>同一件事只属于一条分支，做完就在那里增加一个点。</p><div class="vc-visual"><code>我</code><span>→</span><code>工作</code><span>→</span><code>产品设计</code></div></article>
+      <article><h3>历程</h3><p>用提交、里程碑与虚线看见真实的时间。</p><div class="vc-visual"><div class="d2-chart" aria-label="三个分支及其提交节点">
+  <i class="chart-node" style="--x:5%;--y:46%;--tone:var(--accent)"></i><i class="chart-line" style="--tone:var(--accent);clip-path:polygon(5% calc(46% - 1px),27% calc(46% - 1px),27% calc(46% + 1px),5% calc(46% + 1px))"></i><i class="chart-node" style="--x:27%;--y:46%;--tone:var(--accent)"></i><i class="chart-line" style="--tone:var(--accent);clip-path:polygon(27% calc(46% - 1px),46% calc(30% - 1px),46% calc(30% + 1px),27% calc(46% + 1px))"></i><i class="chart-node" style="--x:46%;--y:30%;--tone:var(--accent)"></i><i class="chart-line" style="--tone:var(--accent);clip-path:polygon(46% calc(30% - 1px),65% calc(30% - 1px),65% calc(30% + 1px),46% calc(30% + 1px))"></i><i class="chart-node" style="--x:65%;--y:30%;--tone:var(--accent)"></i><i class="chart-line" style="--tone:var(--accent);clip-path:polygon(65% calc(30% - 1px),93% calc(30% - 1px),93% calc(30% + 1px),65% calc(30% + 1px))"></i><i class="chart-node" style="--x:93%;--y:30%;--tone:var(--accent)"></i>
+  <i class="chart-node" style="--x:27%;--y:46%;--tone:var(--path-health)"></i><i class="chart-line" style="--tone:var(--path-health);clip-path:polygon(27% calc(46% - 1px),46% calc(63% - 1px),46% calc(63% + 1px),27% calc(46% + 1px))"></i><i class="chart-node" style="--x:46%;--y:63%;--tone:var(--path-health)"></i><i class="chart-line" style="--tone:var(--path-health);clip-path:polygon(46% calc(63% - 1px),50% calc(63% - 1px),50% calc(63% + 1px),46% calc(63% + 1px))"></i><i class="chart-node" style="--x:50%;--y:63%;--tone:var(--path-health)"></i><i class="chart-line" style="--tone:var(--path-health);clip-path:polygon(50% calc(63% - 1px),86% calc(63% - 1px),86% calc(63% + 1px),50% calc(63% + 1px))"></i><i class="chart-node" style="--x:86%;--y:63%;--tone:var(--path-health)"></i>
+  <i class="chart-node" style="--x:50%;--y:63%;--tone:var(--path-life)"></i><i class="chart-line" style="--tone:var(--path-life);clip-path:polygon(50% calc(63% - 1px),69% calc(78% - 1px),69% calc(78% + 1px),50% calc(63% + 1px))"></i><i class="chart-node" style="--x:69%;--y:78%;--tone:var(--path-life)"></i><i class="chart-line" style="--tone:var(--path-life);clip-path:polygon(69% calc(78% - 1px),91% calc(78% - 1px),91% calc(78% + 1px),69% calc(78% + 1px))"></i><i class="chart-node" style="--x:91%;--y:78%;--tone:var(--path-life)"></i>
+</div></div></article>
+      <article><h3>我的</h3><p>直接管理自己的本机数据。</p><div class="vc-visual vc-flags"><div>本地存储<b>已启用</b></div><div>离线访问<b>可用</b></div><div>备份与导出<b>JSON</b></div></div></article>
+    </div></section>
+    <section class="vc-latest" id="log"><h2>来自工作区的提交</h2><div class="vc-entries">
+      <div><time class="micro">11.20　14:32</time><strong>工作　／　完成首页线框</strong><span>↗</span></div>
+      <div><time class="micro">11.20　09:42</time><strong>生活　／　记下读书笔记</strong><span>↗</span></div>
+      <div><time class="micro">11.19　18:18</time><strong>健康　／　傍晚慢跑 5 公里</strong><span>↗</span></div>
+    </div></section>
+    <section class="vc-end vc-cell" id="start"><h2>从你的第一条提交开始。</h2><a class="act" href="#start">新建一个待办</a></section>
+  </main>
+  <footer class="vc-footer"><div class="rail"><a class="word" href="#"><i></i>CommitToDo</a><nav><a href="#capabilities">今天与分支</a><a href="#log">历程</a><a href="#start">本机数据</a><a href="#start">开始使用</a></nav><span class="mono"><i class="pin"></i>本地工作区</span></div></footer>
+  </div></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

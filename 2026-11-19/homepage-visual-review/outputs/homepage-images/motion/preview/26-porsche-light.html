@@ -1,0 +1,164 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · Porsche · 远路慢推</title>
+  <style>:root{--bg:#f8f8f6;--surface:#ffffff;--ink:#151b21;--muted:#515c65;--line:#d8dde0;--accent:#be3e31;--soft:#ebeeef;--path-health:#437256;--path-life:#865d37;color-scheme:light}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .po3{font-family:"Bahnschrift","Microsoft YaHei UI",sans-serif;background:var(--bg);color:var(--ink)}.po3 a{color:inherit;text-decoration:none}.po3 h1,.po3 h2,.po3 h3,.po3 p{margin:0}
+  .po3 .po-head{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;min-height:74px;padding:0 45px;border-bottom:1px solid var(--line);background:var(--surface);font-size:13px}.po3 .po-word{font:760 29px/1 "Bahnschrift","Aptos",sans-serif;letter-spacing:-.07em;text-align:center}.po3 .po-burger{margin-right:9px}.po3 .po-open{justify-self:end}
+  .po3 .po-hero{position:relative;isolation:isolate;height:777px;background:#171e26;color:#fff;overflow:hidden}.po3 .po-hero img{position:absolute;inset:0;height:100%;width:100%;object-fit:cover;object-position:center 55%;z-index:-3}.po3 .po-hero:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(98deg,#071019d6,#07101962 37%,transparent 70%),linear-gradient(0deg,#071019b7,transparent 32%)}.dark .po3 .po-hero img{filter:brightness(.86) contrast(1.06)}.po3 .po-herocopy{position:absolute;left:98px;top:220px}.po3 .po-herocopy>span{font-size:14px;color:#eee6dc;letter-spacing:.12em}.po3 h1{font-size:87px;line-height:1.1;letter-spacing:-.051em;font-weight:850;margin:13px 0 37px}.po3 .po-ghost{display:inline-flex;gap:37px;align-items:center;padding:15px 16px;border:1px solid #fff8;border-radius:5px;background:#080e1a55;font-size:14px}.po3 .po-ghost b{font-size:18px;line-height:1}.po3 .po-caption{position:absolute;bottom:32px;left:57px;right:57px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;color:#faf3e9;font-size:11px;letter-spacing:.09em}.po3 .po-caption>span:last-child{text-align:right}.po3 .po-caption>div{display:flex;justify-content:center;gap:9px}.po3 .po-caption i{height:5px;width:5px;background:#fff7;display:block;border-radius:50%}.po3 .po-caption i:first-child{background:#fff}
+  .po3 .po-strip{max-width:1280px;display:grid;grid-template-columns:repeat(3,1fr);gap:17px;margin:0 auto;padding:39px 0 1px}.po3 .po-strip a{display:grid;grid-template-columns:1fr auto;gap:7px;align-content:center;padding:22px 19px;min-height:116px;border:1px solid var(--line);border-radius:7px;background:var(--surface)}.po3 .po-strip span{grid-column:1/-1;color:var(--muted);font-size:11px}.po3 .po-strip strong{font-size:20px;line-height:1.35;letter-spacing:-.06em}.po3 .po-strip b{font-size:18px;color:var(--accent)}
+  .po3 .po-range{padding:122px 62px 105px;max-width:1420px;margin:auto}.po3 h2{font-size:60px;line-height:1.12;letter-spacing:-.085em;font-weight:840}.po3 .po-range>h2{text-align:center;margin-bottom:44px}.po3 .po-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:19px}.po3 .po-cards article{border-radius:17px;overflow:hidden;background:var(--surface);border:1px solid var(--line)}.po3 .po-card-art{height:314px;position:relative;overflow:hidden;display:grid;place-items:center;isolation:isolate}.po3 .po-card-copy{padding:28px 23px 25px;min-height:218px}.po3 .po-card-copy span{font-size:11px;color:var(--muted);display:block;margin-bottom:6px}.po3 .po-card-copy h3{font-size:31px;letter-spacing:-.085em;margin-bottom:5px}.po3 .po-card-copy p{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:17px}.po3 .po-card-copy a{display:flex;justify-content:space-between;padding:13px 12px;border:1px solid var(--line);border-radius:5px;font-size:13px;font-weight:700}
+  .po3 .po-day-art{background:radial-gradient(ellipse at 72% 20%,#8396a6,#465a6a 50%,#273844)}.po3 .po-day{padding:20px 19px 18px;width:246px;height:220px;border-radius:10px;background:#e9ece8;color:#25333d;border:5px solid #161e25;transform:perspective(650px) rotateY(15deg) rotate(-9deg);box-shadow:22px 34px 30px #14212b88}.po3 .po-day span{font-size:10px;color:#657077}.po3 .po-day strong{font-size:25px;display:block;margin-bottom:8px}.po3 .po-day p{font:650 12px "Microsoft YaHei UI",sans-serif;border-top:1px solid #bbc4c6;padding:9px 0}.po3 .po-day p:last-child{color:#557860}.po3 .po-branch-art{background:linear-gradient(153deg,#f5ba93,#b36b55 46%,#633d40)}.po3 .po-path{position:relative;width:230px;height:208px;color:#ffe8cf;font-size:13px;font-weight:700}.po3 .po-path i{position:absolute;width:3px;height:132px;background:#ffe9d0;left:50%;top:26px;transform-origin:bottom;border-radius:1px;box-shadow:0 0 13px #ffdc9da6}.po3 .po-path i:nth-child(1){transform:rotate(-50deg)}.po3 .po-path i:nth-child(3){transform:rotate(50deg)}.po3 .po-path b,.po3 .po-path span{position:absolute;left:calc(50% - 24px);width:48px;height:28px;display:grid;place-items:center;border:1px solid #fff8;background:#642f2fc7;border-radius:17px}.po3 .po-path b{top:146px;color:#6e392a;background:#f6e0c8}.po3 .po-path span:nth-of-type(1){left:-7px;top:55px}.po3 .po-path span:nth-of-type(2){top:14px}.po3 .po-path span:nth-of-type(3){left:auto;right:-7px;top:55px}
+  .po3 .po-history-art{background:radial-gradient(ellipse at 20% 10%,#54667b,#242e43 60%,#111c2a)}.po3 .po-history-widget{position:relative;width:228px;height:202px;border:1px solid #8faed173;border-radius:12px;background:#1c2939bc;padding:17px 20px;color:#f1f7f4;transform:rotate(8deg);box-shadow:15px 25px 28px #0a122b76}.po3 .po-history-widget small{font-size:11px;color:#b4c6d6;display:block}.po3 .po-history-widget b{font:700 58px/1 "Bahnschrift",sans-serif;letter-spacing:-.09em}.po3 .po-history-widget span{font-size:11px;margin-left:9px}.po3 .po-history-widget>div{display:flex;gap:5px;align-items:end;height:50px;margin-top:9px}.po3 .po-history-widget>div i{height:27%;width:18px;background:#d8b07f}.po3 .po-history-widget>div i:nth-child(2n){background:#86b3bf;height:64%}.po3 .po-history-widget>div i:nth-child(5){height:100%}.po3 .po-history-widget>div i:nth-child(7){height:76%}
+  .po3 .po-drive{display:grid;grid-template-columns:.91fr 1.09fr;align-items:stretch;background:var(--ink);color:var(--bg);max-width:1280px;min-height:474px;margin:0 auto 106px;border-radius:16px;overflow:hidden}.po3 .po-drive-copy{padding:70px 0 61px 63px;z-index:1}.po3 .po-drive h2{font-size:55px}.po3 .po-drive p{max-width:310px;margin:18px 0;color:color-mix(in srgb,var(--ink),var(--bg) 80%);font-size:14px;line-height:1.75}.po3 .po-drive-cta{display:inline-flex;border:1px solid var(--bg);border-radius:5px;padding:13px 15px;margin-top:8px;font-size:13px}.po3 .po-local{display:block;margin-top:18px;font-size:11px;color:color-mix(in srgb,var(--ink),var(--bg) 72%)}
+  .po3 .po-map{position:relative;display:grid;align-content:center;padding:49px;background:color-mix(in srgb,var(--ink),var(--bg) 6%);isolation:isolate}.po3 .po-map-lines{position:absolute;inset:-40%;background:repeating-radial-gradient(ellipse at 35% 75%,transparent 0 19px,color-mix(in srgb,var(--ink),var(--bg) 19%) 20px 21px,transparent 22px 34px);transform:rotate(22deg);z-index:-1}.po3 .po-map-lane{display:flex;justify-content:space-around;position:relative;padding:0 10px}.po3 .po-map-lane:after{content:"";height:1px;position:absolute;left:17%;right:17%;top:50%;background:var(--bg);opacity:.58;z-index:-1}.po3 .po-map-lane i{display:block;height:15px;width:15px;border:3px solid var(--bg);border-radius:50%;background:var(--ink)}.po3 .po-map-lane i:nth-child(2){background:var(--accent)}.po3 .po-map-captions{display:grid;grid-template-columns:repeat(3,1fr);justify-items:center;padding:12px 9px;font-size:12px;text-shadow:0 0 6px var(--ink)}
+  .po3 .po-foot{border-top:1px solid var(--line);padding:47px 61px;display:grid;grid-template-columns:1.7fr 1fr auto;gap:30px;align-items:center;background:var(--surface);font-size:13px}.po3 .po-foot nav{display:flex;gap:31px}.po3 .po-foot p{color:var(--muted);font-size:12px;margin-top:8px}
+  
+.brand-motion{isolation:isolate}.brand-motion h1,.brand-motion h2,.brand-motion p,.brand-motion figure{margin:0}
+.brand-motion a:focus-visible,.brand-motion button:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+.brand-motion .bm-link{color:inherit;display:inline-flex;align-items:center;gap:16px;min-height:44px;padding:0 20px;text-decoration:none;border:1px solid currentColor;border-radius:24px;font-size:14px;font-weight:700}
+.brand-motion .bm-link b{font-size:18px;font-weight:500}.brand-motion .bm-quiet{font-size:13px;letter-spacing:.08em}
+.brand-motion .bm-wrap{max-width:1260px;margin-inline:auto;width:calc(100% - 112px)}
+.brand-motion .bm-stage-title{font-family:var(--stage-font,"Microsoft YaHei UI",sans-serif);font-weight:800;line-height:1.1;letter-spacing:-.055em}
+@media (prefers-reduced-motion:reduce){.brand-motion *,.brand-motion *::before,.brand-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+  .bpo-hero{height:838px;position:relative;isolation:isolate;overflow:hidden;color:#f9f9f7;background:#101722}.bpo-hero input{position:absolute;opacity:0;width:1px;height:1px}.bpo-media{position:absolute;inset:0;z-index:-1;overflow:hidden}.bpo-media img{position:absolute;width:112%;height:112%;max-width:none;inset:-6%;object-fit:cover;object-position:center 57%;transform-origin:74% 59%;animation:porsche-lens 15s cubic-bezier(.37,.04,.33,1) alternate infinite}.dark .bpo-media img{filter:brightness(.8) contrast(1.1)}.bpo-media div{position:absolute;inset:0;background:linear-gradient(90deg,#050a13ce,#0b142256 55%,transparent 80%),linear-gradient(0deg,#0a1326bb,transparent 30%)}.bpo-copy{position:absolute;top:267px;left:7.2%;max-width:900px;animation:porsche-title 1.2s cubic-bezier(.2,.7,.24,1) both}.bpo-copy small{font-size:14px;letter-spacing:.065em;color:#e7e2d7}.bpo-copy h1{font-size:82px;line-height:1.08;margin:16px 0 24px}.bpo-copy .bm-link{border-color:#f4f3e999;border-radius:4px;background:#04090e45}.bpo-controls{position:absolute;bottom:31px;left:7.2%;right:7.2%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px}.bpo-controls>span{font-size:13px;color:#e3dfd8}.bpo-controls a{font:500 35px/1 sans-serif;animation:porsche-down 2s ease-in-out infinite}.bpo-controls label{justify-self:end;cursor:pointer;border:1px solid #f9eee9a1;border-radius:50px;min-height:40px;padding:0 16px;display:grid;place-items:center;color:#fffef8;font-size:12px;background:#10172266}.bpo-hero input:focus-visible~.bpo-controls label{outline:2px solid white;outline-offset:4px}.bpo-play,.bpo-hero input:checked~.bpo-controls .bpo-stop{display:none}.bpo-hero input:checked~.bpo-controls .bpo-play{display:inline}.bpo-hero input:checked~.bpo-media img{animation-play-state:paused}
+  .brand-motion .po-cards article{transition:box-shadow .72s,transform .72s}.brand-motion .po-cards article:hover,.brand-motion .po-cards article:focus-within{transform:translateY(-9px);box-shadow:0 24px 40px #1723362c}.brand-motion .po-card-art>div{transition:scale 1.15s cubic-bezier(.22,.7,.25,1)}.brand-motion .po-cards article:hover .po-card-art>div,.brand-motion .po-cards article:focus-within .po-card-art>div{scale:1.09}.brand-motion .po-map-lane i{animation:porsche-indicator 5.7s linear infinite}.brand-motion .po-map-lane i:nth-child(2){animation-delay:.65s}.brand-motion .po-map-lane i:nth-child(3){animation-delay:1.3s}
+  @keyframes porsche-lens{from{transform:scale(1) translate(0,0)}to{transform:scale(1.125) translate(-16px,14px)}}@keyframes porsche-title{from{transform:translateY(23px);opacity:.25}to{transform:translateY(0);opacity:1}}@keyframes porsche-down{0%,100%{translate:0 0}50%{translate:0 7px}}@keyframes porsche-indicator{0%,16%,100%{opacity:.6}35%{opacity:1;box-shadow:0 0 15px currentColor}}
+  
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="light"><div class="page porsche light" data-theme="light"><div class="brand-motion"><div class="po3">
+    <header class="po-head"><nav><a href="#po-range"><span class="po-burger">☰</span> 探索功能</a></nav><a class="po-word" href="#po-start">CommitToDo</a><a href="#po-drive" class="po-open">打开工作台 ↗</a></header>
+    <main>
+      <section class="bpo-hero" id="po-start"><input id="bpo-pause" type="checkbox">
+    <div class="bpo-media"><img src="assets/brands-porsche-road-029fb0324684.png" alt="从山间岩壁沿曲路驶向夜色的风景"><div></div></div>
+    <div class="bpo-copy"><small>CommitToDo · 任务与历程</small><h1 class="bm-stage-title">走过的路，<br>留在身后，也留在手上。</h1><a class="bm-link" href="#po-range">选择一个方向 <b>↗</b></a></div>
+    <div class="bpo-controls"><span>一棵分支树，三种日常方向</span><a href="#po-range" aria-label="滚动查看方向">⌄</a><label for="bpo-pause"><span class="bpo-stop">暂停画面</span><span class="bpo-play">继续画面</span></label></div>
+    </section>
+      <section class="po-strip" aria-label="主要功能"><a href="#po-today"><span>时间属于你</span><strong>把今天做清楚。</strong><b>↘</b></a><a href="#po-branch"><span>给目标一条路</span><strong>沿着分支行动。</strong><b>↘</b></a><a href="#po-history"><span>每一步有来处</span><strong>沿着时间回看。</strong><b>↘</b></a></section>
+      <section class="po-range" id="po-range"><h2>选一条路，开始。</h2><div class="po-cards">
+        <article id="po-today"><div class="po-card-art po-day-art"><div class="po-day"><span>11 月 20 日　周五</span><strong>今天</strong><p>□　整理首页参考</p><p>□　傍晚慢跑 5 公里</p><p>✓　完成首页线框</p></div></div><div class="po-card-copy"><span>安排眼下</span><h3>今天</h3><p>把要做的事放在眼前，完成一件就勾下一件。</p><a href="#po-drive">打开今天 →</a></div></article>
+        <article id="po-branch"><div class="po-card-art po-branch-art"><div class="po-path"><i></i><i></i><i></i><b>我</b><span>工作</span><span>健康</span><span>生活</span></div></div><div class="po-card-copy"><span>看清方向</span><h3>分支</h3><p>在自己的树上展开目标，各做各的，也能看全貌。</p><a href="#po-drive">沿分支前行 →</a></div></article>
+        <article id="po-history"><div class="po-card-art po-history-art"><div class="po-history-widget"><small>本周进展</small><b>08</b><span>次提交</span><div><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div><div class="po-card-copy"><span>回看走过的</span><h3>历程</h3><p>每个完成点都是一条提交，沿时间看到各条路的变化。</p><a href="#po-drive">查看个人历程 →</a></div></article>
+      </div></section>
+      <section class="po-drive" id="po-drive"><div class="po-drive-copy"><h2>下一步，<br>从一件小事开始。</h2><p>现在写下一条待办。完成时，它会留在自己的分支上。</p><a class="po-drive-cta" href="#po-start">开始记录 ↗</a><span class="po-local">数据保存在本机 · 离线也能使用</span></div><div class="po-map" aria-label="从一条待办到提交再到历程"><div class="po-map-lines" aria-hidden="true"></div><div class="po-map-lane"><i></i><i></i><i></i></div><div class="po-map-captions"><b>写一条待办</b><b>完成即提交</b><b>在分支回看</b></div></div></section>
+    </main>
+    <footer class="po-foot"><div><a class="po-word" href="#po-start">CommitToDo</a><p>本地优先的个人任务与历程工具</p></div><nav><a href="#po-today">今天</a><a href="#po-branch">分支</a><a href="#po-history">历程</a></nav><a href="#po-drive">数据与备份 →</a></footer>
+  </div></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

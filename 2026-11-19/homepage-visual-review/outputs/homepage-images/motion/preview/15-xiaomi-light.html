@@ -1,0 +1,215 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · Xiaomi · 跑道摄影长镜头</title>
+  <style>:root{--bg:#f8f8f7;--surface:#fff;--ink:#201e1d;--muted:#655c55;--line:#e6e0db;--accent:#c84815;--soft:#f0e8e0;--path-health:#437256;--path-life:#865d37;color-scheme:light}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .mi2{font-family:"Microsoft YaHei","Aptos",sans-serif}
+  .mi2 .mnav{height:66px;display:flex;align-items:center;gap:41px;padding:0 57px;background:var(--bg);white-space:nowrap}
+  .mi2 .msign{display:flex;align-items:center;gap:9px;font:700 22px/1 "Bahnschrift","Aptos",sans-serif}
+  .mi2 .msign i{display:grid;place-items:center;background:var(--accent);width:34px;height:34px;color:var(--bg);border-radius:9px;font:700 20px/1 "Segoe UI Symbol"}
+  .mi2 .mnav>span{font-size:13px;color:var(--muted)}.mi2 .mnav>span:last-child{margin-left:auto;color:var(--ink)}
+  .mi2 .launch{height:720px;overflow:hidden;isolation:isolate}
+  .mi2 .launch img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:right center;z-index:-2}
+  .mi2 .launch:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(92deg,#f4eee44a,transparent 68%)}
+  .dark .mi2 .launch img{filter:brightness(.7) saturate(.72)}
+  .dark .mi2 .launch:before{background:linear-gradient(93deg,#151719a3,transparent 73%)}
+  .mi2 .lcopy{position:absolute;top:134px;left:8%;color:#242522;max-width:610px}
+  .dark .mi2 .lcopy{color:#fcf5ef}
+  .mi2 .lcopy small{font-size:15px;font-weight:700;letter-spacing:.1em}
+  .mi2 h1{font-size:87px;line-height:1.09;letter-spacing:-.09em;margin-top:13px}
+  .mi2 .lcopy p{font-size:21px;line-height:1.65;margin:17px 0 25px}
+  .mi2 .mcta{display:inline-flex;border-radius:60px;gap:25px;align-items:center;background:var(--ink);color:var(--bg);padding:10px 19px;font-size:14px;font-weight:700}
+  .mi2 .lcopy .mcta{background:#242522;color:white}.dark .mi2 .lcopy .mcta{color:#2a231f;background:#fff4e8}
+  .mi2 .rail{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);height:2px;width:168px;background:color-mix(in srgb,var(--ink),transparent 65%);display:flex}
+  .mi2 .rail i{width:56px;background:var(--accent)}.mi2 .launch .rail{background:#eee8de66}
+  .mi2 .rail.second i{margin-left:56px}.mi2 .rail.third i{margin-left:112px}
+  .mi2 .mfeature{overflow:hidden;isolation:isolate;border-top:8px solid var(--bg);text-align:center;position:relative}
+  .mi2 .mfeature h2{font-size:61px;letter-spacing:-.075em}.mi2 .mfeature p{font-size:17px;color:var(--muted);margin-top:15px}
+  .mi2 .cards{height:830px;padding-top:62px;background:radial-gradient(ellipse at 51% 76%,var(--soft),var(--surface) 75%)}
+  .mi2 .mfan{width:1150px;height:455px;position:relative;margin:72px auto 0;perspective:1350px}
+  .mi2 .mfan-card{position:absolute;top:37px;left:399px;width:342px;height:384px;background:var(--surface);border:1px solid var(--line);box-shadow:12px 31px 70px -24px #0006;border-radius:20px;padding:26px;text-align:left;transform-origin:50% 96%}
+  .mi2 .mfan-card:nth-child(1){transform:translate(-370px,42px) rotate(-14deg);background:color-mix(in srgb,var(--surface),var(--accent) 12%)}
+  .mi2 .mfan-card:nth-child(2){transform:translate(-185px,13px) rotate(-8deg);background:color-mix(in srgb,var(--surface),#959070 21%)}
+  .mi2 .mfan-card:nth-child(3){transform:translate(372px,42px) rotate(14deg);background:color-mix(in srgb,var(--surface),#6790a1 20%)}
+  .mi2 .mfan-card:nth-child(4){transform:translate(177px,10px) rotate(9deg);background:color-mix(in srgb,var(--surface),#879878 18%)}
+  .mi2 .mfan-card.live{transform:translateY(-11px) scale(1.1);z-index:2;background:var(--surface)}
+  .mi2 .mfan-card header{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:28px}
+  .mi2 .mfan-card header span{color:var(--muted);font-size:11px;font-weight:400}
+  .mi2 .mfan-card small{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+  .mi2 .mfan-card h3{font-size:31px;letter-spacing:-.065em;margin-bottom:9px}
+  .mi2 .mfan-card ul{padding:0;list-style:none;margin:25px 0 0;font-size:14px}
+  .mi2 .mfan-card li{padding:12px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+  .mi2 .mfan-card.live li:before{content:'□';margin-right:10px;color:var(--accent)}
+  .mi2 .mfan-card.live li:last-child:before{content:'✓'}
+  .mi2 .mfan-card .sample-block{height:115px;margin:22px 0 0;border-radius:9px;background:repeating-linear-gradient(0deg,transparent 0 23px,var(--line) 23px 24px),color-mix(in srgb,var(--surface),var(--soft) 55%)}
+  .mi2 .mhistory{height:820px;display:grid;align-content:center;justify-items:center;background:var(--bg)}
+  .mi2 .mhistory:before,.mi2 .mhistory:after{content:'';position:absolute;inset:40% -18% -72%;border-radius:50%;border:1px solid var(--line);z-index:-1;box-shadow:0 0 0 42px color-mix(in srgb,var(--soft),transparent 76%),0 0 0 85px color-mix(in srgb,var(--soft),transparent 65%),0 0 0 145px color-mix(in srgb,var(--soft),transparent 82%);transform:rotate(-7deg)}
+  .mi2 .mhistory:after{transform:rotate(6deg);inset:51% -15% -77%}
+  .mi2 .mhistory .timeline{width:860px;margin-top:31px;text-align:left;border-radius:18px}
+  .mi2 .modes{min-height:590px;background:var(--surface);display:grid;grid-template-columns:.82fr 1.18fr;align-items:center;padding:85px 11%;gap:100px;border-top:8px solid var(--bg)}
+  .mi2 .modes h2{font-size:55px;letter-spacing:-.07em}.mi2 .modes p{color:var(--muted);font-size:17px;margin:20px 0 25px}
+  .mi2 .modes ul{padding:0;margin:0;list-style:none}.mi2 .modes li{display:grid;grid-template-columns:98px 1fr;gap:25px;border-top:1px solid var(--line);padding:20px 0}
+  .mi2 .modes li span{color:var(--muted);font-size:14px}.mi2 .modes li b{font-size:17px}
+  .mi2 .mfoot{display:flex;justify-content:space-between;gap:34px;padding:42px 9%;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .mi2 .mfoot .msign{color:var(--ink)}
+  
+.brand-motion{isolation:isolate}.brand-motion h1,.brand-motion h2,.brand-motion p,.brand-motion figure{margin:0}
+.brand-motion a:focus-visible,.brand-motion button:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+.brand-motion .bm-link{color:inherit;display:inline-flex;align-items:center;gap:16px;min-height:44px;padding:0 20px;text-decoration:none;border:1px solid currentColor;border-radius:24px;font-size:14px;font-weight:700}
+.brand-motion .bm-link b{font-size:18px;font-weight:500}.brand-motion .bm-quiet{font-size:13px;letter-spacing:.08em}
+.brand-motion .bm-wrap{max-width:1260px;margin-inline:auto;width:calc(100% - 112px)}
+.brand-motion .bm-stage-title{font-family:var(--stage-font,"Microsoft YaHei UI",sans-serif);font-weight:800;line-height:1.1;letter-spacing:-.055em}
+@media (prefers-reduced-motion:reduce){.brand-motion *,.brand-motion *::before,.brand-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+  .bmi-hero{height:784px;position:relative;isolation:isolate;overflow:hidden;background:#18221e;color:#fff8ea}.bmi-hero img{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;object-position:center 54%;max-width:none;z-index:-3;transform-origin:70% 60%;animation:xiaomi-camera 12s cubic-bezier(.37,.06,.45,.97) infinite alternate}.dark .bmi-hero img{filter:brightness(.78) saturate(.81)}.bmi-hero:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#171d1cba,transparent 65%),linear-gradient(0deg,#11191680,transparent 27%)}.bmi-sun{position:absolute;inset:-12%;background:radial-gradient(ellipse at 72% 31%,#ffda8360,transparent 41%);mix-blend-mode:screen;z-index:-2;animation:xiaomi-light 10s ease-in-out infinite alternate}.bmi-copy{position:absolute;top:195px;left:max(7vw,82px)}.bmi-copy small{font-size:17px;font-weight:700;letter-spacing:.08em}.bmi-copy h1{font-size:98px;line-height:1.02;margin:13px 0 21px}.bmi-copy p{font-size:21px;margin:0 0 28px;color:#fff3d7}.bmi-copy .bm-link{background:#fff9ec;color:#181d19;border-color:#fff9ec}.bmi-bottom{position:absolute;bottom:35px;left:7vw;right:7vw;display:grid;grid-template-columns:auto 1fr auto;gap:26px;align-items:center;font-size:13px;letter-spacing:.04em}.bmi-bottom i{height:2px;background:#ffffff4a;position:relative;overflow:hidden}.bmi-bottom i:after,.bmi-line i:after{content:"";position:absolute;inset:0;background:#ffe3a6;transform-origin:left;animation:xiaomi-timing 10s linear infinite}
+  .bmi-route{padding:72px 0 76px;background:var(--soft)}.bmi-route>.bm-wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:50px;align-items:center}.bmi-route h2{font-size:51px;letter-spacing:-.06em}.bmi-route p{color:var(--muted);margin-top:11px;font-size:16px}.bmi-line{position:relative;display:flex;align-items:center;gap:16px;padding:16px 0 16px 14px;font-size:16px}.bmi-line i{width:164px;height:1px;background:var(--line);position:relative;overflow:hidden}.bmi-line i:after{background:var(--accent)}.bmi-line b{width:13px;height:13px;border-radius:50%;background:var(--accent);box-shadow:0 0 19px var(--accent)}
+  @keyframes xiaomi-camera{from{transform:scale(1) translateX(0)}to{transform:scale(1.082) translateX(-14px)}}@keyframes xiaomi-light{from{transform:translate(-12px,8px);opacity:.48}to{transform:translate(34px,-7px);opacity:.95}}@keyframes xiaomi-timing{from{transform:scaleX(.02)}to{transform:scaleX(1)}}
+  .bmi-hero input{position:absolute;opacity:0;width:1px;height:1px}.bmi-film{position:absolute;inset:0;display:flex;width:100%;height:100%;z-index:-3;animation:xiaomi-scenes 18s cubic-bezier(.30,.73,.32,1) infinite}.bmi-film figure{position:relative;flex:0 0 100%;height:100%;overflow:hidden;isolation:isolate}.bmi-film img{inset:0;width:100%;height:100%;object-position:97% 54%;transform-origin:right center}.bmi-film .bmi-sun{z-index:-1}.light .bmi-hero{color:#202720}.light .bmi-hero:after{background:linear-gradient(90deg,#f5f4e9f7 0,#f5f4e9e8 31%,#f5f4e982 47%,transparent 65%),linear-gradient(0deg,#e8eedd75,transparent 26%)}.light .bmi-copy p{color:#3a4336}.light .bmi-copy .bm-link{background:#282e26;color:#fff8e7;border-color:#282e26}.light .bmi-bottom{color:#30352d}.light .bmi-bottom i{background:#393c3670}.bmi-bottom i:after{background:#ff8b55;animation-duration:6s}.bmi-controls{display:flex;gap:6px;border-radius:24px;padding:3px;background:#191c18bb;color:#fff6e6}.bmi-controls label{cursor:pointer;padding:4px 10px;border-radius:20px;font-size:12px}.bmi-hero #bmi-auto:checked~.bmi-bottom label[for=bmi-auto],.bmi-hero #bmi-today:checked~.bmi-bottom label[for=bmi-today],.bmi-hero #bmi-branch:checked~.bmi-bottom label[for=bmi-branch],.bmi-hero #bmi-trail:checked~.bmi-bottom label[for=bmi-trail]{background:#fff2d7;color:#292b20}.bmi-hero input:focus-visible~.bmi-bottom .bmi-controls{outline:2px solid #ff8b55;outline-offset:4px}
+  .bmi-hero #bmi-today:checked~.bmi-film,.bmi-hero #bmi-branch:checked~.bmi-film,.bmi-hero #bmi-trail:checked~.bmi-film{animation:none;transition:transform .65s cubic-bezier(.3,.73,.32,1)}.bmi-hero #bmi-branch:checked~.bmi-film{transform:translateX(-100%)}.bmi-hero #bmi-trail:checked~.bmi-film{transform:translateX(-200%)}.bmi-frame-a{background:radial-gradient(ellipse at 69% 57%,#b8cfc7,#537a71 50%,#2a413c 100%)}.bmi-frame-b{background:radial-gradient(ellipse at 73% 45%,#d5af79,#815f52 53%,#3d3633 100%)}.bmi-slab{position:absolute;right:9%;top:20%;width:459px;padding:38px;border-radius:17px;display:grid;gap:15px;background:#1f2b2b;color:#f8edd7;border:2px solid #c9d6c0;box-shadow:24px 30px 64px #060d0b55;transform:perspective(930px) rotateY(-8deg) rotateZ(-6deg)}.bmi-frame-b .bmi-slab{background:#271e1e;border-color:#edcea5}.bmi-slab strong{font-size:39px;letter-spacing:-.06em;line-height:1.13}.bmi-slab span{font-size:15px;border-top:1px solid #ffffff43;padding-top:11px}
+  @keyframes xiaomi-scenes{0%,29%{transform:translateX(0)}35%,62%{transform:translateX(-100%)}68%,93%{transform:translateX(-200%)}100%{transform:translateX(0)}}
+  
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="light"><div class="page xiaomi light" data-theme="light"><div class="brand-motion"><div class="mi2">
+  <header class="mnav"><div class="msign"><i>⑂</i>CommitToDo</div><span>首页</span><span>今日工作台</span><span>分支与历程</span><span>使用帮助</span><span>开始使用 →</span></header>
+  <main>
+    <section class="bmi-hero">
+    <input type="radio" name="bmi-scenes" id="bmi-auto" checked><input type="radio" name="bmi-scenes" id="bmi-today"><input type="radio" name="bmi-scenes" id="bmi-branch"><input type="radio" name="bmi-scenes" id="bmi-trail">
+    <div class="bmi-film">
+      <figure><img src="assets/running-track-b9544276b53a.png" alt="晨雾中的长跑轨道和跑步的人"><div class="bmi-sun"></div></figure>
+      <figure class="bmi-frame-a"><div class="bmi-slab"><small>我的分支</small><strong>给每件事一条路。</strong><span>工作 / 产品设计</span><span>健康 / 跑步</span><span>生活 / 阅读</span></div></figure>
+      <figure class="bmi-frame-b"><div class="bmi-slab"><small>本周历程</small><strong>每一次完成，<br>都看得到。</strong><span>11.20　傍晚慢跑 5 公里</span><span>11.19　完成首页线框</span></div></figure>
+    </div><div class="bmi-copy"><small>CommitToDo</small><h1 class="bm-stage-title">从这一件，<br>跑到下一件。</h1><p>把一次次完成，留在自己的路上。</p><a class="bm-link" href="#bmi-route">看路怎样连起来 <b>↘</b></a></div>
+    <div class="bmi-bottom"><span>个人任务与历程</span><i></i><div class="bmi-controls"><label for="bmi-auto">播放</label><label for="bmi-today">今天</label><label for="bmi-branch">分支</label><label for="bmi-trail">历程</label></div></div></section><section class="bmi-route" id="bmi-route"><div class="bm-wrap"><div><h2>每一步都看得见。</h2><p>把做成的事按时间排列。需要回看时，分支上的每一步都有来处。</p></div><div class="bmi-line"><i></i><b></b><span>11 月 20 日　傍晚慢跑 5 公里</span></div></div></section>
+    <section class="mfeature cards"><h2>事情分开做，<br>进展一起看。</h2><p>工作、跑步、阅读。条条有方向，件件有回音。</p><div class="mfan">
+      <div class="mfan-card"><header>分支<span>工作</span></header><h3>产品设计</h3><small>活跃 · 3 条提交</small><div class="sample-block"></div></div>
+      <div class="mfan-card"><header>分支<span>健康</span></header><h3>跑步</h3><small>活跃 · 5 条提交</small><div class="sample-block"></div></div>
+      <div class="mfan-card"><header>提交<span>健康 / 跑步</span></header><h3>傍晚慢跑</h3><small>已写入历程</small><div class="sample-block"></div></div>
+      <div class="mfan-card"><header>分支<span>生活</span></header><h3>阅读</h3><small>活跃 · 7 条提交</small><div class="sample-block"></div></div>
+      <div class="mfan-card live"><header>CommitToDo<span>＋ 快速添加</span></header><small>11 月 20 日 · 星期五</small><h3>今天</h3><ul><li>整理首页参考</li><li>完成首页线框</li><li>傍晚慢跑 5 公里</li><li>记下读书笔记</li></ul></div>
+    </div><div class="rail second"><i></i></div></section>
+    <section class="mfeature mhistory"><h2>走过的，一眼看见。</h2><p>完成一项待办，就在时间树上落一个点。</p><article class="timeline">
+    <div class="panel-head"><div><small>历程</small><strong>我的时间树</strong></div><span>最近 90 天⌄</span></div>
+    <div class="plot"><canvas data-tree width="900" height="305"></canvas></div>
+    <div class="panel-bottom"><span><i class="tree-key dot-key"></i>提交</span><span><i class="tree-key diamond-key"></i>里程碑</span><span><i class="tree-key dash-key"></i>停滞</span></div>
+  </article><div class="rail third"><i></i></div></section>
+    <section class="modes"><div><h2>路是你的。</h2><p>在自己的设备上，做自己的事。</p><span class="mcta">写下第一件事 <b>↗</b></span></div><ul><li><b>本机保存</b><span>待办与提交默认留在当前设备。</span></li><li><b>离线可用</b><span>没有网络也能写、能做、能回看。</span></li><li><b>一键导出</b><span>把分支和历程备份成一份文件。</span></li></ul></section>
+  </main>
+  <footer class="mfoot"><div class="msign"><i>⑂</i>CommitToDo</div><span>工作台　　分支与历程　　帮助中心</span><span>简体中文　 数据与备份</span></footer>
+  </div></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

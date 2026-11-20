@@ -1,0 +1,204 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · Studio Dumbar · 一次完成的动谱</title>
+  <style>:root{--bg:#f7f4e9;--surface:#ffffff;--ink:#20201d;--muted:#575950;--line:#d2cec1;--accent:#c9361c;--soft:#f6e5d5;--path-health:#437256;--path-life:#865d37;color-scheme:light}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .dm{font-family:"Bahnschrift","Microsoft YaHei UI","Microsoft YaHei",sans-serif}
+  .dm .dm-main{position:relative;isolation:isolate;background:#f23b21;min-height:850px;overflow:hidden;color:#1b0c08}
+  .dm .dm-grid{display:grid;grid-template-columns:repeat(18,1fr);grid-template-rows:repeat(13,1fr);position:absolute;inset:0;z-index:-2}
+  .dm .dm-grid i{background:var(--swatch)}
+  .dm .dm-main:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(127deg,#ffba6a66,transparent 40%,#56000055)}
+  .dark .dm .dm-grid{filter:brightness(.57) saturate(.8)}
+  .dark .dm .dm-main:after{background:linear-gradient(136deg,#27141488,transparent 60%)}
+  .dark .dm .dm-main{color:#fff1e1}
+  .dm .dm-nav{display:flex;position:relative;z-index:2;align-items:center;justify-content:space-between;gap:35px;padding:0 39px;min-height:69px;font-size:14px;border-bottom:1px solid color-mix(in srgb,currentColor,transparent 65%)}
+  .dm .dm-nav strong{font:800 26px/1 "Bahnschrift","Aptos",sans-serif;letter-spacing:-.09em}
+  .dm .dm-nav span{display:flex;gap:42px;align-items:center}
+  .dm a{color:inherit;text-decoration:none}.dm .dm-nav a:last-child{border:1px solid currentColor;border-radius:80px;padding:6px 14px}
+  .dm .dm-mark{position:absolute;right:51px;top:138px;font-size:15px;line-height:1.4;letter-spacing:.045em;text-align:right}
+  .dm .dm-title{position:absolute;left:44px;top:158px;font-size:213px;line-height:1.03;font-weight:950;letter-spacing:-.075em;white-space:nowrap}
+  .dm .dm-title span{display:block}.dm .dm-title span:last-child{margin-left:196px;color:#fff9e7}
+  .dm .dm-arrow{position:absolute;right:160px;top:285px;font-size:241px;color:#fff9e7;line-height:1;transform:rotate(-15deg);font-family:"Segoe UI Symbol",sans-serif}
+  .dm .dm-caption{position:absolute;left:48px;bottom:35px;font-size:19px;font-weight:700;letter-spacing:-.045em}
+  .dm .dm-caption a{margin-left:22px;border-bottom:1px solid currentColor;padding-bottom:4px}
+  .dm .dm-score{height:835px;background:#29344e;color:#dee8e6;overflow:hidden;position:relative;isolation:isolate}
+  .light .dm .dm-score{background:#d6e7df;color:#142923}
+  .dm .dm-score-caption{padding:30px 47px;display:flex;justify-content:space-between;gap:20px;font-size:13px}
+  .dm .dm-loop{position:absolute;inset:10% -14% -43%;z-index:-1;display:grid;place-items:center;isolation:isolate}
+  .dm .dm-loop i{position:absolute;width:calc(35% + var(--n) * 5%);height:calc(19% + var(--n) * 6%);left:50%;top:52%;transform:translate(-50%,-50%) rotate(calc(-34deg + var(--n) * 9deg));border:2px solid currentColor;border-radius:47% 50%;opacity:calc(.17 + var(--n)*.032)}
+  .dm .dm-steps{display:grid;grid-template-columns:repeat(3,1fr);align-items:end;gap:15px;padding:152px 7% 0;height:635px}
+  .dm .dm-steps article{border-top:1px solid currentColor;min-height:170px;padding-top:19px}
+  .dm .dm-steps article:nth-child(2){margin-bottom:110px}.dm .dm-steps article:nth-child(3){margin-bottom:234px}
+  .dm .dm-steps h2{font-size:68px;letter-spacing:-.095em}
+  .dm .dm-steps p{margin-top:14px;font-size:17px;line-height:1.5}
+  .dm .dm-index{padding:68px 46px 58px;background:var(--bg);color:var(--ink)}
+  .dm .dm-index-head{display:flex;align-items:end;justify-content:space-between;gap:30px;margin-bottom:26px}
+  .dm .dm-index h2{font-size:60px;letter-spacing:-.075em}.dm .dm-index-head p{font-size:16px;color:var(--muted)}
+  .dm .dm-row{display:grid;grid-template-columns:175px minmax(0,1fr) 160px 42px;gap:25px;align-items:center;border-top:1px solid var(--line);padding:26px 1px;font-size:18px}
+  .dm .dm-row h3{font-size:33px;letter-spacing:-.045em}.dm .dm-row small,.dm .dm-row time{font-size:14px;color:var(--muted)}
+  .dm .dm-finale{padding:70px 48px 74px;background:var(--soft);display:grid;grid-template-columns:1.45fr .55fr;gap:55px;align-items:end}
+  .dm .dm-finale h2{font-size:85px;letter-spacing:-.1em}.dm .dm-finale p{margin:18px 0 0;color:var(--muted);font-size:16px}
+  .dm .dm-finale a{justify-self:end;line-height:1;display:inline-block;font-size:24px;font-weight:750;border-bottom:2px solid currentColor;padding:0 3px 13px}
+  .dm footer{background:var(--bg);display:flex;justify-content:space-between;gap:20px;padding:23px 46px;color:var(--muted);font-size:12px}
+  
+  .dm4{height:838px;isolation:isolate;position:relative;overflow:hidden;background:#ff694a;color:#251d29}
+  .dark .dm4{background:#301526;color:#ffe7d4}
+  .dm4:before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(132deg,#ff933f,#fe6244 52%,#c92b58);opacity:.84}
+  .dark .dm4:before{opacity:.34}
+  .dm4 .dm-nav{border-bottom-color:currentColor}
+  .dm4-score{position:absolute;inset:77px 0 72px;overflow:hidden;z-index:-1}
+  .dm4-score i{position:absolute;width:116%;height:54px;left:calc(-14% + var(--stripe)*1.3%);top:calc(var(--stripe)*9% - 12%);transform:rotate(-14deg);clip-path:polygon(0 9%,65% 0,100% 17%,100% 91%,20% 97%,0 82%);background:#ffab66;opacity:.61;animation:dm4-cut 7.2s cubic-bezier(.52,.02,.29,1) infinite;animation-delay:calc(var(--stripe)*-.23s)}
+  .dm4-score i:nth-child(3n){background:#fb595c}.dm4-score i:nth-child(3n+1){background:#ff8153}
+  .dark .dm4-score i:nth-child(3n){background:#b33f64}.dark .dm4-score i:nth-child(3n+1){background:#6e3456}.dark .dm4-score i{background:#8b3a57}
+  .dm4-title{font-family:"Bahnschrift","Microsoft YaHei UI",sans-serif;font-weight:950;font-size:clamp(100px,12.1vw,188px);line-height:.94;letter-spacing:-.145em;position:absolute;left:5.7%;top:144px;white-space:nowrap}
+  .dm4-title span{display:block;transform-origin:4% center;animation:dm4-type 9s cubic-bezier(.35,.1,.25,1) infinite}
+  .dm4-title span:nth-child(2){margin-left:15.6vw;color:#fff3db;animation-delay:-2.1s}
+  .dm4-title span:nth-child(3){margin-left:30.9vw;color:#3d2143;animation-delay:-4.5s}
+  .dark .dm4-title span:nth-child(3){color:#ffd05a}
+  .dm4-flow{position:absolute;bottom:54px;left:6%;right:5%;z-index:2;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:18px;border-top:1px solid currentColor;padding-top:12px}
+  .dm4-flow a{border-bottom:1px solid currentColor}
+  .dm4-point{position:absolute;right:7.4%;top:17%;font:600 75px/1 "Bahnschrift",sans-serif;animation:dm4-point 7.2s ease-in-out infinite}
+  @keyframes dm4-cut{0%,100%{transform:rotate(-14deg) translateX(-5%)}49%{transform:rotate(-7deg) translateX(12%)}78%{transform:rotate(-18deg) translateX(1%)}}
+  @keyframes dm4-type{0%,100%{transform:translateX(0) scaleX(1)}39%{transform:translateX(4vw) scaleX(1.12)}64%{transform:translateX(-2vw) scaleX(.9)}82%{transform:translateX(1vw) scaleX(1.03)}}
+  @keyframes dm4-point{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg) translateY(18px)}}
+  .dm .dm-score,.light .dm .dm-score{background:#162d56;color:#ecebe3}
+  .dm .dm-loop i{border-color:#94c3ff;animation:dm4-route 11s cubic-bezier(.42,0,.23,1) infinite;animation-delay:calc(var(--n)*-.18s)}
+  @keyframes dm4-route{0%,100%{rotate:0deg;scale:1}50%{rotate:20deg;scale:1.23}}
+  @media(prefers-reduced-motion:reduce){.dm4-title span,.dm4-score i,.dm4-point,.dm .dm-loop i{animation:none}}
+
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="light"><div class="page studio-dumbar light" data-theme="light"><div class="dm">
+  
+  <header class="dm4"><nav class="dm-nav"><strong>CommitToDo.</strong><span><a href="#dm-process">从行动到回看</a><a href="#dm-projects">提交片段</a><a href="#dm-start">打开今天 ↗</a></span></nav>
+    <div class="dm4-score" aria-hidden="true"><i style="--stripe:0"></i><i style="--stripe:1"></i><i style="--stripe:2"></i><i style="--stripe:3"></i><i style="--stripe:4"></i><i style="--stripe:5"></i><i style="--stripe:6"></i><i style="--stripe:7"></i><i style="--stripe:8"></i><i style="--stripe:9"></i><i style="--stripe:10"></i><i style="--stripe:11"></i><i style="--stripe:12"></i><i style="--stripe:13"></i><i style="--stripe:14"></i></div><h1 class="dm4-title"><span>今天</span><span>完成</span><span>进入历程</span></h1>
+    <div class="dm4-point" aria-hidden="true">↘</div><div class="dm4-flow"><span>一件事完成，就在分支上多一点。</span><a href="#dm-process">看三步 ↓</a></div></header><main>
+    <section class="dm-score" id="dm-process"><div class="dm-score-caption"><span>从行动到回看</span><span>待办　→　提交　→　分支</span></div>
+      <div class="dm-loop" aria-hidden="true"><i style="--n:0"></i><i style="--n:1"></i><i style="--n:2"></i><i style="--n:3"></i><i style="--n:4"></i><i style="--n:5"></i><i style="--n:6"></i><i style="--n:7"></i><i style="--n:8"></i><i style="--n:9"></i><i style="--n:10"></i><i style="--n:11"></i></div>
+      <div class="dm-steps"><article><h2>写下</h2><p>今天的一件小事。</p></article><article><h2>完成</h2><p>一次勾选，留下一条提交。</p></article><article><h2>回看</h2><p>时间和分支，让线索连起来。</p></article></div>
+    </section>
+    <section class="dm-index" id="dm-projects"><div class="dm-index-head"><h2>提交片段</h2><p>每个节点都属于自己的分支。</p></div>
+      <div class="dm-row"><small>工作 / 产品设计</small><h3>完成首页线框</h3><time>11.20　16:25</time><span>↗</span></div>
+      <div class="dm-row"><small>健康 / 跑步</small><h3>傍晚慢跑 5 公里</h3><time>11.19　18:12</time><span>↗</span></div>
+      <div class="dm-row"><small>生活 / 阅读</small><h3>记下读书笔记</h3><time>11.18　09:42</time><span>↗</span></div>
+    </section>
+    <section class="dm-finale" id="dm-start"><div><h2>路一直在你手里。</h2><p>本机保存。离线也能继续，随时导出。</p></div><a href="#dm-process">从今天开始 ↗</a></section>
+  </main>
+  <footer><span>CommitToDo.</span><span>个人任务与历程　 /　 数据与备份</span></footer>
+  </div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

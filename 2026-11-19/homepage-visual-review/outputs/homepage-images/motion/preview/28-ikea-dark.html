@@ -1,0 +1,208 @@
+<!doctype html><html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · IKEA · 两束光，一张桌</title>
+  <style>:root{--bg:#191b18;--surface:#232722;--ink:#f8f4e7;--muted:#b9bcb1;--line:#393d33;--accent:#b2d2df;--soft:#30392e;--path-health:#95c5a7;--path-life:#d0b489;color-scheme:dark}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .ik{font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif}
+  .ik a{color:inherit;text-decoration:none}
+  .ik .ik-shell{width:calc(100% - 114px);max-width:1400px;margin-inline:auto}
+  .ik header{height:85px;display:flex;align-items:center;gap:38px;font-size:14px}
+  .ik .ik-word{font:800 24px/1 "Bahnschrift","Aptos",sans-serif;letter-spacing:-.09em;border:2px solid currentColor;padding:9px 12px}
+  .ik header span{margin-left:auto;color:var(--muted)}
+  .ik .ik-grid{display:grid;gap:17px;margin-bottom:17px}
+  .ik .ik-row1{grid-template-columns:2.08fr 1fr;min-height:693px}
+  .ik .ik-photo{position:relative;overflow:hidden;border-radius:5px;isolation:isolate;color:#fff}
+  .ik .ik-photo img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:-2}
+  .ik .ik-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#1c1d14e8 2%,#211d1438 43%,transparent 65%);z-index:-1}
+  .dark .ik .ik-photo img{filter:brightness(.79)}
+  .ik .ik-photo-copy{position:absolute;left:28px;right:25px;bottom:33px}
+  .ik .ik-photo h1{font-size:56px;line-height:1.13;letter-spacing:-.07em;text-wrap:balance}
+  .ik .ik-photo p{font-size:15px;margin-bottom:11px}
+  .ik .ik-open{position:relative;display:grid;align-content:center;min-width:0;border-radius:5px;padding:35px 41px;background:#efd66b;color:#252419}
+  .dark .ik .ik-open{background:#d0b456;color:#211d17}
+  .ik .ik-open strong{font-size:46px;line-height:1.1;letter-spacing:-.072em}
+  .ik .ik-open p{margin:14px 0 0;font-size:17px;line-height:1.6;max-width:230px}
+  .ik .ik-open b,.ik .ik-go{display:inline-grid;place-items:center;border-radius:50%;width:42px;height:42px;background:#22231a;color:#fff;font-size:20px}
+  .ik .ik-open b{position:absolute;right:32px;top:47%}
+  .ik .ik-open small{display:block;position:absolute;inset:auto 0 0;padding:17px 37px;border-top:1px solid #28241138;font-size:12px}
+  .ik .ik-row2{grid-template-columns:1fr 1fr}
+  .ik .ik-story{min-height:588px;position:relative;overflow:hidden;border-radius:5px;color:#f6f5e5}
+  .ik .ik-story:first-child{background:#454e36}.ik .ik-story:last-child{background:#a05d3e}
+  .dark .ik .ik-story:first-child{background:#2d3928}.dark .ik .ik-story:last-child{background:#6c3626}
+  .ik .ik-caption{position:absolute;left:28px;right:26px;bottom:24px;font-weight:700}
+  .ik .ik-caption h2{font-size:35px;letter-spacing:-.065em}.ik .ik-caption small{display:block;font-size:13px;margin-bottom:6px}
+  .ik .ik-caption .ik-go{position:absolute;right:0;bottom:0;background:#fbf7e6;color:#2f2921;width:34px;height:34px}
+  .ik .ik-binders{position:absolute;inset:0 0 105px;overflow:hidden;background:linear-gradient(178deg,transparent,#1e201237)}
+  .ik .ik-binders i{display:grid;align-content:space-between;position:absolute;width:229px;height:321px;left:34%;top:88px;border-radius:2px 11px 11px 2px;transform:rotate(-9deg);border-left:10px solid #b0b386;background:#e3e1b3;color:#343725;box-shadow:19px 25px 39px -16px #102013b0;padding:23px;text-align:left;font-size:30px;font-weight:700;font-style:normal}
+  .ik .ik-binders i:after{content:'';width:85px;height:1px;background:currentColor;opacity:.3}
+  .ik .ik-binders i:nth-child(1){transform:rotate(-18deg);left:22%;top:70px;background:#a4bd9c;border-color:#759667}
+  .ik .ik-binders i:nth-child(3){transform:rotate(10deg);left:48%;top:106px;background:#c6cfd2;border-color:#a5b8bc}
+  .ik .ik-days{position:absolute;inset:58px 65px auto;height:345px;display:grid;grid-template-columns:repeat(4,1fr);align-items:center;gap:9px;transform:rotate(-6deg)}
+  .ik .ik-days div{min-height:165px;display:grid;align-content:space-between;gap:12px;padding:19px 13px;background:#f1e2c5;color:#382d25;box-shadow:9px 12px 25px -16px #2d1c13a6;font-size:17px;border-radius:2px}
+  .ik .ik-days div:nth-child(2n){transform:translateY(65px);background:#f3c89f}.ik .ik-days small{display:block;font-size:12px;color:#694631}
+  .ik .ik-days b{font-size:23px}
+  .ik .ik-guide{display:grid;grid-template-columns:.75fr 1.25fr;gap:56px;align-items:center;background:#2f4a55;color:#f8f4e8;min-height:613px;border-radius:5px;padding:57px 54px;margin-bottom:17px}
+  .dark .ik .ik-guide{background:#25333a}
+  .ik .ik-guide h2{font-size:58px;letter-spacing:-.075em}.ik .ik-guide p{font-size:17px;margin:14px 0 0;max-width:310px}
+  .ik .ik-manual{background:#f3eee1;color:#262621;min-height:393px;border-radius:3px;display:grid;grid-template-columns:1fr 1fr;gap:1px;padding:7px}
+  .ik .ik-manual article{padding:24px 17px 17px;border:1px solid #d7cfc1;min-width:0;font-size:14px}
+  .ik .ik-manual article i{font-size:34px;color:#385667;font-style:normal;display:block}.ik .ik-manual article b{font-size:16px}
+  .ik .ik-data{min-height:300px;padding:57px 32px;display:flex;align-items:center;justify-content:space-between;gap:55px}
+  .ik .ik-data h2{font-size:44px;letter-spacing:-.06em}.ik .ik-data p{color:var(--muted);margin-top:9px}.ik .ik-data a{border:1px solid var(--line);padding:11px 19px;border-radius:28px;font-size:14px}
+  .ik .ik-footer{padding:47px 61px 34px;background:#18201c;color:#f9f7ed}
+  .ik .ik-footer b{font:750 87px/1 "Bahnschrift","Aptos",sans-serif;letter-spacing:-.09em}
+  .ik .ik-footer div{border-top:1px solid #ffffff42;margin-top:42px;padding-top:16px;display:flex;justify-content:space-between;font-size:13px}
+  
+.brand-motion{isolation:isolate}.brand-motion h1,.brand-motion h2,.brand-motion p,.brand-motion figure{margin:0}
+.brand-motion a:focus-visible,.brand-motion button:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+.brand-motion .bm-link{color:inherit;display:inline-flex;align-items:center;gap:16px;min-height:44px;padding:0 20px;text-decoration:none;border:1px solid currentColor;border-radius:24px;font-size:14px;font-weight:700}
+.brand-motion .bm-link b{font-size:18px;font-weight:500}.brand-motion .bm-quiet{font-size:13px;letter-spacing:.08em}
+.brand-motion .bm-wrap{max-width:1260px;margin-inline:auto;width:calc(100% - 112px)}
+.brand-motion .bm-stage-title{font-family:var(--stage-font,"Microsoft YaHei UI",sans-serif);font-weight:800;line-height:1.1;letter-spacing:-.055em}
+@media (prefers-reduced-motion:reduce){.brand-motion *,.brand-motion *::before,.brand-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+  .bik-hero{display:grid;grid-template-columns:1.9fr 1fr;gap:14px;margin-bottom:15px;min-height:742px;color:var(--ink)}.bik-room{position:relative;isolation:isolate;overflow:hidden;background:#4d3b23;min-height:742px}.bik-room input{position:absolute;opacity:0;width:1px;height:1px}.bik-room figure{position:absolute;inset:0;z-index:-1;overflow:hidden}.bik-room figure img{height:100%;width:100%;object-fit:cover;object-position:48% center;transition:filter .85s cubic-bezier(.2,.6,.2,1);transform:scale(1.08);animation:ikea-room 13s ease-in-out infinite alternate}.bik-room figure div{position:absolute;inset:0;background:linear-gradient(0deg,#38251d65,transparent 40%);transition:background .85s}.dark .bik-room img{filter:brightness(.89)}.bik-room #bik-evening:checked~figure img{filter:brightness(.61) saturate(.75) sepia(.15)}.bik-room #bik-evening:checked~figure div{background:radial-gradient(ellipse at 49% 58%,#ffb75c5c,transparent 53%),linear-gradient(0deg,#291d2492,transparent 70%);mix-blend-mode:screen}
+  .bik-note{position:absolute;top:53%;left:56%;display:grid;gap:5px;padding:15px 18px 17px;background:#f7efd8;color:#383724;white-space:nowrap;box-shadow:0 8px 24px #241b1a6c;transform:rotate(-5deg);transition:opacity .55s,transform .55s;min-width:185px}.bik-note small{font-size:12px;color:#6e6953}.bik-note b{font-size:14px}.bik-evening,.bik-room #bik-evening:checked~.bik-day{opacity:0;transform:rotate(-2deg) translateY(10px);pointer-events:none}.bik-room #bik-evening:checked~.bik-evening{opacity:1;transform:rotate(-5deg)}.bik-light-labels{position:absolute;bottom:25px;left:23px;background:#22211ec7;color:#f9f1d7;display:flex;gap:3px;padding:4px;border-radius:35px}.bik-light-labels label{cursor:pointer;padding:8px 18px;border-radius:33px;font-size:13px}.bik-room #bik-evening:checked~.bik-light-labels label[for=bik-evening],.bik-room #bik-day:checked~.bik-light-labels label[for=bik-day]{background:#fff5d7;color:#22211a;font-weight:750}.bik-room input:focus-visible~.bik-light-labels{outline:2px solid white;outline-offset:4px}
+  .bik-copy{display:flex;flex-direction:column;justify-content:center;align-items:start;padding:70px 36px 70px 51px;background:#f0cf50;color:#171d1b}.dark .bik-copy{background:#d9b844;color:#181d1a}.bik-copy small{font-size:15px;font-weight:650}.bik-copy h1{font-size:81px;margin:18px 0 21px}.bik-copy p{font-size:18px;line-height:1.65;margin:5px 0 28px}.bik-copy .bm-link{border:0;background:#162523;color:#fff6df}.brand-motion .ik-story{transition:transform .7s cubic-bezier(.2,.6,.25,1),filter .7s}.brand-motion .ik-story:hover{transform:scale(.984);filter:saturate(1.1)}.brand-motion .ik-story img{transition:transform .9s ease}.brand-motion .ik-story:hover img{transform:scale(1.07)}
+  @keyframes ikea-room{from{transform:scale(1.08) translateX(0)}to{transform:scale(1.13) translateX(-10px)}}
+  
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="dark"><div class="page ikea dark" data-theme="dark"><div class="brand-motion"><div class="ik"><header class="ik-shell"><a class="ik-word" href="#ik-first">CommitToDo</a><a href="#ik-stories">生活里的用法</a><a href="#ik-guide">如何开始</a><a href="#ik-data">数据与备份</a><span>简体中文</span></header>
+  <main class="ik-shell">
+    <section class="bik-hero" id="ik-first">
+    <div class="bik-room">
+      <input type="radio" id="bik-day" name="bik-light" checked><input type="radio" id="bik-evening" name="bik-light">
+      <figure><img src="assets/ikea-corner-e2442b597d12.png" alt="可以用来整理一天的木桌角落"><div></div></figure>
+      <div class="bik-note bik-day"><small>早上 · 今天</small><b>整理本周设计参考</b></div><div class="bik-note bik-evening"><small>傍晚 · 历程</small><b>09:42　完成首页线框</b></div>
+      <div class="bik-light-labels"><label for="bik-day">日光</label><label for="bik-evening">晚灯</label></div>
+    </div>
+    <div class="bik-copy"><small>一个自己的工作角落</small><h1 class="bm-stage-title">把今天<br>摆在手边。</h1><p>从一条待办开始，给做完的事留一个位置。</p><a class="bm-link" href="#ik-stories">看看日常怎么收好 <b>→</b></a></div>
+    </section>
+    <section class="ik-grid ik-row2" id="ik-stories">
+      <article class="ik-story"><div class="ik-binders" aria-hidden="true"><i>工作</i><i>健康</i><i>生活</i></div><div class="ik-caption"><small>把日子分开整理</small><h2>一棵树，三份生活。</h2><span class="ik-go">↗</span></div></article>
+      <article class="ik-story"><div class="ik-days" aria-hidden="true"><div><small>11 月 17 日</small><b>开始跑步</b></div><div><small>11 月 18 日</small><b>读了两页</b></div><div><small>11 月 19 日</small><b>交付线框</b></div><div><small>11 月 20 日</small><b>再走一步</b></div></div><div class="ik-caption"><small>把记忆放回时间里</small><h2>再小的进展，也留一页。</h2><span class="ik-go">↗</span></div></article>
+    </section>
+    <section class="ik-guide" id="ik-guide"><div><h2>从你已经<br>在做的事开始。</h2><p>用四个简单的动作，给忙乱的一天理出顺序。</p></div><div class="ik-manual">
+      <article><i>⊕</i><b>写下待办</b><p>例如，记下读书笔记。</p></article><article><i>⑂</i><b>归到分支</b><p>把它放在「生活 / 阅读」。</p></article><article><i>✓</i><b>勾完这件事</b><p>完成时自动写入一条提交。</p></article><article><i>◷</i><b>回到历程</b><p>沿着时间看点是怎么连起来的。</p></article>
+    </div></section>
+    <section class="ik-data" id="ik-data"><div><h2>家里的资料，自己收好。</h2><p>通过本地存储、离线使用和文件导出保存你的分支与提交。</p></div><a href="#ik-first">回到今天 ↑</a></section>
+  </main>
+  <footer class="ik-footer"><b>CommitToDo.</b><div><span>生活里的用法　　如何开始</span><span>数据与备份　 /　 简体中文</span></div></footer>
+  </div></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

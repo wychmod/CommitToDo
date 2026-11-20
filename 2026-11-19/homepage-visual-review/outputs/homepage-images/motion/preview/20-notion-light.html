@@ -1,0 +1,357 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · Notion · 贴纸工作间</title>
+  <style>:root{--bg:#ffffff;--surface:#fffefa;--ink:#24201e;--muted:#686361;--line:#e5e0dc;--accent:#215e9a;--soft:#edf4fa;--path-health:#437256;--path-life:#865d37;color-scheme:light}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .ntn{font-family:"Aptos","Microsoft YaHei UI",sans-serif}
+  .ntn a{color:inherit;text-decoration:none}.ntn p{margin:0}
+  .ntn .nwrap{width:1240px;max-width:calc(100% - 136px);margin:auto}
+  .ntn header{height:69px;display:flex;align-items:center;gap:29px;padding:0 51px;border-bottom:1px solid var(--line);font-size:13px;background:var(--bg)}
+  .ntn .nbrand{display:flex;align-items:center;gap:9px;font-weight:760;font-size:20px;letter-spacing:-.065em;white-space:nowrap}
+  .ntn .nmark{display:grid;place-items:center;width:28px;height:28px;border:2px solid var(--ink);border-radius:4px;font:800 20px/1 Georgia,serif;transform:rotate(-7deg)}
+  .ntn nav{display:flex;align-items:center;gap:21px}
+  .ntn header .nact{margin-left:auto}
+  .ntn .nact{display:inline-block;background:var(--accent);color:var(--bg);font-weight:700;padding:9px 13px;border-radius:6px}
+  .ntn .nhero{text-align:center;padding-top:66px;min-height:808px;overflow:hidden}
+  .ntn h1{font-size:83px;line-height:1.02;font-weight:800;letter-spacing:-.092em;margin:0}
+  .ntn h1 em{font-style:normal;background:var(--soft);color:var(--accent);border-radius:21px;padding:0 .125em .055em;white-space:nowrap}
+  .ntn .nhero>p{font-size:18px;color:var(--muted);margin:16px auto 13px}
+  .ntn .nbuttons{display:flex;justify-content:center;gap:9px;font-size:13px}
+  .ntn .nbuttons a:nth-child(2){background:var(--soft);color:var(--accent)}
+  .ntn .nscene{height:420px;width:1100px;max-width:100%;margin:56px auto 0;position:relative;isolation:isolate}
+  .ntn .npanel{position:absolute;background:var(--surface);border:1px solid var(--line);border-radius:12px;text-align:left;box-shadow:0 16px 46px -20px #0003}
+  .ntn .nmain{width:837px;height:390px;top:0;left:131px;overflow:hidden}
+  .ntn .nmain-head{padding:11px 15px;font-size:10px;color:var(--muted);border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+  .ntn .napp{display:grid;grid-template-columns:170px 1fr;height:353px}
+  .ntn .napp aside{background:color-mix(in srgb,var(--surface),var(--line) 18%);border-right:1px solid var(--line);padding:17px 13px}
+  .ntn .napp aside b{font-size:12px}.ntn .napp aside span{display:block;font-size:11px;color:var(--muted);margin-top:9px;padding:3px 5px}
+  .ntn .napp aside span:nth-of-type(1){background:var(--soft);border-radius:4px;color:var(--ink)}
+  .ntn .ncontent{padding:31px 29px;overflow:hidden}
+  .ntn .ncontent h2{font-size:30px;letter-spacing:-.07em;margin:0 0 10px}
+  .ntn .ncontent>p{font-size:12px;color:var(--muted);margin:0 0 18px}
+  .ntn .nrows{border-top:1px solid var(--line)}
+  .ntn .nrows div{display:grid;grid-template-columns:1fr 90px 88px;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:11px}
+  .ntn .nrows span:last-child{color:var(--muted)}.ntn .nrows .ndone{color:var(--accent)}
+  .ntn .nfloat{width:218px;min-height:114px;right:19px;bottom:53px;padding:14px 15px;transform:rotate(4deg);z-index:3}
+  .ntn .nfloat b{font-size:13px}.ntn .nfloat p{font-size:10px;color:var(--muted);margin-top:5px}
+  .ntn .nfloat .nmini-line{position:relative;width:100%;height:2px;background:var(--accent);margin-top:18px}
+  .ntn .nmini-line::after{content:"";position:absolute;left:53%;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .ntn .ndoodle{position:absolute;left:0;bottom:45px;width:160px;height:175px;color:var(--ink);z-index:2;transform:rotate(-7deg);font-size:12px}
+  .ntn .ndoodle-paper{position:absolute;width:108px;height:120px;background:var(--surface);border:2px solid currentColor;border-radius:6px;top:30px;left:15px;box-shadow:6px 7px 0 var(--soft);padding:25px 10px 0;font:700 17px/1.25 "Microsoft YaHei UI",sans-serif}
+  .ntn .ndoodle-paper::before{content:"";position:absolute;right:-2px;top:-2px;width:23px;height:23px;background:var(--soft);border:2px solid currentColor;border-radius:0 4px 0 2px}
+  .ntn .ndoodle-pencil{width:24px;height:111px;border:2px solid currentColor;background:var(--soft);border-radius:4px 4px 65% 65%;position:absolute;right:16px;top:17px;transform:rotate(29deg)}
+  .ntn .ndoodle-pencil::before,.ntn .ndoodle-pencil::after{content:"";position:absolute;left:-2px;right:-2px;border-top:2px solid currentColor;top:10px}.ntn .ndoodle-pencil::after{top:auto;bottom:21px}
+  .ntn .ndoodle b{position:absolute;left:5px;top:5px;font-size:31px}
+  .ntn .nprinciples{border-block:1px solid var(--line);display:flex;justify-content:center;gap:69px;align-items:center;min-height:80px;font-size:13px;color:var(--muted)}
+  .ntn .nprinciples strong{color:var(--ink);font-size:17px;letter-spacing:-.04em}
+  .ntn .nfeature{padding:72px 0 83px}
+  .ntn h2{font-size:53px;letter-spacing:-.08em;line-height:1.1;margin:0}
+  .ntn .nfeature h2{margin-bottom:27px}
+  .ntn .ncards{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .ntn .ncards article{border:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--line) 12%);border-radius:9px;overflow:hidden;padding:25px 25px 0;min-height:298px}
+  .ntn .ncards article:nth-child(2){background:var(--soft)}
+  .ntn .ncards article:nth-child(3){grid-column:1/-1;min-height:263px;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+  .ntn .ncards h3{font-size:27px;letter-spacing:-.06em;margin:5px 0 6px}
+  .ntn .ncards p{font-size:13px;color:var(--muted)}
+  .ntn .nmini{margin:25px 0 0;padding:17px;border:1px solid var(--line);border-radius:8px 8px 0 0;background:var(--surface);min-height:147px;box-shadow:0 8px 20px #0001}
+  .ntn .nmini div{font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)}
+  .ntn .nmini .nhl{color:var(--accent);font-weight:700}
+  .ntn .nbars{display:flex;align-items:end;gap:16px;justify-content:space-evenly;height:100px;border-bottom:1px solid var(--line);margin:15px 0 3px;padding:0 10px}
+  .ntn .nbars i{width:11%;display:block;border-radius:5px 5px 0 0;background:var(--accent);opacity:.55}
+  .ntn .nfeature-tag{font-size:11px;font-weight:680;color:var(--accent);display:block}
+  .ntn .nproof{padding:60px 0 72px;border-block:1px solid var(--line)}
+  .ntn .nproof h2{margin-bottom:22px}
+  .ntn .npostergrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .ntn .nposter{height:283px;color:#272224;background:#f0c2aa;border-radius:8px;padding:25px;position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:end}
+  .ntn .nposter:nth-child(2){background:#b6d5e9;color:#182936}.ntn .nposter:nth-child(3){background:#e7c980;color:#342a18}
+  .ntn .nposter::before{content:"";width:240px;height:220px;border-radius:50%;border:1px solid currentColor;box-shadow:0 0 0 22px color-mix(in srgb,currentColor,transparent 92%),0 0 0 52px color-mix(in srgb,currentColor,transparent 95%);position:absolute;top:-78px;right:-16px;opacity:.28;z-index:-1}
+  .ntn .nposter b{font-size:31px;letter-spacing:-.07em}.ntn .nposter p{font-size:14px}
+  .ntn .nend{text-align:center;padding:75px 0 85px;background:color-mix(in srgb,var(--surface),var(--line) 30%)}
+  .ntn .nend .nact{margin-top:15px;font-size:13px}
+  .ntn footer{display:grid;grid-template-columns:1.25fr repeat(3,1fr);gap:24px;padding:45px 0 49px}
+  .ntn footer p{font-size:12px;color:var(--muted);line-height:2}
+  .ntn footer b{font-size:13px}
+  
+.motion-product {
+  font-family: "Aptos", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+}
+.motion-product .mp-hero {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+}
+.motion-product .mp-width {
+  width: min(1280px,calc(100% - 110px));
+  margin-inline: auto;
+}
+.motion-product .mp-title {
+  margin: 0;
+  font-size: clamp(42px, 6.15vw, 95px);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -.085em;
+}
+.motion-product .mp-lead {
+  max-width: 460px;
+  margin: 19px 0 25px;
+  font-size: 17px;
+  line-height: 1.68;
+}
+.motion-product .mp-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 8px;
+  padding: 11px 17px;
+  background: var(--mp-action, var(--ink));
+  color: var(--mp-action-ink, var(--bg));
+  font-size: 13px;
+  font-weight: 660;
+  text-decoration: none;
+}
+.motion-product .mp-act:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.motion-product .mp-mono {
+  font: 11px/1.4 "IBM Plex Mono", "Cascadia Mono", Consolas, "Microsoft YaHei UI", monospace;
+}
+.motion-product .mp-proof {
+  position: relative;
+  isolation: isolate;
+  border-block: 1px solid var(--line);
+}
+.motion-product .mp-proof h2 {
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.11;
+  letter-spacing: -.065em;
+  margin: 0;
+}
+.motion-product .mp-proof p {
+  margin: 12px 0 0;
+  line-height: 1.65;
+  font-size: 15px;
+  color: var(--muted);
+}
+.motion-product .mp-proof h3 { margin: 0; }
+@media (max-width: 800px) {
+  .motion-product .mp-width { width: calc(100% - 36px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion-product *, .motion-product *::before, .motion-product *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+  .motion-product .ml-fly,
+  .motion-product .mn-control,
+  .motion-product .mn-toggle { display: none; }
+}
+
+.mp-notion .mn-hero {--mp-action:#286eca;--mp-action-ink:#fffcf6;min-height:878px;padding-top:76px;background:var(--bg);}
+.mp-notion .mn-heading {text-align:center;}
+.mp-notion .mn-heading .mp-title {font-size:clamp(44px,5.6vw,85px);letter-spacing:-.075em;line-height:1.12;}
+.mp-notion .mn-heading .mp-title>span:first-child {display:block;}
+.mp-notion .mn-heading p {color:var(--muted);margin:13px auto 19px;}
+.mp-notion .mn-word {display:block;position:relative;overflow:hidden;width:4.4em;height:1.25em;margin:0 auto;border-radius:.28em;background:#e3f3ff;color:#236ab0;}
+.dark .mp-notion .mn-word {background:#213d57;color:#92d0fc;}
+.mp-notion .mn-reel {display:grid;grid-template-rows:repeat(3,1.25em);align-items:center;animation:mn-words 8s cubic-bezier(.26,.75,.24,1) infinite;}
+.mp-notion .mn-reel b {display:grid;place-content:center;}
+.mp-notion .mn-accessible {position:absolute;overflow:hidden;clip-path:inset(50%);width:1px;height:1px;white-space:nowrap;}
+@keyframes mn-words {0%,22%,100%{transform:translateY(0)}28%,52%{transform:translateY(-1.25em)}58%,83%{transform:translateY(-2.5em)}94%{transform:translateY(0)}}
+.mp-notion .mn-control {cursor:pointer;margin-left:8px;display:inline-flex;align-items:center;border-radius:8px;padding:10px 14px;font-size:13px;border:1px solid var(--line);background:var(--surface);}
+.mp-notion .mn-control span:last-child,.mp-notion .mn-toggle:checked ~ .mn-heading .mn-control span:first-child {display:none;}
+.mp-notion .mn-toggle:checked ~ .mn-heading .mn-control span:last-child {display:inline-block;}
+.mp-notion .mn-toggle {position:absolute;width:1px;height:1px;opacity:0;}
+.mp-notion .mn-toggle:focus-visible ~ .mn-heading .mn-control {outline:2px solid var(--accent);outline-offset:3px;}
+.mp-notion .mn-toggle:checked ~ *,.mp-notion .mn-toggle:checked ~ * * {animation-play-state:paused !important;}
+.mp-notion .mn-table {position:relative;min-height:455px;margin-top:33px;background:radial-gradient(ellipse at 53% 69%,var(--soft),transparent 68%);}
+.mp-notion .mn-canvas {position:absolute;left:16%;right:16%;top:40px;border-radius:13px;background:var(--surface);border:1px solid var(--line);box-shadow:0 29px 67px -32px #274d7466;overflow:hidden;}
+.mp-notion .mn-canvas header {display:flex;justify-content:space-between;align-items:center;font-size:13px;height:47px;padding:0 16px;border-bottom:1px solid var(--line);}
+.mp-notion .mn-work {display:grid;grid-template-columns:23% 77%;min-height:300px;font-size:13px;}
+.mp-notion .mn-work aside {display:grid;align-content:start;gap:11px;padding:26px 13px;background:color-mix(in srgb,var(--bg),var(--soft) 32%);border-right:1px solid var(--line);}
+.mp-notion .mn-work aside span {color:var(--muted);}
+.mp-notion .mn-today {padding:26px 23px;}
+.mp-notion .mn-today h2 {font-size:29px;letter-spacing:-.04em;margin:0 0 11px;}
+.mp-notion .mn-today p {margin:0;padding:9px 12px;border-bottom:1px solid var(--line);}
+.mp-notion .mn-today p span {float:right;font-size:11px;color:var(--muted);}
+.mp-notion .mn-fresh {background:var(--soft);}
+.mp-notion .mn-slip {position:absolute;top:49%;right:8%;width:218px;padding:17px 16px;display:grid;gap:5px;background:#c9e8fc;color:#19394c;border:1px solid #80abc4;border-radius:7px;box-shadow:9px 15px 25px #173c4b34;transform:rotate(5deg);animation:mn-note 8s ease-in-out infinite;}
+@keyframes mn-note {0%,19%,100%{transform:translate(-24px,-5px) rotate(2deg);opacity:.73;}37%,87%{transform:translate(0,22px) rotate(8deg);opacity:1;}}
+.mp-notion .mn-slip small,.mp-notion .mn-slip time {font-size:11px;color:#31586a;}
+.mp-notion .mn-ink {position:absolute;left:4%;top:40%;width:143px;height:133px;transform:rotate(-13deg);animation:mn-ink 8s cubic-bezier(.16,.85,.25,1) infinite;}
+.mp-notion .mn-ink b {display:block;position:absolute;width:107px;height:105px;left:5px;top:12px;border:3px solid var(--ink);background:#fcedce;border-radius:3px;box-shadow:8px 9px 0 #b7c9d349;transform:rotate(-9deg);}
+.mp-notion .mn-ink b:after {content:"✓";position:absolute;left:17px;top:8px;font-size:49px;color:#233442;transform:rotate(8deg);}
+.mp-notion .mn-ink i {display:block;position:absolute;top:9px;right:10px;width:27px;height:2px;background:var(--ink);transform:rotate(-37deg);}
+.mp-notion .mn-ink i:nth-of-type(2) {top:2px;right:28px;transform:rotate(-65deg);}
+.mp-notion .mn-ink i:nth-of-type(3) {top:24px;right:3px;transform:rotate(-12deg);}
+@keyframes mn-ink {0%,21%,100%{transform:translateY(0) rotate(-13deg);}48%,83%{transform:translateY(-15px) rotate(-6deg);}}
+.mp-notion .mn-proof {background:color-mix(in srgb,var(--bg),var(--surface) 45%);}
+.mp-notion .mn-proof .mp-width {padding:70px 0;}
+.mp-notion .mn-swatches {display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:29px;}
+.mp-notion .mn-swatches article {padding:22px 24px;background:var(--soft);border:1px solid var(--line);border-radius:7px;}
+.mp-notion .mn-swatches article i {display:block;margin-bottom:6px;font-size:33px;font-style:normal;}
+.mp-notion .mn-swatches article p {margin-top:6px;}
+@supports (animation-timeline: view()) {
+  .mp-notion .mn-swatches article {animation:mn-swatches linear both;animation-timeline:view();animation-range:entry 0% cover 32%;}
+  .mp-notion .mn-swatches article:nth-child(2) {animation-range:entry 12% cover 41%;}
+  .mp-notion .mn-swatches article:nth-child(3) {animation-range:entry 25% cover 52%;}
+}
+@keyframes mn-swatches {from{transform:translateY(20px) rotate(-2deg);}to{transform:none;}}
+
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="light"><div class="page notion light" data-theme="light"><div class="motion-product mp-notion"><div class="ntn">
+  <header><a class="nbrand" href="#"><span class="nmark">C</span>CommitToDo</a><nav><a href="#notion-works">产品</a><a href="#notion-life">使用场景</a><a href="#notion-end">开始指南</a></nav><a class="nact" href="#notion-end">打开工作区 ↗</a></header>
+  <main><section class="mp-hero mn-hero">
+    <input class="mn-toggle" type="checkbox" id="mn-pause">
+    <div class="mp-width mn-heading">
+      <h1 class="mp-title"><span>把小事放进自己的</span><span class="mn-word"><span class="mn-accessible">工作空间</span><span class="mn-reel" aria-hidden="true"><b>今天。</b><b>分支。</b><b>历程。</b></span></span></h1>
+      <p class="mp-lead">待办、分支和时间树，一处看得清。</p>
+      <a class="mp-act" href="#notion-works">看工作区<span aria-hidden="true">↗</span></a><label for="mn-pause" class="mn-control"><span>Ⅱ　暂停演示</span><span>▶　继续演示</span></label>
+    </div>
+    <div class="mp-width mn-table">
+      <div class="mn-ink" aria-hidden="true"><b></b><i></i><i></i><i></i></div>
+      <div class="mn-canvas">
+        <header><b>CommitToDo</b><span>我的工作区　/　今天</span><span>⌕　＋</span></header>
+        <div class="mn-work">
+          <aside><b>我的空间</b><span>□ 今天</span><span>⑂ 分支</span><span>◷ 历程</span></aside>
+          <div class="mn-today"><h2>今天的待办</h2><p>□　复查移动端界面</p><p>□　晚饭后散步</p><p class="mn-fresh">✓　完成线框初稿 <span>已提交</span></p><p>✓　读完一章</p></div>
+        </div>
+      </div>
+      <div class="mn-slip"><b>✓　线框初稿</b><small>工作 / 产品设计</small><time>11.20　16:42</time></div>
+    </div>
+  </section><section class="mp-proof mn-proof"><div class="mp-width"><h2>三块内容，一个工作区。</h2><div class="mn-swatches">
+    <article><i>□</i><h3>今天</h3><p>整理需要处理的待办。</p></article>
+    <article><i>⑂</i><h3>分支</h3><p>区分工作、健康和生活。</p></article>
+    <article><i>◷</i><h3>历程</h3><p>查找做过的事和完成时间。</p></article>
+  </div></div></section>
+  <div class="nprinciples"><strong>今天</strong>眼前要做的事<strong>分支</strong>逐步清晰的方向<strong>历程</strong>做完留下的进展</div>
+  <section class="nfeature nwrap" id="notion-works"><h2>一处放下，沿路找回。</h2><div class="ncards">
+    <article><span class="nfeature-tag">今天</span><h3>把手上的事聚在一起。</h3><p>能马上写下，也可以稍后安排归属。</p><div class="nmini"><div>□　剪好一段访谈</div><div>□　整理本周训练计划</div><div class="nhl">✓　读完一章</div></div></article>
+    <article><span class="nfeature-tag">历程</span><h3>看自己走了多远。</h3><p>每次完成留下进度，回看方向更清楚。</p><div class="nmini"><div class="nbars"><i style="height:22%"></i><i style="height:54%"></i><i style="height:43%"></i><i style="height:75%"></i><i style="height:93%"></i></div></div></article>
+    <article><div><span class="nfeature-tag">分支</span><h3>让每件事有个去处。</h3><p>从一棵树开始，工作、健康和生活都能各自展开。</p></div><div class="nmini"><div class="nhl">⑂　我</div><div>　├　工作 / 产品设计</div><div>　├　健康 / 跑步</div><div>　└　生活 / 阅读</div></div></article>
+  </div></section>
+  <section class="nproof" id="notion-life"><div class="nwrap"><h2>生活里，处处能用。</h2><div class="npostergrid">
+    <article class="nposter"><b>做点作品。</b><p>把散落的制作进度留在工作分支。</p></article>
+    <article class="nposter"><b>跑第一公里。</b><p>做一次训练，在健康分支落下一点。</p></article>
+    <article class="nposter"><b>继续阅读。</b><p>回头看这周读过的书和写过的笔记。</p></article>
+  </div></div></section>
+  <section class="nend" id="notion-end"><h2>今天就开一页。</h2><a class="nact" href="#">打开 CommitToDo ↗</a></section></main>
+  <footer class="nwrap"><div class="nbrand"><span class="nmark">C</span>CommitToDo</div><div><b>产品</b><p>今天<br>分支<br>历程</p></div><div><b>上手指南</b><p>写一条待办<br>新建分支</p></div><div><b>数据与隐私</b><p>本机使用<br>导出备份</p></div></footer>
+  </div></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

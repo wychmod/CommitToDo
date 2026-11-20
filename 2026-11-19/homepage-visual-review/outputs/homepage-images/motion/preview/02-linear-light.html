@@ -1,0 +1,354 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · Linear · 活动轨道</title>
+  <style>:root{--bg:#F7F7FA;--surface:#FFFFFF;--ink:#181A23;--muted:#626779;--line:#DCDDE8;--accent:#645CA7;--soft:#E9E6F6;--path-health:#437256;--path-life:#865d37;color-scheme:light}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .d2 { font-family:"Aptos","Microsoft YaHei UI",sans-serif; color:var(--ink); line-height:1.55; }
+  .d2 * { box-sizing:border-box; }
+  .d2 h1,.d2 h2,.d2 h3,.d2 p,.d2 figure { margin:0; }
+  .d2 h1,.d2 h2,.d2 h3 { text-wrap:initial; }
+  .d2 a { color:inherit; text-decoration:none; }
+  .d2 .rail { width:min(1264px,calc(100% - 152px)); margin-inline:auto; }
+  .d2 .actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .d2 .act { display:inline-flex; align-items:center; justify-content:center; gap:17px; padding:12px 18px; background:var(--ink); color:var(--bg); border:1px solid var(--ink); border-radius:7px; font-size:14px; line-height:1.4; white-space:nowrap; }
+  .d2 .act.ghost { color:var(--ink); background:transparent; border-color:var(--line); }
+  .d2 .mono { font-family:"Cascadia Mono",Consolas,"Microsoft YaHei UI",monospace; font-size:12px; }
+  .d2 .muted { color:var(--muted); }
+  .d2 .pin { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-right:8px; }
+  .d2 .word { font:680 21px/.9 Bahnschrift,"Aptos",sans-serif; letter-spacing:-.055em; white-space:nowrap; }
+  .d2 .word i { display:inline-block; width:14px; height:14px; margin-right:8px; vertical-align:baseline; background:currentColor; transform:rotate(-23deg); clip-path:polygon(32% 0,72% 0,72% 24%,100% 24%,100% 62%,70% 62%,70% 100%,28% 100%,28% 72%,0 72%,0 34%,32% 34%); }
+  .d2 .micro { font:12px/1.55 "Cascadia Mono",Consolas,"Microsoft YaHei UI",monospace; color:var(--muted); }
+  .d2 .serif { font-family:"Noto Serif CJK SC","Songti SC",SimSun,serif; }
+  .d2 .d2-chart { position:relative; height:200px; background:linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% 40px; overflow:hidden; }
+  .d2 .d2-chart .chart-line { position:absolute; inset:0; background:var(--tone,var(--accent)); }
+  .d2 .d2-chart .chart-node { position:absolute; left:var(--x); top:var(--y); width:8px; height:8px; border-radius:50%; background:var(--tone,var(--accent)); transform:translate(-50%,-50%); }
+  .d2 .legend { display:flex; justify-content:space-between; gap:16px; }
+
+    .ln { overflow:hidden; }
+    .ln .ln-nav { border-bottom:1px solid var(--line); }
+    .ln .ln-nav>.rail { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; height:60px; }
+    .ln .ln-nav .word { font-size:19px; }
+    .ln .ln-nav nav { display:flex; gap:34px; font-size:13px; color:var(--muted); }
+    .ln .ln-nav .act { justify-self:end; padding:6px 12px; font-size:12px; }
+    .ln .ln-hero { height:905px; position:relative; border-bottom:1px solid var(--line); isolation:isolate; overflow:hidden; }
+    .ln .ln-hero:before { content:''; position:absolute; inset:130px 0 0; z-index:-1; background:radial-gradient(ellipse at 75% 55%,var(--soft),transparent 62%); }
+    .ln .ln-hero-copy { padding-top:105px; position:relative; z-index:2; }
+    .ln .ln-hero h1 { font-size:85px; line-height:1.05; font-weight:640; letter-spacing:-.088em; }
+    .ln .ln-hero p { margin:25px 0; max-width:510px; font-size:20px; color:var(--muted); }
+    .ln .ln-viewport { position:absolute; left:max(11%,calc(50% - 545px)); top:393px; width:1420px; padding:12px; border:1px solid var(--line); border-radius:18px; transform:rotate(-9deg) skew(-1deg); background:linear-gradient(110deg,var(--soft),var(--bg)); box-shadow:0 10px 90px #0003; }
+    .ln .ln-viewport:after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:80px; background:linear-gradient(transparent,var(--bg)); }
+    .ln .ln-app { display:grid; grid-template-columns:200px 1fr; min-height:535px; border-radius:12px; overflow:hidden; color:var(--ink); background:var(--surface); border:1px solid var(--line); text-align:left; box-shadow:0 24px 65px #0002; }
+    .ln .ln-app aside { display:grid; align-content:start; gap:1px; padding:15px 11px; border-right:1px solid var(--line); background:color-mix(in srgb,var(--surface),var(--ink) 3%); }
+    .ln .ln-app h4 { margin:0 0 12px; padding:7px 2px; font-size:15px; display:flex; align-items:center; gap:7px; }
+    .ln .ln-app h4 i { width:17px; height:17px; border-radius:5px; background:var(--accent); }
+    .ln .ln-app h4 span { margin-left:auto; color:var(--muted); }
+    .ln .ln-app aside a { color:var(--muted); padding:6px; border-radius:5px; font-size:13px; }
+    .ln .ln-app aside .sel { background:var(--soft); color:var(--ink); }
+    .ln .ln-app aside em { float:right; font-style:normal; }
+    .ln .ln-app aside small { color:var(--muted); margin:16px 6px 3px; }
+    .ln .ln-app aside .sub { margin-left:24px; }
+    .ln .ln-list header,.ln .ln-list-caption { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); padding:12px 21px; font-size:13px; }
+    .ln .ln-list-caption { color:var(--muted); background:color-mix(in srgb,var(--soft),var(--surface) 60%); }
+    .ln .ln-row { min-height:44px; display:grid; grid-template-columns:22px 58px 1fr 95px 72px 98px; align-items:center; gap:10px; padding:0 21px; border-bottom:1px solid var(--line); font-size:12px; color:var(--muted); }
+    .ln .ln-row b { font-weight:570; color:var(--ink); font-size:14px; }
+    .ln .ln-tag { width:max-content; border:1px solid var(--line); border-radius:12px; padding:1px 7px; }
+    .ln .ln-check { display:grid; place-items:center; width:13px; height:13px; border:1px solid var(--muted); border-radius:50%; }
+    .ln .ln-check.done { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+    .ln .ln-flow { padding:112px 0 107px; }
+    .ln .ln-flow h2,.ln .ln-log h2 { font-size:57px; line-height:1.08; letter-spacing:-.07em; }
+    .ln .ln-flow-header { display:flex; justify-content:space-between; align-items:end; gap:44px; margin-bottom:48px; }
+    .ln .ln-flow-header p { width:420px; color:var(--muted); }
+    .ln .ln-steps { display:grid; grid-template-columns:1fr 1.1fr 1fr; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--surface); }
+    .ln .ln-steps article { padding:36px 27px; min-height:310px; display:flex; flex-direction:column; }
+    .ln .ln-steps article+article { border-left:1px solid var(--line); }
+    .ln .ln-steps h3 { font-size:22px; margin:20px 0 7px; letter-spacing:-.035em; }
+    .ln .ln-steps p { color:var(--muted); min-height:60px; font-size:14px; }
+    .ln .ln-widget { margin-top:auto; padding:12px; border:1px solid var(--line); border-radius:7px; font-size:12px; color:var(--muted); background:var(--bg); }
+    .ln .ln-widget strong { display:block; color:var(--ink); font-size:14px; margin-bottom:3px; }
+    .ln .ln-log { background:var(--surface); border-block:1px solid var(--line); padding:109px 0; }
+    .ln .ln-log>.rail { display:grid; grid-template-columns:1fr 1.46fr; gap:74px; align-items:center; }
+    .ln .ln-log p { margin-top:20px; max-width:360px; color:var(--muted); }
+    .ln .ln-history { border:1px solid var(--line); border-radius:12px; padding:25px 26px 22px; background:var(--bg); }
+    .ln .ln-history .legend:first-child { align-items:baseline; margin-bottom:22px; }
+    .ln .ln-history .legend:first-child b { font-size:22px; }
+    .ln .ln-history .d2-chart { margin-block:5px 15px; }
+    .ln .ln-end { min-height:445px; padding:122px 0 110px; }
+    .ln .ln-end h2 { font-size:56px; letter-spacing:-.075em; margin-bottom:23px; }
+    .ln .ln-end p { color:var(--muted); margin-bottom:24px; }
+    .ln .ln-footer { border-top:1px solid var(--line); min-height:275px; padding:54px 0; }
+    .ln .ln-footer>.rail { display:grid; grid-template-columns:1.4fr repeat(3,1fr); gap:25px; }
+    .ln .ln-footer a:not(.word) { color:var(--muted); display:block; margin-top:12px; font-size:13px; }
+  
+.motion-product {
+  font-family: "Aptos", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+}
+.motion-product .mp-hero {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+}
+.motion-product .mp-width {
+  width: min(1280px,calc(100% - 110px));
+  margin-inline: auto;
+}
+.motion-product .mp-title {
+  margin: 0;
+  font-size: clamp(42px, 6.15vw, 95px);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -.085em;
+}
+.motion-product .mp-lead {
+  max-width: 460px;
+  margin: 19px 0 25px;
+  font-size: 17px;
+  line-height: 1.68;
+}
+.motion-product .mp-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 8px;
+  padding: 11px 17px;
+  background: var(--mp-action, var(--ink));
+  color: var(--mp-action-ink, var(--bg));
+  font-size: 13px;
+  font-weight: 660;
+  text-decoration: none;
+}
+.motion-product .mp-act:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.motion-product .mp-mono {
+  font: 11px/1.4 "IBM Plex Mono", "Cascadia Mono", Consolas, "Microsoft YaHei UI", monospace;
+}
+.motion-product .mp-proof {
+  position: relative;
+  isolation: isolate;
+  border-block: 1px solid var(--line);
+}
+.motion-product .mp-proof h2 {
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.11;
+  letter-spacing: -.065em;
+  margin: 0;
+}
+.motion-product .mp-proof p {
+  margin: 12px 0 0;
+  line-height: 1.65;
+  font-size: 15px;
+  color: var(--muted);
+}
+.motion-product .mp-proof h3 { margin: 0; }
+@media (max-width: 800px) {
+  .motion-product .mp-width { width: calc(100% - 36px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion-product *, .motion-product *::before, .motion-product *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+  .motion-product .ml-fly,
+  .motion-product .mn-control,
+  .motion-product .mn-toggle { display: none; }
+}
+
+.mp-linear .ml-hero { background: var(--bg); min-height: 854px; --mp-action: #d9d9ff; --mp-action-ink: #222049; }
+.mp-linear .ml-intro { display: grid; grid-template-columns: 1.35fr .65fr; align-items: end; gap: 64px; padding-top: 86px; }
+.mp-linear .ml-intro p { color: var(--muted); }
+.mp-linear .ml-horizon { position: absolute; z-index:-1; inset: 280px -150px -100px; background: radial-gradient(ellipse at 50% 60%,#4142906b 0%,transparent 62%); }
+.mp-linear .ml-perspective { margin-top: 48px; perspective: 1720px; position:relative; }
+.mp-linear .ml-deck { min-width: 854px; transform-origin: 50% 8%; transform: rotateX(17deg) rotateZ(-4deg); color:#ebebf5; border:1px solid #626589; border-radius:16px; background:linear-gradient(146deg,#232537,#171824 68%); box-shadow: 0 0 0 7px #7879a915, 2px 36px 70px -15px #10112596,0 0 100px #6775d736; animation:ml-open .85s cubic-bezier(.19,.7,.16,1) both; }
+@keyframes ml-open { from { transform:translateY(48px) rotateX(24deg) rotateZ(-4deg); opacity:.4; } to { transform:translateY(0) rotateX(17deg) rotateZ(-4deg); opacity:1; }}
+.mp-linear .ml-top { display:flex; justify-content:space-between; align-items:center; padding:0 23px; height:48px; font-size:12px; color:#cbcbe5; border-bottom:1px solid #4b4d61; }
+.mp-linear .ml-body { display:grid; grid-template-columns:17% 64% 19%; min-height:406px; }
+.mp-linear .ml-body aside { display:grid; align-content:start; gap:15px; padding:26px 18px 20px; background:#1d1f30; border-right:1px solid #41445c; font-size:12px; }
+.mp-linear .ml-body aside small { color:#a1a1b8; margin-top:19px; }
+.mp-linear .ml-board { position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:27px 15px; }
+.mp-linear .ml-board h3,.mp-linear .ml-activity h3 { margin:0 0 27px; font-size:13px; white-space:nowrap; }
+.mp-linear .ml-board h3 small { color:#9b98c6; margin-left:8px; }
+.mp-linear .ml-board span:not(.ml-fly) { min-height:53px; margin:7px 0; display:grid; align-content:center; padding:5px 11px; background:#292d45; border:1px solid #454b64; font-size:12px; border-radius:8px; }
+.mp-linear .ml-board .ml-logged { animation:ml-logged 6.8s linear infinite; }
+.mp-linear .ml-origin { opacity:.55; }
+.mp-linear .ml-fly { position:absolute; z-index:2; left:34%; top:76px; width:30%; display:flex; justify-content:space-between; align-items:center; padding:14px 10px; font-size:12px; border-radius:8px; color:#fff; background:#3c395c; border:1px solid #9d96d6; box-shadow:0 6px 20px #15182f92; animation:ml-route 6.8s cubic-bezier(.22,.7,.23,1) infinite; }
+.mp-linear .ml-fly b { color:#b3b4ff; }
+@keyframes ml-route { 0%, 7% { transform:translateX(0); opacity:.1; } 15% {transform:translateX(0); opacity:1;} 39%,57% { transform:translateX(108%); opacity:1; } 69%,100% {transform:translateX(108%); opacity:0;} }
+@keyframes ml-logged {0%,35% { opacity:.48; } 45%,100% {opacity:1;} }
+.mp-linear .ml-activity { border-left:1px solid #41445b; padding:27px 14px; display:flex; flex-direction:column; align-items:flex-start; gap:12px; background:#1d2032; border-radius:0 0 16px 0; font-size:12px; }
+.mp-linear .ml-activity small,.mp-linear .ml-activity time {color:#b0b4cf;}
+.mp-linear .ml-dot { background:#a1a1ff; width:8px; height:8px; border-radius:50%; box-shadow:0 0 0 0 #a1a1ff80; animation:ml-activity 6.8s linear infinite; }
+@keyframes ml-activity {0%,39%,100% {box-shadow:0 0 0 0 #a1a1ff00;} 45% {box-shadow:0 0 0 12px #a1a1ff66;} 56% {box-shadow:0 0 0 24px #a1a1ff00;}}
+.mp-linear .ml-proof { background:color-mix(in srgb,var(--surface),var(--bg) 35%); }
+.mp-linear .ml-proof .mp-width { padding:86px 50px; display:grid; grid-template-columns: .62fr 1.38fr; gap:55px; align-items:center; }
+.mp-linear .ml-track { display:flex; justify-content:space-between; gap:15px; position:relative; }
+.mp-linear .ml-track::before { content:""; position:absolute; height:1px; top:12px; left:0; right:0; background:linear-gradient(90deg,var(--line),var(--accent),var(--line)); }
+.mp-linear .ml-track span { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:8px; font-size:12px; }
+.mp-linear .ml-track i { display:block;width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--surface); margin:8px 0 10px; }
+.mp-linear .ml-track time { color:var(--muted); font:11px monospace; }
+.mp-linear .ml-track::after { content:""; position:absolute; height:1px; top:12px; left:0; right:0; transform-origin:left; background:var(--accent); opacity:.7; }
+@supports (animation-timeline: view()) {
+  .mp-linear .ml-track::after { animation:ml-trace linear both; animation-timeline:view(); animation-range:entry 3% cover 36%; }
+}
+@keyframes ml-trace { from { transform:scaleX(0);opacity:0; } to { transform:scaleX(1);opacity:.7; } }
+
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="light"><div class="page linear light" data-theme="light"><div class="motion-product mp-linear"><div class="d2 ln">
+  <header class="ln-nav"><div class="rail"><a class="word" href="#"><i></i>CommitToDo</a><nav><a href="#flow">工作流</a><a href="#history">历程</a><a href="#start">数据与隐私</a></nav><a class="act" href="#start">打开工作台</a></div></header>
+  <main>
+    <section class="mp-hero ml-hero">
+    <div class="mp-width ml-intro"><h1 class="mp-title">推进眼前事。<br>留住每一步。</h1>
+    <div><p class="mp-lead">专注手上的待办。完成时，工作台就把这一刻记进分支。</p><a class="mp-act" href="#flow">看工作台<span aria-hidden="true">↗</span></a></div></div>
+    <div class="ml-horizon" aria-hidden="true"></div>
+    <div class="mp-width ml-perspective">
+      <div class="ml-deck"><div class="ml-top"><b>CommitToDo / 今天</b><small class="mp-mono">本地工作区</small><span>⌕　＋</span></div>
+        <div class="ml-body">
+          <aside><b>工作区</b><span>◉　今天</span><span>⑂　分支</span><span>◷　历程</span><small>工作 / 产品设计</small><span>首页重构</span></aside>
+          <div class="ml-board">
+            <div><h3>待处理 <small>02</small></h3><span>整理首页参考</span><span>复核移动端</span></div>
+            <div><h3>进行中 <small>01</small></h3><span class="ml-origin">完成线框初稿</span></div>
+            <div><h3>已提交 <small>03</small></h3><span class="ml-logged">✓　完成线框初稿</span><span>✓　走访使用场景</span></div>
+            <span class="ml-fly">完成线框初稿 <b>✓</b></span>
+          </div>
+          <div class="ml-activity"><h3>活动</h3><div class="ml-dot"></div><b>提交已写入</b><small>工作 / 产品设计</small><time>11 月 20 日　16:42</time></div>
+        </div>
+      </div>
+    </div>
+  </section><section class="mp-proof ml-proof"><div class="mp-width"><div><h2>活动有迹可循。</h2><p>沿分支看清完成的先后顺序。</p></div><div class="ml-track">
+    <span><i></i><b>走访使用场景</b><time>11.12</time></span>
+    <span><i></i><b>整理首页参考</b><time>11.18</time></span>
+    <span><i></i><b>完成线框初稿</b><time>11.20</time></span>
+  </div></div></section>
+    <section class="rail ln-flow" id="flow"><div class="ln-flow-header"><h2>从收件到提交。</h2><p>刚想到的事放进今天。做完就生成一条带时间与分支的提交，全程只需一次勾选。</p></div>
+      <div class="ln-steps">
+        <article><small class="micro">收件箱</small><h3>写下下一步</h3><p>给待办一句清楚的话，随时在「今天」处理。</p><div class="ln-widget"><strong>＋　完成首页线框</strong>分支　产品设计</div></article>
+        <article><small class="micro">待办详情</small><h3>让它找到位置</h3><p>日期决定什么时候做，分支说明这件事属于哪个方向。</p><div class="ln-widget"><strong><i class="pin"></i>工作 ／ 产品设计</strong>计划日期　11 月 20 日</div></article>
+        <article><small class="micro">提交详情</small><h3>完成，追加一步</h3><p>完成的时间与待办标题一起留在这条分支上。</p><div class="ln-widget"><strong>✓　完成首页线框</strong>11 月 20 日 · 14:32</div></article>
+      </div>
+    </section>
+    <section class="ln-log" id="history"><div class="rail"><div><h2>把进展串起来。</h2><p>沿着时间轴回看做过的事，辨认哪些分支一直在向前，哪些需要重新接上。</p></div><div class="ln-history"><div class="legend"><b>工作区历程</b><small class="micro">最近 90 天　⌄</small></div><div class="d2-chart" aria-label="三个分支及其提交节点">
+  <i class="chart-node" style="--x:5%;--y:46%;--tone:var(--accent)"></i><i class="chart-line" style="--tone:var(--accent);clip-path:polygon(5% calc(46% - 1px),27% calc(46% - 1px),27% calc(46% + 1px),5% calc(46% + 1px))"></i><i class="chart-node" style="--x:27%;--y:46%;--tone:var(--accent)"></i><i class="chart-line" style="--tone:var(--accent);clip-path:polygon(27% calc(46% - 1px),46% calc(30% - 1px),46% calc(30% + 1px),27% calc(46% + 1px))"></i><i class="chart-node" style="--x:46%;--y:30%;--tone:var(--accent)"></i><i class="chart-line" style="--tone:var(--accent);clip-path:polygon(46% calc(30% - 1px),65% calc(30% - 1px),65% calc(30% + 1px),46% calc(30% + 1px))"></i><i class="chart-node" style="--x:65%;--y:30%;--tone:var(--accent)"></i><i class="chart-line" style="--tone:var(--accent);clip-path:polygon(65% calc(30% - 1px),93% calc(30% - 1px),93% calc(30% + 1px),65% calc(30% + 1px))"></i><i class="chart-node" style="--x:93%;--y:30%;--tone:var(--accent)"></i>
+  <i class="chart-node" style="--x:27%;--y:46%;--tone:var(--path-health)"></i><i class="chart-line" style="--tone:var(--path-health);clip-path:polygon(27% calc(46% - 1px),46% calc(63% - 1px),46% calc(63% + 1px),27% calc(46% + 1px))"></i><i class="chart-node" style="--x:46%;--y:63%;--tone:var(--path-health)"></i><i class="chart-line" style="--tone:var(--path-health);clip-path:polygon(46% calc(63% - 1px),50% calc(63% - 1px),50% calc(63% + 1px),46% calc(63% + 1px))"></i><i class="chart-node" style="--x:50%;--y:63%;--tone:var(--path-health)"></i><i class="chart-line" style="--tone:var(--path-health);clip-path:polygon(50% calc(63% - 1px),86% calc(63% - 1px),86% calc(63% + 1px),50% calc(63% + 1px))"></i><i class="chart-node" style="--x:86%;--y:63%;--tone:var(--path-health)"></i>
+  <i class="chart-node" style="--x:50%;--y:63%;--tone:var(--path-life)"></i><i class="chart-line" style="--tone:var(--path-life);clip-path:polygon(50% calc(63% - 1px),69% calc(78% - 1px),69% calc(78% + 1px),50% calc(63% + 1px))"></i><i class="chart-node" style="--x:69%;--y:78%;--tone:var(--path-life)"></i><i class="chart-line" style="--tone:var(--path-life);clip-path:polygon(69% calc(78% - 1px),91% calc(78% - 1px),91% calc(78% + 1px),69% calc(78% + 1px))"></i><i class="chart-node" style="--x:91%;--y:78%;--tone:var(--path-life)"></i>
+</div><div class="legend micro"><span>08.23</span><span>09.23</span><span>10.23</span><span>11.20</span></div></div></div></section>
+    <section class="rail ln-end" id="start"><h2>打开今天，把事做完。</h2><p>无需账号即可使用，本机数据支持备份与导出。</p><a class="act" href="#start">进入 CommitToDo</a></section>
+  </main>
+  <footer class="ln-footer"><div class="rail"><a class="word" href="#"><i></i>CommitToDo</a><div><b>工作台</b><a href="#flow">今天</a><a href="#history">分支与历程</a></div><div><b>数据</b><a href="#start">本地存储</a><a href="#start">备份与导出</a></div><div><b>关于</b><a href="#start">CommitToDo</a></div></div></footer>
+  </div></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

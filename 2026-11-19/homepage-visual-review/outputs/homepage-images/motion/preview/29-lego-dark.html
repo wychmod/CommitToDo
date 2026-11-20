@@ -1,0 +1,206 @@
+<!doctype html><html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · LEGO · 分支装配间</title>
+  <style>:root{--bg:#161e2b;--surface:#202c3c;--ink:#f7f4e4;--muted:#b4bfd2;--line:#3e4d62;--accent:#a8d6ff;--soft:#293d52;--path-health:#95c5a7;--path-life:#d0b489;color-scheme:dark}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .lg{font-family:"Microsoft YaHei UI","Aptos",sans-serif}
+  .lg a{color:inherit;text-decoration:none}
+  .lg .lg-pre{height:33px;display:grid;place-items:center;background:var(--ink);color:var(--bg);font-size:12px}
+  .lg .lg-nav{height:70px;display:flex;align-items:center;gap:38px;padding:0 61px;background:var(--surface);font-size:14px}
+  .lg .lg-brand{display:flex;align-items:center;gap:10px;font:800 22px/1 "Bahnschrift","Aptos",sans-serif;letter-spacing:-.075em}
+  .lg .lg-brand i{width:30px;height:30px;display:grid;place-items:center;color:white;background:#275b9f;border-radius:8px;font:700 20px/1 "Segoe UI Symbol",sans-serif}
+  .lg .lg-nav a:last-child{margin-left:auto;border:1px solid var(--line);padding:7px 13px;border-radius:30px}
+  .lg .lg-hero{height:702px;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 82% 34%,#ffe6a5 0%,#f7ce71 57%,#efba52 100%);color:#27291e}
+  .dark .lg .lg-hero{background:radial-gradient(ellipse at 80% 39%,#574e33,#2e332a 55%,#1a2936);color:#fff4d7}
+  .lg .lg-hero:before,.lg .lg-hero:after{content:"";position:absolute;z-index:-1;right:-92px;transform:rotate(-18deg);width:770px;height:770px;border-radius:0 0 50% 50%;border:2px solid #fff8ca66;top:-290px;box-shadow:0 0 0 52px #fff8ca24,0 0 0 112px #fff8ca20,0 0 0 175px #fff8ca22}
+  .lg .lg-hero:after{right:280px;top:500px;opacity:.6}
+  .lg .lg-hero img{position:absolute;width:817px;max-width:none;right:40px;top:66px;filter:drop-shadow(13px 24px 14px #32261448);z-index:-1}
+  .lg .lg-hero-copy{position:relative;top:151px;left:8%;max-width:600px}
+  .lg .lg-hero-copy small{font-weight:750;letter-spacing:.12em;font-size:15px}
+  .lg h1{font-size:94px;line-height:1.1;letter-spacing:-.095em;margin:14px 0}
+  .lg .lg-hero p{font-size:18px;line-height:1.6;margin:15px 0 25px}
+  .lg .lg-action{display:inline-flex;gap:22px;align-items:center;background:#1f4c8c;color:#fff;border-radius:30px;padding:12px 20px;font-size:14px;font-weight:720}
+  .lg .lg-categories{display:flex;align-items:center;justify-content:center;gap:102px;min-height:168px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .lg .lg-categories span{display:grid;justify-items:center;gap:6px;font-size:14px}
+  .lg .lg-categories i{font-style:normal;display:grid;place-items:center;border-radius:50%;background:var(--soft);color:var(--accent);width:52px;height:52px;font-size:24px}
+  .lg .lg-shelf{margin:auto;width:calc(100% - 150px);padding:66px 0 72px}
+  .lg .lg-shelf h2,.lg .lg-manual h2{font-size:54px;letter-spacing:-.065em}
+  .lg .lg-shelf>p{margin:12px 0 24px;color:var(--muted)}
+  .lg .lg-kits{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
+  .lg .lg-kit{min-width:0;background:var(--surface);border:1px solid var(--line);padding:13px}
+  .lg .lg-kit-visual{height:278px;position:relative;display:grid;place-items:center;overflow:hidden}
+  .lg .lg-kit:nth-child(1) .lg-kit-visual{background:#e7d9f0;color:#764d94}
+  .lg .lg-kit:nth-child(2) .lg-kit-visual{background:#cbe3df;color:#488780}
+  .lg .lg-kit:nth-child(3) .lg-kit-visual{background:#f3dabc;color:#bb6542}
+  .dark .lg .lg-kit-visual{filter:saturate(.75) brightness(.82)}
+  .lg .lg-kit-visual i{display:block;position:absolute;width:121px;height:121px;border-radius:23px;transform:rotate(-16deg) skew(-4deg);background:currentColor;box-shadow:11px 12px 0 color-mix(in srgb,currentColor,#fff 45%),13px 28px 26px #0003}
+  .lg .lg-kit-visual i:after{content:attr(data-mark);position:absolute;color:#fff;inset:0;display:grid;place-items:center;font:60px/1 "Segoe UI Symbol",sans-serif}
+  .lg .lg-kit:nth-child(2) .lg-kit-visual i{width:145px;height:106px;transform:rotate(13deg)}
+  .lg .lg-kit:nth-child(3) .lg-kit-visual i{width:122px;height:122px;border-radius:50%;transform:rotate(-9deg)}
+  .lg .lg-kit h3{font-size:25px;letter-spacing:-.045em;margin:13px 4px 6px}
+  .lg .lg-kit p{font-size:14px;color:var(--muted);margin:0 4px 12px}
+  .lg .lg-manual{padding:72px max(7%,80px) 81px;background:var(--soft);position:relative}
+  .lg .lg-manual .lg-step-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px;margin-top:39px}
+  .lg .lg-step{position:relative;min-height:217px;border-top:2px solid var(--line);padding:17px 0 10px}
+  .lg .lg-step b{font-size:24px}.lg .lg-step small{display:block;margin-top:8px;color:var(--muted);font-size:13px}
+  .lg .lg-step code{display:block;font-family:inherit;width:86%;padding:16px 13px;border-radius:7px;background:var(--surface);border:1px solid var(--line);margin-top:23px;white-space:nowrap}
+  .lg .lg-step:not(:last-child):after{content:'→';position:absolute;right:7px;bottom:57px;font-size:25px;color:var(--accent)}
+  .lg .lg-close{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:70px 8%;background:#dfebd3;color:#253524}
+  .dark .lg .lg-close{background:#354d33;color:#f4f4dd}
+  .lg .lg-close h2{font-size:58px;letter-spacing:-.07em}.lg .lg-close p{margin-top:8px;font-size:15px}
+  .lg footer{background:#22344d;color:#eff3e9;padding:43px 8% 34px;display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:30px;font-size:13px}
+  .lg footer b{display:block;margin-bottom:9px;font-size:16px}
+  
+.brand-motion{isolation:isolate}.brand-motion h1,.brand-motion h2,.brand-motion p,.brand-motion figure{margin:0}
+.brand-motion a:focus-visible,.brand-motion button:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+.brand-motion .bm-link{color:inherit;display:inline-flex;align-items:center;gap:16px;min-height:44px;padding:0 20px;text-decoration:none;border:1px solid currentColor;border-radius:24px;font-size:14px;font-weight:700}
+.brand-motion .bm-link b{font-size:18px;font-weight:500}.brand-motion .bm-quiet{font-size:13px;letter-spacing:.08em}
+.brand-motion .bm-wrap{max-width:1260px;margin-inline:auto;width:calc(100% - 112px)}
+.brand-motion .bm-stage-title{font-family:var(--stage-font,"Microsoft YaHei UI",sans-serif);font-weight:800;line-height:1.1;letter-spacing:-.055em}
+@media (prefers-reduced-motion:reduce){.brand-motion *,.brand-motion *::before,.brand-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+  .blg-hero{background:linear-gradient(135deg,#fbe67c 8%,#ffd13c 49%,#f5b942);height:745px;position:relative;isolation:isolate;overflow:hidden;color:#19254b}.dark .blg-hero{background:linear-gradient(135deg,#2d294d,#3d3b65 55%,#1d394c);color:#fff4d3}.blg-copy{position:absolute;top:183px;left:7.2%;z-index:2;width:555px}.blg-copy small{font-size:14px;font-weight:800;letter-spacing:.055em}.blg-copy h1{font-size:69px;line-height:1.13;margin:12px 0 21px}.blg-copy p{max-width:435px;font-size:19px;line-height:1.63;margin:0 0 22px}.blg-copy .bm-link{background:#19274e;border-color:#19274e;color:#fff7dd;font-weight:850}.dark .blg-copy .bm-link{background:#ffdc6a;border-color:#ffdc6a;color:#262c43}
+  .blg-model{position:absolute;top:52px;right:6.1%;width:700px;height:651px;perspective:1200px}.blg-model input{opacity:0;position:absolute;width:1px;height:1px}.blg-halo{position:absolute;right:12px;top:53px;width:565px;height:510px;border-radius:40% 50% 35% 42%;background:#fff7af5c;border:1px solid #fff2ad6b;transform:rotate(-13deg) skewX(-5deg);box-shadow:0 0 0 23px #fff8c738,0 0 0 54px #fff3af30;animation:lego-halo 7s cubic-bezier(.2,.6,.3,1) infinite}.dark .blg-halo{background:#e6e5ff20;box-shadow:0 0 0 23px #bcc7fd20,0 0 0 54px #c7bafb1e;border-color:#f3edff44}.blg-model img{position:absolute;left:-20px;top:9px;width:100%;height:85%;object-fit:contain;filter:drop-shadow(6px 29px 22px #50391457);transform:rotate(4deg);animation:lego-seat 7s cubic-bezier(.34,1.24,.4,1) infinite}.blg-model .blg-tag{display:grid;position:absolute;right:41px;top:100px;z-index:2;min-width:166px;transform:rotate(8deg);padding:12px 17px 14px;background:#fff6d9;color:#233345;box-shadow:0 8px 0 #b9954b7a,0 16px 22px #2b354343;border-radius:6px;border:1px solid #fffce1;animation:lego-tag 7s ease-in-out infinite}.blg-tag>div{display:none}.blg-tag b,.blg-tag span{display:block}.blg-tag b{font-size:14px;color:#543e25}.blg-tag span{font-size:15px;font-weight:850}.blg-switch{position:absolute;left:25%;right:15%;bottom:14px;display:flex;justify-content:center;gap:11px}.blg-switch label{cursor:pointer;padding:8px 23px;border:1px solid currentColor;border-radius:25px;font-size:14px;font-weight:700}.blg-model input:focus-visible~.blg-switch{outline:2px solid currentColor;outline-offset:6px}.blg-model #blg-work:checked~.blg-tag .blg-work,.blg-model #blg-health:checked~.blg-tag .blg-health,.blg-model #blg-life:checked~.blg-tag .blg-life{display:block}.blg-model #blg-work:checked~.blg-switch label[for=blg-work],.blg-model #blg-health:checked~.blg-switch label[for=blg-health],.blg-model #blg-life:checked~.blg-switch label[for=blg-life]{background:#19274e;border-color:#19274e;color:#fff5d2}
+  .brand-motion .lg-kit-visual{overflow:hidden}.brand-motion .lg-kit-visual>i{transition:translate .45s cubic-bezier(.27,1.44,.55,1),rotate .45s}.brand-motion .lg-kit:hover .lg-kit-visual>i{translate:0 -10px;rotate:-7deg}.brand-motion .lg-manual .lg-step code{transition:transform .32s ease,background .32s}.brand-motion .lg-manual .lg-step:hover code{transform:translateY(-6px);background:var(--soft)}
+  @keyframes lego-seat{0%,100%{transform:rotate(4deg) translateY(3px)}28%{transform:rotate(1deg) translateY(13px)}50%,76%{transform:rotate(3deg) translateY(0)}}@keyframes lego-tag{0%,100%{transform:rotate(9deg) translateY(0)}55%{transform:rotate(5deg) translateY(-12px)}}@keyframes lego-halo{0%,100%{scale:.99}55%{scale:1.04}}
+  
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="dark"><div class="page lego dark" data-theme="dark"><div class="brand-motion"><div class="lg">
+  <header><div class="lg-pre">用今天的一个动作，给未来留下一点东西</div><nav class="lg-nav"><a class="lg-brand" href="#lg-home"><i>⑂</i>CommitToDo</a><a href="#lg-shelf">建造主题</a><a href="#lg-manual">开始指南</a><a href="#lg-data">本地资料</a><a href="#lg-manual">打开今天 ↗</a></nav></header>
+  <main id="lg-home">
+    <section class="blg-hero"><div class="blg-copy"><small>CommitToDo · 分支装配间</small><h1 class="bm-stage-title">把今天的一块，<br>接到自己的路上。</h1><p>选一个分支，写下要做的事。完成时，就会添上一块新的记录。</p><a class="bm-link" href="#lg-shelf">看看怎么接 <b>→</b></a></div>
+  <div class="blg-model"><input type="radio" id="blg-work" name="blg-lane" checked><input type="radio" id="blg-health" name="blg-lane"><input type="radio" id="blg-life" name="blg-lane">
+    <div class="blg-halo"></div><img src="assets/lego-branch-6222ebbfe42c.png" alt="彩色木方和球体接成的分支雕塑">
+    <div class="blg-tag"><div class="blg-work"><b>工作</b><span>完成首页线框</span></div><div class="blg-health"><b>健康</b><span>傍晚慢跑 5 公里</span></div><div class="blg-life"><b>生活</b><span>记下读书笔记</span></div></div>
+    <div class="blg-switch"><label for="blg-work">工作</label><label for="blg-health">健康</label><label for="blg-life">生活</label></div>
+  </div></section>
+    <section class="lg-categories" aria-label="入口"><span><i>□</i>今天的事</span><span><i>⑂</i>不同分支</span><span><i>◷</i>过去的提交</span><span><i>▣</i>本地备份</span></section>
+    <section class="lg-shelf" id="lg-shelf"><h2>为每种小事选一个位置</h2><p>工作要交付，健康要练习，生活也有自己的进展。</p>
+      <div class="lg-kits"><article class="lg-kit"><div class="lg-kit-visual"><i data-mark="□"></i></div><h3>做完工作上的事</h3><p>在「工作 / 产品设计」勾掉一份线框。</p></article>
+      <article class="lg-kit"><div class="lg-kit-visual"><i data-mark="⑂"></i></div><h3>继续跑自己的路线</h3><p>把傍晚慢跑 5 公里接进「健康 / 跑步」。</p></article>
+      <article class="lg-kit"><div class="lg-kit-visual"><i data-mark="◷"></i></div><h3>回看生活的一个小点</h3><p>沿「生活 / 阅读」找到那天写过的笔记。</p></article></div>
+    </section>
+    <section class="lg-manual" id="lg-manual"><h2>一件事怎么接上去</h2><div class="lg-step-grid">
+      <article class="lg-step"><b>写到今天</b><small>从一条具体的待办开始。</small><code>□　记下读书笔记</code></article><article class="lg-step"><b>做完这一件</b><small>勾选后自动生成提交。</small><code>✓　记下读书笔记</code></article><article class="lg-step"><b>在分支上找到它</b><small>节点留在属于它的分支。</small><code>●　生活 / 阅读　 09:42</code></article>
+    </div></section>
+    <section class="lg-close" id="lg-data"><div><h2>接到哪里，自己决定。</h2><p>待办、分支与提交都能保存在本机。离线可用，随时导出。</p></div><a class="lg-action" href="#lg-home">打开今天 <b>→</b></a></section>
+  </main>
+  <footer><div><b>CommitToDo</b>把小事接成一段历程。</div><div><b>建造主题</b>工作　健康　生活</div><div><b>使用指南</b>待办　分支　历程</div><div><b>资料保管</b>本机保存　导出备份</div></footer>
+  </div></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

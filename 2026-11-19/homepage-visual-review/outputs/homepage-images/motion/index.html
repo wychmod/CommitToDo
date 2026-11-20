@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CommitToDo · 首页动效选稿</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.6 "Aptos","Microsoft YaHei UI",sans-serif;background:#eeede6;color:#1b2623}
+button,select{font:inherit}a{color:inherit;text-decoration:none}button{cursor:pointer}
+header,main,footer{width:min(1375px,calc(100% - 68px));margin:auto}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #d2d5cc;padding:17px 0;gap:20px}
+header strong{font:750 24px/1 "Bahnschrift",sans-serif;letter-spacing:-.07em}
+header nav{display:flex;gap:18px;color:#49554f;font-size:13px}
+.intro{display:flex;justify-content:space-between;align-items:end;gap:35px;margin:51px 0 25px}
+h1{font-size:clamp(33px,4.8vw,65px);line-height:1.04;letter-spacing:-.065em;margin:0 0 12px}
+.intro p{margin:0;color:#4d5951}.film{padding:9px 14px;border:1px solid #a6b5a9;border-radius:7px;white-space:nowrap}
+.player{border:1px solid #bfc6b8;border-radius:12px;background:#f9faf5;overflow:hidden;box-shadow:0 20px 47px -36px #253a29ad}
+.bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:11px 14px;border-bottom:1px solid #cbd2c6}
+.bar select,.bar button,.bar a{border:1px solid #bec9bd;border-radius:6px;background:#fff;color:#1b2d23;padding:7px 10px;font-size:13px}
+.bar select{margin-right:auto;max-width:min(100%,360px)}.bar button[aria-pressed="true"]{background:#21352c;color:#fbfff9;border-color:#21352c}
+.bar a:last-child{background:#e4ede2}
+.viewport{width:100%;position:relative;overflow:hidden;background:#d8e0d8;height:50vw;min-height:260px}
+iframe{width:1512px;height:950px;display:block;transform-origin:0 0;border:0;background:white}
+.hint{font-size:12px;padding:4px 14px;color:#43514a;margin:0}
+#choices{scroll-margin-top:18px}.choices-title{font-size:27px;letter-spacing:-.04em;margin:45px 0 13px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:13px}
+.card{min-width:0}.card button{width:100%;padding:0;background:#f9faf6;border:1px solid #c6ccc3;border-radius:9px;overflow:hidden;text-align:left;color:#22332b}
+.card button:hover{border-color:#5a7d65}.card button:focus-visible,button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid #325c51;outline-offset:4px}
+.card img{display:block;width:100%;aspect-ratio:1.6;object-fit:cover}.card span{display:flex;gap:7px;padding:10px 10px;align-items:center;justify-content:space-between;font-weight:700;font-size:13px}
+footer{border-top:1px solid #d2d5cc;margin-top:50px;padding:16px 0 27px;color:#59655d;font-size:13px}
+@media(max-width:750px){header,main,footer{width:calc(100% - 26px)}.intro{align-items:start;flex-direction:column;gap:12px}.bar select{width:100%}.viewport{min-height:180px}}
+</style></head><body>
+<header><strong>CommitToDo</strong><nav><a href="#choices">所有方向</a><a href="动效研究与提示词.md">研究与提示词</a></nav></header>
+<main>
+<section class="intro"><div><h1>首页动效选稿</h1><p>29 个方向，浅深两版。选中方案后可在预览里下滚体验，也可打开全页。</p></div><a class="film" href="codex-motion.mp4">播放 Codex 演示 ↗</a></section>
+<section class="player" id="player"><div class="bar">
+<select id="choice" aria-label="选择首页设计"><option value="0">Codex · 蓝紫光场</option><option value="1">Linear · 活动轨道</option><option value="2">Vercel · 分光棱镜</option><option value="3">Cursor · 桌面接力</option><option value="4">Resend · 提交铸件</option><option value="5">Stripe Press · 可翻阅的私人编年</option><option value="6">TRAE · 绿色信号</option><option value="7">语雀 · 会长成分支的手账</option><option value="8">少数派 · 流动的每日进度报</option><option value="9">Manus · 一句话到一条记录</option><option value="10">Apple · 双面玻璃展台</option><option value="11">Stripe · 流动色带</option><option value="12">Figma · 分支画布的选区</option><option value="13">Microsoft · 分层功能展位</option><option value="14">Xiaomi · 跑道摄影长镜头</option><option value="15">Huawei · 钛面反射展场</option><option value="16">阿里云 · 玻璃数据场</option><option value="17">飞书 · 可切换发布台</option><option value="18">Claude · 温纸与微光</option><option value="19">Notion · 贴纸工作间</option><option value="20">Framer · 画布折面</option><option value="21">Runway · 两段路的慢切</option><option value="22">Pentagram · 一个不断展开的个人档案</option><option value="23">Teenage Engineering · 桌上任务仪</option><option value="24">Aesop · 暖光手稿</option><option value="25">Porsche · 远路慢推</option><option value="26">Studio Dumbar · 一次完成的动谱</option><option value="27">IKEA · 两束光，一张桌</option><option value="28">LEGO · 分支装配间</option></select>
+<button id="light" type="button" aria-pressed="true">浅色</button><button id="dark" type="button" aria-pressed="false">深色</button>
+<button id="restart" type="button">重播入场</button><a id="still" href="01-codex-light.png" target="_blank" rel="noopener">打开 PNG</a>
+<a id="full" href="preview/01-codex-light.html" target="_blank" rel="noopener">打开全页动效 ↗</a>
+</div><div class="viewport"><iframe id="scene" src="preview/01-codex-light.html" title="Codex 首页动效预览"></iframe></div><p class="hint">在预览内滚动或点击内容中的控件。</p></section>
+<h2 class="choices-title" id="choices">全部 29 个方向</h2><div class="cards"><article class="card">
+  <button type="button" data-choice="0" aria-label="播放 Codex · 蓝紫光场">
+    <img loading="lazy" src="thumb/01-codex.jpg" alt="">
+    <span>Codex · 蓝紫光场<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="1" aria-label="播放 Linear · 活动轨道">
+    <img loading="lazy" src="thumb/02-linear.jpg" alt="">
+    <span>Linear · 活动轨道<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="2" aria-label="播放 Vercel · 分光棱镜">
+    <img loading="lazy" src="thumb/03-vercel.jpg" alt="">
+    <span>Vercel · 分光棱镜<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="3" aria-label="播放 Cursor · 桌面接力">
+    <img loading="lazy" src="thumb/04-cursor.jpg" alt="">
+    <span>Cursor · 桌面接力<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="4" aria-label="播放 Resend · 提交铸件">
+    <img loading="lazy" src="thumb/05-resend.jpg" alt="">
+    <span>Resend · 提交铸件<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="5" aria-label="播放 Stripe Press · 可翻阅的私人编年">
+    <img loading="lazy" src="thumb/06-stripe-press.jpg" alt="">
+    <span>Stripe Press · 可翻阅的私人编年<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="6" aria-label="播放 TRAE · 绿色信号">
+    <img loading="lazy" src="thumb/07-trae.jpg" alt="">
+    <span>TRAE · 绿色信号<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="7" aria-label="播放 语雀 · 会长成分支的手账">
+    <img loading="lazy" src="thumb/08-yuque.jpg" alt="">
+    <span>语雀 · 会长成分支的手账<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="8" aria-label="播放 少数派 · 流动的每日进度报">
+    <img loading="lazy" src="thumb/09-sspai.jpg" alt="">
+    <span>少数派 · 流动的每日进度报<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="9" aria-label="播放 Manus · 一句话到一条记录">
+    <img loading="lazy" src="thumb/10-manus.jpg" alt="">
+    <span>Manus · 一句话到一条记录<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="10" aria-label="播放 Apple · 双面玻璃展台">
+    <img loading="lazy" src="thumb/11-apple.jpg" alt="">
+    <span>Apple · 双面玻璃展台<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="11" aria-label="播放 Stripe · 流动色带">
+    <img loading="lazy" src="thumb/12-stripe.jpg" alt="">
+    <span>Stripe · 流动色带<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="12" aria-label="播放 Figma · 分支画布的选区">
+    <img loading="lazy" src="thumb/13-figma.jpg" alt="">
+    <span>Figma · 分支画布的选区<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="13" aria-label="播放 Microsoft · 分层功能展位">
+    <img loading="lazy" src="thumb/14-microsoft.jpg" alt="">
+    <span>Microsoft · 分层功能展位<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="14" aria-label="播放 Xiaomi · 跑道摄影长镜头">
+    <img loading="lazy" src="thumb/15-xiaomi.jpg" alt="">
+    <span>Xiaomi · 跑道摄影长镜头<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="15" aria-label="播放 Huawei · 钛面反射展场">
+    <img loading="lazy" src="thumb/16-huawei.jpg" alt="">
+    <span>Huawei · 钛面反射展场<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="16" aria-label="播放 阿里云 · 玻璃数据场">
+    <img loading="lazy" src="thumb/17-aliyun.jpg" alt="">
+    <span>阿里云 · 玻璃数据场<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="17" aria-label="播放 飞书 · 可切换发布台">
+    <img loading="lazy" src="thumb/18-feishu.jpg" alt="">
+    <span>飞书 · 可切换发布台<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="18" aria-label="播放 Claude · 温纸与微光">
+    <img loading="lazy" src="thumb/19-claude.jpg" alt="">
+    <span>Claude · 温纸与微光<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="19" aria-label="播放 Notion · 贴纸工作间">
+    <img loading="lazy" src="thumb/20-notion.jpg" alt="">
+    <span>Notion · 贴纸工作间<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="20" aria-label="播放 Framer · 画布折面">
+    <img loading="lazy" src="thumb/21-framer.jpg" alt="">
+    <span>Framer · 画布折面<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="21" aria-label="播放 Runway · 两段路的慢切">
+    <img loading="lazy" src="thumb/22-runway.jpg" alt="">
+    <span>Runway · 两段路的慢切<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="22" aria-label="播放 Pentagram · 一个不断展开的个人档案">
+    <img loading="lazy" src="thumb/23-pentagram.jpg" alt="">
+    <span>Pentagram · 一个不断展开的个人档案<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="23" aria-label="播放 Teenage Engineering · 桌上任务仪">
+    <img loading="lazy" src="thumb/24-teenage-engineering.jpg" alt="">
+    <span>Teenage Engineering · 桌上任务仪<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="24" aria-label="播放 Aesop · 暖光手稿">
+    <img loading="lazy" src="thumb/25-aesop.jpg" alt="">
+    <span>Aesop · 暖光手稿<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="25" aria-label="播放 Porsche · 远路慢推">
+    <img loading="lazy" src="thumb/26-porsche.jpg" alt="">
+    <span>Porsche · 远路慢推<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="26" aria-label="播放 Studio Dumbar · 一次完成的动谱">
+    <img loading="lazy" src="thumb/27-studio-dumbar.jpg" alt="">
+    <span>Studio Dumbar · 一次完成的动谱<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="27" aria-label="播放 IKEA · 两束光，一张桌">
+    <img loading="lazy" src="thumb/28-ikea.jpg" alt="">
+    <span>IKEA · 两束光，一张桌<b aria-hidden="true">↗</b></span>
+  </button></article><article class="card">
+  <button type="button" data-choice="28" aria-label="播放 LEGO · 分支装配间">
+    <img loading="lazy" src="thumb/29-lego.jpg" alt="">
+    <span>LEGO · 分支装配间<b aria-hidden="true">↗</b></span>
+  </button></article></div>
+</main><footer>CommitToDo 设计选稿　·　1512 px 桌面画布</footer>
+<script>
+const options=[{"title":"Codex · 蓝紫光场","prefix":"01-codex"},{"title":"Linear · 活动轨道","prefix":"02-linear"},{"title":"Vercel · 分光棱镜","prefix":"03-vercel"},{"title":"Cursor · 桌面接力","prefix":"04-cursor"},{"title":"Resend · 提交铸件","prefix":"05-resend"},{"title":"Stripe Press · 可翻阅的私人编年","prefix":"06-stripe-press"},{"title":"TRAE · 绿色信号","prefix":"07-trae"},{"title":"语雀 · 会长成分支的手账","prefix":"08-yuque"},{"title":"少数派 · 流动的每日进度报","prefix":"09-sspai"},{"title":"Manus · 一句话到一条记录","prefix":"10-manus"},{"title":"Apple · 双面玻璃展台","prefix":"11-apple"},{"title":"Stripe · 流动色带","prefix":"12-stripe"},{"title":"Figma · 分支画布的选区","prefix":"13-figma"},{"title":"Microsoft · 分层功能展位","prefix":"14-microsoft"},{"title":"Xiaomi · 跑道摄影长镜头","prefix":"15-xiaomi"},{"title":"Huawei · 钛面反射展场","prefix":"16-huawei"},{"title":"阿里云 · 玻璃数据场","prefix":"17-aliyun"},{"title":"飞书 · 可切换发布台","prefix":"18-feishu"},{"title":"Claude · 温纸与微光","prefix":"19-claude"},{"title":"Notion · 贴纸工作间","prefix":"20-notion"},{"title":"Framer · 画布折面","prefix":"21-framer"},{"title":"Runway · 两段路的慢切","prefix":"22-runway"},{"title":"Pentagram · 一个不断展开的个人档案","prefix":"23-pentagram"},{"title":"Teenage Engineering · 桌上任务仪","prefix":"24-teenage-engineering"},{"title":"Aesop · 暖光手稿","prefix":"25-aesop"},{"title":"Porsche · 远路慢推","prefix":"26-porsche"},{"title":"Studio Dumbar · 一次完成的动谱","prefix":"27-studio-dumbar"},{"title":"IKEA · 两束光，一张桌","prefix":"28-ikea"},{"title":"LEGO · 分支装配间","prefix":"29-lego"}];
+const select=document.getElementById('choice');
+const scene=document.getElementById('scene');
+const viewport=scene.parentElement;
+const still=document.getElementById('still');
+const full=document.getElementById('full');
+const light=document.getElementById('light');
+const dark=document.getElementById('dark');
+let theme='light';
+function show(replay=false){
+  const entry=options[Number(select.value)];
+  const path='preview/'+entry.prefix+'-'+theme+'.html';
+  scene.title=entry.title+' · 动效预览';
+  scene.src=path+(replay?'?play='+Date.now():'');
+  full.href=path;
+  still.href=entry.prefix+'-'+theme+'.png';
+  light.setAttribute('aria-pressed',String(theme==='light'));
+  dark.setAttribute('aria-pressed',String(theme==='dark'));
+}
+new ResizeObserver(()=>{
+  const scale=viewport.clientWidth/1512;
+  scene.style.transform='scale('+scale+')';
+  viewport.style.height=Math.round(950*scale)+'px';
+}).observe(viewport);
+select.addEventListener('change',()=>show());
+light.addEventListener('click',()=>{theme='light';show()});
+dark.addEventListener('click',()=>{theme='dark';show()});
+document.getElementById('restart').addEventListener('click',()=>show(true));
+for(const button of document.querySelectorAll('[data-choice]')){
+  button.addEventListener('click',()=>{
+    select.value=button.dataset.choice;
+    show();
+    document.getElementById('player').scrollIntoView({block:'start'});
+  });
+}
+</script></body></html>

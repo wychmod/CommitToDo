@@ -1,0 +1,158 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · Stripe · 流动色带</title>
+  <style>:root{--bg:#fbfcff;--surface:#fff;--ink:#222044;--muted:#5c5973;--line:#e0def0;--accent:#6143d6;--soft:#eeecff;--path-health:#437256;--path-life:#865d37;color-scheme:light}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .sr{font-family:"Aptos","Microsoft YaHei UI",sans-serif}.sr a{color:inherit;text-decoration:none}
+  .sr header{height:69px;padding:0 6%;display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--line);font-size:13px}
+  .sr header b{font:760 25px/1 "Bahnschrift","Aptos",sans-serif;letter-spacing:-.08em}.sr header nav{display:flex;gap:33px;align-items:center}
+  .sr .sr-btn{display:inline-flex;gap:15px;align-items:center;padding:9px 16px;border-radius:28px;background:var(--accent);color:var(--bg);font-size:14px;font-weight:700}
+  .sr .sr-hero{height:784px;isolation:isolate;overflow:hidden;position:relative}
+  .sr .sr-blades{position:absolute;inset:0;z-index:-1;overflow:hidden}
+  .sr .sr-blades i{display:block;position:absolute;top:-605px;right:-140px;width:940px;height:1400px;border-radius:44% 56% 63% 41% / 40% 27% 65% 68%;transform:rotate(-34deg);background:var(--blade);box-shadow:0 0 58px -28px #36144177;animation:sr-bend 7.9s var(--offset) ease-in-out infinite alternate}
+  .sr .sr-blades i:nth-child(1){--blade:linear-gradient(146deg,#5f8bff,#f3adfa 52%,#ff9597);--offset:-2.2s;right:-66px;top:-535px}
+  .sr .sr-blades i:nth-child(2){--blade:linear-gradient(133deg,#c781ff,#fc4d96 66%,#ffa377);--offset:-4s;right:-215px;top:-560px}
+  .sr .sr-blades i:nth-child(3){--blade:linear-gradient(151deg,#fff2a2,#ffa52d 25%,#ff724d 66%,#ea5fb5);--offset:-1s;right:-327px;top:-590px}
+  .sr .sr-blades i:nth-child(4){--blade:linear-gradient(145deg,#ffd982,#ffc863,#ff887e,#a56aff);--offset:-4.2s;right:-520px;top:-625px}
+  .dark .sr .sr-blades{filter:saturate(.88) brightness(.72)}
+  @keyframes sr-bend{0%{transform:rotate(-31deg) translate(0,0) scale(1);border-bottom-left-radius:42%}100%{transform:rotate(-41deg) translate(-48px,52px) scale(1.045);border-bottom-left-radius:72%}}
+  .sr .sr-copy{position:relative;margin:0 0 0 8%;padding-top:165px;width:650px}
+  .sr h1{font-size:84px;line-height:1.06;font-weight:790;letter-spacing:-.083em}.sr .sr-copy p{font-size:19px;line-height:1.6;max-width:440px;color:var(--muted);margin:20px 0 23px}
+  .sr .sr-receipt{position:absolute;right:8%;top:381px;width:360px;min-height:220px;padding:21px 25px;background:var(--surface);border:1px solid color-mix(in srgb,var(--line),white 24%);border-radius:12px;box-shadow:0 28px 63px -22px #492460a6;transform:rotate(-6deg);animation:sr-receipt 5.8s ease-in-out infinite alternate}
+  .sr .sr-receipt small,.sr .sr-receipt p{color:var(--muted);font-size:12px}.sr .sr-receipt b{display:block;margin:9px 0;font-size:25px;letter-spacing:-.065em}
+  @keyframes sr-receipt{to{transform:translateY(-24px) rotate(-2deg)}}
+  .sr .sr-bars{margin-top:19px;height:55px;display:flex;gap:8px;align-items:end;border-bottom:1px solid var(--line)}.sr .sr-bars i{background:linear-gradient(var(--accent),var(--soft));height:var(--bar);width:17px;border-radius:4px 4px 0 0}
+  .sr .sr-wrap{width:min(1270px,calc(100% - 138px));margin:auto}
+  .sr .sr-products{padding:81px 0 86px}.sr h2{font-size:50px;letter-spacing:-.065em}.sr .sr-products>p{color:var(--muted);margin:11px 0 26px}
+  .sr .sr-bento{display:grid;grid-template-columns:1.22fr 1fr 1fr;gap:14px}.sr .sr-bento article{min-height:243px;padding:21px 24px;border:1px solid var(--line);border-radius:13px;background:var(--surface);overflow:hidden;position:relative}.sr .sr-bento article:first-child{background:var(--soft)}.sr .sr-bento h3{font-size:22px}.sr .sr-bento p{color:var(--muted);font-size:14px;margin-top:8px}.sr .sr-pulse{margin-top:28px;display:flex;align-items:center;gap:7px;white-space:nowrap}.sr .sr-pulse i{width:10px;height:10px;border-radius:50%;background:var(--accent)}.sr .sr-pulse span{height:1px;width:40px;background:var(--line)}
+  .sr .sr-metrics{background:#171845;color:#fff;min-height:508px;padding:64px 0;position:relative;isolation:isolate;overflow:hidden}
+  .sr .sr-metrics:before{content:"";position:absolute;inset:0;z-index:-2;background:repeating-linear-gradient(90deg,#ffffff10 0 1px,transparent 1px 11%);mask-image:linear-gradient(black,transparent)}
+  .sr .sr-metrics:after{content:"";position:absolute;inset:32% -12% -81%;z-index:-1;background:radial-gradient(ellipse,#7956ff 0%,#2d2886 40%,transparent 70%);animation:sr-glow 6s ease-in-out infinite alternate}
+  @keyframes sr-glow{to{transform:translate(13%,-13%);opacity:.68}}
+  .sr .sr-metrics p{font-size:15px;color:#d8d2ff;margin-top:13px}.sr .sr-metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:46px}.sr .sr-metrics-grid div{border-block:1px solid #ffffff32;padding:23px 17px}.sr .sr-metrics-grid b{display:block;font:600 56px/1 "Bahnschrift",sans-serif;color:#efe8ff}.sr .sr-metrics-grid small{color:#d9d0fd}
+  .sr .sr-final{padding:77px 0;display:flex;align-items:center;justify-content:space-between;gap:42px}.sr .sr-final p{color:var(--muted);margin-top:13px}.sr footer{border-top:1px solid var(--line);padding:32px 7%;display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+  
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="light"><div class="page stripe light" data-theme="light"><div class="sr"><header><b>CommitToDo</b><nav><a href="#sr-product">产品</a><a href="#sr-data">数据保管</a><a href="#sr-product" class="sr-btn">打开今天　→</a></nav></header>
+  <main><section class="sr-hero"><div class="sr-blades" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="sr-copy"><h1>让每次完成，<br>进入同一条历程。</h1><p>今天处理任务，分支整理目标，时间树留下做过的事。</p><a class="sr-btn" href="#sr-product">看工作方式 <b>→</b></a></div>
+  <article class="sr-receipt"><small>活动 · 最近一周</small><b>8 条提交</b><p>工作 / 健康 / 生活</p><div class="sr-bars" aria-hidden="true"><i style="--bar:25%"></i><i style="--bar:70%"></i><i style="--bar:39%"></i><i style="--bar:88%"></i><i style="--bar:50%"></i><i style="--bar:97%"></i></div></article>
+  </section><section class="sr-products sr-wrap" id="sr-product"><h2>从行动到回看。</h2><p>同一件事，可以在不同的视图中找到。</p><div class="sr-bento"><article><h3>今天</h3><p>汇总逾期、当天和未定日期的待办。</p><div class="sr-pulse"><i></i><span></span><i></i><span></span><i></i></div></article><article><h3>分支</h3><p>根下面展开工作、健康和生活。</p><div class="sr-pulse"><i></i><span></span><i></i></div></article><article><h3>提交</h3><p>完成待办后留下标题、日期和分支。</p><div class="sr-pulse"><i></i><span></span>16:25</div></article></div></section>
+  <section class="sr-metrics" id="sr-data"><div class="sr-wrap"><h2>一棵树，数据在本机。</h2><p>离线使用和导出不依赖远端服务。</p><div class="sr-metrics-grid"><div><b>1</b><small>个根分支</small></div><div><b>3</b><small>级分支上限</small></div><div><b>0</b><small>个账号要求</small></div></div></div></section>
+  <section class="sr-wrap sr-final"><div><h2>从一件事开始。</h2><p>做完以后，让它留在正确的分支上。</p></div><a class="sr-btn" href="#sr-product">开始使用 →</a></section></main><footer><b>CommitToDo</b><span>产品　·　数据与备份　·　简体中文</span></footer></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>

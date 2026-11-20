@@ -1,0 +1,314 @@
+<!doctype html><html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommitToDo · Claude · 温纸与微光</title>
+  <style>:root{--bg:#f8f5ed;--surface:#fffdf7;--ink:#29231d;--muted:#675d51;--line:#e4d8c8;--accent:#9d5039;--soft:#eee1d1;--path-health:#437256;--path-life:#865d37;color-scheme:light}
+  
+*{box-sizing:border-box}
+html,body{margin:0;min-width:0;background:var(--bg);color:var(--ink)}
+html{scrollbar-width:none}
+body{font:16px/1.6 "Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0} h1,h2,h3{line-height:1.13;text-wrap:balance} button{font:inherit}
+img,canvas{display:block;max-width:100%}
+header,section,footer{position:relative}
+.page{overflow:hidden;isolation:isolate;background:var(--bg)}
+.wrap{width:min(1280px,calc(100% - 160px));margin-inline:auto}
+.kicker{color:var(--muted);font:600 13px/1.4 "Bahnschrift","Microsoft YaHei",sans-serif;letter-spacing:.11em}
+.button{display:inline-flex;align-items:center;gap:18px;flex:none;vertical-align:middle;border-radius:8px;padding:12px 18px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;white-space:nowrap}
+.button span{font-size:15px;opacity:.76}
+.site-header{border-bottom:1px solid var(--line);z-index:6}
+.header-inner,.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:73px}
+.wordmark{display:inline-flex;align-items:center;gap:12px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.commit-mark{display:inline-block;width:23px;height:23px;position:relative;flex:none;color:inherit;transform:rotate(-12deg)}
+.commit-mark:before,.commit-mark:after{content:"";position:absolute;background:currentColor;height:1.5px;transform-origin:left center;left:4px;top:11px;width:14px;transform:rotate(-35deg)}
+.commit-mark:after{transform:rotate(32deg)}
+.commit-mark b{position:absolute;width:6px;height:6px;border-radius:50%;background:currentColor;left:2px;top:8.5px}
+.commit-mark b:nth-child(2){left:15px;top:1px}.commit-mark b:nth-child(3){left:15px;top:15px}
+.site-header nav,.site-footer nav{display:flex;align-items:center;gap:34px;font-size:13px;color:var(--muted);white-space:nowrap}
+.site-header .button{font-size:13px;padding:8px 13px;gap:12px}
+.site-footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.site-footer .wordmark{color:var(--ink);font-size:18px}.footer-inner{min-height:95px}
+.workbench,.timeline,.branch-card{
+  position:relative;text-align:left;line-height:1.35;min-width:0;max-width:100%;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden;
+  font-family:"Aptos","Microsoft YaHei UI","Microsoft YaHei",sans-serif;font-size:13px;
+  box-shadow:0 24px 62px -35px #0006;
+}
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:16px;height:52px;padding:0 19px;border-bottom:1px solid var(--line);white-space:nowrap}
+.app-top strong,.app-top div{display:flex;align-items:center;gap:12px}.app-top .commit-mark{transform:rotate(-12deg) scale(.75)}
+.app-top div{font-size:11px;color:var(--muted)}
+.app-add{border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--ink)}
+.app-grid{display:grid;grid-template-columns:minmax(100px,20%) minmax(0,1fr);min-height:325px}
+.app-nav{display:flex;flex-direction:column;gap:4px;padding:15px 9px;border-right:1px solid var(--line);background:color-mix(in srgb,var(--surface),var(--ink) 2%)}
+.app-nav span{display:flex;align-items:center;gap:9px;padding:7px;border-radius:6px;white-space:nowrap}
+.app-nav small{font-size:10px;margin:14px 7px 2px;color:var(--muted)}
+.app-nav i{font:14px/1 "Segoe UI Symbol","Microsoft YaHei",sans-serif;width:15px;text-align:center;color:var(--muted)}
+.app-nav .app-active{background:var(--soft);color:var(--ink);font-weight:700}
+.app-nav i.app-dot{width:7px;height:7px;border-radius:100%;margin:0 4px;background:var(--accent)}
+.app-nav i.health{background:var(--path-health)}.app-nav i.life{background:var(--path-life)}
+.app-list{padding:19px clamp(10px,2vw,30px) 17px;min-width:0}.app-date{color:var(--muted);font-size:11px}
+.app-list-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}
+.app-list-head strong{font-size:26px;line-height:1.3;letter-spacing:-.05em}.app-list-head>span{color:var(--muted);font-size:11px}
+.app-group{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-top:9px;padding:5px 0;color:var(--muted)}
+.app-group span{font-weight:500;opacity:.72}
+.task-row{border-bottom:1px solid var(--line);min-height:33px;display:grid;grid-template-columns:15px minmax(0,1fr) auto auto;align-items:center;gap:8px;font-size:11px}
+.task-row b,.task-row span,.task-row time{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-row b{font-size:12px;font-weight:600}
+.task-check{height:13px;width:13px;border:1px solid var(--muted);border-radius:4px;text-align:center;line-height:11px}
+.is-done .task-check{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.task-path{color:var(--muted);font-size:10px}.task-row time{min-width:28px;text-align:right;color:var(--muted);font-size:10px}
+.app-collapse{display:flex;justify-content:space-between;margin-top:9px;padding:6px 0;font-size:11px;color:var(--muted)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;border-bottom:1px solid var(--line)}
+.panel-head div{display:grid;gap:3px}.panel-head small{font-size:11px;color:var(--muted)}
+.panel-head strong{font-size:22px}.panel-head>span{font-size:11px;white-space:nowrap;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+.plot{padding:7px 16px}.plot canvas{width:100%;aspect-ratio:900/305}
+.panel-bottom{display:flex;gap:16px;padding:10px 22px 15px;color:var(--muted);font-size:10px;white-space:nowrap}
+.panel-bottom span{display:flex;align-items:center;gap:7px}
+.tree-key{width:6px;height:6px;display:inline-block;background:var(--accent);border-radius:50%}
+.diamond-key{border-radius:0;transform:rotate(45deg);background:var(--ink)}
+.dash-key{width:13px;height:1px;background:none;border-top:1px dashed var(--muted);border-radius:0}
+.branch-list{padding:12px 22px 18px}
+.branch-row{height:29px;display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap;border-bottom:1px solid var(--line);font-weight:600}
+.branch-row small{font-size:10px;color:var(--muted);font-weight:400}.branch-row span:before{display:inline-block;content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:9px}
+.branch-row.root span:before{background:var(--ink)}.branch-row.b-one{padding-left:17px}.branch-row.b-two{padding-left:35px}
+.branch-row:nth-child(4) span:before,.branch-row:nth-child(5) span:before{background:var(--path-health)}
+.branch-row:nth-child(6) span:before,.branch-row:nth-child(7) span:before{background:var(--path-life)}
+.privacy-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;text-align:left}
+.privacy-strip>div{display:grid;gap:5px;padding:15px 0;border-top:1px solid var(--line)}
+.privacy-strip b{font-size:15px;color:var(--ink)}.privacy-strip span{font-size:13px;color:var(--muted)}
+
+  
+  .cld{font-family:"Aptos","Microsoft YaHei UI",sans-serif}
+  .cld .cserif,.cld h1,.cld h2,.cld .cbrand{font-family:"Noto Serif SC","Songti SC",STSong,SimSun,Georgia,serif;font-weight:500}
+  .cld a{color:inherit;text-decoration:none}.cld p{margin:0}
+  .cld header{height:73px;display:flex;align-items:center;justify-content:space-between;gap:28px;padding:0 53px}
+  .cld .cbrand{display:inline-flex;align-items:center;gap:10px;font-size:23px;letter-spacing:-.04em;white-space:nowrap}
+  .cld .cbrand i{display:block;width:19px;height:19px;border-radius:60% 10% 60% 40%;background:var(--accent);transform:rotate(-14deg)}
+  .cld nav{display:flex;gap:30px;margin-left:auto;align-items:center;color:var(--muted);font-size:13px}
+  .cld .cbutton{padding:9px 14px;border-radius:6px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:700;display:inline-block}
+  .cld .cwrap{width:1210px;max-width:calc(100% - 120px);margin:auto}
+  .cld .chero{min-height:755px;display:grid;grid-template-columns:1fr .83fr;align-items:center;gap:109px;padding-top:21px;padding-bottom:65px}
+  .cld h1{font-size:79px;line-height:1.10;letter-spacing:-.074em;margin:0;white-space:nowrap}
+  .cld .chero-copy>p{margin:21px 0 23px;font-size:17px;color:var(--muted)}
+  .cld .ccard{width:384px;padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--surface);box-shadow:0 8px 32px #3023190c}
+  .cld .ccard .cbutton{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 15px}
+  .cld .ccard .cbutton.secondary{background:transparent;border:1px solid var(--line);color:var(--ink);margin-top:8px}
+  .cld .ccard p{font-size:11px;color:var(--muted);padding:10px 4px 0}
+  .cld .ctrail{height:450px;position:relative;display:grid;place-items:center;isolation:isolate;background:radial-gradient(ellipse at 48% 51%,var(--soft),transparent 68%)}
+  .cld .ctrail::before,.cld .ctrail::after{content:"";position:absolute;width:315px;height:342px;left:51px;top:32px;border:1px solid var(--line);border-right-color:transparent;border-bottom-color:transparent;border-radius:46% 42% 40% 49%;transform:rotate(-36deg);z-index:-1}
+  .cld .ctrail::after{left:149px;top:89px;width:219px;height:249px;transform:rotate(132deg);opacity:.7}
+  .cld .cpaper{width:244px;height:275px;background:var(--surface);position:absolute;left:99px;top:76px;transform:rotate(12deg);box-shadow:22px 23px 52px -25px #5e321b5c;border:1px solid var(--line);border-radius:4px;padding:28px 22px}
+  .cld .cpaper.back{width:210px;height:257px;background:color-mix(in srgb,var(--soft),var(--accent) 13%);left:158px;top:92px;transform:rotate(-11deg)}
+  .cld .cpaper span{display:block;font-size:12px;color:var(--muted);margin-bottom:12px}
+  .cld .cpaper strong{font-size:25px;line-height:1.32;letter-spacing:-.06em}
+  .cld .cstitch{border-top:1px solid var(--line);margin-top:19px;padding-top:13px;font-size:12px;color:var(--accent)}
+  .cld .cstitch i{display:block;width:35%;border-top:1px solid var(--line);margin:9px 0}
+  .cld .cpaper-note{position:absolute;bottom:43px;right:2px;font-size:12px;color:var(--muted)}
+  .cld .csection{padding:76px 0 91px;border-top:1px solid var(--line)}
+  .cld h2{font-size:50px;letter-spacing:-.062em;line-height:1.23;margin:0}
+  .cld .csection-head{text-align:center;margin:0 auto 37px}
+  .cld .csection-head p{font-size:15px;color:var(--muted);margin:8px 0 0}
+  .cld .cflowgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+  .cld .cflowgrid article{padding:27px 28px 26px;background:var(--surface);border:1px solid var(--line);border-radius:11px;min-height:275px}
+  .cld .cflowgrid article:nth-child(2){background:var(--soft)}
+  .cld .csymbol{display:block;font-size:27px;color:var(--accent);height:48px}
+  .cld .cflowgrid h3{font-family:"Noto Serif SC",STSong,SimSun,serif;font-size:27px;font-weight:500;letter-spacing:-.065em;margin:6px 0 9px}
+  .cld .cflowgrid p{color:var(--muted);font-size:14px;min-height:50px}
+  .cld .cflowgrid .cmini{border-top:1px solid var(--line);margin-top:15px;padding-top:12px;font-size:12px;color:var(--accent)}
+  .cld .cread{min-height:400px;background:var(--soft);text-align:center;display:grid;place-items:center;padding:70px 70px 61px}
+  .cld .cread q{display:block;font-family:"Noto Serif SC",STSong,SimSun,serif;font-size:62px;line-height:1.27;letter-spacing:-.075em;quotes:none}
+  .cld .cread p{font-size:15px;color:var(--muted);margin-top:17px}
+  .cld .cfaq{display:grid;grid-template-columns:1fr 1.4fr;gap:100px;padding:90px 0 102px}
+  .cld .cfaq h2{margin:6px 0 11px}
+  .cld .cfaq p{color:var(--muted);font-size:14px}
+  .cld .cfaq dl{margin:0}
+  .cld .cfaq dt{border-top:1px solid var(--line);padding:14px 0 1px;display:flex;justify-content:space-between;gap:10px;font-size:15px;font-weight:650}
+  .cld .cfaq dd{margin:0;padding:4px 27px 13px 0;color:var(--muted);font-size:13px}
+  .cld footer{background:#201d19;color:#f7eddd;padding:55px 0 38px}
+  .cld .cfoot-grid{display:grid;grid-template-columns:1.25fr repeat(3,1fr);gap:46px}
+  .cld footer h3{font-size:13px;font-weight:700;margin:0 0 8px}
+  .cld footer p{font-size:12px;color:#c4b7a6;line-height:2.1;margin:0}
+  .cld .cfoot-last{font-size:11px;color:#c4b7a6;border-top:1px solid #504840;padding-top:14px;margin-top:27px}
+  
+.motion-product {
+  font-family: "Aptos", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+}
+.motion-product .mp-hero {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+}
+.motion-product .mp-width {
+  width: min(1280px,calc(100% - 110px));
+  margin-inline: auto;
+}
+.motion-product .mp-title {
+  margin: 0;
+  font-size: clamp(42px, 6.15vw, 95px);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -.085em;
+}
+.motion-product .mp-lead {
+  max-width: 460px;
+  margin: 19px 0 25px;
+  font-size: 17px;
+  line-height: 1.68;
+}
+.motion-product .mp-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 8px;
+  padding: 11px 17px;
+  background: var(--mp-action, var(--ink));
+  color: var(--mp-action-ink, var(--bg));
+  font-size: 13px;
+  font-weight: 660;
+  text-decoration: none;
+}
+.motion-product .mp-act:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.motion-product .mp-mono {
+  font: 11px/1.4 "IBM Plex Mono", "Cascadia Mono", Consolas, "Microsoft YaHei UI", monospace;
+}
+.motion-product .mp-proof {
+  position: relative;
+  isolation: isolate;
+  border-block: 1px solid var(--line);
+}
+.motion-product .mp-proof h2 {
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.11;
+  letter-spacing: -.065em;
+  margin: 0;
+}
+.motion-product .mp-proof p {
+  margin: 12px 0 0;
+  line-height: 1.65;
+  font-size: 15px;
+  color: var(--muted);
+}
+.motion-product .mp-proof h3 { margin: 0; }
+@media (max-width: 800px) {
+  .motion-product .mp-width { width: calc(100% - 36px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion-product *, .motion-product *::before, .motion-product *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+  .motion-product .ml-fly,
+  .motion-product .mn-control,
+  .motion-product .mn-toggle { display: none; }
+}
+
+.mp-claude .mh-hero {min-height:765px;--mp-action:#b36a4c;--mp-action-ink:#fff7eb;background:radial-gradient(ellipse at 71% 44%,var(--soft),transparent 59%),var(--bg);}
+.mp-claude .mh-layout {min-height:765px;display:grid;grid-template-columns:.91fr 1.09fr;align-items:center;gap:53px;}
+.mp-claude .mh-copy .mp-title,.mp-claude .mh-proof h2 {font-family:"Instrument Serif","Noto Serif SC","Songti SC",STSong,SimSun,serif;font-weight:520;letter-spacing:-.08em;}
+.mp-claude .mh-copy .mp-title {max-width:520px;line-height:1.12;}
+.mp-claude .mh-copy p {color:var(--muted);}
+.mp-claude .mh-actions {display:flex;align-items:center;gap:16px;}
+.mp-claude .mh-actions>a:not(.mp-act) {text-decoration:none;color:var(--muted);font-size:13px;padding:9px;border:1px solid var(--line);border-radius:8px;}
+.mp-claude .mh-writing {height:550px;position:relative;perspective:1100px;}
+.mp-claude .mh-page,.mp-claude .mh-rear,.mp-claude .mh-middle {position:absolute;width:292px;height:355px;left:44%;top:16%;border:1px solid #c9ab91;border-radius:4px;}
+.mp-claude .mh-page {z-index:3;transform:rotate(9deg);color:#3c3029;padding:35px 34px;box-shadow:35px 27px 58px #7a462947,inset 0 0 14px #e5d5bd;background:repeating-linear-gradient(94deg,#ffffff00 0 2px,#8d614a10 2px 3px),linear-gradient(139deg,#fffaf0,#f6eddd 70%,#e9dac7);animation:mh-fold 7.3s cubic-bezier(.22,.81,.13,1) infinite alternate;}
+.mp-claude .mh-rear {background:linear-gradient(127deg,#bd7555,#a95f42);transform:translate(-112px,30px) rotate(-18deg);box-shadow:13px 29px 42px #69504439;}
+.mp-claude .mh-middle {background:#e5c4a4;transform:translate(-57px,13px) rotate(-8deg);box-shadow:7px 12px 28px #69504442;animation:mh-middle 7.3s ease-in-out infinite alternate;}
+.mp-claude .mh-page span {display:block;color:#7d5d4b;font-size:12px;}
+.mp-claude .mh-page strong {display:block;margin:28px 0 32px;font-family:"Noto Serif SC","Songti SC",STSong,SimSun,serif;font-size:33px;line-height:1.48;font-weight:560;letter-spacing:-.06em;}
+.mp-claude .mh-preview {display:grid;gap:10px;color:#805f4b;font-size:12px;}
+.mp-claude .mh-preview b {color:#935339;}
+.mp-claude .mh-ink {height:2px;width:91px;left:34px;bottom:32px;background:#bd7350;position:absolute;border-radius:30% 55% 49% 30%;transform-origin:left;animation:mh-ink 7.3s ease-out infinite alternate;}
+.mp-claude .mh-thread {position:absolute;left:5%;right:7%;top:26%;bottom:14%;border:1px solid color-mix(in srgb,var(--accent),transparent 69%);border-radius:50%;transform:rotate(-23deg);border-right-color:transparent;border-bottom-color:transparent;}
+@keyframes mh-fold { 0%,10% {transform:translate(-14px,18px) rotate(6deg) rotateY(-6deg);} 67%,100% {transform:translate(20px,-12px) rotate(12deg) rotateY(10deg);} }
+@keyframes mh-middle {0%,16% {transform:translate(-57px,13px) rotate(-8deg);} 100% {transform:translate(-73px,15px) rotate(-12deg);}}
+@keyframes mh-ink {0%,29% {transform:scaleX(.20);opacity:.64}70%,100% {transform:scaleX(1);opacity:1}}
+.mp-claude .mh-proof {background:var(--surface);}
+.mp-claude .mh-proof .mp-width {padding:80px 0;display:grid;grid-template-columns:.76fr 1.24fr;gap:69px;align-items:center;}
+.mp-claude .mh-book {display:grid;grid-template-columns:1fr 1fr;box-shadow:7px 20px 27px #79534321;border:1px solid var(--line);border-radius:5px;overflow:hidden;}
+.mp-claude .mh-book div {min-height:160px;display:grid;align-content:center;padding:20px 27px;gap:8px;background:linear-gradient(90deg,var(--bg),var(--surface));}
+.mp-claude .mh-book div + div {background:linear-gradient(90deg,var(--soft),var(--surface));border-left:1px solid var(--line);}
+.mp-claude .mh-book small,.mp-claude .mh-book span {font-size:12px;color:var(--muted);}
+.mp-claude .mh-book b {font:24px/1.3 "Noto Serif SC","Songti SC",SimSun,serif;}
+@supports (animation-timeline: view()) {
+  .mp-claude .mh-book>div+div {transform-origin:left;animation:mh-page-turn linear both;animation-timeline:view();animation-range:entry 0% cover 35%;}
+}
+@keyframes mh-page-turn {from{transform:perspective(750px) rotateY(-14deg);}to{transform:perspective(750px) rotateY(0);}}
+
+  :focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style></head><body class="light"><div class="page claude light" data-theme="light"><div class="motion-product mp-claude"><div class="cld">
+  <header><a class="cbrand" href="#"><i></i>CommitToDo</a><nav><a href="#cld-way">如何开始</a><a href="#cld-history">回看历程</a><a href="#cld-faq">常见问题</a></nav><a class="cbutton" href="#cld-start">打开今天</a></header>
+  <main>
+    <section class="mp-hero mh-hero" id="cld-start">
+    <div class="mp-width mh-layout"><div class="mh-copy">
+      <h1 class="mp-title">从一件小事开始。</h1><p class="mp-lead">写下来，做完它。再回头看看，今天留下了什么。</p>
+      <div class="mh-actions"><a class="mp-act" href="#cld-way">写下第一件事<span aria-hidden="true">↗</span></a><a href="#cld-history">看看完成以后 →</a></div>
+    </div>
+    <div class="mh-writing"><div class="mh-rear"></div><div class="mh-middle"></div><div class="mh-page">
+       <span>周五 · 11 月 20 日</span>
+       <strong>读完一章，<br>记下喜欢的句子。</strong>
+       <div class="mh-preview">生活 / 阅读 <b>✓　已写入历程</b></div>
+       <i class="mh-ink"></i>
+    </div><div class="mh-thread" aria-hidden="true"></div></div></div>
+  </section><section class="mp-proof mh-proof"><div class="mp-width"><div><h2>勾选的一刻，<br>也留在手稿里。</h2><p>记录和它原来所属的分支一起保留。</p></div><div class="mh-book">
+    <div><small>待办</small><b>读完一章</b><span>生活 / 阅读</span></div><div><small>提交</small><b>读完一章</b><span>11 月 20 日　20:08</span></div>
+  </div></div></section>
+    <section class="csection" id="cld-way"><div class="cwrap"><div class="csection-head"><h2>给日常一点形状。</h2><p>先从眼前开始，后来慢慢看清方向。</p></div><div class="cflowgrid">
+    <article><span class="csymbol">□</span><h3>写下一件</h3><p>想到什么就记到今天。你也可以为它选择一条分支。</p><div class="cmini">今天　　□ 晚饭后散步</div></article>
+    <article><span class="csymbol">✓</span><h3>做完一件</h3><p>勾选待办时，完成时间和所属分支会一起留下。</p><div class="cmini">提交　　✓ 晚饭后散步</div></article>
+    <article><span class="csymbol">⑂</span><h3>回看一段</h3><p>沿着时间树看过去，连起来的是自己做过的事。</p><div class="cmini">历程　　健康 / 散步 · 11.20</div></article>
+    </div></div></section>
+    <section class="cread" id="cld-history"><div><q>慢慢走。<br>有些路，回头才看得见。</q><p>提交落在各自的日子里，方向在回看时越来越清楚。</p></div></section>
+    <section class="cfaq cwrap" id="cld-faq"><div><h2>开始之前。</h2><p>三件你可能想知道的事。</p></div><dl>
+      <dt>一开始就要建分支吗？<span>—</span></dt><dd>可以直接写待办，默认放在自己的根分支。</dd>
+      <dt>断网还能用吗？<span>—</span></dt><dd>本地模式下可以添加、完成、回看和导出。</dd>
+      <dt>我的历程放在哪里？<span>—</span></dt><dd>默认保存在当前设备。你也可以随时导出备份。</dd>
+    </dl></section>
+  </main>
+  <footer><div class="cwrap"><div class="cfoot-grid"><div class="cbrand"><i></i>CommitToDo</div><div><h3>从这里开始</h3><p>今天<br>写下一件事<br>创建第一条分支</p></div><div><h3>了解产品</h3><p>提交<br>分支<br>历程</p></div><div><h3>你的数据</h3><p>本机保存<br>导出备份<br>常见问题</p></div></div><div class="cfoot-last">CommitToDo · 个人任务与历程</div></div></footer>
+  </div></div></div>
+  <script>(() => {
+  const palette = getComputedStyle(document.body);
+  const ink = palette.getPropertyValue('--ink').trim();
+  const muted = palette.getPropertyValue('--muted').trim();
+  const line = palette.getPropertyValue('--line').trim();
+  const colors = ['--accent','--path-health','--path-life'].map(key => palette.getPropertyValue(key).trim());
+  document.querySelectorAll('canvas[data-tree]').forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    function stroke(points,color,width=2,dash=[]) {
+      ctx.beginPath();
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.setLineDash(dash);
+      points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function node(x,y,color,size=6) {
+      ctx.beginPath();
+      ctx.fillStyle=color;
+      ctx.arc(x,y,size,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.font='18px "Microsoft YaHei"';
+    ctx.lineCap='round';
+    const lanes=[['工作',91,colors[0]],['健康',158,colors[1]],['生活',225,colors[2]]];
+    [160,368,566,786].forEach((x,i) => {
+      stroke([[x,52],[x,256]], line, 1);
+      ctx.fillStyle=muted;
+      ctx.fillText(['08.23','09.21','10.21','11.20'][i],x-24,286);
+    });
+    lanes.forEach(([label,y,color],i)=>{
+      ctx.fillStyle=ink;
+      ctx.fillText(label,8,y+6);
+      stroke([[100,y],[i===2?636:786,y]],color,3);
+      if(i===2) stroke([[636,y],[786,y]],color,3,[7,8]);
+      [[159,304,501,648,746],[221,375,467,682,764],[192,281,433,511,636]][i].forEach(x=>node(x,y,color));
+    });
+    stroke([[304,91],[339,60],[520,60],[560,91]],colors[0],2);
+    node(414,60,colors[0],4);
+    ctx.save();
+    ctx.translate(560,91);ctx.rotate(Math.PI/4);ctx.fillStyle=ink;ctx.fillRect(-7,-7,14,14);ctx.restore();
+  });
+})();</script></body></html>
