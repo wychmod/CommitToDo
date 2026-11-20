@@ -9,6 +9,10 @@ export default defineConfig({
     },
   },
   plugins: [react()],
+  server: {
+    // design/ 在 web/ 之外，令牌与画稿要能被 dev server 读取。
+    fs: { allow: ['..'] },
+  },
   test: {
     include: ['src/**/*.test.ts'],
     environment: 'node',

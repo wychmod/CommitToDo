@@ -6,12 +6,19 @@
  */
 import { create } from 'zustand';
 
-export type ShellOverlay = 'command-palette' | 'undo-receipt' | null;
+export type ShellOverlay =
+  | 'quick-add'
+  | 'task-detail'
+  | 'commit-detail'
+  | 'search'
+  | 'confirm'
+  | 'onboarding'
+  | 'undo-receipt';
 
 interface ShellState {
-  overlay: ShellOverlay;
+  overlay: ShellOverlay | null;
   undoMessage: string | null;
-  openOverlay: (overlay: Exclude<ShellOverlay, null>) => void;
+  openOverlay: (overlay: ShellOverlay) => void;
   closeOverlay: () => void;
   showUndo: (message: string) => void;
   clearUndo: () => void;

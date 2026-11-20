@@ -1,0 +1,47 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s6);
+  background: color-mix(in srgb, var(--text) 35%, transparent);
+}
+
+.dialog {
+  width: min(480px, 100%);
+  padding: var(--s5);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow, 0 12px 32px color-mix(in srgb, var(--text) 18%, transparent));
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.head h2 {
+  margin: 0;
+  font-size: var(--type-heading-small);
+}
+
+.close {
+  padding: var(--s1) var(--s2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.body {
+  margin: var(--s3) 0 0;
+  color: var(--muted);
+  font-size: var(--type-body);
+}
