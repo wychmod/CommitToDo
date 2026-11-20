@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.14 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
+**状态**: 0.15 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
 **本版依据**: 数据模型以 `design/images/` 的页面画稿为准（逐页核对结论见 §5.3–§5.3.3 与 [页面数据核对](./PAGE-DATA-CROSSCHECK.md)），不以文字规格反推。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
@@ -440,7 +440,7 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 
 ### 5.3.2 索引与关键查询
 
-Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页面或弹层，超出这十条的查询应在评审时说明理由。
+Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实页面或弹层，超出这十一条的查询应在评审时说明理由。
 
 | # | 场景 | 查询 | 索引 | 量级 |
 |---|---|---|---|---|
@@ -454,11 +454,30 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页�
 | Q8 | 数据与备份列表 | `ownerId` + `createdAt` 倒序；只取最近 7 条 `auto` 与最近一条 `pre-restore` / `remote` | `[ownerId+createdAt]`、`[ownerId+kind+createdAt]` | ≤ 10 行 |
 | Q9 | 年度总结 | `ownerId` + `year` 精确取一行；其余年轮统计现算 | `[ownerId+year]` | 1 行 |
 | Q10 | 分支额度与置顶 | 同 Q1 取同父全部行后，内存里按 `pinnedAt` 非空优先排序 | 复用 `[ownerId+parentId]` | 单父 ≤20 行 |
+| Q11 | 父分支历程中的已收尾子树里程碑 | `ownerId` 取全部分支（≤200 行）→ 内存沿 `finishedIntoId` 展开已收尾子树 → 用分支 `_id` 集合 `anyOf` 取里程碑 → 按 `achievedAt` 倒序合并；来源标注取该 `branchId` 的 `title` | 复用 `[ownerId+status]` 与 `[ownerId+branchId]`；跨分支排序在内存完成 | 子树 ≤ 数十分支、里程碑 ≤ 数十 |
 
 - **软删过滤统一在仓储层**：所有查询方法默认追加 `deletedAt == null`，调用方不传。**归档过滤不默认追加**——分组树与归档视图都要读归档行，由调用方显式传。
 - **停滞判定不在渲染时递归**：用 `path` 前缀取出子树 `_id`（≤200，一次查询），再对这批 `_id` 取 `ownLastCommitAt` 最大值；MVP 不落 `subtreeLastCommitAt` 冗余，结果缓存在内存读模型，不写库。
 - **`commits.sourceBranchId` 与 `branchId` 分开**：合并后提交挂父分支（`branchId`），原始归属保留在 `sourceBranchId`；「合并前只看自己、合并后才含子分支」通过切换 `branchId` 实现，不在查询里写时间条件。
+
 - **搜索（V1）不做全文索引**：对 `branches.title` / `tasks.title` / `commits.summary` / `milestones.title` 各自 `startsWith` 前缀匹配后合并；上限 200 分支、数千待办够用。不做模糊匹配，避免中文分词与错误召回。
+
+**M08 可行性结论：已收尾子树的里程碑，现有结构够用**
+
+需求：收尾**不迁移** `milestones.branchId`；父分支历程要把已收尾子树的里程碑一并列出，并标出源分支。结论：**用现有表和索引可以实现，不需要加字段，也不建议加。**
+
+- **为什么不需要 `sourceBranchId`**：`milestones.branchId` 本身就是来源分支，再加一个 `sourceBranchId` 只是重复同一事实，还会制造两个真源。
+- **缺的不是字段，是关系方向**：父→已收尾子分支的关系已经在 `branches.finishedIntoId` 上，按它展开即可；来源标注就是 `branchId` 对应的 `branches.title`。
+- **当前唯一短板是没有 `finishedIntoId` 索引**：但全量读 `branches` 只有 ≤200 行（R16 的额度上限），一次 `[ownerId+status]` 查询后在内存建邻接表完全够用；里程碑再用 `[ownerId+branchId]` 的 `anyOf` 一次取回，两个索引都是现成的。
+
+| 方案 | 做法 | 代价 | 采用 |
+|---|---|---|---|
+| A 不改结构（推荐） | 全量读分支 → 内存沿 `finishedIntoId` 展开 → `[ownerId+branchId]` 的 `anyOf` 取里程碑 → 内存按 `achievedAt` 合并 | 每次多读一次 ≤200 行的小表；多一个可单测的展开函数（符合 §2.9）；分支上限上调后需重估 | **是** |
+| B 加 `[ownerId+finishedIntoId]` | 直接查已收尾的子分支，减少全表读 | Dexie schema 版本 +1 与迁移；多级链仍要在内存继续展开，收益在当前规模接近零 | 否，分支上千再议 |
+| C 冗余字段（`milestones.mergedIntoId` 或 `sourceBranchId`） | 收尾时给每条里程碑写上父分支/来源 | 与「不迁移」冲突，收尾要批量改里程碑、需回填历史、两个真源可能不一致；且 `sourceBranchId` 与 `branchId` 重复 | 否 |
+| D 收尾另建关系表 | 规范化记录汇合关系 | 多一张表、多一次事务与联表，超出实际需要 | 否 |
+
+**落地约束**：收尾时**禁止**批量改写 `milestones.branchId`；展开只认 `status=merged` 且 `finishedIntoId` 非空的链，`dropped` 分支的里程碑不并入父视图（放下不是完成）；来源分支已归档时仍显示其标题，但行样式按归档区分。
 
 ### 5.3.3 规则表（口径集中，散落正文不再重复）
 
@@ -477,7 +496,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页�
 | R9 | 周回顾 | 自然周（周一至周日）；「有效提交」同 R3；「活跃的一级分支」= 本周有有效提交的一级分支；「停滞分支」同 R4 并显示天数；周末打开显示「已统计至 11 月 21 日」 | S01 周回顾 8 / 2 / 1 |
 | R10 | 月回顾 | 精力分布按一级分支的有效提交占比；结构变化读 `createdAt`（新开）、`finishedAt`（收尾）、`droppedAt` 与停滞天数（放下/停滞） | S01 月回顾 |
 | R11 | 年轮 | 有效提交数、活跃一级分支数、当年 `createdAt` 的分支数（新开）、当年 `finishedAt` 的收尾并合并数；月度图把子分支提交归并到其一级祖先；分支分布按一级分支占比；12 月未开始画占位 | P05 四项统计与月度图 |
-| R12 | 收尾去向 | 选择「不用了，从树上收起」→ `status=merged`、`finishedAt`、`archivedAt=finishedAt`；选择「留着，作为一段完成的路」→ `status=merged`、`finishedAt`，`archivedAt` 保持 `null`。提交并入父分支，未完成待办按弹层选择「移到父分支」（改 `branchId`）或「取消掉」（`status=cancelled` + `cancelledAt`）。收尾不可撤销 | B06、B07、P03 已合并状态 |
+| R12 | 收尾去向 | 选择「不用了，从树上收起」→ `status=merged`、`finishedAt`、`archivedAt=finishedAt`；选择「留着，作为一段完成的路」→ `status=merged`、`finishedAt`，`archivedAt` 保持 `null`。提交并入父分支；**里程碑不迁移**，`branchId` 保持原子分支，父分支历程按 `finishedIntoId` 链汇总并标注来源（Q11）。未完成待办按弹层选择「移到父分支」（改 `branchId`）或「取消掉」（`status=cancelled` + `cancelledAt`）。收尾不可撤销 | B06、B07、P03 已合并状态 |
 | R13 | 删除空分支 | 仅当本分支与后代都没有待办、提交、里程碑、事件时允许物理删除，且删除不写 `events`；这是软删规则的唯一例外 | B10 |
 | R14 | 归档 / 取消归档 | 归档只写/清 `archivedAt`，`status` 不变；归档子树退出默认树、额度与停滞计算，但历程与统计保留；取消归档恢复原位置与原状态并重新占用名额 | B09、B11、S02 |
 | R15 | 放下 / 重新开始 | 放下需填原因，写 `droppedAt` / `dropReason`，`status=dropped`，未完成待办移出今天；重新开始 `status=active`，待办按原 `dueDate` 与 `plannedDate` 回到分组（`plannedDate = today` 的仍先归今天组，见 R8），**保留**上次 `droppedAt` / `dropReason` | B08、B12 |
@@ -788,3 +807,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页�
 | 0.12 | 2026-11-21 | **以画稿为准的字段补全**：逐页核对 `design/images/` 后补 `branches.goal` / `color` / `finishedAt` / `finishedIntoId` / `droppedAt` / `dropReason` / `pinnedAt`，`tasks.completedAt` / `completedCommitId` / `cancelledAt` 与 `cancelled` 状态，`commits.at`，`milestones.note`，`badges.catalogId` / `category` / `periodKey`，`settings.lastAutoBackupAt`；新增 `backups`（V1）、`year_reviews`（V1），V2 补 `devices` 与 `conflicts` 的设备/字段级记录；删 `tasks.priority`、`users.prefs`、`settings.fontScale`、`commits.isBackfill`；索引补 Q6–Q10；新增 §5.3.3 规则表（完成口径、停滞、短 hash、`datePrecision`、四计数重算、周/月/年口径、收尾去向、删空分支例外、重开保留放下历史、主题两档）。MVP 业务表仍为 7 张，新表随 V1 启用 |
 | 0.13 | 2026-11-21 | **四项工程细节拍板并最小落地**：新增 §2.6 状态管理（Zustand 按屏切分、只装 UI 状态、数据走 `useLiveQuery`、建 store 的三条判断标准）、§2.7 图标（自绘内联 SVG，尺寸 16/18/20/24、描边 1.5、`currentColor`、禁图标库）、§2.8 文案（单文件 key 化、只 `zh-CN`、key 命名与「暂时不做」）、§2.9 测试（Vitest 5、`*.test.ts` 同目录、只测纯逻辑与 R1–R19、`npm test`）；落地 `web/src/stores`（`shell` / `today`）、`web/src/ui/icons`（`SvgIcon` + 示例）、`web/src/i18n`（`zh-CN` + `t()`）、`web/src/core/rules/counters.ts` 与首个纯函数测试；`web/package.json` 加 `zustand@5.1.0`、`vitest@5.1.1` 与 `test` 脚本，`vite.config.ts` 合并 `test` 配置。`npm test` 3/3 通过，`npm run build` 通过 |
 | 0.14 | 2026-11-21 | **R8 增补「显式安排到今天」例外**：`dueDate < today` 但 `plannedDate = today` 的待办归今天组，不再计入逾期；逾期只认「时间判定且未经显式安排」（`dueDate < today && plannedDate !== today`）。判定依据为既有 `tasks.plannedDate`，**不新增字段**；同步改写 Q2 的取数顺序与索引说明、R15 的重开分组口径，并在 §5.3.3 表后补「显式安排」的字段/操作/清空说明 |
+| 0.15 | 2026-11-21 | **M08 可行性确认**：收尾不迁移 `milestones.branchId`，父分支历程用既有 `branches.finishedIntoId` 链在内存展开已收尾子树，再用 `[ownerId+branchId]` 的 `anyOf` 取里程碑并按 `achievedAt` 合并，来源标注取 `branchId` 对应 `title`。结论：现有表与索引可实现，**不加字段、不加索引**（`sourceBranchId` 与 `branchId` 重复；`finishedIntoId` 无索引但全表 ≤200 行可接受）。新增 Q11 与四方案代价对比，R12 补「里程碑不迁移」与落地约束（禁批量改写、`dropped` 不并入、归档来源仍显示） |
