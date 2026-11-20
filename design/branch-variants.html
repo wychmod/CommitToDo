@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CommitToDo · 分支树三种布局</title>
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--page); color:var(--text); font:15px/1.6 "Microsoft YaHei UI","Noto Sans SC",sans-serif; }
+    h1,h2,p,figure { margin:0; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; text-underline-offset:4px; }
+    a:focus-visible,summary:focus-visible { outline:2px solid var(--focus); outline-offset:3px; }
+    .bar { border-bottom:1px solid var(--line); background:var(--panel); }
+    .bar-inner { max-width:1330px; margin:auto; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:13px; }
+    .bar strong { font-size:17px; letter-spacing:-.035em; }
+    main { max-width:1330px; margin:auto; padding:0 30px 64px; }
+    .intro { padding:46px 0 24px; }
+    h1 { font-size:clamp(34px,5vw,54px); line-height:1.16; letter-spacing:-.05em; }
+    .intro p { color:var(--muted); margin-top:14px; }
+    .jump { display:flex; flex-wrap:wrap; gap:8px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+    .jump a,.tag { padding:5px 10px; border-radius:6px; font-size:13px; white-space:nowrap; }
+    .jump a { border:1px solid var(--line); background:var(--panel); color:var(--text); }
+    .tag { color:var(--info); background:var(--info-bg); }
+    .variant { padding:30px 0 26px; border-bottom:1px solid var(--line); scroll-margin-top:20px; }
+    .variant header { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    h2 { font-size:27px; line-height:1.3; letter-spacing:-.035em; }
+    .variant header p { margin-top:5px; color:var(--muted); font-size:13px; }
+    .images { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:14px; }
+    figure { overflow:hidden; border:1px solid var(--line); border-radius:9px; background:var(--panel); }
+    figure>a { display:block; }
+    figure>a:focus-visible { outline-offset:-3px; }
+    img { display:block; width:100%; height:auto; }
+    figcaption { padding:9px 12px; border-top:1px solid var(--line); font-size:13px; }
+    details { margin-top:24px; }
+    summary { width:max-content; cursor:pointer; margin-bottom:13px; }
+    @media (max-width:700px) { .bar-inner,main { padding-inline:16px; } .intro { padding-top:32px; } .images { grid-template-columns:1fr; } .variant header { align-items:flex-start; } }
+  </style>
+</head>
+<body>
+  <div class="bar"><div class="bar-inner"><strong>CommitToDo</strong><a href="index.html#p02-branches">返回核心页面总览</a></div></div>
+  <main>
+    <header class="intro">
+      <h1>分支树 · 三种布局</h1>
+      <p>同一组分支数据，三种浏览方式。点击画稿查看 1440 px 宽的原图。</p>
+    </header>
+    <nav class="jump" aria-label="布局索引"><a href="#branches-grouped">分组树</a><a href="#branches-inspect">树与详情</a><a href="#branches-map">层级图</a></nav>
+    <section class="variant" id="branches-grouped">
+      <header><div><h2>分组树</h2><p>工作、健康、生活各自成组。细线保留父子关系，进度、日期和状态留在行尾。</p></div><span class="tag">按方向整理</span></header>
+      <div class="images">
+        <figure><a href="images/p02-branches-grouped-light.png"><img src="images/p02-branches-grouped-light.png" width="1440" height="1040" loading="lazy" alt="分组树 · 浅色"></a><figcaption><a href="images/p02-branches-grouped-light.png">浅色 PNG <span aria-hidden="true">↗</span></a></figcaption></figure>
+        <figure><a href="images/p02-branches-grouped-dark.png"><img src="images/p02-branches-grouped-dark.png" width="1440" height="1040" loading="lazy" alt="分组树 · 深色"></a><figcaption><a href="images/p02-branches-grouped-dark.png">深色 PNG <span aria-hidden="true">↗</span></a></figcaption></figure>
+      </div>
+    </section>
+    <section class="variant" id="branches-inspect">
+      <header><div><h2>树与详情</h2><p>左边选分支，右边查看目标、完成进度和最近提交。从快速预览进入完整详情。</p></div><span class="tag">边看边处理</span></header>
+      <div class="images">
+        <figure><a href="images/p02-branches-inspect-light.png"><img src="images/p02-branches-inspect-light.png" width="1440" height="1040" loading="lazy" alt="树与详情 · 浅色"></a><figcaption><a href="images/p02-branches-inspect-light.png">浅色 PNG <span aria-hidden="true">↗</span></a></figcaption></figure>
+        <figure><a href="images/p02-branches-inspect-dark.png"><img src="images/p02-branches-inspect-dark.png" width="1440" height="1040" loading="lazy" alt="树与详情 · 深色"></a><figcaption><a href="images/p02-branches-inspect-dark.png">深色 PNG <span aria-hidden="true">↗</span></a></figcaption></figure>
+      </div>
+    </section>
+    <section class="variant" id="branches-map">
+      <header><div><h2>层级图</h2><p>从「我」向右展开三个层级。父子关系直接画出来，适合观察整棵树的形状。</p></div><span class="tag">快速看全局</span></header>
+      <div class="images">
+        <figure><a href="images/p02-branches-map-light.png"><img src="images/p02-branches-map-light.png" width="1440" height="1040" loading="lazy" alt="层级图 · 浅色"></a><figcaption><a href="images/p02-branches-map-light.png">浅色 PNG <span aria-hidden="true">↗</span></a></figcaption></figure>
+        <figure><a href="images/p02-branches-map-dark.png"><img src="images/p02-branches-map-dark.png" width="1440" height="1040" loading="lazy" alt="层级图 · 深色"></a><figcaption><a href="images/p02-branches-map-dark.png">深色 PNG <span aria-hidden="true">↗</span></a></figcaption></figure>
+      </div>
+    </section>
+    <details>
+      <summary>与原分支树画稿对照</summary>
+      <div class="images">
+        <figure><a href="images/p02-branches-light.png"><img src="images/p02-branches-light.png" width="1440" height="1040" loading="lazy" alt="原分支树 · 浅色"></a><figcaption><a href="images/p02-branches-light.png">浅色 PNG <span aria-hidden="true">↗</span></a></figcaption></figure>
+        <figure><a href="images/p02-branches-dark.png"><img src="images/p02-branches-dark.png" width="1440" height="1040" loading="lazy" alt="原分支树 · 深色"></a><figcaption><a href="images/p02-branches-dark.png">深色 PNG <span aria-hidden="true">↗</span></a></figcaption></figure>
+      </div>
+    </details>
+  </main>
+</body>
+</html>

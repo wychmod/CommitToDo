@@ -1,0 +1,252 @@
+{
+  "themes": {
+    "light": {
+      "page": "#F8F9FA",
+      "sidebar": "#F1F5F9",
+      "panel": "#FFFFFF",
+      "surface": "#FFFFFF",
+      "inset": "#F3F6F9",
+      "line": "#DCE3EB",
+      "line-strong": "#77879B",
+      "text": "#1B2432",
+      "muted": "#526174",
+      "subtle": "#637184",
+      "accent": "#245F9D",
+      "accent-ink": "#FFFFFF",
+      "accent-soft": "#E7F1FB",
+      "focus": "#1B65AA",
+      "success": "#246749",
+      "success-bg": "#E6F4ED",
+      "warning": "#7C4D06",
+      "warning-bg": "#FFF0D2",
+      "danger": "#A22E47",
+      "danger-bg": "#FCEAF0",
+      "info": "#255F98",
+      "info-bg": "#E7F2FF",
+      "neutral": "#526174",
+      "neutral-bg": "#EEF2F6",
+      "disabled": "#616F81",
+      "disabled-bg": "#EDF1F4",
+      "shadow": "0 12px 36px #243B5310"
+    },
+    "dark": {
+      "page": "#192230",
+      "sidebar": "#1C2635",
+      "panel": "#232F40",
+      "surface": "#273446",
+      "inset": "#1C2737",
+      "line": "#3A495D",
+      "line-strong": "#65788D",
+      "text": "#EFF3F7",
+      "muted": "#B5C1D1",
+      "subtle": "#9CACBF",
+      "accent": "#A4C8F8",
+      "accent-ink": "#11233E",
+      "accent-soft": "#2B405D",
+      "focus": "#ACD0FF",
+      "success": "#8DE2B9",
+      "success-bg": "#24483D",
+      "warning": "#F1CB80",
+      "warning-bg": "#473A23",
+      "danger": "#FFB0B9",
+      "danger-bg": "#4A2836",
+      "info": "#A9D2FD",
+      "info-bg": "#2D425A",
+      "neutral": "#BCC7D6",
+      "neutral-bg": "#344154",
+      "disabled": "#919EAE",
+      "disabled-bg": "#293444",
+      "shadow": "0 12px 36px #10172340"
+    }
+  },
+  "branches": {
+    "coral": {
+      "label": "珊瑚橙",
+      "example": "工作",
+      "light": [
+        "#A84427",
+        "#B95639",
+        "#BA6248",
+        "#F9EDE8"
+      ],
+      "dark": [
+        "#FF946D",
+        "#F7AF98",
+        "#FFCDBB",
+        "#432E31"
+      ]
+    },
+    "sky": {
+      "label": "晴蓝",
+      "example": "健康",
+      "light": [
+        "#286BA3",
+        "#3979AA",
+        "#4C83B2",
+        "#E8F2FB"
+      ],
+      "dark": [
+        "#78B7EF",
+        "#A0C9F4",
+        "#BDDFFA",
+        "#2B415A"
+      ]
+    },
+    "honey": {
+      "label": "蜂蜜金",
+      "example": "生活",
+      "light": [
+        "#906511",
+        "#9C721F",
+        "#A37826",
+        "#F8F0D9"
+      ],
+      "dark": [
+        "#EABF58",
+        "#F2D080",
+        "#F6E0AB",
+        "#443A2C"
+      ]
+    },
+    "mint": {
+      "label": "薄荷绿",
+      "example": "学习",
+      "light": [
+        "#23725A",
+        "#367E64",
+        "#468768",
+        "#E7F4ED"
+      ],
+      "dark": [
+        "#76D5B4",
+        "#9FE4C9",
+        "#C0EEDB",
+        "#25443C"
+      ]
+    },
+    "iris": {
+      "label": "鸢尾紫",
+      "example": "创作",
+      "light": [
+        "#6451A8",
+        "#745FB4",
+        "#8068B8",
+        "#F0ECFA"
+      ],
+      "dark": [
+        "#B9A5F0",
+        "#D1BCFA",
+        "#E4D7FB",
+        "#3A3355"
+      ]
+    },
+    "rose": {
+      "label": "玫瑰红",
+      "example": "家人",
+      "light": [
+        "#A23862",
+        "#AC4F74",
+        "#B3547B",
+        "#F8E9EF"
+      ],
+      "dark": [
+        "#EE91B5",
+        "#F7AFCB",
+        "#FAD0E1",
+        "#492F42"
+      ]
+    },
+    "teal": {
+      "label": "深湖青",
+      "example": "旅行",
+      "light": [
+        "#156E75",
+        "#2E7A80",
+        "#39868B",
+        "#E5F2F2"
+      ],
+      "dark": [
+        "#65C7DB",
+        "#99DEEA",
+        "#C3EBF1",
+        "#244350"
+      ]
+    }
+  },
+  "metrics": {
+    "spacing": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      32,
+      40,
+      48,
+      64
+    ],
+    "radius": {
+      "control": 6,
+      "panel": 10,
+      "marker": 2
+    },
+    "layout": {
+      "sidebar": 232,
+      "topbar": 64,
+      "contentMax": 1120
+    },
+    "type": {
+      "heading": 40,
+      "section": 24,
+      "headingSmall": 20,
+      "body": 15,
+      "secondary": 13,
+      "label": 12,
+      "chart": 11
+    },
+    "tree": {
+      "indent": 20,
+      "heightDefault": 48,
+      "heightCompact": 32,
+      "listDefault": 44,
+      "listCompact": 36,
+      "connector": 1,
+      "identity": 8,
+      "selectedRail": 2
+    },
+    "timeline": {
+      "labelWidth": 160,
+      "minHeight": 480,
+      "axis": 32,
+      "lane": 88,
+      "expandedLane": 56,
+      "rail": 1.5,
+      "guide": 1,
+      "commitDiameter": 8,
+      "selectedRingDiameter": 16,
+      "selectedRing": 2,
+      "milestoneDiagonal": 10,
+      "mergeDiameter": 8,
+      "stallStroke": 1.5,
+      "stallPattern": [
+        4,
+        4
+      ]
+    },
+    "duration": {
+      "micro": 120,
+      "standard": 200,
+      "entry": 320,
+      "exit": 120
+    },
+    "ease": {
+      "enter": "cubic-bezier(.2,0,0,1)",
+      "exit": "cubic-bezier(.4,0,1,1)"
+    },
+    "receipt": {
+      "hold": 10000,
+      "fade": 200
+    }
+  }
+}
