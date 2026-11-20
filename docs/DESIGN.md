@@ -47,4 +47,4 @@
 
 图库、令牌与渲染源码放在 [design](../design/index.html) 目录。全套图稿包含经过确认的两张首页，不依赖临时附件路径。更新截图时可用同目录 `source/render.mjs` 的普通模式、`--branch-variants` 和 `--all-pages`，再运行 `source/catalog.mjs` 重建图册；`tokens.css` 由 `generate-tokens.mjs` 从 `design-tokens.json` 生成，不手改。
 
-旧候选、过程提示词与研究观测已移出仓库，归档在仓库外的 `commit-archive`；页面架构方案已并入 [PAGE-ARCHITECTURE.md](PAGE-ARCHITECTURE.md)。仓库此前的归档仍可用于查决策经过。[历史归档](archive/README.md)
+旧候选、过程提示词与研究观测已移出仓库，归档在仓库外的 `commit-archive`；页面架构方案已并入 [页面与交互规格](UI-PAGES.md)，旧稿留在 [归档](archive/2026-11/PAGE-ARCHITECTURE.md)。仓库此前的归档仍可用于查决策经过。[历史归档](archive/README.md)
