@@ -4,6 +4,8 @@
 
 统一交付包括 12 个独立页面与 38 个补充视图和操作状态，每组都有明暗稿。图稿内的名称、时间、状态与数据用于呈现视觉和交互样例；业务边界由功能框架和页面规格定义，延后阶段仍按阶段标注。[页面画稿总览](../design/index.html) · [页面与状态](UI-PAGES.md) · [组件规格](UI-COMPONENTS.md) · [产品框架](FRAMEWORK.md)
 
+> **画稿边界（2026-11-21）**：`design/images/` 只是视觉参考，不是实现基准；与 `UI-PAGES.md`、`UI-VISUAL.md`、`design-tokens.json` 冲突时**以文档为准**。三处已知偏差不作为需求：P07 主题只做浅/深两档（图上「跟随系统」不实现）、S08 恢复弹层不出现「签名」相关文案、P06/P08 的快照与恢复归 V1。画稿由 `design/source/*.mjs` 确定性生成，改视觉应改源并重跑渲染，不手改 PNG。
+
 ## 主题与令牌
 
 数值以 `design-tokens.json` 为数据源，`tokens.css` 是该文件生成的 CSS 变量。实现使用语义变量而非直接硬编码色值。**默认白天（浅色）**：未设置 `data-theme` 或设为 `light` 时都是浅色，只有 `data-theme="dark"` 才切到深色，不再跟随系统。两种主题共享交互、字号与几何规则。浅色偏纸白、深色偏蓝灰；色相提供身份，状态还需由形状或文字表达。[令牌 JSON](../design/design-tokens.json) · [CSS 变量](../design/tokens.css)
