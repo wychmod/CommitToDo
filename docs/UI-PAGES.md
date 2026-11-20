@@ -17,8 +17,8 @@
 | P04 | [历程](../design/index.html#p04-history) | `/history` | MVP | 按实际日期分布的时间树、范围和分支筛选、提交与里程碑详情。首页示例单独演示，应用内回执定位真实提交。 |
 | P05 | [年轮](../design/index.html#p05-year) | `/history/:year` | V1 | 年份切换、提交和分支指标、月度分布、新开和收尾结构、年度总结与分享图。 |
 | P06 | [我的](../design/index.html#p06-me) | `/me` | MVP | 已获徽章定位历程、进入设置与数据备份。V1 增徽章墙，V2 增账号入口与帮助。 |
-| P07 | [设置](../design/index.html#p07-settings) | `/settings` | MVP | 默认白天（浅色），深色由用户手动切换；紧凑／舒适、注解选项、数据与备份入口。V1 增字号，V2 增账号与同步分区。 |
-| P08 | [数据与备份](../design/index.html#p08-data) | `/data` | MVP | JSON 导出、从文件导入（核对摘要后整体替换，导入前留存当前副本）。V1 增本机快照与按快照恢复、按匿名设备归档的异地明文备份。 |
+| P07 | [设置](../design/index.html#p07-settings) | `/settings` | MVP | 默认浅色，深色只由用户手动切换（**不提供「跟随系统」**，画稿该选项为遗留）；紧凑／舒适、注解选项、数据与备份入口。V2 增账号与同步分区。 |
+| P08 | [数据与备份](../design/index.html#p08-data) | `/data` | MVP | JSON 导出、从文件导入（核对摘要后整体替换，导入前留存当前数据副本）。V1 增本机快照（每日首次打开自动备份、保留 7 份）与按快照恢复、按匿名设备归档的异地明文备份。 |
 | P09 | [登录](../design/index.html#p09-login) | `/auth/login` | V2 | 独立登录页，提供前往注册、找回与打开本机工作区的入口。认证成功回到有效的应用内 `next`，缺省到 `/today`。 |
 | P10 | [注册](../design/index.html#p10-signup) | `/auth/signup` | V2 | 独立注册页，沿用登录布局，提供返回登录和打开本机工作区的入口。 |
 | P11 | [找回密码](../design/index.html#p11-recover) | `/auth/recover` | V2 | 同一路由承载填写邮箱、检查邮箱、设置新密码三步，另保留返回登录。 |

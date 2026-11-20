@@ -1,7 +1,7 @@
 # 页面 × 数据核对报告
 
 **日期**: 2026-11-21
-**状态**: 核对结论与建议，**未改动表结构**
+**状态**: 核对结论与建议；表结构已在 [`TECH-ARCHITECTURE.md`](./TECH-ARCHITECTURE.md) 0.12 落定（以画稿为准的字段补全，规则见其 §5.3.3）。
 **核对对象**: [`PAGE-ARCHITECTURE.md`](./archive/2026-11/PAGE-ARCHITECTURE.md)（已归档）的 12 个页面与 8 类全局层；[`TECH-ARCHITECTURE.md`](./TECH-ARCHITECTURE.md) §5.3 / §5.3.1 / §5.3.2 的表、字段、索引与 Q1–Q5。
 **判定口径**: 页面元素能落到「具体表.字段」或「可执行查询」即为能接住；需要新增字段、需要新规则、或两处口径冲突的单独列出。
 
@@ -25,6 +25,16 @@
 3. 没有任何表记录本机快照 —— P6「上次备份」与 P8「7 份快照 + 计数」无法实现（M6）。
 4. 任务没有 `completedAt`，周回顾与年轮只能靠 `commits.date`；必须把「完成 = 生成提交」写成规则（D5）。
 5. 四个计数的软删、撤销、移动、合并后的重算规则未写，当前只有"同事务维护"一句（D6）。
+
+**0.12 落定结果（以画稿为准，详见 `TECH-ARCHITECTURE.md` §5.3 / §5.3.3）**
+
+| 本报告条目 | 落定方式 |
+|---|---|
+| M1–M4：`goal` / `color` / `finishedAt` / `dropReason` | 已补；另补 `finishedIntoId`、`droppedAt`、`pinnedAt` |
+| M5：`milestones.note` | 已补（只在里程碑详情消费，行内不显示） |
+| M6 / M7：`backups`、`year_reviews` | 新增两张表；**均随 V1 启用**（每日快照与备份库归 V1，见 `FRAMEWORK.md` J-02），MVP 仍 7 张 |
+| D5 / D6 / D7 / D9 / D10 等口径 | 收敛为 §5.3.3 规则表 R1–R19 |
+| R1 / R2 / R3 冗余 | `tasks.priority`、`users.prefs`、`commits.isBackfill` 已删；另删 `settings.fontScale` |
 
 ---
 
@@ -62,7 +72,7 @@
 
 | 区块 | 页面数据项 | 映射 | 判定 |
 |---|---|---|---|
-| 1 页头 | 日期、`3 条 · 2 条逾期` | 设备时钟；`tasks` 计数（Q2） | 能接住，口径见 D1 |
+| 1 页头 | 日期、`5 条有截止日期 · 另有 2 条无截止日期` | 设备时钟；`tasks` 计数（Q2） | 能接住，口径见 D1 |
 | 2 快速添加 | 标题、识别日期、归属分支 | `tasks.title`、`dueDate`、`branchId`；默认根分支 | 能接住，规则见 D3 |
 | 3 逾期组 | 标题、分支路径、截止 | `tasks.title`、`[ownerId+status+dueDate]`、`branches.path` 反查标题 | 能接住，路径显示见 D8 |
 | 4 今天组 | 今日待办 | `dueDate = today` 或 `plannedDate = today`（Q2） | 能接住，口径见 D4 |
@@ -70,17 +80,17 @@
 | 6 全部待办 | 全量表格 | `[ownerId+status]`（需新增） | **索引缺口 I1** |
 | 7 回顾卡片 | 3 个数字 + 一句提问 | `commits.date`、`branches.createdAt/finishedAt` | **缺 `finishedAt`（M3）**，口径见 D5 |
 | 8 停滞分支 | 分支名 + 天数（≤5） | `ownLastCommitAt` + `path` | 能接住，口径见 D6 |
-| 8 最近提交 | 3 条 hash + 文案 | `commits`（Q4） | 能接住，hash 见 D7 |
+| 8 最近提交 | 3 条：文案 + 分支 + 日期（**画稿无 hash**） | `commits`（Q4） | 能接住，见 D7 |
 
 ### P2 分支 `/branches`
 
 | 区块 | 页面数据项 | 映射 | 判定 |
 |---|---|---|---|
-| 1 页头 | `12 条进行中 · 3 条已合并` | `branches.status`（`[ownerId+status]`） | 能接住，归档是否计数见 D2 |
+| 1 页头 | `7 条进行中 · 1 条已合并 · 1 条已放下` | `branches.status`（`[ownerId+status]`） | 能接住，归档是否计数见 D2 |
 | 2 筛选条 | 状态、排序 | `status`、`archivedAt`、`updatedAt` / `ownLastCommitAt` | 能接住，排序见 I2 |
 | 3 树视图 | 缩进、连接线、状态点、名称、`3/7`、最近活动 | `depth`、`parentId`、`status`、`title`、`taskDone/taskTotal`、`ownLastCommitAt`（Q1） | 能接住 |
 | 4 列表视图 | 名称 / 层级 / 待办 / 提交 / 最近活动 / 状态 | 同上 + `commitCount` | 能接住 |
-| 5 底部统计 | `活跃 12 / 200`、`L1 3 / 7` | `[ownerId+parentId]` + 过滤 `archivedAt` | 能接住，活跃定义见 D2 |
+| 5 底部统计 | `一级分支 3 / 7`、`活跃 12 / 200` | `[ownerId+parentId]` + 过滤 `archivedAt` | 能接住，活跃定义见 D2 |
 
 ### P3 分支详情 `/branches/:id`
 
@@ -91,9 +101,9 @@
 | 1 页头 | 收尾对话框：未完成条数、去向 | `tasks` 计数 + `parentId` | 能接住 |
 | 2 进度 | `4/9` + 最近提交 | `taskDone/taskTotal`、`ownLastCommitAt` | 能接住 |
 | 4 待办 | checkbox、标题、截止 | `tasks` 按 `branchId` | 能接住，**索引缺口 I3** |
-| 5 提交 | hash、时间、文案、缩进 | `commits`（Q3） | 能接住，hash 见 D7 |
-| 6 子分支 | 状态、名称、进度 | Q1 + `taskDone/taskTotal` | 能接住 |
-| 7 里程碑 | 日期、标题、**备注** | `achievedAt`、`title`，备注无字段 | **缺 `milestones.note`（M5）** |
+| 5 提交 | 文案、日期 + 时分、缩进（**画稿无 hash**） | `commits`（Q3），`at` 精确到分钟 | 能接住，见 D7 |
+| 6 子分支 | 状态、名称、进度、`第 3 层` | Q1 + `taskDone/taskTotal` | 能接住 |
+| 7 里程碑 | 行内只有日期 + 标题，**备注只在里程碑详情** | `achievedAt`、`title`、`note` | 已补 `milestones.note`（M5），列表不渲染备注 |
 | 8 右栏 | **颜色（7 预设）** | 无字段 | **缺 `branches.color`（M2）** |
 | 8 右栏 | 父分支、创建时间、归档状态 | `parentId`、`createdAt`、`archivedAt` | 能接住 |
 | 状态 | `已合并于 11-02 · 只读` | 无收尾时间字段 | **缺 `branches.finishedAt`（M3）** |
@@ -216,16 +226,16 @@
 
 | 编号 | 问题 | 需要的规则 | 涉及 |
 |---|---|---|---|
-| D1 | 页头 `3 条 · 2 条逾期` 的计数口径 | "今天"= `status=open` 且（`dueDate ≤ today` 或 `plannedDate = today`）；逾期单独计 `dueDate < today`；排除 `deletedAt`、归档分支、已放下分支 | P1 |
+| D1 | 页头 `5 条有截止日期 · 另有 2 条无截止日期` 的计数口径 | 有截止 = `status=open` 且 `dueDate != null`（含逾期与今天）；无截止 = `dueDate == null`；逾期单独计 `dueDate < today`；排除 `deletedAt`、归档分支、已放下分支 | P1 |
 | D2 | 归档/放下是否计入页头与统计 | 建议：页头 `进行中/已合并` 均不含 `archivedAt`；底部 `活跃` = `status=active && !archivedAt`；`已放下` 不占总树 200 额度，但 `state` 仍显示 | P2 |
 | D3 | 根分支如何存在 | 每个 owner 恰好一条 `parentId=null`、`path='/'`、`depth=0` 的根；不可删、不可归档、不可移动；快速添加与首次引导默认落根 | P1、全局层 |
 | D4 | `dueDate` 与 `plannedDate` 语义 | `dueDate` = 截止；`plannedDate` = 打算做的日子；"今天"组 = 二者任一命中今天；"安排到今天"写 `plannedDate`。两字段都可空 | P1、待办详情 |
-| D5 | 周回顾的数据来源与口径 | 完成数 = 周期内有效提交数（`voidedAt` 为空、`deletedAt` 为空）；活跃分支 = 周期内有提交的 `branchId` 去重；新开/收尾用 `createdAt`/`finishedAt`。周期 = 本地周一 00:00 至周日 23:59；周六日看预览、周一看正式、周二至周五收起。补记提交不计入"本周完成"，计入年轮总量 | P1 |
-| D6 | 停滞判定 | 可见、`status=active`、未归档的分支，取子树 `max(ownLastCommitAt)`；从未提交用 `createdAt` 作基线；`> 30 天` 判定；天数 = 本地自然日差；P1 最多 5 条按天数降序 | P1、P4 |
-| D7 | 提交短 hash 从哪来 | 显示 `_id` 后 7 位（ULID 末段随机、稳定）；不新增 `hash` 字段。详情页可显示完整 `_id` 供复制 | P1、P3、P4、提交详情 |
+| D5 | 周回顾的数据来源与口径 | 完成数 = 周期内有效提交数（`voidedAt` 为空、`deletedAt` 为空）；活跃分支 = 周期内有提交的 `branchId` 去重；新开/收尾用 `createdAt`/`finishedAt`。周期 = 本地周一 00:00 至周日 23:59；周六日看预览、周一看正式、周二至周五收起 | P1 |
+| D6 | 停滞判定 | 可见、`status=active`、未归档的分支，取子树 `max(ownLastCommitAt)`；**无有效提交的分支不判停滞**（画稿的停滞卡都带「最近一次提交在 …」，例如「阅读 37 天 / 最近一次提交在 10 月 14 日」）；`> 30 天` 判定；天数 = 本地自然日差；P1 最多 5 条按天数降序 | P1、P4 |
+| D7 | 提交短 hash（**画稿已复核：不展示**） | P1 最近提交只有「文案 + 分支 + 日期」，P3 提交流是「文案 + 日期 + 时分」，O03 提交详情只有标题与「2026 年 11 月 20 日 16:42」；**不显示 hash、不新增 `hash` 字段**，内部只用 `_id` | P1、P3、P4、提交详情 |
 | D8 | 分支路径的显示 | `path` 只存 ID；显示时按路径里的 ID 批量取 `title` 拼接（深度 ≤3，一次 `bulkGet`）。**不要**存冗余的 `pathTitles`，改名会失真 | P1、P3、P4 |
-| D9 | `datePrecision` 如何展示 | `day` → `YYYY-MM-DD`；`month` → `YYYY-MM`；`year` → `YYYY`。只填年月时 `achievedAt` 规范化为当月 1 日 00:00（本地）再转 UTC；只填年时为 1 月 1 日。排序始终用 `achievedAt` | P3、P4、P5 |
-| D10 | 年轮四项统计 | 提交数含补记、不含撤销；活跃分支 = 当年有有效提交的 `branchId` 去重；新开 = 当年 `createdAt` 的非根分支；收尾 = 当年 `finishedAt` 且 `status=merged`（放下单列，不计入收尾） | P5 |
+| D9 | `datePrecision` 如何展示 | 只有两档：`day` → `11 月 16 日`；`month` → `2026 年 11 月`（时间树对齐到月列）。只填年月时 `achievedAt` 规范化为当月 1 日 00:00（本地）再转 UTC；排序始终用 `achievedAt` | P3、P4、S04 |
+| D10 | 年轮四项统计 | 有效提交数（不含撤销）；活跃分支 = 当年有有效提交的 `branchId` 去重；新开 = 当年 `createdAt` 的非根分支；收尾 = 当年 `finishedAt` 且 `status=merged`（放下单列，不计入收尾） | P5 |
 | D11 | **加密文案已过期（已修复）** | 旧稿 P8「加密包 / 密钥不出本机」与 P9/P10「服务端只存加密块」与「不做 E2EE」冲突；2026-11-21 旧稿已归档并改为明文口径，现行 `UI-PAGES.md` 统一为明文 JSON + `schemaVersion` | P8、P9、P10 |
 | D12 | 提交"当天可编辑"的边界 | 用 `date`（业务日期）与设备本地"今天"比较；跨天只读。编辑 `summary` 后 `updatedAt` 更新，但 `date` 不变；撤销写 `voidedAt`，不改 `date` | 提交详情 |
 | D13 | **搜索前缀匹配不够** | 中文用户通常记得词中片段（如"报销"在"周五报销材料"里）。数据量只有几千行，建议：先用前缀命中做排序优先，再做一次 `includes` 全扫兜底（分支/待办/有效提交/里程碑），上限 50 条；不做分词与模糊纠错 | 搜索 |
@@ -245,7 +255,7 @@
 |---|---|---|---|
 | R1 | `tasks.priority` | 12 个页面与全局层没有任何一处展示或操作优先级 | **删**；若要保留，先在待办详情加控件 |
 | R2 | `users.prefs` | `settings` 表已承接全部偏好，`users.prefs` 无消费者 | **删**，避免两套偏好真源 |
-| R3 | `commits.isBackfill` | 没有页面展示"补记"标记，也没有统计规则引用 | 保留但必须落 D5 的统计规则（不计入本周完成），并在提交详情标注"补记"；否则删 |
+| R3 | `commits.isBackfill` | 画稿没有任何补记入口（提交只能由「标为完成」产生），也没有页面引用该标记 | **删**（0.12 已删） |
 | R4 | `milestones.datePrecision` | 若 UI 仍把年月补成具体日显示，这个字段等于没用 | 保留，按 D9 强制展示；否则删 |
 | R5 | `branches.path` / `depth` | 与 `parentId` 存在冗余，但前者支撑子树查询、后者支撑缩进与层级校验 | **保留**，标注为"受控冗余"，写入时互为断言（§5.3.1 已写） |
 
