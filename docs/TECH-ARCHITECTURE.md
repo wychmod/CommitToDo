@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.13 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
+**状态**: 0.14 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
 **本版依据**: 数据模型以 `design/images/` 的页面画稿为准（逐页核对结论见 §5.3–§5.3.3 与 [页面数据核对](./PAGE-DATA-CROSSCHECK.md)），不以文字规格反推。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
@@ -445,7 +445,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页�
 | # | 场景 | 查询 | 索引 | 量级 |
 |---|---|---|---|---|
 | Q1 | 分组树渲染（默认层） | `ownerId` + `parentId` 精确匹配，按 `order` 升序，过滤 `archivedAt === null` | `[ownerId+parentId]` | 单父 ≤20 行 |
-| Q2 | 今天三组 | `ownerId` + `status='open'`，再按 `dueDate` / `plannedDate` 分桶 | `[ownerId+status+dueDate]`、`[ownerId+status+plannedDate]` | 当天窗口 |
+| Q2 | 今天三组 | `ownerId` + `status='open'`；先按 `plannedDate = today` 取「显式安排到今天」的待办进今天组，再对剩余按 `dueDate` 分桶（逾期 / 今天 / 未来）与无截止 | `[ownerId+status+plannedDate]` 先查显式安排，`[ownerId+status+dueDate]` 再取日期窗口 | 当天窗口 |
 | Q3 | 分支详情提交流 | `ownerId` + `branchId`，按 `date` 倒序分页，过滤 `voidedAt === null` | `[ownerId+branchId+date]` | 每页 20 |
 | Q4 | 时间树泳道 | `ownerId` + 日期区间，按 `branchId` 归组 | `[ownerId+date]` | 90 天窗口 |
 | Q5 | 提交详情的上下条 | 同一 `branchId` 下按 `date` 双向游标 | `[ownerId+branchId+date]` | 各取 1 条 |
@@ -473,18 +473,26 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页�
 | R5 | 短 hash | 不展示。提交详情只显示「2026 年 11 月 20 日 16:42」，内部 `_id` 不外露，不新增 `hash` 字段 | O03 提交详情 |
 | R6 | `datePrecision` 展示 | `day` → `11 月 16 日`；`month` → `2026 年 11 月`，时间树里对齐到该月列 | P03、P04 里程碑行、S04 新建（过去的里程碑可只填年月） |
 | R7 | 四计数重算 | `taskTotal` = 本分支未删且 `status != cancelled` 的待办数；`taskDone` = `status == done`；`commitCount` = 有效提交数；`ownLastCommitAt` = 有效提交 `at` 最大值。恢复、导入、迁移后全量重算 | 分组树 `4/9`、分支详情进度条 |
-| R8 | 今天三组 | 有截止：`dueDate <= today` 或 `plannedDate = today`；其中 `dueDate < today` 归逾期组。无截止组取 `dueDate == null`（IndexedDB 不索引 `null`，用 `[ownerId+status]` 全取后过滤）。父分支 `dropped` 或归档的待办不进今天 | P01 页头「5 条有截止日期 · 另有 2 条无截止日期」与三组条数 |
+| R8 | 今天三组 | 有截止：`dueDate <= today` 或 `plannedDate = today`。**分组优先级：`plannedDate = today` 的一律进今天组**——即使 `dueDate < today` 也不计入逾期，这是「显式安排到今天」的唯一表达；逾期组 = `dueDate < today` **且** `plannedDate !== today`（只靠时间判定）。无截止组取 `dueDate == null`（IndexedDB 不索引 `null`，用 `[ownerId+status]` 全取后过滤）。父分支 `dropped` 或归档的待办不进今天 | P01 页头「5 条有截止日期 · 另有 2 条无截止日期」与三组条数 |
 | R9 | 周回顾 | 自然周（周一至周日）；「有效提交」同 R3；「活跃的一级分支」= 本周有有效提交的一级分支；「停滞分支」同 R4 并显示天数；周末打开显示「已统计至 11 月 21 日」 | S01 周回顾 8 / 2 / 1 |
 | R10 | 月回顾 | 精力分布按一级分支的有效提交占比；结构变化读 `createdAt`（新开）、`finishedAt`（收尾）、`droppedAt` 与停滞天数（放下/停滞） | S01 月回顾 |
 | R11 | 年轮 | 有效提交数、活跃一级分支数、当年 `createdAt` 的分支数（新开）、当年 `finishedAt` 的收尾并合并数；月度图把子分支提交归并到其一级祖先；分支分布按一级分支占比；12 月未开始画占位 | P05 四项统计与月度图 |
 | R12 | 收尾去向 | 选择「不用了，从树上收起」→ `status=merged`、`finishedAt`、`archivedAt=finishedAt`；选择「留着，作为一段完成的路」→ `status=merged`、`finishedAt`，`archivedAt` 保持 `null`。提交并入父分支，未完成待办按弹层选择「移到父分支」（改 `branchId`）或「取消掉」（`status=cancelled` + `cancelledAt`）。收尾不可撤销 | B06、B07、P03 已合并状态 |
 | R13 | 删除空分支 | 仅当本分支与后代都没有待办、提交、里程碑、事件时允许物理删除，且删除不写 `events`；这是软删规则的唯一例外 | B10 |
 | R14 | 归档 / 取消归档 | 归档只写/清 `archivedAt`，`status` 不变；归档子树退出默认树、额度与停滞计算，但历程与统计保留；取消归档恢复原位置与原状态并重新占用名额 | B09、B11、S02 |
-| R15 | 放下 / 重新开始 | 放下需填原因，写 `droppedAt` / `dropReason`，`status=dropped`，未完成待办移出今天；重新开始 `status=active`，待办按原 `dueDate` 自动回到逾期/今天/未来组，**保留**上次 `droppedAt` / `dropReason` | B08、B12 |
+| R15 | 放下 / 重新开始 | 放下需填原因，写 `droppedAt` / `dropReason`，`status=dropped`，未完成待办移出今天；重新开始 `status=active`，待办按原 `dueDate` 与 `plannedDate` 回到分组（`plannedDate = today` 的仍先归今天组，见 R8），**保留**上次 `droppedAt` / `dropReason` | B08、B12 |
 | R16 | 额度 | 根分支 1 个；L1 ≤7、L2 ≤9、L3 ≤20 直接子分支；全树 ≤200。只算未归档、未删的分支；移动时显示各候选剩余名额，自身与后代不可选 | B02「已使用 3 / 7 个名额」、B03「1 / 20」、B05、P02 页脚 |
 | R17 | 备份（V1） | 每日首次打开自动写一条 `kind=auto` 快照，只保留最近 7 条；恢复前先写 `kind=pre-restore`；快照记录分支数、待办数、提交数与 `schemaVersion`，`payload` 为明文 JSON；异地备份在对象存储留一份，元数据进 `kind=remote`。**MVP 不建 `backups`，只有导出/导入** | P06 数据卡、P08、S08 两态、S08 data-v1 |
 | R18 | 徽章 | 目录固定 16 项（结构 8 / 时间 4 / 里程碑 4），是常量不是表；授予时写 `catalogId` / `category` / `periodKey`（如 `2026-Q3`、`2026`）与 `snapshot`（获得时的分支去向、完成进度），之后不再变；「还差 N」现算 | S06 徽章墙 7/16、S06 详情 |
 | R19 | 主题 | 只有 `light` / `dark` 两档，初始 `light`，只由用户手动切换并写入 `settings.theme`；**不读取 `prefers-color-scheme`**。画稿 P07 的「跟随系统」是遗留项，按已定结论实现并在画稿侧待改 | P07、§2.5 |
+
+**R8 的「显式安排」落在哪**
+
+- **字段**：`tasks.plannedDate`（`YYYY-MM-DD`，§5.3）。它表示「我打算哪天做」，与 `dueDate`（外部截止/承诺日期）分开；现有字段足够表达，本版**不新增字段**。
+- **操作**：待办详情的「计划日期」选今天，或今天页对逾期项点「安排到今天」，两者都只写 `plannedDate = today`；这是一次普通更新，不产生提交、不改 `status`。
+- **判定顺序**：先看 `plannedDate`——等于今天即进今天组，哪怕 `dueDate` 早已过去；`plannedDate` 为 `null` 或不是今天时才按 `dueDate` 判逾期。把 `plannedDate` 清空即回到纯时间判定（过期就回逾期组）。
+- **冲突时以显式安排为准**：`dueDate` 与 `plannedDate` 同一天不特殊处理（仍算今天组）；只有 `dueDate < today && plannedDate = today` 这一种情况被例外改写，其余分桶不变。
+- **历史留痕**：多次「安排到今天」不落额外字段；需要审计时写 `events`（`action = task.plan`，`payload` 带前后值），与 R8 之外的字段无关。
 
 ### 5.4 MVP 读写链路
 
@@ -779,3 +787,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页�
 | 0.11 | 2026-11-21 | **主题口径收紧**：初始即浅色；深色只能由用户手动切换并持久化到 `settings.theme`，**不读取 `prefers-color-scheme`**，也不随系统变化；首屏只在 head 内联脚本里恢复已存选择（§2.5） |
 | 0.12 | 2026-11-21 | **以画稿为准的字段补全**：逐页核对 `design/images/` 后补 `branches.goal` / `color` / `finishedAt` / `finishedIntoId` / `droppedAt` / `dropReason` / `pinnedAt`，`tasks.completedAt` / `completedCommitId` / `cancelledAt` 与 `cancelled` 状态，`commits.at`，`milestones.note`，`badges.catalogId` / `category` / `periodKey`，`settings.lastAutoBackupAt`；新增 `backups`（V1）、`year_reviews`（V1），V2 补 `devices` 与 `conflicts` 的设备/字段级记录；删 `tasks.priority`、`users.prefs`、`settings.fontScale`、`commits.isBackfill`；索引补 Q6–Q10；新增 §5.3.3 规则表（完成口径、停滞、短 hash、`datePrecision`、四计数重算、周/月/年口径、收尾去向、删空分支例外、重开保留放下历史、主题两档）。MVP 业务表仍为 7 张，新表随 V1 启用 |
 | 0.13 | 2026-11-21 | **四项工程细节拍板并最小落地**：新增 §2.6 状态管理（Zustand 按屏切分、只装 UI 状态、数据走 `useLiveQuery`、建 store 的三条判断标准）、§2.7 图标（自绘内联 SVG，尺寸 16/18/20/24、描边 1.5、`currentColor`、禁图标库）、§2.8 文案（单文件 key 化、只 `zh-CN`、key 命名与「暂时不做」）、§2.9 测试（Vitest 5、`*.test.ts` 同目录、只测纯逻辑与 R1–R19、`npm test`）；落地 `web/src/stores`（`shell` / `today`）、`web/src/ui/icons`（`SvgIcon` + 示例）、`web/src/i18n`（`zh-CN` + `t()`）、`web/src/core/rules/counters.ts` 与首个纯函数测试；`web/package.json` 加 `zustand@5.1.0`、`vitest@5.1.1` 与 `test` 脚本，`vite.config.ts` 合并 `test` 配置。`npm test` 3/3 通过，`npm run build` 通过 |
+| 0.14 | 2026-11-21 | **R8 增补「显式安排到今天」例外**：`dueDate < today` 但 `plannedDate = today` 的待办归今天组，不再计入逾期；逾期只认「时间判定且未经显式安排」（`dueDate < today && plannedDate !== today`）。判定依据为既有 `tasks.plannedDate`，**不新增字段**；同步改写 Q2 的取数顺序与索引说明、R15 的重开分组口径，并在 §5.3.3 表后补「显式安排」的字段/操作/清空说明 |
