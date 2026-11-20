@@ -47,7 +47,10 @@ export function makeTokensCss() {
         const [l1, l2, l3, fill] = palette[theme];
         Object.assign(colors, { [branch + '-1']: l1, [branch + '-2']: l2, [branch + '-3']: l3, [branch + '-bg']: fill });
       }
-      const selector = theme === 'light' ? ':root, [data-theme="light"]' : '[data-theme="dark"]';
+      // 默认主题挂在 :root，不声明 data-theme 时即生效；其余主题只能显式切换
+      const selector = theme === (tokenData.defaultTheme ?? 'light')
+        ? ':root, [data-theme="' + theme + '"]'
+        : '[data-theme="' + theme + '"]';
       return selector + ' {\n' + declarations(colors) + '\n  color-scheme: ' + theme + ';\n}';
     }).join('\n');
 }

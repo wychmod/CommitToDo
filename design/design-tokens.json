@@ -1,4 +1,5 @@
 {
+  "defaultTheme": "light",
   "themes": {
     "light": {
       "page": "#F8F9FA",
