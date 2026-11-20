@@ -1,12 +1,12 @@
 # CommitToDo 视觉与图形规范
 
-本规范以已确认的明暗首页和分组树为准，适用于页面出图和前端实现。首页采用纸白／蓝灰背景、蓝色操作强调、完成回执与小面积贴纸。工作台延续同一套颜色、边界与字阶，首页演示形态由独立动效文档定义。分支身份沿用工作橙、健康蓝、生活金示例，两主题保持同名映射。[设计交接](DESIGN.md) · [首页浅色](../2026-11-19/homepage-visual-review/outputs/design-system/images/p00-home-light.png) · [首页深色](../2026-11-19/homepage-visual-review/outputs/design-system/images/p00-home-dark.png) · [首页动效](HOMEPAGE-MOTION.md)
+本规范以已确认的明暗首页和分组树为准，适用于页面出图和前端实现。首页采用纸白／蓝灰背景、蓝色操作强调、完成回执与小面积贴纸。工作台延续同一套颜色、边界与字阶，首页演示形态由独立动效文档定义。分支身份沿用工作橙、健康蓝、生活金示例，两主题保持同名映射。[设计交接](DESIGN.md) · [首页浅色](../design/images/p00-home-light.png) · [首页深色](../design/images/p00-home-dark.png) · [首页动效](HOMEPAGE-MOTION.md)
 
-统一交付包括 12 个独立页面与 38 个补充视图和操作状态，每组都有明暗稿。图稿内的名称、时间、状态与数据用于呈现视觉和交互样例；业务边界由功能框架和页面规格定义，延后阶段仍按阶段标注。[页面画稿总览](../2026-11-19/homepage-visual-review/outputs/design-system/index.html) · [页面与状态](UI-PAGES.md) · [组件规格](UI-COMPONENTS.md) · [产品框架](FRAMEWORK.md)
+统一交付包括 12 个独立页面与 38 个补充视图和操作状态，每组都有明暗稿。图稿内的名称、时间、状态与数据用于呈现视觉和交互样例；业务边界由功能框架和页面规格定义，延后阶段仍按阶段标注。[页面画稿总览](../design/index.html) · [页面与状态](UI-PAGES.md) · [组件规格](UI-COMPONENTS.md) · [产品框架](FRAMEWORK.md)
 
 ## 主题与令牌
 
-数值以 `design-tokens.json` 为数据源，`tokens.css` 是该文件生成的 CSS 变量。实现使用语义变量而非直接硬编码色值。默认跟随系统，可手动指定浅色或深色。两种主题共享交互、字号与几何规则。浅色偏纸白、深色偏蓝灰；色相提供身份，状态还需由形状或文字表达。[令牌 JSON](../2026-11-19/homepage-visual-review/outputs/design-system/design-tokens.json) · [CSS 变量](../2026-11-19/homepage-visual-review/outputs/design-system/tokens.css)
+数值以 `design-tokens.json` 为数据源，`tokens.css` 是该文件生成的 CSS 变量。实现使用语义变量而非直接硬编码色值。默认跟随系统，可手动指定浅色或深色。两种主题共享交互、字号与几何规则。浅色偏纸白、深色偏蓝灰；色相提供身份，状态还需由形状或文字表达。[令牌 JSON](../design/design-tokens.json) · [CSS 变量](../design/tokens.css)
 
 | 令牌 | 浅色 | 深色 | 使用位置 |
 | --- | --- | --- | --- |
@@ -29,7 +29,7 @@
 | 中性 `neutral` | #526174 / #EEF2F6 | #BCC7D6 / #344154 | 已放下、只读、普通元信息 |
 | 禁用 `disabled` | #616F81 / #EDF1F4 | #919EAE / #293444 | 暂不可操作，提供可读的原因 |
 
-选色对比计算所得主按钮前景／底色约为 **6.57:1 / 9.14:1**，语义色对中的最低值约为 **4.51:1 / 4.62:1**。七组分支线对页面、面板和凹槽底色的最低对比约为 **3.67:1 / 6.03:1**。分支名称和重要说明采用正文或辅助文本令牌。逐页检查实际叠层、可用状态和可见焦点。[浅色图形样板](../2026-11-19/homepage-visual-review/outputs/design-system/images/visual-language-light.png) · [深色图形样板](../2026-11-19/homepage-visual-review/outputs/design-system/images/visual-language-dark.png)
+选色对比计算所得主按钮前景／底色约为 **6.57:1 / 9.14:1**，语义色对中的最低值约为 **4.51:1 / 4.62:1**。七组分支线对页面、面板和凹槽底色的最低对比约为 **3.67:1 / 6.03:1**。分支名称和重要说明采用正文或辅助文本令牌。逐页检查实际叠层、可用状态和可见焦点。[浅色图形样板](../design/images/visual-language-light.png) · [深色图形样板](../design/images/visual-language-dark.png)
 
 ### 分支色相
 
@@ -52,11 +52,11 @@
 | 网格与字阶 | 4 px 间距基线。标题／区块／小标题 40／24／20 px，正文／辅助／标签 15／13／12 px。日期刻度 11 px，日期与数值用等宽或等宽数字。工作区正文基准 15 px，V1 字号三档 13／15／17 px 与树密度独立。 |
 | 桌面壳 | 顶栏 64 px、左导航 232 px、内容最大宽 1120 px。宽度至 1050 px 时左导航压缩为 188 px。顶栏含品牌、面包屑和主动作，左侧保留四个一级入口和本机状态。 |
 | 窄屏壳 | 767 px 及以下顶栏 56 px，一级入口改底部导航，内容两侧各留 16 px。表单换单列，控件保持可读标签和触控区域。 |
-| 圆角与反馈 | 输入框和按钮 6 px、通用面板 10 px、身份方点 2 px。即时反馈 120 ms、常规切换 200 ms、单次进入 320 ms。交互焦点使用 2 px 可见描边。 |
+| 圆角与反馈 | 输入框和按钮 6 px、通用面板 10 px、身份方点 2 px。即时反馈 120 ms、常规切换 200 ms、单次进入 320 ms、退出 120 ms；缓动入 `cubic-bezier(.2,0,0,1)`、出 `cubic-bezier(.4,0,1,1)`。交互焦点使用 2 px 可见描边。完整时序见[应用动效](UI-MOTION.md)，首页另有独立节奏。 |
 | 浮层 | 菜单贴着原行打开；新增分支、快速添加和实体详情用 480 px 右侧栏；常规／宽对话框上限 520／640 px。浮层共享遮罩、标题区、可滚动内容和操作区。窄屏侧栏占满可用宽度，居中对话框两侧保留 12 px。 |
 | 独立认证 | V2 表单沿用相同颜色与控件，独立壳在桌面呈现表单和首页意象，窄屏优先呈现表单及本机工作区入口。 |
 
-共享壳和浮层源码可核对样式，但画稿数据与静态控件只说明视觉状态。键盘焦点、路由、状态更新和业务权限由产品实现承担。[共享壳](../2026-11-19/homepage-visual-review/outputs/design-system/source/shared.css) · [浮层样式](../2026-11-19/homepage-visual-review/outputs/design-system/source/layers.css)
+共享壳和浮层源码可核对样式，但画稿数据与静态控件只说明视觉状态。键盘焦点、路由、状态更新和业务权限由产品实现承担。[共享壳](../design/source/shared.css) · [浮层样式](../design/source/layers.css)
 
 ## P02 分组树
 
@@ -70,11 +70,11 @@
 | 当前行 | 以分支同色淡底与细边框标记当前项，名称加重。语义状态单独显示，如「已合并」及汇合小图标、「已放下」及中性状态点。 |
 | 操作与可读性 | 展开控制、名称链接、「更多」按钮各有独立动作。超长名称在详情中可完整读取，辅助列让位于名称、状态及菜单。 |
 
-[分组树明暗稿](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p02-branches) · [分组树样式覆写](../2026-11-19/homepage-visual-review/outputs/design-system/source/branches-grouped.css) · [分支操作画稿](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#branch-operations)
+[分组树明暗稿](../design/index.html#p02-branches) · [分组树样式覆写](../design/source/branches-grouped.css) · [分支操作画稿](../design/index.html#branch-operations)
 
 ## P04 时间树
 
-桌面左标签栏宽 160 px，横轴刻度内容区 32 px，图表卡最低 480 px。一级泳道高 88 px，已展开的子泳道每条 56 px。横轴按时间比例定位，最近日期从右侧可读。默认展开未归档一级分支，从提交等入口直达时展开对应路径并选中目标。画稿展示「完成线框初稿」直达状态。[时间树明暗稿](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p04-history)
+桌面左标签栏宽 160 px，横轴刻度内容区 32 px，图表卡最低 480 px。一级泳道高 88 px，已展开的子泳道每条 56 px。横轴按时间比例定位，最近日期从右侧可读。默认展开未归档一级分支，从提交等入口直达时展开对应路径并选中目标。画稿展示「完成线框初稿」直达状态。[时间树明暗稿](../design/index.html#p04-history)
 
 | 要素 | 形态 | 使用 |
 | --- | --- | --- |
