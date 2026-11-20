@@ -20,3 +20,13 @@ tsconfig.*.tsbuildinfo
 /.agents/
 /.claude/
 /CUsersAdministrator.SY-202401060959.codexskills/
+
+# 首页选稿：图片与视频只保留本地，文本（选稿 Markdown、原型 HTML、脚本）入库
+/2026-11-19/homepage-visual-review/outputs/homepage-images/**/*.png
+/2026-11-19/homepage-visual-review/outputs/homepage-images/**/*.jpg
+/2026-11-19/homepage-visual-review/outputs/homepage-images/**/*.jpeg
+/2026-11-19/homepage-visual-review/outputs/homepage-images/**/*.gif
+/2026-11-19/homepage-visual-review/outputs/homepage-images/**/*.webp
+/2026-11-19/homepage-visual-review/outputs/homepage-images/**/*.mp4
+# 阶段性视觉研究目录
+/2026-11-19/homepage-visual-review/work/style-study-v*/
