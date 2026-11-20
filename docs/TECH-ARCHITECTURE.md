@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.15 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
+**状态**: 0.16 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
 **本版依据**: 数据模型以 `design/images/` 的页面画稿为准（逐页核对结论见 §5.3–§5.3.3 与 [页面数据核对](./PAGE-DATA-CROSSCHECK.md)），不以文字规格反推。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
@@ -451,7 +451,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | Q5 | 提交详情的上下条 | 同一 `branchId` 下按 `date` 双向游标 | `[ownerId+branchId+date]` | 各取 1 条 |
 | Q6 | 已归档视图 | `ownerId` + `archivedAt != null`，按 `finishedAt` 倒序，再按一级分组成 `工作 / 1 条已归档` | `[ownerId+archivedAt]` | 归档区 ≤ 数十 |
 | Q7 | 徽章墙与详情 | `ownerId` + `category`，按 `grantedAt` 排序；未获得项与「还差 N」由常量目录现算 | `[ownerId+category]` | 目录固定 16 项 |
-| Q8 | 数据与备份列表 | `ownerId` + `createdAt` 倒序；只取最近 7 条 `auto` 与最近一条 `pre-restore` / `remote` | `[ownerId+createdAt]`、`[ownerId+kind+createdAt]` | ≤ 10 行 |
+| Q8 | 数据与备份列表 | 四类各取上限：`auto` 最近 7 条、`manual` 最近 7 条、`pre-restore` 最近 1 条、`remote` 最近 1 条；再按 `createdAt` 倒序合并成**一个列表**，不截断、不按类合并 | `[ownerId+kind+createdAt]` 逐类取上限，`[ownerId+createdAt]` 作合并校验 | 合计 ≤ 16 行 |
 | Q9 | 年度总结 | `ownerId` + `year` 精确取一行；其余年轮统计现算 | `[ownerId+year]` | 1 行 |
 | Q10 | 分支额度与置顶 | 同 Q1 取同父全部行后，内存里按 `pinnedAt` 非空优先排序 | 复用 `[ownerId+parentId]` | 单父 ≤20 行 |
 | Q11 | 父分支历程中的已收尾子树里程碑 | `ownerId` 取全部分支（≤200 行）→ 内存沿 `finishedIntoId` 展开已收尾子树 → 用分支 `_id` 集合 `anyOf` 取里程碑 → 按 `achievedAt` 倒序合并；来源标注取该 `branchId` 的 `title` | 复用 `[ownerId+status]` 与 `[ownerId+branchId]`；跨分支排序在内存完成 | 子树 ≤ 数十分支、里程碑 ≤ 数十 |
@@ -479,6 +479,8 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 
 **落地约束**：收尾时**禁止**批量改写 `milestones.branchId`；展开只认 `status=merged` 且 `finishedIntoId` 非空的链，`dropped` 分支的里程碑不并入父视图（放下不是完成）；来源分支已归档时仍显示其标题，但行样式按归档区分。
 
+- **备份列表不按类分组**：四类快照（`auto` / `manual` / `pre-restore` / `remote`）在页面上是同一条时间线，按 `createdAt` 倒序单列表展示；任何一类都不隐藏、不折叠、不截断，行内用标签区分来源。留存上限只约束库里保留多少行（`auto` 7、`manual` 7、`pre-restore` 1、`remote` 1），不约束列表展示。
+
 ### 5.3.3 规则表（口径集中，散落正文不再重复）
 
 画稿里凡是「怎么算」的部分都收敛到这张表；实现时以此为准，页面文档只描述展示。
@@ -501,7 +503,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | R14 | 归档 / 取消归档 | 归档只写/清 `archivedAt`，`status` 不变；归档子树退出默认树、额度与停滞计算，但历程与统计保留；取消归档恢复原位置与原状态并重新占用名额 | B09、B11、S02 |
 | R15 | 放下 / 重新开始 | 放下需填原因，写 `droppedAt` / `dropReason`，`status=dropped`，未完成待办移出今天；重新开始 `status=active`，待办按原 `dueDate` 与 `plannedDate` 回到分组（`plannedDate = today` 的仍先归今天组，见 R8），**保留**上次 `droppedAt` / `dropReason` | B08、B12 |
 | R16 | 额度 | 根分支 1 个；L1 ≤7、L2 ≤9、L3 ≤20 直接子分支；全树 ≤200。只算未归档、未删的分支；移动时显示各候选剩余名额，自身与后代不可选 | B02「已使用 3 / 7 个名额」、B03「1 / 20」、B05、P02 页脚 |
-| R17 | 备份（V1） | 每日首次打开自动写一条 `kind=auto` 快照，只保留最近 7 条；恢复前先写 `kind=pre-restore`；快照记录分支数、待办数、提交数与 `schemaVersion`，`payload` 为明文 JSON；异地备份在对象存储留一份，元数据进 `kind=remote`。**MVP 不建 `backups`，只有导出/导入** | P06 数据卡、P08、S08 两态、S08 data-v1 |
+| R17 | 备份（V1） | 每日首次打开自动写一条 `kind=auto` 快照；恢复前先写 `kind=pre-restore`；异地备份在对象存储留一份，元数据进 `kind=remote`。**留存：`auto` 7 条、`manual` 7 条、`pre-restore` 1 条、`remote` 1 条**，四类合计按 `createdAt` 倒序单列表展示，不截断、不合并。快照记录分支数、待办数、提交数与 `schemaVersion`，`payload` 为明文 JSON。**MVP 不建 `backups`，只有导出/导入** | P06 数据卡、P08、S08 两态、S08 data-v1 |
 | R18 | 徽章 | 目录固定 16 项（结构 8 / 时间 4 / 里程碑 4），是常量不是表；授予时写 `catalogId` / `category` / `periodKey`（如 `2026-Q3`、`2026`）与 `snapshot`（获得时的分支去向、完成进度），之后不再变；「还差 N」现算 | S06 徽章墙 7/16、S06 详情 |
 | R19 | 主题 | 只有 `light` / `dark` 两档，初始 `light`，只由用户手动切换并写入 `settings.theme`；**不读取 `prefers-color-scheme`**。画稿 P07 的「跟随系统」是遗留项，按已定结论实现并在画稿侧待改 | P07、§2.5 |
 
@@ -808,3 +810,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 0.13 | 2026-11-21 | **四项工程细节拍板并最小落地**：新增 §2.6 状态管理（Zustand 按屏切分、只装 UI 状态、数据走 `useLiveQuery`、建 store 的三条判断标准）、§2.7 图标（自绘内联 SVG，尺寸 16/18/20/24、描边 1.5、`currentColor`、禁图标库）、§2.8 文案（单文件 key 化、只 `zh-CN`、key 命名与「暂时不做」）、§2.9 测试（Vitest 5、`*.test.ts` 同目录、只测纯逻辑与 R1–R19、`npm test`）；落地 `web/src/stores`（`shell` / `today`）、`web/src/ui/icons`（`SvgIcon` + 示例）、`web/src/i18n`（`zh-CN` + `t()`）、`web/src/core/rules/counters.ts` 与首个纯函数测试；`web/package.json` 加 `zustand@5.1.0`、`vitest@5.1.1` 与 `test` 脚本，`vite.config.ts` 合并 `test` 配置。`npm test` 3/3 通过，`npm run build` 通过 |
 | 0.14 | 2026-11-21 | **R8 增补「显式安排到今天」例外**：`dueDate < today` 但 `plannedDate = today` 的待办归今天组，不再计入逾期；逾期只认「时间判定且未经显式安排」（`dueDate < today && plannedDate !== today`）。判定依据为既有 `tasks.plannedDate`，**不新增字段**；同步改写 Q2 的取数顺序与索引说明、R15 的重开分组口径，并在 §5.3.3 表后补「显式安排」的字段/操作/清空说明 |
 | 0.15 | 2026-11-21 | **M08 可行性确认**：收尾不迁移 `milestones.branchId`，父分支历程用既有 `branches.finishedIntoId` 链在内存展开已收尾子树，再用 `[ownerId+branchId]` 的 `anyOf` 取里程碑并按 `achievedAt` 合并，来源标注取 `branchId` 对应 `title`。结论：现有表与索引可实现，**不加字段、不加索引**（`sourceBranchId` 与 `branchId` 重复；`finishedIntoId` 无索引但全表 ≤200 行可接受）。新增 Q11 与四方案代价对比，R12 补「里程碑不迁移」与落地约束（禁批量改写、`dropped` 不并入、归档来源仍显示） |
+| 0.16 | 2026-11-21 | **备份留存口径补齐**：Q8 与 R17 明确四类快照的留存上限——`auto` 7 条、**`manual` 7 条**、`pre-restore` 1 条、`remote` 1 条；页面把四类合成**一条按 `createdAt` 倒序的时间线**，不截断、不按类合并、行内用标签区分来源。查询改为 `[ownerId+kind+createdAt]` 逐类取上限再合并，`[ownerId+createdAt]` 仅作校验，**不新增索引**；§5.3.2 补「备份列表不按类分组」说明 |
