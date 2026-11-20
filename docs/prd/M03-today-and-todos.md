@@ -164,3 +164,51 @@
 - 未决问题：
   - 快速添加支持的自然语言日期格式清单未定义，需在实现前给出最小集合与失败口径。
   - 「最近提交」显示条数未定，页面空间允许时建议 3–5 条。
+
+## 8. Harness 与验证
+
+### 8.1 本次必须实现的操作
+
+| OP | 操作 | 入口 | 可核对的结果 | 写入的表 / 字段 | 验收 |
+| --- | --- | --- | --- | --- | --- |
+| OP-01 | 快速添加保存 | O01 保存 | 按 `dueDate` / `plannedDate` 落组；识别失败保留输入且仍可保存 | `tasks`（新增）、`events` | 1、2、3 |
+| OP-02 | 完成待办 | P01 勾选、O02 完成 | 行变回执；有效提交恰好 +1；计数 +1 | 同一事务：`tasks.status/completedAt/completedCommitId`、`commits`（新增）、`branches.taskDone/commitCount/ownLastCommitAt`、`events` | 4、5、6 |
+| OP-03 | 补一句 | 回执内提交 | `summary` = 「标题 —— 补一句」；不补则等于标题 | `commits.summary`、`events` | 7 |
+| OP-04 | 安排到今天 / 移出今天 | 行尾「更多」 | `plannedDate` 改写；今天组与逾期组互斥，只出现一次 | `tasks.plannedDate`、`events` | 10 |
+| OP-05 | 编辑待办 | O02 保存 | 标题、备注、日期、计划日期落库；分组随日期变化 | `tasks`、`events` | 12 |
+| OP-06 | 取消待办 | O02 确认 | 退出今天与全部待办；`taskTotal` 减一；历史保留 | `tasks.cancelledAt`、`events`、`branches` | 11 |
+| OP-07 | 改归属 | O02 改归属 | 原分支与新分支计数分别更新；不可接收分支不可选 | `tasks.branchId`、`branches`、`events` | 12 |
+| OP-08 | 读取三组与页头计数 | 打开 P01 | 组内不重复；页头「N 条有截止 · 另有 M 条无截止」与组内条数一致 | 只读 | 8、9、15 |
+| OP-09 | 收起 / 展开清单 | P01 清单内 | 收起只露第一条；完成后露出下一条 | 无（UI 状态） | 13（人工核对） |
+
+不实现：撤销完成与文案纠错（M05）、停滞虚线（M06）、拖拽排序（V1-08）、批量导入（V1-07）。
+
+### 8.2 必须自动化的用例
+
+| 测试文件 | 被测对象 | 断言要点 | 边界 |
+| --- | --- | --- | --- |
+| `web/src/core/rules/today-groups.test.ts` | 今天分组纯函数（R8） | 逾期只取 `dueDate < today` 且 `plannedDate != today`；`plannedDate = today` 归今天（含原逾期）；`dueDate = null` 归无截止；组内按 `dueDate` 升序、同日按创建顺序；同一条只出现一次；页头两个计数与组内条数一致 | `dueDate = today`；`plannedDate = today` 同时 `dueDate` 在过去；`dueDate` 在未来且 `plannedDate = today`；`dueDate = null`；父分支 `dropped` / 已归档的待办被排除 |
+| `web/src/core/rules/commit-summary.test.ts` | 提交文案拼接 | 无补一句时等于标题；有补一句时为「标题 —— 补一句」；重复调用不叠加分隔符 | 空字符串备注、只有空白的备注、标题含「——」 |
+| `web/src/core/rules/counters.test.ts`（扩展现有文件） | 四计数（R7） | 完成：`taskDone`、`commitCount` 各 +1，`ownLastCommitAt` 取最新有效提交；取消：`taskTotal` 减一且不影响 `taskDone`；改归属：两分支各按归属重算；`cancelled` 与 `deletedAt` 不计入 | 同分支多条完成、撤销提交（`voidedAt`）、跨分支改归属、全部提交被撤销后 `ownLastCommitAt = null` |
+| `web/src/data/complete-task.test.ts` | 完成待办单事务（`fake-indexeddb`） | `tasks.status/completedAt/completedCommitId`、新增 `commits`、`branches` 三个计数与 `events` 在同一事务内写入；任一步抛错时全部回滚，不留下孤立提交或半更新计数 | 事务中途抛错；同一待办连点两次；父分支计数重算失败；提交写入成功但 `events` 失败 |
+
+**最值钱的回归用例**：`complete-task.test.ts` 的「提交写入成功但后续步骤失败」。它守的是「界面显示已提交、库里没有提交」这类不一致：只要实现把生成提交与更新计数拆成两次写入，断网或配额错误就会留下半完成状态，而正常点击永远看不出来。第二个是 `today-groups.test.ts` 的「安排到今天同时 `dueDate` 在过去」：实现若先判逾期再判今天，用户会看到同一条待办同时出现在两组，手工测试通常只造未来日期的数据，很难撞到。
+
+说明：回执渲染与 `useLiveQuery` 刷新属于 React 渲染，不进单测，改由 8.3 人工核对；数据层一致性由 `complete-task.test.ts` 覆盖。快速添加的日期识别用例需先定 §7 的日期格式最小集合；定稿前只覆盖「今天」「明天」「YYYY-MM-DD」三种显式输入与无法识别一种失败输入。
+
+### 8.3 只能人工验收
+
+1. **完成回执与焦点**：预置 3 条今天待办；完成第一条；判定为不出现确认框、行内出现「已提交 HH:mm」、焦点落到下一条；1440 与 390 各一次。
+2. **写入失败回弹**：在 DevTools 中使 IndexedDB 写入失败（或断网后恢复）；完成一条待办；判定为勾选回弹、待办仍为未完成、出现可重试提示，且刷新后无孤立提交。
+3. **折叠动效与加载稳定**：预置超过 5 条逾期；节流网络后进入 P01；判定为骨架期不整屏 spinner、加载完成后三组标题与行高不跳动、折叠展开不超过既有动效时长。
+4. **窄屏可用性**：390 px 打开快速添加与待办详情；判定为全屏面板、键盘弹起时保存按钮可见、关闭入口可见、行尾「更多」不依赖悬停。
+5. **清单收起**：预置 4 条今天待办；收起后完成当前第一条；判定为自动露出下一条而不是空态。
+
+### 8.4 与 AGENTS.md 验证命令的对应
+
+| 命令 | 覆盖本 PRD 的部分 |
+| --- | --- |
+| `cd web && npm run lint` | 新增组件与 `core` 函数无 ESLint 错误与警告，无硬编码色值、字号、文案 |
+| `cd web && npm test` | 8.2 三个测试文件全绿，含扩展现有 `counters.test.ts` |
+| `cd web && npm run build` | `tsc -b` 通过，分组函数与仓储类型无未使用变量与类型错误 |
+| `cd web && npm run dev` | 按 8.3 五条在 `http://localhost:5173/` 执行人工清单；本 PRD 无只有 `npm test` 能覆盖的视觉项 |
