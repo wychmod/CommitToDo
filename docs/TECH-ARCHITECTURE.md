@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.12 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5。
+**状态**: 0.13 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
 **本版依据**: 数据模型以 `design/images/` 的页面画稿为准（逐页核对结论见 §5.3–§5.3.3 与 [页面数据核对](./PAGE-DATA-CROSSCHECK.md)），不以文字规格反推。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
@@ -34,6 +34,7 @@
 7. **数据模型补全**（0.9）：`branches` 补物化路径、层级、归档与四个计数，`commits` 补原始归属、补记与撤销墓碑，新增 `badges` / `settings`，并落成树规则与五条关键查询索引（§5.3–§5.3.2）。
 8. **样式工程化拍板**（0.10）：CSS Modules + 原生 CSS 变量，不引 Tailwind / CSS-in-JS / 组件库（§2.5）。
 9. **以画稿为准的字段补全**（0.12）：`branches` 补目标、颜色、收尾/放下/置顶；`tasks` 补完成时间与完成提交、状态增加 `cancelled`；`milestones` 补备注；新增 `backups`（V1）、`year_reviews`（V1）；删无消费的 `tasks.priority`、`users.prefs`、`settings.fontScale`；规则类口径集中成 §5.3.3 一张表。
+10. **四项工程细节拍板**（0.13）：Zustand 按屏切分且只装 UI 状态、数据一律 `useLiveQuery`；图标自绘内联 SVG；文案单文件 key 化只 `zh-CN`；Vitest 只测纯逻辑与规则（§2.6–§2.9）。同步落地 `web/src/stores`、`ui/icons`、`i18n`、`core/rules` 骨架与 `npm test`。
 
 > 0.4 / 0.5 曾按「从 MVP 起云库权威 + 同步」编写，该前提已被推翻；本文已整体撤回相关表述，以 §0、§4、§5 为准。
 
@@ -43,15 +44,15 @@
 
 | 项 | 事实 |
 |---|---|
-| 运行时依赖 | `react@19.3.1`、`react-dom@19.3.1`、`react-router-dom@7.18.6` |
-| 开发依赖 | `vite@8.3.8`、`@vitejs/plugin-react@6.3.0`、`typescript@7.0.2`、`@types/react@19.3.0`、`@types/react-dom@19.3.0`、`@types/node@^24` |
+| 运行时依赖 | `react@19.3.1`、`react-dom@19.3.1`、`react-router-dom@7.18.6`、`zustand@5.1.0` |
+| 开发依赖 | `vite@8.3.8`、`@vitejs/plugin-react@6.3.0`、`typescript@7.0.2`、`vitest@5.1.1`、`@types/react@19.3.0`、`@types/react-dom@19.3.0`、`@types/node@^24` |
 | 引擎要求 | `package.json` 已写 `node >=22.12.0`（Vite 8 的 engines 为 `^20.19.0 \|\| >=22.12.0`）；本机 Node 24.18 |
 | 构建 | `vite build`（`tsc -b` 先做类型检查），`base` 默认，别名 `@ -> src`；**已实测通过**：24 modules，JS 258.01 kB / gzip 82.11 kB |
 | TypeScript | `strict`、`noUnusedLocals/Parameters`、`moduleResolution: bundler`、`jsx: react-jsx`；TS 7 已移除 `baseUrl`，`paths` 用相对路径 |
-| 代码 | `src/main.tsx`、`src/app.tsx`（仅 `/` 一条路由）、`src/pages/home-page.tsx`、`src/index.css` |
+| 代码 | `src/main.tsx`、`src/app.tsx`（仅 `/` 一条路由）、`src/pages/home-page.tsx`、`src/index.css`；骨架目录 `src/stores/`、`src/ui/icons/`、`src/i18n/`、`src/core/rules/`（0.13 建，暂为空或极简实现） |
 | 静态资产 | `web/public/favicon.svg`（唯一被引用项） |
 | CloudBase | **0 处代码依赖**：无 SDK、无云函数、无 `.env*`；MVP 只需要一个用于静态托管的 envId，作为部署参数存在，不进构建产物 |
-| 已废弃 | 分层目录、ESLint/Vitest、Tailwind token、旧 Dexie schema、PWA 插件均随 2026-11-19 清空删除，归档于 `docs/archive/2026-11/legacy-impl/` |
+| 工具链 | ESLint 仍不引入；Vitest 于 0.13 重新引入，只做纯逻辑测试（§2.9）。分层目录、Tailwind token、旧 Dexie schema、PWA 插件均随 2026-11-19 清空删除，归档于 `docs/archive/2026-11/legacy-impl/` |
 | 产品前提 | MVP 纯本地、无账号、不联网可用；V1 只有异地备份与匿名统计（仍无账号）；V2 才做账号与多端；活跃分支 ≤200；里程碑照片已砍 |
 | 首页形态 | 明暗长页按确认图的章节顺序实现。首屏演示约 1.4 秒，后续章节一次性入视触发，支持 `prefers-reduced-motion`。[首页动效](./HOMEPAGE-MOTION.md) |
 
@@ -151,6 +152,58 @@ CSS Modules 由 Vite 原生支持、零配置；令牌本身就是变量，不�
 **反向条件**
 
 只有同时出现「页面数量增长到几十个」「多人并行改 UI」「大量通用后台界面」三种情况时，才重新评估 Tailwind；其余情况不折腾。届时也不换令牌源，只换消费方式。
+
+### 2.6 状态管理（已定：Zustand 按屏切分 + `useLiveQuery`）
+
+**两层分工**：界面状态进 store，领域数据只从 Dexie 读。
+
+- **数据状态**一律走 Dexie 的 `useLiveQuery`（§5.4）。分支、待办、提交、里程碑、徽章、计数、进度、停滞列表、筛选结果**都不允许复制进 store**。
+- **UI 状态**进 Zustand：选中项、展开/折叠、浮层开关、命令面板、撤销回执、未提交的表单草稿。刷新后不需要恢复的东西才放这里。
+
+**目录与命名**
+
+- 目录 `web/src/stores/`，按屏切分：一屏一个 `<screen>.store.ts`（如 `today.store.ts`、`branch-detail.store.ts`）；跨屏外壳单独一个 `shell.store.ts`（命令面板、撤销回执、全局浮层）。
+- 导出名 `use<Screen>Store`（`useTodayStore`、`useShellStore`）；文件名 kebab-case，与路由段同名。
+- state 用名词（`selectedTaskId`、`composerOpen`），action 用动词开头（`selectTask`、`openOverlay`、`clearUndo`）；不写 `setXxx`，除非它真的只是赋值。
+- 组件里只用选择器订阅：`useTodayStore((s) => s.selectedTaskId)`，不整对象订阅。
+
+**什么时候该建 store**（三条同时成立才建）
+
+1. 状态不属于任何实体，刷新后丢了也无所谓；
+2. 只有同屏的多个组件共享，跨屏没有意义；
+3. 写它不产生业务事件、不写库。
+
+任一条不成立：是业务数据 → 进 Dexie；只在一个组件里用 → `useState`；来自 URL（页签、筛选、日期）→ 用路由参数，不进 store。
+
+**约束**：不启用 `persist` 中间件；需要持久化的只有 `settings`（主题、树密度、注解），写 Dexie 而不是 localStorage；store 里不持有 Dexie 实例、不写异步副作用（副作用留在仓储或页面层）。
+
+### 2.7 图标（已定：自绘内联 SVG，不引图标库）
+
+- 目录 `web/src/ui/icons/`，一个图标一个组件，统一从 `index.tsx` 导出；组件文件必须 `.tsx`（`index.ts` 放 JSX 会编译失败）。
+- 共用外壳 `SvgIcon`：`viewBox="0 0 24 24"`、`fill="none"`、`stroke="currentColor"`、`strokeWidth={1.5}`、圆头圆角、`aria-hidden`。
+- **尺寸**只允许 `16 / 18 / 20 / 24`，默认 18。唯一例外是徽章令牌（画稿里的 29 / 39），由徽章组件内部传给 `size`，其他组件不得使用。
+- **颜色**一律 `currentColor`，组件内不写任何色值；外层用令牌变量设定（`color: var(--text-muted)`）。
+- **描边**统一 1.5；需要第二档时先改 `design/design-tokens.json`，不在图标里写死。
+- 路径内联，不用 sprite、不 `import '*.svg'`、不引 `lucide-react` / `react-icons` 等任何图标包。
+
+### 2.8 文案与 i18n 骨架（已定：单文件 key 化，只 `zh-CN`）
+
+- 目录 `web/src/i18n/`：`zh-CN.ts` 是**唯一文案表**，`index.ts` 提供 `t()` 与 `MessageKey` 类型。
+- key 约定 `域.元素.语义`，段内 camelCase（`today.header.withDue`、`common.add`）；域与路由段或模块同名，不复用 `common.title` 这类泛词。
+- 组件内不写死中文：按钮、占位符、空态、`aria-label`、提示语一律 `t('...')`。测试断言与控制台日志除外。
+- 类型安全：`MessageKey = keyof typeof zhCN`，`t()` 只接受已存在的 key，写错编译期报错。
+- 新增语言时只加一个同结构的目录文件并扩展 `Locale`，组件不改；在此之前不改组件签名。
+- **暂时不做**：不引 i18next / react-intl / FormatJS 等运行时库；不做复数规则、性别与语序处理；不做日期/数字本地化（统一由工具函数走 `Intl.DateTimeFormat('zh-CN')`）；不做语言切换 UI、不做按语言分包、不做 key 自动提取脚本。
+
+### 2.9 测试基线（已定：Vitest，只测纯逻辑）
+
+- 工具：**Vitest 5**，配置合并在 `web/vite.config.ts` 的 `test` 字段，不另建 `vitest.config.ts`。
+- 位置与命名：与实现同目录的 `*.test.ts`（如 `src/core/rules/counters.test.ts`）；不用 `.spec.ts`，不建 `__tests__/` 目录。
+- 运行：`npm test`（即 `vitest run`）；本地 watch 用 `npx vitest`。
+- 范围（MVP）：仓储读写（内存或假 IndexedDB 适配）、四计数重算、§5.3.3 的 R1–R19 规则、日期与分组函数、导入导出校验。
+- 不测：组件渲染与快照、样式、路由跳转、视觉效果；需要 DOM 的交互测试留到后续单独评估，MVP 不引 jsdom / browser 模式。
+- 约定：规则实现放 `src/core/` 且不 import React；函数签名用最小接口，测试数据用就地工厂函数构造，不建共享 fixture 文件。
+- 覆盖边界：MVP 不设覆盖率门槛；但**每新增一条 R 规则必须同时加用例**，否则评审不通过。
 
 ---
 
@@ -671,6 +724,10 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页�
 | 加密 | **不做端到端加密**（本地、备份包、云端都是明文），安全边界靠权限规则 | 2026-11-20 |
 | 视觉规格 / 样式 | CSS Modules + 原生 CSS 变量；令牌源 `design/design-tokens.json`（§2.5） | 2026-11-21 |
 | 数据模型 | **以页面画稿为准**：字段与表按 `design/images/` 逐页核对补全，规则集中为 §5.3.3 | 2026-11-21 |
+| 状态管理 | Zustand 按屏切分，store 只装 UI 状态；领域数据一律 Dexie `useLiveQuery`（§2.6） | 2026-11-21 |
+| 图标 | 自绘内联 SVG，不引图标库；尺寸 16/18/20/24、描边 1.5、颜色取 `currentColor`（§2.7） | 2026-11-21 |
+| 文案 | 单文件 key 化，只 `zh-CN`；不引 i18n 运行时库（§2.8） | 2026-11-21 |
+| 测试 | Vitest 5，只测纯逻辑与 §5.3.3 规则，不写组件快照（§2.9） | 2026-11-21 |
 
 ### 10.2 已定：不做端到端加密（含异地备份）
 
@@ -694,7 +751,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页�
 | 5 | 移动端是 RN/Expo、PWA，还是先不做 | 延后 | 不卡开工——§5.7 已把隔离定为常规约束 | V2 立项前 |
 | 6 | 多端冲突策略的具体判定与展示 | 延后 | 不卡 MVP/V1；**方向已锁**（§4.6）：本地先写 + outbox 补推，冲突不静默丢弃、记入 `conflicts` 并在分支历史留痕 | V2 立项前 |
 | 7 | 匿名统计的事件口径 | 延后 | 不卡 MVP；只影响 V1 计数字段与隐私文案 | V1 上线前 |
-| 8 | 是否需要多语言 | 延后 | 不卡开发；若要，最好在首页文案定稿前说 | 首页文案定稿前 |
+| 8 | 是否需要多语言 | **骨架已定**：只 `zh-CN`，文案 key 化（§2.8）；新增语言与切换仍延后 | 不卡开发；加语言时只加目录文件，不改组件 | 出现真实第二语言需求时 |
 
 ### 10.4 阻塞状态与开工结论
 
@@ -721,3 +778,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十条各对应一个真实页�
 | 0.10 | 2026-11-21 | **样式工程化拍板**：新增 §2.5，定为 CSS Modules + 原生 CSS 变量，否决 Tailwind / CSS-in-JS / 组件库并写明理由；令牌唯一真源 `design/design-tokens.json`，`design/tokens.css` 只生成不手改；默认白天、深色用 `data-theme` 切换；禁止硬编码色值/线宽/圆角/时长，基础件只做薄封装；保留 TW 重新评估的反向条件。§0 与 §10.1 的样式状态改为已定 |
 | 0.11 | 2026-11-21 | **主题口径收紧**：初始即浅色；深色只能由用户手动切换并持久化到 `settings.theme`，**不读取 `prefers-color-scheme`**，也不随系统变化；首屏只在 head 内联脚本里恢复已存选择（§2.5） |
 | 0.12 | 2026-11-21 | **以画稿为准的字段补全**：逐页核对 `design/images/` 后补 `branches.goal` / `color` / `finishedAt` / `finishedIntoId` / `droppedAt` / `dropReason` / `pinnedAt`，`tasks.completedAt` / `completedCommitId` / `cancelledAt` 与 `cancelled` 状态，`commits.at`，`milestones.note`，`badges.catalogId` / `category` / `periodKey`，`settings.lastAutoBackupAt`；新增 `backups`（V1）、`year_reviews`（V1），V2 补 `devices` 与 `conflicts` 的设备/字段级记录；删 `tasks.priority`、`users.prefs`、`settings.fontScale`、`commits.isBackfill`；索引补 Q6–Q10；新增 §5.3.3 规则表（完成口径、停滞、短 hash、`datePrecision`、四计数重算、周/月/年口径、收尾去向、删空分支例外、重开保留放下历史、主题两档）。MVP 业务表仍为 7 张，新表随 V1 启用 |
+| 0.13 | 2026-11-21 | **四项工程细节拍板并最小落地**：新增 §2.6 状态管理（Zustand 按屏切分、只装 UI 状态、数据走 `useLiveQuery`、建 store 的三条判断标准）、§2.7 图标（自绘内联 SVG，尺寸 16/18/20/24、描边 1.5、`currentColor`、禁图标库）、§2.8 文案（单文件 key 化、只 `zh-CN`、key 命名与「暂时不做」）、§2.9 测试（Vitest 5、`*.test.ts` 同目录、只测纯逻辑与 R1–R19、`npm test`）；落地 `web/src/stores`（`shell` / `today`）、`web/src/ui/icons`（`SvgIcon` + 示例）、`web/src/i18n`（`zh-CN` + `t()`）、`web/src/core/rules/counters.ts` 与首个纯函数测试；`web/package.json` 加 `zustand@5.1.0`、`vitest@5.1.1` 与 `test` 脚本，`vite.config.ts` 合并 `test` 配置。`npm test` 3/3 通过，`npm run build` 通过 |
