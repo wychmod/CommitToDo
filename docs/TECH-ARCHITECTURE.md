@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.16 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
+**状态**: 0.17 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
 **本版依据**: 数据模型以 `design/images/` 的页面画稿为准（逐页核对结论见 §5.3–§5.3.3 与 [页面数据核对](./PAGE-DATA-CROSSCHECK.md)），不以文字规格反推。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
@@ -195,15 +195,19 @@ CSS Modules 由 Vite 原生支持、零配置；令牌本身就是变量，不�
 - 新增语言时只加一个同结构的目录文件并扩展 `Locale`，组件不改；在此之前不改组件签名。
 - **暂时不做**：不引 i18next / react-intl / FormatJS 等运行时库；不做复数规则、性别与语序处理；不做日期/数字本地化（统一由工具函数走 `Intl.DateTimeFormat('zh-CN')`）；不做语言切换 UI、不做按语言分包、不做 key 自动提取脚本。
 
-### 2.9 测试基线（已定：Vitest，只测纯逻辑）
+### 2.9 测试基线（已定：Vitest，纯函数 + 规则 + Dexie 事务）
 
 - 工具：**Vitest 5**，配置合并在 `web/vite.config.ts` 的 `test` 字段，不另建 `vitest.config.ts`。
-- 位置与命名：与实现同目录的 `*.test.ts`（如 `src/core/rules/counters.test.ts`）；不用 `.spec.ts`，不建 `__tests__/` 目录。
-- 运行：`npm test`（即 `vitest run`）；本地 watch 用 `npx vitest`。
-- 范围（MVP）：仓储读写（内存或假 IndexedDB 适配）、四计数重算、§5.3.3 的 R1–R19 规则、日期与分组函数、导入导出校验。
+- 两个测试项目，按文件路径自动分流：
+  - `unit`：`src/**/*.test.ts`（排除 `src/data/`），纯函数、四计数重算、§5.3.3 的 R1–R19 规则；不加载 IndexedDB，开销最小。
+  - `db`：`src/data/**/*.test.ts`，需要 IndexedDB 的事务用例；`setupFiles` 只在这里引入 `src/test/idb-setup.ts`（`fake-indexeddb/auto`），纯函数用例不受影响。
+- 位置与命名：与实现同目录的 `*.test.ts`（如 `src/core/rules/counters.test.ts`、`src/data/transactions.test.ts`）；不用 `.spec.ts`，不建 `__tests__/` 目录。
+- 运行：`npm test`（即 `vitest run`，两个项目一次跑完）；本地 watch 用 `npx vitest`。
+- 范围（MVP）：四计数重算、R1–R19 规则、日期与分组函数、导入导出校验，以及 **Dexie 事务一致性**——「完成待办时提交与四计数同事务写入」、事务失败整体回滚、唯一索引与复合索引命中。
+- 事务用例约定：每个用例开头 `db.delete()` + `db.open()` 隔离库；行对象用就地工厂构造（不建共享 fixture）；断言落在库内实际值，不 mock 仓储。
 - 不测：组件渲染与快照、样式、路由跳转、视觉效果；需要 DOM 的交互测试留到后续单独评估，MVP 不引 jsdom / browser 模式。
 - 约定：规则实现放 `src/core/` 且不 import React；函数签名用最小接口，测试数据用就地工厂函数构造，不建共享 fixture 文件。
-- 覆盖边界：MVP 不设覆盖率门槛；但**每新增一条 R 规则必须同时加用例**，否则评审不通过。
+- 覆盖边界：MVP 不设覆盖率门槛；但**每新增一条 R 规则必须同时加用例**，涉及多表写入的规则还必须补同事务/回滚用例，否则评审不通过。
 
 ---
 
@@ -811,3 +815,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 0.14 | 2026-11-21 | **R8 增补「显式安排到今天」例外**：`dueDate < today` 但 `plannedDate = today` 的待办归今天组，不再计入逾期；逾期只认「时间判定且未经显式安排」（`dueDate < today && plannedDate !== today`）。判定依据为既有 `tasks.plannedDate`，**不新增字段**；同步改写 Q2 的取数顺序与索引说明、R15 的重开分组口径，并在 §5.3.3 表后补「显式安排」的字段/操作/清空说明 |
 | 0.15 | 2026-11-21 | **M08 可行性确认**：收尾不迁移 `milestones.branchId`，父分支历程用既有 `branches.finishedIntoId` 链在内存展开已收尾子树，再用 `[ownerId+branchId]` 的 `anyOf` 取里程碑并按 `achievedAt` 合并，来源标注取 `branchId` 对应 `title`。结论：现有表与索引可实现，**不加字段、不加索引**（`sourceBranchId` 与 `branchId` 重复；`finishedIntoId` 无索引但全表 ≤200 行可接受）。新增 Q11 与四方案代价对比，R12 补「里程碑不迁移」与落地约束（禁批量改写、`dropped` 不并入、归档来源仍显示） |
 | 0.16 | 2026-11-21 | **备份留存口径补齐**：Q8 与 R17 明确四类快照的留存上限——`auto` 7 条、**`manual` 7 条**、`pre-restore` 1 条、`remote` 1 条；页面把四类合成**一条按 `createdAt` 倒序的时间线**，不截断、不按类合并、行内用标签区分来源。查询改为 `[ownerId+kind+createdAt]` 逐类取上限再合并，`[ownerId+createdAt]` 仅作校验，**不新增索引**；§5.3.2 补「备份列表不按类分组」说明 |
+| 0.17 | 2026-11-21 | **测试范围扩到 Dexie 事务**：引入 `fake-indexeddb@6.2.8`（devDependency），Vitest 拆成 `unit`（`src/**`，排除 `src/data/`）与 `db`（`src/data/**`，仅此处 `setupFiles` 加载 `fake-indexeddb/auto`）两个项目，纯函数用例不付 IndexedDB 开销。§2.9 范围改为「纯函数 + R 规则 + Dexie 事务一致性」，新增事务用例约定（每例 `db.delete()` 隔离、就地工厂、断言库内实际值）与覆盖要求（多表写入规则必须补同事务/回滚用例）。落地 `src/data/transactions.test.ts`：完成待办时提交与四计数同事务写入、失败整体回滚 |

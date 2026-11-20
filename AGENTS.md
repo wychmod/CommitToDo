@@ -47,10 +47,17 @@ i18n ← 任意层（i18n 自身不反向依赖）
 ```bash
 cd web
 npm run lint     # ESLint，零错误零警告
-npm test         # Vitest，只测纯逻辑与规则
+npm test         # Vitest：纯函数/规则 + Dexie 事务
 npm run build    # tsc -b + vite build
 npm run dev      # 首页 http://localhost:5173/ 返回 200
 ```
+
+测试分两个项目，按路径自动分流：
+
+- `unit`（`src/**/*.test.ts`，排除 `src/data/`）：纯函数、四计数重算、R1–R19 规则，不加载 IndexedDB。
+- `db`（`src/data/**/*.test.ts`）：需要 IndexedDB 的事务用例，仅此项目通过 `src/test/idb-setup.ts` 加载 `fake-indexeddb/auto`。
+- 事务用例每个开头 `db.delete()` + `db.open()` 隔离；就地工厂构造行，不建共享 fixture；断言库内实际值，不 mock 仓储。
+- 涉及多表写入的规则（如完成待办写提交 + 四计数）必须补同事务与回滚用例。
 
 `npm run lint` 用 Babel parser 做语法级检查（typescript-eslint 暂不支持 TS 7）；
 类型与未使用变量由 `tsc -b` 的 strict / noUnusedLocals 负责。

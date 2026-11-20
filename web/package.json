@@ -51,6 +51,7 @@
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "fake-indexeddb": "^6.2.8",
     "globals": "^16.5.0",
     "lint-staged": "^16.4.0",
     "prettier": "^3.10.1",

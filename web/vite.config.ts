@@ -14,7 +14,25 @@ export default defineConfig({
     fs: { allow: ['..'] },
   },
   test: {
-    include: ['src/**/*.test.ts'],
-    environment: 'node',
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          include: ['src/**/*.test.ts'],
+          exclude: ['src/data/**/*.test.ts'],
+          environment: 'node',
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'db',
+          include: ['src/data/**/*.test.ts'],
+          setupFiles: ['./src/test/idb-setup.ts'],
+          environment: 'node',
+        },
+      },
+    ],
   },
 });
