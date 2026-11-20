@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.10 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5。
+**状态**: 0.11 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
 **读法**: 已定项直接给结论与代价，不再列候选让人挑；需要填值的事项集中到 §9（信息清单），延后项与开工结论在 §10。
@@ -132,8 +132,9 @@ CSS Modules 由 Vite 原生支持、零配置；令牌本身就是变量，不�
 
 **主题**
 
-- 默认白天：没有 `data-theme` 或 `data-theme="light"` 时即为浅色，不需要首屏脚本。
-- 深色通过 `document.documentElement.dataset.theme = 'dark'` 切换；跟随系统时用 `matchMedia('(prefers-color-scheme: dark)')` 写同一个 dataset。
+- 初始即浅色：未设置时页面就是浅色，不需要脚本判断，也不读取 `prefers-color-scheme`。
+- 深色只能由用户手动切换：切换时写 `document.documentElement.dataset.theme = 'dark'`，并把选择持久化到 `settings.theme`（`light` / `dark`）；切回浅色写 `light` 或移除该属性。
+- 下次首屏由 head 内联脚本把已存的选择写回 `data-theme`，避免明暗闪烁；该脚本只读本地设置，不探测系统偏好。
 - 组件不复制颜色，也不在组件内判断明暗。
 
 **约束**
@@ -669,3 +670,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面五条各对应一个真实页�
 | 0.8 | 2026-11-20 | **离线写入定案（方案 A：本地先写 + outbox 补推）**：新增 §4.6，明确写入链路、`opId` / `syncState` / `outbox` / `conflicts` / `baseRev` 五项预留、冲突不静默丢弃的展示原则；§5.3 表结构补 `outbox`、`conflicts` 两张表与字段规则；§5.5 预置条目从六条增到七条，新增强制写满 `opId` 与 `syncState`；§4.7 阶段演进表增加「写入路径」一列；§10.3 第 6 条改为「方向已锁，细则 V2 定」 |
 | 0.9 | 2026-11-21 | **并入设计线移交的数据模型**：`branches` 补 `path` / `depth` / `archivedAt` 与四个计数，`commits` 补 `sourceBranchId` / `isBackfill` / `voidedAt`，`tasks` 补 `plannedDate`，`milestones` 补 `datePrecision`；新增 `badges` / `settings`，MVP 业务表改为 7 张（§5.3）。新增 §5.3.1 物化路径与层级规则（归档与 `status` 正交、四计数同事务维护）、§5.3.2 五条关键查询与复合索引（软删默认过滤、归档显式传、搜索用前缀匹配）。§2.4 先落两条与样式无关的约束：令牌唯一来源 `design-tokens.json`、主题用 `data-theme` 挂载；样式工程组织仍待定 |
 | 0.10 | 2026-11-21 | **样式工程化拍板**：新增 §2.5，定为 CSS Modules + 原生 CSS 变量，否决 Tailwind / CSS-in-JS / 组件库并写明理由；令牌唯一真源 `design/design-tokens.json`，`design/tokens.css` 只生成不手改；默认白天、深色用 `data-theme` 切换；禁止硬编码色值/线宽/圆角/时长，基础件只做薄封装；保留 TW 重新评估的反向条件。§0 与 §10.1 的样式状态改为已定 |
+| 0.11 | 2026-11-21 | **主题口径收紧**：初始即浅色；深色只能由用户手动切换并持久化到 `settings.theme`，**不读取 `prefers-color-scheme`**，也不随系统变化；首屏只在 head 内联脚本里恢复已存选择（§2.5） |
