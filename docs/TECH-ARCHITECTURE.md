@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.17 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
+**状态**: 0.18 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
 **本版依据**: 数据模型以 `design/images/` 的页面画稿为准（逐页核对结论见 §5.3–§5.3.3 与 [页面数据核对](./PAGE-DATA-CROSSCHECK.md)），不以文字规格反推。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
@@ -386,17 +386,17 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 | 表 / 集合 | 用途 | 主键 | 关键字段 | 索引 |
 |---|---|---|---|---|
 | `users` | 身份档案（V2 建） | `_id` = `openid` | `email`、`nickname`、`createdAt`、`updatedAt` | `email` |
-| `branches` | 分支树 | `_id` ULID | `ownerId`、`parentId`、`path`、`depth`、`title`、**`goal`**、**`color`**、`status`、`order`、**`pinnedAt`**、`archivedAt`、**`finishedAt`**、**`finishedIntoId`**、**`droppedAt`**、**`dropReason`**、`taskTotal`、`taskDone`、`commitCount`、`ownLastCommitAt`、`rev`、`createdAt`、`updatedAt`、`deletedAt` | `[ownerId+parentId]`、`[ownerId+status]`、`[ownerId+archivedAt]`、`path`、`[ownerId+updatedAt]` |
-| `tasks` | 待办 | `_id` ULID | `ownerId`、`branchId`、`title`、`note`、`dueDate`、`plannedDate`、`status`、`order`、**`completedAt`**、**`completedCommitId`**、**`cancelledAt`**、`rev`、时间戳、`deletedAt` | `[ownerId+branchId+status]`、`[ownerId+status+dueDate]`、`[ownerId+status+plannedDate]`、`[ownerId+completedAt]` |
-| `commits` | 提交 | `_id` ULID | `ownerId`、`branchId`、`sourceBranchId`、`taskId`、`date`、**`at`**、`summary`、`voidedAt`、`rev`、时间戳、`deletedAt` | `[ownerId+date]`、`[ownerId+branchId+date]`、`[ownerId+branchId+at]` |
-| `milestones` | 里程碑 | `_id` ULID | `ownerId`、`branchId`、`title`、**`note`**、`achievedAt`、`datePrecision`、`rev`、时间戳、`deletedAt` | `[ownerId+achievedAt]`、`[ownerId+branchId]` |
-| `badges` | 徽章授予快照 | `_id` ULID | `ownerId`、**`catalogId`**、**`category`**、**`periodKey`**、`grantedAt`、`snapshot`、`sourceEntityId`、`rev` | `[ownerId+grantedAt]`、`[ownerId+category]`、`[ownerId+catalogId+periodKey]`（唯一） |
-| `settings` | 单行偏好 | `_id` = `'app'` | `ownerId`、`theme`、`treeDensity`、`annotations`、`reminderEnabled`、**`lastAutoBackupAt`**、`rev`、`updatedAt` | — |
-| `backups` | 本地备份与快照 | `_id` ULID | `ownerId`、`kind`、`createdAt`、`branchCount`、`taskCount`、`commitCount`、`schemaVersion`、`bytes`、`restoredAt`、`remoteKey`、`payload` | `[ownerId+createdAt]`、`[ownerId+kind+createdAt]` |
-| `year_reviews` | 年度总结 | `_id` ULID 或 `ownerId+year` | `ownerId`、`year`、`note`、`rev`、`createdAt`、`updatedAt` | `[ownerId+year]`（唯一） |
-| `events` | 历史事件与审计 | `_id` ULID | `ownerId`、`entityType`、`entityId`、`action`、`payload`、`at`、`tzOffset` | `[ownerId+at]`、`[entityId+at]` |
+| `branches` | 分支树 | `id` ULID | `ownerId`、`parentId`、`path`、`depth`、`title`、**`goal`**、**`color`**、`status`、`order`、**`pinnedAt`**、`archivedAt`、**`finishedAt`**、**`finishedIntoId`**、**`droppedAt`**、**`dropReason`**、`taskTotal`、`taskDone`、`commitCount`、`ownLastCommitAt`、`rev`、`createdAt`、`updatedAt`、`deletedAt` | `[ownerId+parentId]`、`[ownerId+status]`、`[ownerId+archivedAt]`、`path`、`[ownerId+updatedAt]` |
+| `tasks` | 待办 | `id` ULID | `ownerId`、`branchId`、`title`、`note`、`dueDate`、`plannedDate`、`status`、`order`、**`completedAt`**、**`completedCommitId`**、**`cancelledAt`**、`rev`、时间戳、`deletedAt` | `[ownerId+branchId+status]`、`[ownerId+status+dueDate]`、`[ownerId+status+plannedDate]`、`[ownerId+completedAt]` |
+| `commits` | 提交 | `id` ULID | `ownerId`、`branchId`、`sourceBranchId`、`taskId`、`date`、**`at`**、`summary`、`voidedAt`、`rev`、时间戳、`deletedAt` | `[ownerId+date]`、`[ownerId+branchId+date]`、`[ownerId+branchId+at]` |
+| `milestones` | 里程碑 | `id` ULID | `ownerId`、`branchId`、`title`、**`note`**、`achievedAt`、`datePrecision`、`rev`、时间戳、`deletedAt` | `[ownerId+achievedAt]`、`[ownerId+branchId]` |
+| `badges` | 徽章授予快照 | `id` ULID | `ownerId`、**`catalogId`**、**`category`**、**`periodKey`**、`grantedAt`、`snapshot`、`sourceEntityId`、`rev` | `[ownerId+grantedAt]`、`[ownerId+category]`、`[ownerId+catalogId+periodKey]`（唯一） |
+| `settings` | 单行偏好 | `id` = `'app'` | `ownerId`、`theme`、`treeDensity`、`annotations`、`reminderEnabled`、**`lastAutoBackupAt`**、`rev`、`updatedAt` | — |
+| `backups` | 本地备份与快照 | `id` ULID | `ownerId`、`kind`、`createdAt`、`branchCount`、`taskCount`、`commitCount`、`schemaVersion`、`bytes`、`restoredAt`、`remoteKey`、`payload` | `[ownerId+createdAt]`、`[ownerId+kind+createdAt]` |
+| `year_reviews` | 年度总结 | `id` ULID 或 `ownerId+year` | `ownerId`、`year`、`note`、`rev`、`createdAt`、`updatedAt` | `[ownerId+year]`（唯一） |
+| `events` | 历史事件与审计 | `id` ULID | `ownerId`、`entityType`、`entityId`、`action`、`payload`、`at`、`tzOffset` | `[ownerId+at]`、`[entityId+at]` |
 | `outbox` | 未推送操作队列（V2 用） | `opId` ULID | `entity`、`entityId`、`action`、`payload`、`baseRev`、`attempts`、`lastError`、`createdAt` | `createdAt` |
-| `conflicts` | 冲突记录（V2 用） | `_id` ULID | `entity`、`entityId`、`branchId`、`field`、`localPayload`、`serverPayload`、`deviceId`、`localRev`、`serverRev`、`at`、`resolved`、`resolvedAt` | `at`、`[entityId+at]` |
+| `conflicts` | 冲突记录（V2 用） | `id` ULID | `entity`、`entityId`、`branchId`、`field`、`localPayload`、`serverPayload`、`deviceId`、`localRev`、`serverRev`、`at`、`resolved`、`resolvedAt` | `at`、`[entityId+at]` |
 | `devices` | 已连接设备（V2 用） | `_id` = 设备 ID | `ownerId`、`label`、`platform`、`lastSyncAt`、`createdAt`、`removedAt` | `[ownerId+lastSyncAt]` |
 | `migration_state` | 迁移断点（V2 用） | `_id` = 集合名 | `lastId`、`pushed`、`done`、`updatedAt` | — |
 | `counters` | 匿名计数（V1 用） | `_id` = 事件名 + 日期 | `value` | — |
@@ -405,19 +405,21 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 
 **字段规则（MVP 就要遵守）**
 
-- 主键用 **ULID**（26 位、字典序即时间序、可离线生成）。不用自增，也不用随机 UUID——迁移时按 `_id` 升序分页要靠它。
+- 主键用 **ULID**（26 位、字典序即时间序、可离线生成）。不用自增，也不用随机 UUID——迁移时按 `id`（云端 `_id`）升序分页要靠它。
+- **主键字段名以代码为准**：本地 7 张表的物理主键统一叫 `id`（见 `web/src/data/db.ts`）；`settings` 是单行表，固定 `id = 'app'` 取值。`_id` 只作为 V2 云端集合的主键名与迁移后的同义字段，本地不改名、不双写。
 - `ownerId` 字段**预留**：MVP 与 V1 无账号，写空字符串或本地设备 ID；V2 登录后统一回填为 `openid`。
 - `rev` 预留：MVP 固定为 `1`，每次本地写入不变；V2 启用推送后每次成功写入由服务端递增。
 - `syncState` 预留：MVP 与 V1 恒为 `local`；V2 起在 `local` / `pending` / `synced` / `conflict` 之间流转（见 §4.6）。
 - `opId` 预留：每次写入生成一个 ULID，作为推送幂等键；MVP 生成但不使用。
-- `createdAt` / `updatedAt` / `deletedAt` 存 **UTC 毫秒**；业务日期（`date`、`dueDate`、`plannedDate`）存 `YYYY-MM-DD` 字符串，并同时记录写入时的 `tzOffset`（分钟）。
+- `createdAt` / `updatedAt` / `deletedAt` 存 **UTC 毫秒**；业务日期（`date`、`dueDate`、`plannedDate`）存 `YYYY-MM-DD` 字符串，不额外落时区字段（口径见下一条）。
 - 删除一律**软删除**（写 `deletedAt`），不做物理删除——导出、恢复与迁移都需要墓碑。唯一例外是「删除空分支」：本分支与后代都没有待办、提交、里程碑、事件时（画稿的条件文案），允许物理删除，且不写 `events`，否则条件自相矛盾（§5.3.3 R13）。
 - 命名：表 / 集合 `snake_case` 复数，字段 `camelCase`；**定稿后不再改名**，改名即进 `schemaVersion`。
 - **派生字段原则上不落库**（周完成数、连续天数、年轮聚合、回顾统计一律现算）。唯一例外是 `branches` 上的 `taskTotal` / `taskDone` / `commitCount` / `ownLastCommitAt`：分组树一屏 20 行都要显示进度与最近活动，现算会发 20 次聚合查询。这四个字段按同事务维护，且必须能由 `tasks` / `commits` 重算校验——恢复与导入后跑一次全量重算，作为一致性自检。
 - **枚举值**（写死，不放配置）：`branches.status` = `active` / `merged` / `dropped`；`branches.color` = `coral` / `sky` / `honey` / `mint` / `iris` / `rose` / `teal`（画稿 7 个预设，子分支默认继承父色）；`tasks.status` = `open` / `done` / `cancelled`；`milestones.datePrecision` = `day` / `month`；`settings.theme` = `light` / `dark`；`settings.treeDensity` = `compact` / `comfortable`；`settings.annotations` = `off` / `once` / `always`；`backups.kind` = `auto` / `manual` / `pre-restore` / `remote`。
 - **提交时间到分钟**：画稿在提交行、回执与详情里都显示 `16:42`，因此 `commits` 除业务日期 `date`（`YYYY-MM-DD`，用于按天分桶与时间树定位）外，另存 `at`（UTC 毫秒）作为真实时刻；列表按 `at` 倒序，时间树按 `date` 归列。
+- **时区口径（M05）**：「哪一天」按**操作当时的本地时区**计算——`date` 写当时的业务日，`at` 写同一时刻的 UTC 毫秒。由 `at` 可反推任意时区的时刻，故**不新增时区字段**，`commits` 现有 `date` + `at` 已足够；跨时区旅行造成的同日/跨日差异以操作当时为准，不做事后重算。仅 `events` 审计行保留写入时的 `tzOffset`，业务表不带。
 - **里程碑备注只在详情消费**：时间树下方的里程碑行只用「日期 + 标题」，详情弹层才有备注；字段仍要落库，否则详情无内容可显示。
-- **本版按画稿删除的字段**：`tasks.priority`（无优先级展示与操作）、`users.prefs`（偏好唯一真源是 `settings`）、`settings.fontScale`（外观只有主题与树密度，无字号控件）、`commits.isBackfill`（无补记入口，提交只能由完成待办产生）。`_id` 即内部标识，画稿不展示短 hash，不新增 `hash` 字段。
+- **本版按画稿删除的字段**：`tasks.priority`（无优先级展示与操作）、`users.prefs`（偏好唯一真源是 `settings`）、`settings.fontScale`（外观只有主题与树密度，无字号控件）、`commits.isBackfill`（无补记入口，提交只能由完成待办产生）。`id` 即内部标识，画稿不展示短 hash，不新增 `hash` 字段。
 
 ### 5.3.1 物化路径与层级规则
 
@@ -816,3 +818,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 0.15 | 2026-11-21 | **M08 可行性确认**：收尾不迁移 `milestones.branchId`，父分支历程用既有 `branches.finishedIntoId` 链在内存展开已收尾子树，再用 `[ownerId+branchId]` 的 `anyOf` 取里程碑并按 `achievedAt` 合并，来源标注取 `branchId` 对应 `title`。结论：现有表与索引可实现，**不加字段、不加索引**（`sourceBranchId` 与 `branchId` 重复；`finishedIntoId` 无索引但全表 ≤200 行可接受）。新增 Q11 与四方案代价对比，R12 补「里程碑不迁移」与落地约束（禁批量改写、`dropped` 不并入、归档来源仍显示） |
 | 0.16 | 2026-11-21 | **备份留存口径补齐**：Q8 与 R17 明确四类快照的留存上限——`auto` 7 条、**`manual` 7 条**、`pre-restore` 1 条、`remote` 1 条；页面把四类合成**一条按 `createdAt` 倒序的时间线**，不截断、不按类合并、行内用标签区分来源。查询改为 `[ownerId+kind+createdAt]` 逐类取上限再合并，`[ownerId+createdAt]` 仅作校验，**不新增索引**；§5.3.2 补「备份列表不按类分组」说明 |
 | 0.17 | 2026-11-21 | **测试范围扩到 Dexie 事务**：引入 `fake-indexeddb@6.2.8`（devDependency），Vitest 拆成 `unit`（`src/**`，排除 `src/data/`）与 `db`（`src/data/**`，仅此处 `setupFiles` 加载 `fake-indexeddb/auto`）两个项目，纯函数用例不付 IndexedDB 开销。§2.9 范围改为「纯函数 + R 规则 + Dexie 事务一致性」，新增事务用例约定（每例 `db.delete()` 隔离、就地工厂、断言库内实际值）与覆盖要求（多表写入规则必须补同事务/回滚用例）。落地 `src/data/transactions.test.ts`：完成待办时提交与四计数同事务写入、失败整体回滚 |
+| 0.18 | 2026-11-21 | **按代码修正主键与时区口径**：`settings` 主键由 `_id = 'app'` 改为 `id = 'app'`，并明确本地 7 张表物理主键统一为 `id`（`web/src/data/db.ts`），`_id` 只是 V2 云端主键名；删除「业务日期同时记录 `tzOffset`」的旧表述，补 **M05 时区口径**——日期按操作当时本地时区计算，`commits.date` + `at` 足够，**不新增字段**，仅 `events` 保留审计用 `tzOffset` |
