@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.8 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，应用样式的工程组织待定。
+**状态**: 0.10 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
 **读法**: 已定项直接给结论与代价，不再列候选让人挑；需要填值的事项集中到 §9（信息清单），延后项与开工结论在 §10。
@@ -19,10 +19,10 @@
 | 离线写入 | **本地先写 + outbox 补推**（V2 生效；MVP 起就写满 `opId` / `syncState`） | 已定（§4.6） |
 | 认证 | MVP 无账号；**V1 仍无账号（匿名设备 ID）**；V2 引入云开发身份 | 已定（渠道待定） |
 | 加密 | **不做端到端加密**，明文 + 权限规则（V2 适用；V1 的备份包也是明文） | 已定（§10.2） |
-| 样式 | 视觉令牌与组件规格已交接，应用样式组织和引入方式待定 | [视觉规范](./UI-VISUAL.md) |
+| 样式 | **CSS Modules + 原生 CSS 变量**；不引 Tailwind / CSS-in-JS / 组件库 | 已定（§2.5） |
 | 延展到移动端 | 领域模型、仓储端口、导出格式保持平台中立 | 已定 |
 
-**0.2 → 0.6 的五处实质变化**
+**0.2 → 0.10 的关键变化**
 
 1. 框架定稿为 Vite + React，版本按 registry 实查落地（0.3）。
 2. 部署与后端改为 CloudBase（0.4）；但 **MVP 只用到静态托管**。
@@ -30,6 +30,8 @@
 4. **MVP 权威存储在本机**（0.6）：撤销「云端权威、LWW 冲突」等表述，MVP 读写直接落 Dexie。0.8 起改为「本地先写 + outbox 补推」，本地始终是即时权威、云端是收敛点。
 5. 新增「迁移预置」约束（§5.5）与 MVP 上线路径（§3.3、§9）；云数据库与云开发身份整体标注为 V2 启用，云函数与对象存储在 V1 只服务备份与计数。
 6. **离线写入定为「本地先写 + outbox 补推」**（0.8，§4.6）：恢复 `opId` / `syncState` / `outbox` / `conflicts` / `baseRev` 五项预留，但 MVP 与 V1 只写不用。
+7. **数据模型补全**（0.9）：`branches` 补物化路径、层级、归档与四个计数，`commits` 补原始归属、补记与撤销墓碑，新增 `badges` / `settings`，并落成树规则与五条关键查询索引（§5.3–§5.3.2）。
+8. **样式工程化拍板**（0.10）：CSS Modules + 原生 CSS 变量，不引 Tailwind / CSS-in-JS / 组件库（§2.5）。
 
 > 0.4 / 0.5 曾按「从 MVP 起云库权威 + 同步」编写，该前提已被推翻；本文已整体撤回相关表述，以 §0、§4、§5 为准。
 
@@ -106,7 +108,46 @@
 - 路由：`react-router-dom@7` 已装，应用路由用 `createBrowserRouter` 数据路由；首页作为独立入口时不需要路由。
 - 类型检查：`tsc -b` 与构建同一条脚本，不让类型错误进入构建产物。
 - 代码分割：首页与应用拆成两个入口（`index.html` / `app.html`），确保访客不为工作台的依赖付首屏成本。
-- **样式交付消费现行令牌。** 原始设计令牌、双主题、基础组件见 [视觉规范](./UI-VISUAL.md) 与 [组件清单](./UI-COMPONENTS.md)。应用采用的样式组织与构建方式仍是工程选择。
+- **样式工程化见 §2.5**（已定：CSS Modules + 原生 CSS 变量）。令牌唯一来源是 `design/design-tokens.json`，`design/tokens.css` 只生成不手改；主题用 `data-theme` 挂在 `documentElement` 上，默认白天。
+
+### 2.5 样式工程化（已定：CSS Modules + 原生 CSS 变量）
+
+**结论（2026-11-21 拍板）**：应用样式采用 **CSS Modules + 原生 CSS 自定义属性**。不引 Tailwind、不引 CSS-in-JS（styled-components / emotion / vanilla-extract 等），不引组件库（Ant Design / MUI / Chakra 等一律不引）。
+
+**为什么不是另外三条路**
+
+| 被否决 | 原因 |
+|---|---|
+| 组件库（Ant / MUI / Chakra） | 设计是像素级定制：固定栅格、1px 线、写死的动效时长与间距。组件库自带设计语言与主题机制，引入即对抗——要覆盖 token、改内部 DOM、逐项打补丁，最后得到的是一层需要长期维护的反向皮肤 |
+| Tailwind | 需要自己那份 config，会和 `design-tokens.json` 形成第二个真源；本项目大量用到任意值写法，等于把 CSS 写进类名，语义令牌反而更难追踪 |
+| CSS-in-JS | 运行时开销与「首屏 HTML 即可绘制」的预渲染目标冲突；本项目没有动态样式需求 |
+
+CSS Modules 由 Vite 原生支持、零配置；令牌本身就是变量，不需要映射层；组件样式与组件同目录同名，改一个组件只看一个文件。
+
+**令牌：唯一真源**
+
+- 唯一真源是 [`design/design-tokens.json`](../design/design-tokens.json)。
+- 生成物 [`design/tokens.css`](../design/tokens.css) **只生成、不手改**；任何改动回到 JSON，再跑 `node design/generate-tokens.mjs`。只改 CSS 不改 JSON 的改动一律退回。
+- 将来若换消费方式，也由这份 JSON 生成对应产物，令牌源不变。
+
+**主题**
+
+- 默认白天：没有 `data-theme` 或 `data-theme="light"` 时即为浅色，不需要首屏脚本。
+- 深色通过 `document.documentElement.dataset.theme = 'dark'` 切换；跟随系统时用 `matchMedia('(prefers-color-scheme: dark)')` 写同一个 dataset。
+- 组件不复制颜色，也不在组件内判断明暗。
+
+**约束**
+
+- 页面与组件禁止硬编码色值、线宽、圆角、动效时长，一律取变量；组件中不出现十六进制色值。
+- 不新建第 4 个圆角、第 4 档线宽、第 5 个时长；缺令牌就先改 `design/design-tokens.json`。
+- 基础件只做薄封装：按钮、输入、行、浮层、菜单、提示、空态、加载。**不做通用组件库**，不引入任何第三方 UI 包。
+- 组件样式一律 `*.module.css`，类名单横线小写（`.row`、`.rowSelected`）；禁止全局类名。
+- 全局样式只保留 `reset.css`、`base.css`、`motion.css` 三份，业务样式不得写入；减少动效的兜底统一放在 `motion.css`，不靠 JS 判断。
+- 目录与文件组织随页面架构落地时再定，但「令牌 → 变量 → 组件模块样式」这条链路不再变。
+
+**反向条件**
+
+只有同时出现「页面数量增长到几十个」「多人并行改 UI」「大量通用后台界面」三种情况时，才重新评估 Tailwind；其余情况不折腾。届时也不换令牌源，只换消费方式。
 
 ---
 
@@ -128,7 +169,7 @@
 
 ### 3.2 首屏性能的具体做法
 
-- 首页输出预渲染 HTML；**若**最终样式方案支持抽取关键 CSS，则内联首屏部分，否则只保证 HTML 结构可首屏绘制（不为此提前锁死样式方案）。
+- 首页输出预渲染 HTML；构建时抽取首屏关键 CSS 内联，其余样式异步加载（CSS Modules 产物可直接参与该流程）。
 - 字体自托管并做子集，避免 Google Fonts 在境内的不确定性。
 - 产品窗区域预留稳定尺寸。用于插画或静态预览的图片可用 AVIF/WebP；可操作示例以组件渲染。
 - 章节入视和示例状态逻辑按需加载，首屏用原生能力实现动效。
@@ -259,7 +300,8 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 | 数据 | 位置 | 理由 |
 |---|---|---|
 | 分支、待办、提交、里程碑、徽章、事件 | **本地 IndexedDB（Dexie 4），MVP 与 V1 唯一权威**；V2 起仍承担即时读写 | 无账号、离线可用、单用户；≤200 分支，数据量在几 MB 级 |
-| 设置、主题、最近视图、列宽等 UI 偏好 | `localStorage` | 体积小、读写同步、丢了不致命；**不放领域数据** |
+| 设置（主题、字号、树密度、标注、提醒开关） | 本地 `settings` 表（单行） | 属用户数据，导出必须完整；将来可随账号同步 |
+| 会话级 UI 状态（最近视图、列宽、滚动位置） | `localStorage` | 体积小、读写同步、丢了不致命；**不放领域数据** |
 | 导出文件（明文 JSON，含 `schemaVersion`） | 用户设备 | 唯一可携带的完整副本，也是恢复手段 |
 | 备份包（V1） | 用户设备，可选上传对象存储 | 明文 JSON；备份不依赖账号；MVP 不做 |
 | 云数据库 | V2 才启用 | 承接一次性迁移，迁移后作为**收敛点** |
@@ -282,17 +324,19 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 | 表 / 集合 | 用途 | 主键 | 关键字段 | 索引 |
 |---|---|---|---|---|
 | `users` | 身份档案（V2 建） | `_id` = `openid` | `nickname`、`createdAt`、`prefs` | — |
-| `branches` | 分支树 | `_id` ULID | `ownerId`、`parentId`、`title`、`status`、`order`、`rev`、`createdAt`、`updatedAt`、`deletedAt` | `ownerId + updatedAt`、`ownerId + parentId` |
-| `tasks` | 待办 | `_id` ULID | `ownerId`、`branchId`、`title`、`note`、`dueDate`、`status`、`priority`、`order`、`rev`、时间戳、`deletedAt` | `ownerId + branchId + status`、`ownerId + dueDate` |
-| `commits` | 提交 | `_id` ULID | `ownerId`、`branchId`、`taskId`、`date`、`summary`、`rev`、时间戳、`deletedAt` | `ownerId + date`、`ownerId + branchId` |
-| `milestones` | 里程碑 | `_id` ULID | `ownerId`、`branchId`、`title`、`achievedAt`、`rev`、时间戳、`deletedAt` | `ownerId + achievedAt` |
-| `events` | 历史事件与审计 | `_id` ULID | `ownerId`、`entityType`、`entityId`、`action`、`payload`、`at`、`tzOffset` | `ownerId + at` |
+| `branches` | 分支树 | `_id` ULID | `ownerId`、`parentId`、`path`、`depth`、`title`、`status`、`order`、`archivedAt`、`taskTotal`、`taskDone`、`commitCount`、`ownLastCommitAt`、`rev`、`createdAt`、`updatedAt`、`deletedAt` | `[ownerId+parentId]`、`[ownerId+status]`、`path`、`[ownerId+updatedAt]` |
+| `tasks` | 待办 | `_id` ULID | `ownerId`、`branchId`、`title`、`note`、`dueDate`、`plannedDate`、`status`、`priority`、`order`、`rev`、时间戳、`deletedAt` | `[ownerId+branchId+status]`、`[ownerId+status+dueDate]`、`[ownerId+status+plannedDate]` |
+| `commits` | 提交 | `_id` ULID | `ownerId`、`branchId`、`sourceBranchId`、`taskId`、`date`、`summary`、`isBackfill`、`voidedAt`、`rev`、时间戳、`deletedAt` | `[ownerId+date]`、`[ownerId+branchId+date]` |
+| `milestones` | 里程碑 | `_id` ULID | `ownerId`、`branchId`、`title`、`achievedAt`、`datePrecision`、`rev`、时间戳、`deletedAt` | `[ownerId+achievedAt]`、`[ownerId+branchId]` |
+| `badges` | 徽章授予快照 | `_id` ULID | `ownerId`、`type`、`grantedAt`、`snapshot`、`sourceEntityId`、`rev` | `[ownerId+grantedAt]`、`[ownerId+type]` |
+| `settings` | 单行偏好 | `_id` = `'app'` | `ownerId`、`theme`、`fontScale`、`treeDensity`、`annotations`、`reminderEnabled`、`updatedAt` | — |
+| `events` | 历史事件与审计 | `_id` ULID | `ownerId`、`entityType`、`entityId`、`action`、`payload`、`at`、`tzOffset` | `[ownerId+at]`、`[entityId+at]` |
 | `outbox` | 未推送操作队列（V2 用） | `opId` ULID | `entity`、`entityId`、`action`、`payload`、`baseRev`、`attempts`、`lastError`、`createdAt` | `createdAt` |
 | `conflicts` | 冲突记录（V2 用） | `_id` ULID | `entity`、`entityId`、`localRev`、`serverRev`、`serverPayload`、`at`、`resolved` | `at` |
 | `migration_state` | 迁移断点（V2 用） | `_id` = 集合名 | `lastId`、`pushed`、`done`、`updatedAt` | — |
 | `counters` | 匿名计数（V1 用） | `_id` = 事件名 + 日期 | `value` | — |
 
-> 表中 `users` / `outbox` / `conflicts` / `migration_state` / `counters` 不在 MVP 本地创建，列出只为对齐命名。`outbox` 与 `conflicts` 在 V2 启用推送时创建。MVP 实际只有前六张业务表。
+> 表中 `users` / `outbox` / `conflicts` / `migration_state` / `counters` 不在 MVP 创建，列出只为对齐命名；`outbox` 与 `conflicts` 在 V2 启用推送时创建。**MVP 实际创建 7 张业务表**：`branches`、`tasks`、`commits`、`milestones`、`badges`、`settings`、`events`。
 
 **字段规则（MVP 就要遵守）**
 
@@ -301,10 +345,44 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 - `rev` 预留：MVP 固定为 `1`，每次本地写入不变；V2 启用推送后每次成功写入由服务端递增。
 - `syncState` 预留：MVP 与 V1 恒为 `local`；V2 起在 `local` / `pending` / `synced` / `conflict` 之间流转（见 §4.6）。
 - `opId` 预留：每次写入生成一个 ULID，作为推送幂等键；MVP 生成但不使用。
-- `createdAt` / `updatedAt` / `deletedAt` 存 **UTC 毫秒**；业务日期（`date`、`dueDate`）存 `YYYY-MM-DD` 字符串，并同时记录写入时的 `tzOffset`（分钟）。
+- `createdAt` / `updatedAt` / `deletedAt` 存 **UTC 毫秒**；业务日期（`date`、`dueDate`、`plannedDate`）存 `YYYY-MM-DD` 字符串，并同时记录写入时的 `tzOffset`（分钟）。
 - 删除一律**软删除**（写 `deletedAt`），不做物理删除——导出、恢复与迁移都需要墓碑。
 - 命名：表 / 集合 `snake_case` 复数，字段 `camelCase`；**定稿后不再改名**，改名即进 `schemaVersion`。
-- 不存派生字段（周完成数、连续天数、完成率）——由查询计算，避免两份事实。
+- **派生字段原则上不落库**（周完成数、连续天数、年轮聚合、回顾统计一律现算）。唯一例外是 `branches` 上的 `taskTotal` / `taskDone` / `commitCount` / `ownLastCommitAt`：分组树一屏 20 行都要显示进度与最近活动，现算会发 20 次聚合查询。这四个字段按同事务维护，且必须能由 `tasks` / `commits` 重算校验——恢复与导入后跑一次全量重算，作为一致性自检。
+
+### 5.3.1 物化路径与层级规则
+
+`path` 存物化路径，`depth` 存整数层级，两者都由写入时维护，互为断言。
+
+| 字段 | 形式 | 规则 |
+|---|---|---|
+| `path` | `/` + 各级 `_id` 拼接，以 `/` 结尾，例 `/01HX…/01HY…/` | 根分支 `path = '/'`；父分支改名不改 `path`；移动分支时按前缀替换整棵子树 |
+| `depth` | 根 `0`，L1 `1`，L2 `2`，L3 `3` | 必须等于 `path` 的段数；3 层上限在此校验 |
+| `status` | `active` / `merged` / `dropped` | **不含 `archived`**；归档由 `archivedAt !== null` 表达，与状态正交，取消归档能恢复原状态 |
+| `archivedAt` | UTC 毫秒或 `null` | 归档是可见性开关：子树退出默认树与停滞计算，`status` 不变 |
+| `ownLastCommitAt` | UTC 毫秒或 `null` | 只记本分支自己的最近有效提交，不含后代 |
+
+- **额度校验不全表扫描**：L1 数量 = `[ownerId+parentId]` 精确匹配后过滤 `archivedAt === null`；单父下 L2 / L3 同法。四档上限（1 / 7 / 9 / 20）与全树 200 都走这条路径。
+- **子树查询用 `path` 前缀**：移动时的循环引用校验、归档整棵子树、删除前的历史检查，都走 `startsWith(parentPath)`。
+- **四个计数只统计本分支、不含后代**（对应「分支详情只算自己的待办比例」），与业务写入在**同一个 Dexie 事务**内更新。分组树每行显示 `3/7`，异步补算会闪烁或出现错值。
+- 四个计数可随时由 `tasks` / `commits` 重算；恢复、导入、迁移后跑一次全量重算作为一致性自检。
+
+### 5.3.2 索引与关键查询
+
+Dexie 的复合索引用 `[a+b]` 声明。下面五条各对应一个真实页面，超出这五条的查询应在评审时说明理由。
+
+| # | 场景 | 查询 | 索引 | 量级 |
+|---|---|---|---|---|
+| Q1 | 分组树渲染（默认层） | `ownerId` + `parentId` 精确匹配，按 `order` 升序，过滤 `archivedAt === null` | `[ownerId+parentId]` | 单父 ≤20 行 |
+| Q2 | 今天三组 | `ownerId` + `status='open'`，再按 `dueDate` / `plannedDate` 分桶 | `[ownerId+status+dueDate]`、`[ownerId+status+plannedDate]` | 当天窗口 |
+| Q3 | 分支详情提交流 | `ownerId` + `branchId`，按 `date` 倒序分页，过滤 `voidedAt === null` | `[ownerId+branchId+date]` | 每页 20 |
+| Q4 | 时间树泳道 | `ownerId` + 日期区间，按 `branchId` 归组 | `[ownerId+date]` | 90 天窗口 |
+| Q5 | 提交详情的上下条 | 同一 `branchId` 下按 `date` 双向游标 | `[ownerId+branchId+date]` | 各取 1 条 |
+
+- **软删过滤统一在仓储层**：所有查询方法默认追加 `deletedAt == null`，调用方不传。**归档过滤不默认追加**——分组树与归档视图都要读归档行，由调用方显式传。
+- **停滞判定不在渲染时递归**：用 `path` 前缀取出子树 `_id`（≤200，一次查询），再对这批 `_id` 取 `ownLastCommitAt` 最大值；MVP 不落 `subtreeLastCommitAt` 冗余，结果缓存在内存读模型，不写库。
+- **`commits.sourceBranchId` 与 `branchId` 分开**：合并后提交挂父分支（`branchId`），原始归属保留在 `sourceBranchId`；「合并前只看自己、合并后才含子分支」通过切换 `branchId` 实现，不在查询里写时间条件。
+- **搜索（V1）不做全文索引**：对 `branches.title` / `tasks.title` / `commits.summary` / `milestones.title` 各自 `startsWith` 前缀匹配后合并；上限 200 分支、数千待办够用。不做模糊匹配，避免中文分词与错误召回。
 
 ### 5.4 MVP 读写链路
 
@@ -362,7 +440,7 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 1. 领域层（实体、值对象、用例、校验、排序分组等纯函数）**不得 import `dexie`、`@cloudbase/*`、`react`、`react-dom`、`react-router-dom`，也不得 import `src/data/**`**。用 `no-restricted-imports` 固化；工程门禁尚未重建期间，作为 code review 必查项。
 2. 仓储接口定义在领域层（`src/domain/ports/*.ts`）：纯 TS 接口，参数与返回值是领域对象或 DTO，**不得出现 `Table` / `Collection` / `Transaction` / `db` 等实现类型**。
 3. `Dexie` 实例、`Table`、事务、`liveQuery` 只允许出现在 `src/data/local/**`；V1 起 `@cloudbase/*` 的备份与计数调用只允许出现在 `src/data/cloudbase/**`，V2 的云库调用同样收在这里。
-4. 一个聚合一个仓储（分支、待办、提交、里程碑、徽章、事件）；方法按用例命名（`listChildren(branchId)`、`findCommitOn(date)`），不提供 `query()` 之类的万能入口。
+4. 一个聚合一个仓储（分支、待办、提交、里程碑、徽章、设置、事件）；方法按用例命名（`listChildren(branchId)`、`findCommitOn(date)`），不提供 `query()` 之类的万能入口。
 5. React 只通过用例或查询 hook 访问仓储；`useLiveQuery` 只能出现在 `src/data` 或查询层；组件不直接 import Dexie，V1 起也不直接调 `callFunction`。
 6. 每个仓储接口配一个内存实现，业务测试不启动 IndexedDB、不连云端。
 7. Dexie 的 `version().stores()`、将来云数据库的集合结构、导出文件的 `schemaVersion` **在同一处登记**，三者必须能互相解释。
@@ -453,7 +531,7 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 | 构建 | Vite 8（`index.html` 首页 / `app.html` 应用） | 首页构建期预渲染 |
 | 路由 | React Router 7 数据路由 | 应用内路由 `noindex` |
 | 动效 | 一次性入视触发、原生状态与 SVG 局部描线 | [首页动效规范](./HOMEPAGE-MOTION.md) |
-| 样式 | 已有视觉令牌和应用组件规格 | 样式组织待定。[视觉规范](./UI-VISUAL.md) |
+| 样式 | CSS Modules + 原生 CSS 变量 | 令牌源 `design/design-tokens.json`；见 §2.5 |
 | 部署 | 腾讯云 CloudBase 静态托管（默认域名） | 切自有域名与备案见 §9.3 |
 | MVP 后端 | **无** | 不需要云函数与环境变量 |
 | V1 后端 | 云函数（`backup.sign`、`counter.inc`）+ 对象存储 | **无账号、无云数据库**；只做备份与计数 |
@@ -542,7 +620,7 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 | 离线写入 | **本地先写 + outbox 补推**；冲突不静默丢弃，记入 `conflicts` 并在分支历史留痕（§4.6） | 2026-11-20 |
 | 本地库 | Dexie 4，不引入 SQLite WASM | 2026-11-20 |
 | 加密 | **不做端到端加密**（本地、备份包、云端都是明文），安全边界靠权限规则 | 2026-11-20 |
-| 视觉规格 | 已交接，样式工程组织待定。[设计交接](./DESIGN.md) | 2026-11-20 |
+| 视觉规格 / 样式 | CSS Modules + 原生 CSS 变量；令牌源 `design/design-tokens.json`（§2.5） | 2026-11-21 |
 
 ### 10.2 已定：不做端到端加密（含异地备份）
 
@@ -589,3 +667,5 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 | 0.6 | 2026-11-20 | MVP 权威存储回到本机：删除同步器、outbox、opId/baseRev、LWW 等表述，读写直接落 Dexie（§5.4）；云数据库、云函数与读写边界标注为 V1/V2 启用；新增表/集合同名同字段、ULID、UTC+tzOffset、软删、`schemaVersion` + `fieldVersions` 的迁移预置与断点续传流程（§5.5）；补 MVP 上线路径（§3.3）与「备案不阻塞默认域名上线」的结论（§9.3、§10.4） |
 | 0.7 | 2026-11-20 | **阶段口径与 FRAMEWORK 对齐并收窄**：V1 改为**只加云函数（`backup.sign`、`counter.inc`）+ 对象存储**，仍无账号、无云数据库，权威数据仍在本机；云开发身份、云数据库、一次性迁移与多端同步整体移到 V2。§4.2 云能力表按阶段拆分，§4.3 云函数清单拆成 V1 两个 / V2 七个，§4.4 读写边界分 V1 / V2 两段，§4.6 阶段演进、§5.1 数据分布、§5.3 / §5.5 迁移、§6 认证、§9.4–9.6、§9.9、§10.1、§10.3、§10.4 同步改写。**加密口径明确**：不做端到端加密，**异地备份也是明文 JSON**，不存在客户端加密与密钥传输 |
 | 0.8 | 2026-11-20 | **离线写入定案（方案 A：本地先写 + outbox 补推）**：新增 §4.6，明确写入链路、`opId` / `syncState` / `outbox` / `conflicts` / `baseRev` 五项预留、冲突不静默丢弃的展示原则；§5.3 表结构补 `outbox`、`conflicts` 两张表与字段规则；§5.5 预置条目从六条增到七条，新增强制写满 `opId` 与 `syncState`；§4.7 阶段演进表增加「写入路径」一列；§10.3 第 6 条改为「方向已锁，细则 V2 定」 |
+| 0.9 | 2026-11-21 | **并入设计线移交的数据模型**：`branches` 补 `path` / `depth` / `archivedAt` 与四个计数，`commits` 补 `sourceBranchId` / `isBackfill` / `voidedAt`，`tasks` 补 `plannedDate`，`milestones` 补 `datePrecision`；新增 `badges` / `settings`，MVP 业务表改为 7 张（§5.3）。新增 §5.3.1 物化路径与层级规则（归档与 `status` 正交、四计数同事务维护）、§5.3.2 五条关键查询与复合索引（软删默认过滤、归档显式传、搜索用前缀匹配）。§2.4 先落两条与样式无关的约束：令牌唯一来源 `design-tokens.json`、主题用 `data-theme` 挂载；样式工程组织仍待定 |
+| 0.10 | 2026-11-21 | **样式工程化拍板**：新增 §2.5，定为 CSS Modules + 原生 CSS 变量，否决 Tailwind / CSS-in-JS / 组件库并写明理由；令牌唯一真源 `design/design-tokens.json`，`design/tokens.css` 只生成不手改；默认白天、深色用 `data-theme` 切换；禁止硬编码色值/线宽/圆角/时长，基础件只做薄封装；保留 TW 重新评估的反向条件。§0 与 §10.1 的样式状态改为已定 |
