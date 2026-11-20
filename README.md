@@ -41,7 +41,7 @@ Commit/
 
 | 文档 | 内容 |
 |---|---|
-| [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md) | 产品框架：单根分支树 + 5 个对象、4 个入口、58 项功能、版本切分 |
+| [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md) | 产品框架：单根分支树 + 5 个对象、4 个入口、59 项功能、版本切分 |
 | [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) | 产品定位、命名决策、主用户、硬约束与风险 |
 | [`docs/archive/README.md`](./docs/archive/README.md) | 归档索引 |
 | [`docs/archive/2026-11/legacy-impl/`](./docs/archive/2026-11/legacy-impl/README.md) | 旧 Web 实现档案（架构文档、过期清单、未引用静态资产） |
