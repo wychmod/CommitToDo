@@ -1,0 +1,521 @@
+.bh-page {
+  --bh-toolbar-height: 38px;
+  --bh-tone: var(--accent);
+  --bh-tone-2: var(--accent);
+  --bh-tone-3: var(--accent);
+  --bh-tone-bg: var(--accent-soft);
+  padding-bottom: 22px;
+}
+.bh-color-coral {
+  --bh-tone: var(--coral-1);
+  --bh-tone-2: var(--coral-2);
+  --bh-tone-3: var(--coral-3);
+  --bh-tone-bg: var(--coral-bg);
+}
+.bh-color-sky {
+  --bh-tone: var(--sky-1);
+  --bh-tone-2: var(--sky-2);
+  --bh-tone-3: var(--sky-3);
+  --bh-tone-bg: var(--sky-bg);
+}
+.bh-color-honey {
+  --bh-tone: var(--honey-1);
+  --bh-tone-2: var(--honey-2);
+  --bh-tone-3: var(--honey-3);
+  --bh-tone-bg: var(--honey-bg);
+}
+.bh-icon {
+  flex: 0 0 auto;
+  vertical-align: middle;
+}
+.bh-page .bh-head {
+  align-items: flex-end;
+  margin-bottom: 26px;
+}
+.bh-head > .bh-btn {
+  margin-bottom: 3px;
+}
+.bh-page .bh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.bh-toolbar {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.bh-toolbar-filters {
+  display: flex;
+  gap: 8px;
+}
+.bh-toolbar .bh-btn {
+  min-height: var(--bh-toolbar-height);
+  padding-inline: 12px;
+  font-size: 13px;
+}
+.bh-toolbar-count {
+  margin-inline-start: auto;
+  text-align: end;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.bh-toolbar-count strong {
+  font-weight: 650;
+  color: var(--text);
+}
+.bh-toolbar-count > span {
+  margin-inline: 4px;
+  color: var(--subtle);
+}
+.bh-view-switch {
+  display: inline-flex;
+  height: var(--bh-toolbar-height);
+  align-items: center;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+}
+.bh-view-switch button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+.bh-view-switch button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 680;
+}
+.bh-tree-panel, .bh-chart-panel, .bh-milestone-panel {
+  overflow: hidden;
+  background: var(--panel);
+}
+.bh-panel-label {
+  display: flex;
+  min-height: 59px;
+  padding: 0 22px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.bh-panel-label > div:first-child {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+}
+.bh-panel-label h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 680;
+}
+.bh-panel-label > div:first-child .bh-icon {
+  color: var(--accent);
+}
+.bh-panel-label .caption {
+  color: var(--muted);
+  font-size: 12px;
+}
+.bh-tree-header, .bh-tree-row {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 164px 137px 115px 28px;
+  align-items: center;
+  padding-inline: 23px;
+}
+.bh-tree-header {
+  min-height: 37px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.bh-tree-body {
+  background: var(--panel);
+}
+.bh-tree-row {
+  position: relative;
+  min-height: 48px;
+  box-shadow: inset 0 -1px var(--line);
+}
+.bh-tree-row.is-selected {
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 var(--accent), inset 0 -1px var(--line);
+}
+.bh-tree-name {
+  min-width: 0;
+  position: relative;
+  min-height: 48px;
+}
+.bh-tree-wire {
+  position: absolute;
+  inset: 0 auto auto 0;
+  color: var(--line-strong);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  overflow: visible;
+  shape-rendering: crispEdges;
+}
+.bh-tree-arrival {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: calc(var(--depth) * 20px);
+  gap: 9px;
+  height: 48px;
+}
+.bh-tree-expander {
+  display: grid;
+  width: 14px;
+  height: 15px;
+  place-items: center;
+  color: var(--muted);
+}
+.bh-tree-expander:has(.bh-icon) {
+  background: var(--panel);
+}
+.is-selected .bh-tree-expander:has(.bh-icon) {
+  background: var(--accent-soft);
+}
+.bh-tree-mark {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--bh-tone);
+}
+.bh-tree-name[data-level="2"] .bh-tree-mark { background: var(--bh-tone-2); }
+.bh-tree-name[data-level="3"] .bh-tree-mark { background: var(--bh-tone-3); }
+.bh-tree-name[data-level="0"] .bh-tree-label, .bh-tree-name[data-level="1"] .bh-tree-label,
+.bh-tree-row.is-selected .bh-tree-label {
+  font-weight: 670;
+}
+.bh-tree-label {
+  max-width: 100%;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bh-tree-progress {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.bh-tree-progress .mono, .bh-tree-date {
+  font-variant-numeric: tabular-nums;
+}
+.bh-tree-date, .bh-empty-value {
+  color: var(--muted);
+  font-size: 12px;
+}
+.bh-slash {
+  color: var(--subtle);
+  margin-inline: 3px;
+}
+.bh-progress {
+  width: 47px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 1.5px;
+  background: var(--line-strong);
+}
+.bh-progress > i {
+  display: block;
+  width: calc(var(--progress) * 100%);
+  height: 100%;
+  border-radius: 1.5px;
+  background: var(--bh-tone-2);
+}
+.bh-tree-status {
+  display: inline-flex;
+  min-height: 23px;
+  gap: 4px;
+  padding: 2px 7px;
+  align-items: center;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.bh-tree-status.is-live {
+  color: var(--success);
+  background: var(--success-bg);
+}
+.bh-tree-status.is-merged {
+  color: var(--info);
+  background: var(--info-bg);
+}
+.bh-tree-more {
+  display: grid;
+  place-items: center;
+  color: var(--subtle);
+}
+.bh-tree-row.is-dormant .bh-tree-label {
+  color: var(--muted);
+}
+.bh-tree-row.is-dormant .bh-tree-mark,
+.bh-tree-row.is-dormant .bh-progress > i {
+  background: var(--subtle);
+}
+.bh-tree-foot {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 22px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+}
+.bh-tree-foot strong {
+  margin-left: 7px;
+  color: var(--text);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.bh-footnote {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 15px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.bh-footnote span:last-child {
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+}
+.bh-footnote strong {
+  color: var(--text);
+  font-weight: 650;
+}
+.bh-chart-context {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+.bh-chart-context > i {
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+.bh-chart-viewport {
+  overflow: auto;
+  background: var(--panel);
+}
+.bh-chart {
+  display: block;
+  width: 100%;
+  min-width: 760px;
+  height: auto;
+  font-family: inherit;
+}
+.bh-current-date {
+  fill: var(--accent-soft);
+  opacity: .7;
+}
+.bh-grid {
+  stroke: var(--line);
+  fill: none;
+  shape-rendering: crispEdges;
+}
+.bh-date-grid {
+  opacity: .7;
+}
+.bh-tick {
+  fill: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.bh-tick.is-now {
+  fill: var(--accent);
+  font-weight: 700;
+}
+.bh-lane-label text {
+  font-size: 14px;
+  font-weight: 650;
+  fill: var(--text);
+}
+.bh-lane-label rect {
+  fill: var(--bh-tone);
+}
+.bh-lane-label.is-child text {
+  font-size: 13px;
+  fill: var(--muted);
+  font-weight: 500;
+}
+.bh-lane-label.is-child rect {
+  fill: var(--bh-tone-2);
+}
+.bh-label-wire {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+.bh-rail {
+  fill: none;
+  stroke: var(--bh-tone);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.bh-child-rail {
+  stroke: var(--bh-tone-2);
+}
+.bh-stalled-rail {
+  stroke-dasharray: 4 4;
+  stroke-linecap: butt;
+}
+.bh-commit, .bh-milestone {
+  fill: var(--bh-tone);
+}
+.bh-child .bh-commit {
+  fill: var(--bh-tone-2);
+}
+.bh-merge {
+  fill: var(--panel);
+  stroke: var(--bh-tone);
+  stroke-width: 1.5;
+}
+.bh-stall-chip {
+  fill: var(--honey-bg);
+}
+.bh-stall-label {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+.bh-focus-halo {
+  fill: var(--panel);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.bh-focus-dot {
+  fill: var(--coral-2);
+}
+.bh-tooltip {
+  fill: var(--surface);
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+.bh-tooltip-pointer {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+.bh-tooltip-title {
+  fill: var(--text);
+  font-size: 13px;
+  font-weight: 680;
+}
+.bh-tooltip-meta {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.bh-chart-legend {
+  display: flex;
+  min-height: 40px;
+  gap: 22px;
+  align-items: center;
+  padding-inline: 22px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+}
+.bh-chart-legend > span, .bh-milestone-row > span:last-child {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.bh-key-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.bh-key-dashed, .bh-key-paused {
+  display: inline-block;
+  width: 16px;
+  border-top: 1px dashed var(--honey-1);
+}
+.bh-key-paused {
+  border-top-style: solid;
+  border-color: var(--subtle);
+}
+.bh-milestone-panel {
+  margin-top: 22px;
+}
+.bh-milestone-panel .bh-panel-label {
+  min-height: 46px;
+}
+.bh-milestone-row {
+  display: grid;
+  min-height: 48px;
+  grid-template-columns: 55px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 0 22px;
+}
+.bh-milestone-row > strong {
+  font-weight: 610;
+  font-size: 14px;
+}
+.bh-milestone-row > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+@media (max-width: 900px) {
+  .bh-tree-header, .bh-tree-row {
+    grid-template-columns: minmax(180px, 1fr) 105px 87px 85px 20px;
+    padding-inline: 14px;
+  }
+}
+@media (max-width: 600px) {
+  .bh-toolbar {
+    flex-wrap: wrap;
+  }
+  .bh-toolbar-count {
+    text-align: start;
+    margin-inline-start: 0;
+    width: 100%;
+  }
+  .bh-tree-header, .bh-tree-row {
+    grid-template-columns: minmax(130px, 1fr) 65px 64px 16px;
+  }
+  .bh-tree-header > :nth-child(3), .bh-tree-date, .bh-progress {
+    display: none;
+  }
+  .bh-chart-legend {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}

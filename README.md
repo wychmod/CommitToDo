@@ -2,13 +2,13 @@
 
 把每件小事变成一次提交，长成一棵看得见的分支树。
 
-本地优先的个人任务与历程工具。仓库当前处于**重建起点**：旧 Web 实现已于 2026-11-19 整体清空，现有代码只是一个可运行的空壳，界面与业务都还没有开始做。
+本地优先的个人任务与历程工具。仓库处于 Web 重建阶段，现有运行代码是可启动的占位壳。首页、分组树和页面画稿已进入设计交接。
 
 ## 现状
 
-- `web/`：React 18 + TypeScript + Vite 6，只有一条路由 `/`，渲染一个占位页
-- 没有业务逻辑、数据层、账号与同步，也没有视觉方案
-- 待定：视觉方向（深色与浅白两套都在评估）、工程规范（分层、门禁、测试）
+- `web/` 使用 React、TypeScript 和 Vite，当前以 `/` 的占位页作为启动入口。
+- [设计交接](./docs/DESIGN.md) 收录已确认的明暗首页、分组树、全套页面图、设计令牌和组件。
+- 产品功能与工程边界见 [功能框架](./docs/FRAMEWORK.md) 和 [技术架构](./docs/TECH-ARCHITECTURE.md)。
 
 ## 快速开始
 
@@ -32,6 +32,7 @@ Commit/
 │   ├── src/                    #   main.tsx / app.tsx / pages/home-page.tsx / index.css
 │   └── public/                 #   仅 favicon.svg
 └── docs/                       # 文档
+    ├── DESIGN.md               #   设计交接入口
     ├── FRAMEWORK.md            #   产品框架
     ├── PRODUCT-STRATEGY.md     #   定位与硬约束
     └── archive/                #   归档（不得作为实现依据）
@@ -41,12 +42,12 @@ Commit/
 
 | 文档 | 内容 |
 |---|---|
-| [`docs/FRAMEWORK.md`](./docs/FRAMEWORK.md) | 产品框架：单根分支树 + 5 个对象、4 个入口、59 项功能、版本切分 |
+| [设计交接](./docs/DESIGN.md) | 确认的首页、全套画稿、页面设计、视觉规范、动效和组件 |
+| [功能框架](./docs/FRAMEWORK.md) | 单根分支树、5 个对象、4 个入口与版本切分 |
 | [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) | 产品定位、命名决策、主用户、硬约束与风险 |
+| [技术架构](./docs/TECH-ARCHITECTURE.md) | 工程方案与数据、阶段边界 |
 | [`docs/archive/README.md`](./docs/archive/README.md) | 归档索引 |
 | [`docs/archive/2026-11/legacy-impl/`](./docs/archive/2026-11/legacy-impl/README.md) | 旧 Web 实现档案（架构文档、过期清单、未引用静态资产） |
-
-视觉规范：待重新设计，旧版已归档。
 
 ## 许可
 

@@ -1,0 +1,99 @@
+# CommitToDo 页面与交互规格
+
+**状态：2026 年 11 月 20 日设计交接。** 以已确认的首页明暗稿、分组树和全套页面画稿为实现依据。总览包含 **12 个页面与 38 个补充视图和操作状态**，每组有明暗两稿。画稿呈现的是界面和示例状态，功能阶段以《产品框架》为准，数据与账号边界以技术架构为准。[设计交接入口](DESIGN.md) · [产品框架](FRAMEWORK.md) · [技术架构](TECH-ARCHITECTURE.md) · [全部页面画稿](../2026-11-19/homepage-visual-review/outputs/design-system/index.html)
+
+尺寸、配色和分支符号统一取自视觉规范。导航、菜单、抽屉、表单和反馈复用同一套组件。首页的工作台演示另有时序定义。[视觉规范](UI-VISUAL.md) · [组件规格](UI-COMPONENTS.md) · [首页动效](HOMEPAGE-MOTION.md)
+
+## 1. 页面与导航
+
+桌面工作台采用顶栏和左导航，窄屏改为顶栏和底部导航。四个一级入口为「今天、分支、历程、我的」。分支详情继承「分支」选中态，年轮继承「历程」，设置与备份继承「我的」。二级页面返回时恢复原页滚动、筛选和展开状态。首页和认证采用独立外壳。
+
+| 编号 | 页面与画稿 | 路由 | 首发阶段 | 页面内容和去向 |
+| --- | --- | --- | --- | --- |
+| P00 | [首页](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p00-home) | `/` | MVP | 首屏工作台演示、三块内容、分组与时间树、使用场景。页头「打开工作区」与页尾「打开 CommitToDo」进入 `/today`，首屏「看工作区」定位页内示例，演示控制留在首屏。 |
+| P01 | [今天](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p01-today) | `/today` | MVP | 逾期、今天、无截止日期三组，最近提交、停滞提醒、快速添加和全部待办入口。周回顾按周期出现。 |
+| P02 | [分支树 · 分组](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p02-branches) | `/branches` | MVP | 单根三层，按一级分支分组。点名称进入详情，点展开控件只改变树的展开状态，点行尾「更多」打开锚定菜单。页头「新建分支」打开侧栏。 |
+| P03 | [分支详情](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p03-branch-detail) | `/branches/:id` | MVP | 一句目标、直接待办进度、待办、提交、子分支、里程碑。点击子分支进入其详情，可从这里调用收尾。 |
+| P04 | [历程](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p04-history) | `/history` | MVP | 按实际日期分布的时间树、范围和分支筛选、提交与里程碑详情。首页示例单独演示，应用内回执定位真实提交。 |
+| P05 | [年轮](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p05-year) | `/history/:year` | V1 | 年份切换、提交和分支指标、月度分布、新开和收尾结构、年度总结与分享图。 |
+| P06 | [我的](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p06-me) | `/me` | MVP | 已获徽章定位历程、进入设置与数据备份。V1 增徽章墙，V2 增账号入口与帮助。 |
+| P07 | [设置](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p07-settings) | `/settings` | MVP | 跟随系统／浅色／深色，紧凑／舒适、注解选项、数据与备份入口。V1 增字号，V2 增账号与同步分区。 |
+| P08 | [数据与备份](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p08-data) | `/data` | MVP | 自动及手动本机备份、JSON 导出、从文件恢复、下载恢复前副本。V1 增按快照恢复和按匿名设备归档的异地备份。 |
+| P09 | [登录](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p09-login) | `/auth/login` | V2 | 独立登录页，提供前往注册、找回与打开本机工作区的入口。认证成功回到有效的应用内 `next`，缺省到 `/today`。 |
+| P10 | [注册](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p10-signup) | `/auth/signup` | V2 | 独立注册页，沿用登录布局，提供返回登录和打开本机工作区的入口。 |
+| P11 | [找回密码](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#p11-recover) | `/auth/recover` | V2 | 同一路由承载填写邮箱、检查邮箱、设置新密码三步，另保留返回登录。 |
+
+- `/today/all` 是今天的全部待办视图，`/branches?view=archived` 是 V1 的归档视图。徽章详情、待办详情、提交详情与各类操作沿用所属页的面板或弹层。V2 账号、同步等分区可通过 `/settings#account` 与 `/settings#sync` 定位。
+- 已载入的 MVP 工作台在断网后仍可完整使用，首页和其他页面入口遵循同样的本机优先原则。V1 本地及异地备份继续按匿名设备工作，异地文件是带 `schemaVersion` 的明文 JSON。V2 登录入口放在需要账号的具体功能旁边，原来的本机入口始终可用。
+- 认证三页确定了独立外壳与页面关系。邮箱与密码流程是 V2 画稿的示例渠道。实际渠道、找回方式、数据归属和冲突处理细节按 V2 技术决策落实。站内登录用行内提示进入独立页。冲突稿用于查看两次修改与分支留痕。[技术架构 §4.6、§6](TECH-ARCHITECTURE.md)
+
+## 2. 38 个补充视图与操作状态
+
+链接打开总览中的明暗对照。以下操作在 `/branches`、分支详情和归档视图中共享相同的动作名称、校验与反馈。
+
+### 分支操作（12）
+
+| 编号 | 状态 | 阶段与实现要点 |
+| --- | --- | --- |
+| B01 | [分支操作菜单](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b01-branch-menu) | MVP／V1 按阶段呈现。菜单贴着分支行，随分支状态显示动作和不可用原因。 |
+| B02 | [新建一级分支](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b02-branch-new) | MVP。页头打开侧栏，填写名称、父位置及预设色相。 |
+| B03 | [新建子分支](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b03-branch-new-child) | MVP。预填当前父分支，继承父分支色相，校验层级、额度和同级重名。 |
+| B04 | [重命名分支](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b04-branch-rename) | MVP。保留输入，即时显示重名及状态校验。 |
+| B05 | [移动分支](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b05-branch-move) | MVP。展示新父分支和路径。解释层级、循环引用、额度、状态及重名导致的不可选原因。 |
+| B06 | [收尾 · 选择去向](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b06-branch-finish) | MVP。列出未完成待办条数和去向，选择移到父分支或取消，选择从默认树收起或保留。仅无进行中后代的进行中分支可收尾。 |
+| B07 | [收尾 · 确认影响](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b07-branch-finish-confirm) | MVP。存在未完成待办或选了收起时进入。写明去向和「收尾之后不能撤销」，按钮用「确认收尾」。 |
+| B08 | [放下分支](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b08-branch-pause) | V1。原因必填，说明未完成事项移出「今天」、历史仍可查看。 |
+| B09 | [手动归档](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b09-branch-archive) | V1。已合并或已放下且无进行中后代方可归档，说明默认树与历程的变化。 |
+| B10 | [删除空分支](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b10-branch-delete-empty) | MVP。仅非根、子树全在进行中、从未留下业务历史的分支可删，先呈现对象和影响。 |
+| B11 | [取消归档](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b11-branch-unarchive) | V1。核对祖先可见性和剩余额度，恢复可见后保留原本的生命周期状态。 |
+| B12 | [重新开始](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#b12-branch-restart) | V1。已放下分支按原截止日期重新分组，祖先已合并时先移到可接收的位置。 |
+
+### 工作台其他视图与弹层（14）
+
+| 画稿 | 阶段 | 入口与结果 |
+| --- | --- | --- |
+| [全部待办](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s01-all-todos) | MVP | 从今天进入。可查看长期逾期、未来到期、根分支和已放下项。归档项可只读查看。 |
+| [快速添加](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o01-quick-add) | MVP | 「记一笔」打开。从一句话识别日期和分支，识别失败时保留输入和纠正入口。 |
+| [待办详情](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o02-todo-detail) | MVP | 点待办名称进入，编辑标题、备注、日期和归属，查看历史。完成、安排到今天与打开详情各有独立入口。 |
+| [提交详情](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o03-commit-detail) | MVP | 点提交或时间树圆点进入，显示时间、原始分支、提交文案和前后有效节点。当天纠错，跨天锁定。 |
+| [里程碑详情](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s04-milestone-detail) | MVP | 通过图上菱形或里程碑行打开同一记录。 |
+| [新建里程碑](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s04-milestone-new) | MVP | 从历程或分支详情新建，可只填年月，可挂在根分支。 |
+| [全局搜索](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o04-search) | V1 | 搜分支、待办、有效提交和里程碑，每条结果带类型与归属，可打开详情或在历程定位。 |
+| [已归档分支](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s02-archived-branches) | V1 | 分支页切换归档视图，按一级分支浏览；可定位历程或取消归档。 |
+| [周回顾](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s01-week-review) | MVP | 今天页底部。周六日看周一至周日的预览，周一看同一周期的正式版，周二至周五收起入口。 |
+| [月回顾](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s01-month-review) | V1 | 回顾区打开，聚焦分支比重、新开、收尾和持续出现的模式。 |
+| [年度分享图](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s05-year-share) | V1 | 年轮打开 4:5 预览，主体是泳道缩略。待办文案默认隐藏，分支名由用户选择是否显示。 |
+| [首次引导](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o06-first-task) | MVP | 空的真实工作区引导添加并完成第一条待办，默认归入根分支。 |
+| [首次完成](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o06-first-commit) | MVP | 完成第一条待办后展示可点击的回执，进入历程并展开对应的真实节点。 |
+| [示例树](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o06-sample-tree) | MVP | 独立的六节点预览带「示例」标记，可退出，统计、分支额度、搜索和备份只计真实数据。 |
+
+### 徽章、数据与多端状态（10）
+
+| 画稿 | 阶段 | 入口与结果 |
+| --- | --- | --- |
+| [徽章墙](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s06-badge-wall) | V1 | 「我的」进入，按已上线类别浏览，已获项按时间倒序。 |
+| [徽章详情](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s06-badge-detail) | V1 | 查看授予原因及当时快照，定位授予事件。MVP 已获徽章入口直接跳历程。 |
+| [从文件恢复](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s08-restore-file) | MVP | 数据页选文件，校验格式、版本和完整性，核对摘要，先备份再整体替换。 |
+| [备份与快照](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s08-data-v1) | V1 | 数据页增按本机快照恢复及按匿名设备管理的异地 JSON 备份。 |
+| [恢复本地快照](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s08-snapshot-restore) | V1 | 定位快照、核对日期和内容，确认前备份当前状态。 |
+| [危险操作确认](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o05-clear-local) | MVP | 清空本机数据前写明影响范围，提供导出，输入确认词后才开放操作。 |
+| [帮助](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s06-help) | V2 | 「我的」进入，展示分支、历程、撤销时限和换设备等实际规则。 |
+| [站内登录提示](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o07-sync-entry) | V2 | 账号相关入口行内提示，点击前往独立登录页，携带当前操作的应用内返回路径。 |
+| [设备管理](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o08-sync-devices) | V2 | 账号与同步区进入，显示连入设备、当前设备和最近同步。 |
+| [同步冲突记录](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#o08-sync-conflict) | V2 | 展示两次修改的对照，链接分支历史留痕。 |
+
+### 找回页补充状态（2）
+
+| 画稿 | 阶段 | 入口与结果 |
+| --- | --- | --- |
+| [检查邮箱](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s11-recover-sent) | V2 | 提交邮箱后给出统一成功提示、重发与返回操作。 |
+| [设置新密码](../2026-11-19/homepage-visual-review/outputs/design-system/index.html#s11-recover-reset) | V2 | 从有效链接进入，确认新密码并保存。过期时提供重新发送入口。 |
+
+## 3. 布局、状态与验收
+
+- **桌面与窄屏。** 参考宽度为 1440 px，另验 390 px。今天的侧栏在窄屏并入主列。分组树保留层级缩进、状态、展开与行尾操作，次要时间或统计可进入详情。应用历程在窄屏用纵向时间线表达相同的分支、日期与汇合。首页的示例图可以在图表容器内横向查看，两处都保留页面自然纵向滚动。桌面详情和编辑常用侧栏，移动端用全屏面板保留操作与关闭入口。
+- **反馈状态。** 空页给一句当前说明和一个可用动作。加载保留基本布局。错误在相关字段或动作旁解释原因并提供重试，保存失败保留输入。从文件恢复的校验、备份或写入失败时保留现有数据。跨日提交和已归档待办显示只读原因；写入当日的提交纠错仍按产品规则处理。状态用文字或形状配合颜色表达。
+- **键盘与弹层。** 名称、展开和更多各自可操作并有独立可见焦点。打开弹层后焦点进入，关闭后返回触发控件，`Esc` 关闭未提交的菜单和弹层。阻断型确认对话框限制焦点在内，屏幕阅读器可识别标题、说明、禁用原因和结果。节点提供名称与日期的可读入口。
+- **核心链路。** 浏览器加载应用资源后，在业务数据为空的本机工作区断网进入「今天」，完成一条归于根分支的待办，确认只生成一条提交。通过回执定位同一条真实历程节点，保留用户原筛选设置。当天撤销后，任务、有效时间线和计数同步更新，跨天锁定。另验根分支、三层树、同级重复名、非法移动和两步收尾。
+- **数据和阶段。** 从导出文件在另一干净浏览器恢复真实历程。校验失败、备份失败和取消时原数据仍可打开。分别检查 MVP、V1、V2 的功能入口，本机流程从头到尾可直接使用。V1 备份与 V2 同步各使用其对应文案。
+- **设计验收。** 对照现行浅深画稿逐页检查主操作、活动导航、两套主题、长名称、窄屏和系统减少动效。业务状态用功能框架的数据跑通，再检查视觉反馈。[视觉规范](UI-VISUAL.md) · [组件规格](UI-COMPONENTS.md) · [首页动效](HOMEPAGE-MOTION.md)
