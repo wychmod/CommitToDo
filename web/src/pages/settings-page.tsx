@@ -15,6 +15,7 @@ import { t, type MessageKey } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
+import { UserIcon } from '@/ui/icons';
 import styles from './settings-page.module.css';
 
 const COLLECTION_KEYS: Record<string, MessageKey> = {
@@ -223,46 +224,57 @@ export function SettingsPage() {
           </section>
 
           <section id="account" className={styles.section} aria-labelledby="settings-account">
-            <h2 id="settings-account" className={styles.heading}>
-              {t('settings.account')}
-            </h2>
-            {principalId ? (
-              <>
-                <div className={styles.accountCard}>
+            <div className={styles.accountCard}>
+              <h2 id="settings-account" className={styles.accountTitle}>
+                {t('settings.account')}
+              </h2>
+              {principalId ? (
+                <>
                   <div className={styles.accountRow}>
-                    <span className={styles.accountLabel}>{t('settings.account.current')}</span>
-                    <span className={styles.accountEmail}>{email}</span>
+                    <div className={styles.accountText}>
+                      <span className={styles.accountLabel}>{t('auth.email')}</span>
+                      <span className={styles.accountEmail}>{email}</span>
+                    </div>
+                    <span className={styles.accountStatus}>{t('settings.account.status')}</span>
                   </div>
-                  <span className={styles.accountStatus}>{t('settings.account.status')}</span>
+                  <div className={styles.accountFoot}>
+                    <button
+                      type="button"
+                      className={styles.dangerButton}
+                      onClick={() => setConfirmingSignOut(true)}
+                    >
+                      {t('settings.account.signOut')}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className={styles.accountRow}>
+                  <span className={styles.accountIcon} aria-hidden="true">
+                    <UserIcon size={20} />
+                  </span>
+                  <div className={styles.accountText}>
+                    <span className={styles.accountHeadline}>
+                      {t('settings.account.signedOutTitle')}
+                    </span>
+                    <span className={styles.accountHint}>{t('settings.account.hint')}</span>
+                  </div>
+                  <div className={styles.accountActions}>
+                    <Link
+                      className={styles.primaryButton}
+                      to={`/auth/login?next=${encodeURIComponent(accountNext)}`}
+                    >
+                      {t('settings.account.login')}
+                    </Link>
+                    <Link
+                      className={styles.secondaryButton}
+                      to={`/auth/signup?next=${encodeURIComponent(accountNext)}`}
+                    >
+                      {t('settings.account.register')}
+                    </Link>
+                  </div>
                 </div>
-                <p className={styles.hint}>{t('auth.merge.hint')}</p>
-                <button
-                  type="button"
-                  className={styles.entryButton}
-                  onClick={() => setConfirmingSignOut(true)}
-                >
-                  {t('settings.account.signOut')}
-                </button>
-              </>
-            ) : (
-              <>
-                <p className={styles.hint}>{t('settings.account.hint')}</p>
-                <div className={styles.actions}>
-                  <Link
-                    className={styles.entry}
-                    to={`/auth/login?next=${encodeURIComponent(accountNext)}`}
-                  >
-                    {t('settings.account.login')}
-                  </Link>
-                  <Link
-                    className={styles.entry}
-                    to={`/auth/signup?next=${encodeURIComponent(accountNext)}`}
-                  >
-                    {t('settings.account.register')}
-                  </Link>
-                </div>
-              </>
-            )}
+              )}
+            </div>
           </section>
 
           <section id="sync" className={styles.section} aria-labelledby="settings-sync">

@@ -138,20 +138,33 @@
 }
 
 .accountCard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s2);
-  padding: var(--s4);
+  overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-panel);
   background: var(--panel);
+}
+
+.accountTitle {
+  margin: 0;
+  padding: var(--s4) var(--s5);
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  font-size: var(--type-heading-small);
+  font-weight: 600;
 }
 
 .accountRow {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--s3);
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s4) var(--s5);
+}
+
+.accountText {
+  display: grid;
+  flex: 1;
+  gap: var(--s1);
+  min-width: 0;
 }
 
 .accountLabel {
@@ -166,9 +179,107 @@
   font-weight: 600;
 }
 
-.accountStatus {
+.accountHeadline {
+  color: var(--text);
+  font-size: var(--type-body);
+  font-weight: 600;
+}
+
+.accountHint {
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.accountIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--s9);
+  height: var(--s9);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
   color: var(--accent);
+}
+
+.accountStatus {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s1);
+  min-height: var(--s5);
+  padding: 0 var(--s2);
+  border-radius: var(--radius-control);
+  background: var(--success-bg);
+  color: var(--success);
   font-size: var(--type-label);
+  font-weight: 600;
+}
+
+.accountStatus::before {
+  width: var(--s1);
+  height: var(--s1);
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+}
+
+.accountFoot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--s5) var(--s4);
+}
+
+.accountActions {
+  display: flex;
+  flex: none;
+  gap: var(--s2);
+  margin-left: auto;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-height);
+  padding: 0 var(--s4);
+  border-radius: var(--radius-control);
+  font-size: var(--type-secondary);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.secondaryButton {
+  border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--line));
+  background: var(--panel);
+  color: var(--accent);
+}
+
+.dangerButton {
+  border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--line));
+  background: var(--panel);
+  color: var(--danger);
+}
+
+.primaryButton:hover,
+.secondaryButton:hover,
+.dangerButton:hover {
+  filter: brightness(1.04);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.dangerButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .entryButton {
@@ -318,3 +429,19 @@
   height: var(--s5);
   accent-color: var(--accent);
 }
+
+@media (max-width: 760px) {
+  .accountRow {
+    flex-wrap: wrap;
+  }
+
+  .accountActions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .accountActions a {
+    flex: 1;
+  }
+}
+
