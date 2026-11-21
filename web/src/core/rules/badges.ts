@@ -1,7 +1,7 @@
 /**
  * 徽章条件判定聚合（PRD V1-05 / R18）。
  *
- * 目录固定 16 项；三类条件各自在独立模块里判定，这里只做：
+ * 目录为 16 枚常规徽章与 5 枚彩蛋；条件各自在独立模块里判定，这里只做：
  * 合并候选、按目录顺序排序、合并「还差 N」进度。纯函数，不读写库。
  */
 
@@ -16,6 +16,7 @@ import {
 import { assessMilestoneBadges } from './badge-milestone';
 import { assessStructureBadges } from './badge-structure';
 import { assessTimeBadges } from './badge-time';
+import { assessEasterEggs } from './easter-egg';
 
 export type { BadgeCandidate, BadgeCatalogId, BadgeCategory, BadgeProgress };
 export { BADGE_PERIOD_ALL };
@@ -83,9 +84,9 @@ function mergeProgress(groups: readonly BadgeProgress[][]): BadgeProgress[] {
 }
 
 /**
- * 一次判定 16 枚徽章。
+ * 一次判定全部徽章（16 枚常规 + 5 枚彩蛋）。
  *
- * `nowMs` 只影响「活跃区间到判定时刻」与「第一年」；
+ * `nowMs` 只影响「活跃区间到判定时刻」「第一年」与已结束周期的边界；
  * `tzOffsetMinutes` 决定自然月、自然年与快照里的 `eventDate`。
  */
 export function assessBadges(
@@ -96,10 +97,14 @@ export function assessBadges(
   const structure = assessStructureBadges(rows, nowMs, tzOffsetMinutes);
   const time = assessTimeBadges(rows, nowMs, tzOffsetMinutes);
   const milestone = assessMilestoneBadges(rows, tzOffsetMinutes);
+  const easter = assessEasterEggs(rows, nowMs, tzOffsetMinutes);
 
-  const candidates = [...structure.candidates, ...time.candidates, ...milestone.candidates].sort(
-    (left, right) => badgeOrder(left.catalogId) - badgeOrder(right.catalogId),
-  );
+  const candidates = [
+    ...structure.candidates,
+    ...time.candidates,
+    ...milestone.candidates,
+    ...easter.candidates,
+  ].sort((left, right) => badgeOrder(left.catalogId) - badgeOrder(right.catalogId));
 
   return {
     candidates,

@@ -11,31 +11,41 @@ import {
 const AT = Date.UTC(2026, 10, 21, 9, 0);
 
 describe('徽章目录（V1-05 §4.1 / R18）', () => {
-  it('恰好 16 项且 catalogId 唯一', () => {
-    expect(BADGE_CATALOG_SIZE).toBe(16);
-    expect(new Set(BADGE_CATALOG.map((entry) => entry.catalogId)).size).toBe(16);
+  it('恰好 21 项（16 枚常规 + 5 枚彩蛋）且 catalogId 唯一', () => {
+    expect(BADGE_CATALOG_SIZE).toBe(21);
+    expect(new Set(BADGE_CATALOG.map((entry) => entry.catalogId)).size).toBe(21);
   });
 
-  it('分类分布为结构 8 / 时间 4 / 里程碑 4', () => {
-    expect(BADGE_CATEGORY_ORDER).toEqual(['structure', 'time', 'milestone']);
+  it('分类分布为结构 8 / 时间 4 / 里程碑 4 / 彩蛋 5', () => {
+    expect(BADGE_CATEGORY_ORDER).toEqual(['structure', 'time', 'milestone', 'easter']);
     expect(badgesInCategory('structure')).toHaveLength(8);
     expect(badgesInCategory('time')).toHaveLength(4);
     expect(badgesInCategory('milestone')).toHaveLength(4);
+    expect(badgesInCategory('easter')).toHaveLength(5);
   });
 
-  it('周期键统一为 all，且不含 V2 彩蛋', () => {
+  it('周期键统一为 all，彩蛋排在目录末尾', () => {
     expect(BADGE_PERIOD_ALL).toBe('all');
-    expect(BADGE_CATALOG.map((entry) => entry.catalogId)).not.toContain('easter-egg');
+    expect(BADGE_CATALOG.slice(-5).map((entry) => entry.catalogId)).toEqual([
+      'night-flight',
+      'cross-year',
+      'blank-year',
+      'revival',
+      'full-moon',
+    ]);
   });
 });
 
 describe('徽章墙派生（V1-05 §4.2 / OP-01）', () => {
-  it('0 枚已获得时页头为 0 / 16，未获得按目录顺序', () => {
+  it('0 枚已获得时页头为 0 / 21，彩蛋分类不出现任何条目', () => {
     const wall = buildBadgeWall([], []);
 
-    expect(wall.total).toBe(16);
+    expect(wall.total).toBe(21);
     expect(wall.earnedCount).toBe(0);
-    expect(wall.groups.map((group) => group.total)).toEqual([8, 4, 4]);
+    expect(wall.groups.map((group) => group.total)).toEqual([8, 4, 4, 5]);
+    const easter = wall.groups[3]!;
+    expect(easter.items).toEqual([]);
+    expect(easter.earnedCount).toBe(0);
     const structure = wall.groups[0]!;
     expect(structure.items.map((item) => item.catalogId)).toEqual([
       'first-fork',

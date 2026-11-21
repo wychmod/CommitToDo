@@ -102,7 +102,7 @@ export interface Badge {
   id: string;
   ownerId: OwnerId;
   catalogId: string;
-  category: 'structure' | 'time' | 'milestone';
+  category: 'structure' | 'time' | 'milestone' | 'easter';
   periodKey: string;
   grantedAt: number;
   /** 授予时的快照：来源实体与计数。 */

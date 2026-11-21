@@ -515,3 +515,40 @@ describe('同步重放与落库后的四计数（V2-02 / R7）', () => {
     expect(counts.ownLastCommitAt).toBe(3_000);
   });
 });
+
+describe('模板生成与撤回后的四计数（V2-03 / R7）', () => {
+  const existing = [commit({ id: 'c1', at: 2_000 })];
+
+  it('生成后 taskTotal 增加 4，其余三项不变', () => {
+    const before = recountBranch('product-design', [], existing);
+    const generated = [
+      task({ status: 'open' }),
+      task({ status: 'open' }),
+      task({ status: 'done' }),
+      task({ status: 'done' }),
+    ];
+    const after = recountBranch('product-design', generated, existing);
+
+    expect(after.taskTotal).toBe(before.taskTotal + 4);
+    expect(after.taskDone).toBe(before.taskDone + 2);
+    expect(after.commitCount).toBe(before.commitCount);
+    expect(after.ownLastCommitAt).toBe(before.ownLastCommitAt);
+  });
+
+  it('撤回后回到生成前的数值', () => {
+    const before = recountBranch('product-design', [], existing);
+    const after = recountBranch('product-design', [], existing);
+    expect(after).toEqual(before);
+  });
+
+  it('生成后再新增待办再撤回，子树待办一并消失，根分支计数不受影响', () => {
+    const generated = [task({ status: 'open' }), task({ status: 'open' })];
+    const userAdded = task({ status: 'done' });
+    const during = recountBranch('product-design', [...generated, userAdded], existing);
+    const afterWithdraw = recountBranch('product-design', [], existing);
+
+    expect(during.taskTotal).toBe(3);
+    expect(afterWithdraw.taskTotal).toBe(0);
+    expect(afterWithdraw.commitCount).toBe(existing.length);
+  });
+});

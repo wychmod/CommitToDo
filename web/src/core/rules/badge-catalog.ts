@@ -1,11 +1,11 @@
 /**
  * 徽章目录与徽章墙派生（PRD V1-05 §4.1 / §4.2 / R18）。
  *
- * 目录固定 16 项，是常量不是表；`periodKey` 统一为 `all`，
+ * 目录为 V1 的 16 项加 V2 的 5 枚彩蛋，是常量不是表；`periodKey` 统一为 `all`，
  * 同一用户同一 `catalogId` 只授一次。「还差 N」现算：达成度 ≥50% 才给差距。
  */
 
-export type BadgeCategory = 'structure' | 'time' | 'milestone';
+export type BadgeCategory = 'structure' | 'time' | 'milestone' | 'easter';
 
 export type BadgeCatalogId =
   | 'first-commit'
@@ -23,7 +23,12 @@ export type BadgeCatalogId =
   | 'first-year'
   | 'three-milestones'
   | 'milestone-note'
-  | 'year-marks';
+  | 'year-marks'
+  | 'night-flight'
+  | 'cross-year'
+  | 'blank-year'
+  | 'revival'
+  | 'full-moon';
 
 /** 16 枚一辈子只发一次，统一周期键。 */
 export const BADGE_PERIOD_ALL = 'all';
@@ -51,11 +56,22 @@ export const BADGE_CATALOG: readonly BadgeCatalogEntry[] = [
   { catalogId: 'three-milestones', category: 'milestone' },
   { catalogId: 'milestone-note', category: 'milestone' },
   { catalogId: 'year-marks', category: 'milestone' },
+  // V2 彩蛋：获得前不进任何界面，顺序同样固定。
+  { catalogId: 'night-flight', category: 'easter' },
+  { catalogId: 'cross-year', category: 'easter' },
+  { catalogId: 'blank-year', category: 'easter' },
+  { catalogId: 'revival', category: 'easter' },
+  { catalogId: 'full-moon', category: 'easter' },
 ];
 
 export const BADGE_CATALOG_SIZE = BADGE_CATALOG.length;
 
-export const BADGE_CATEGORY_ORDER: readonly BadgeCategory[] = ['structure', 'time', 'milestone'];
+export const BADGE_CATEGORY_ORDER: readonly BadgeCategory[] = [
+  'structure',
+  'time',
+  'milestone',
+  'easter',
+];
 
 const BY_ID = new Map(BADGE_CATALOG.map((entry) => [entry.catalogId, entry]));
 
@@ -162,7 +178,9 @@ export function buildBadgeWall(
         const b = earnedById.get(right.catalogId)!;
         return b.grantedAt - a.grantedAt || a.id.localeCompare(b.id);
       });
-    const unearned = entries.filter((entry) => !earnedById.has(entry.catalogId));
+    // 彩蛋未获得时连灰点与条件都不出现，只列已获得的。
+    const unearned =
+      category === 'easter' ? [] : entries.filter((entry) => !earnedById.has(entry.catalogId));
 
     const items: BadgeWallItem[] = [
       ...earned.map((entry) => ({
