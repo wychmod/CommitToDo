@@ -406,3 +406,61 @@ describe('拖拽排序与置顶后的四计数（V1-08 / R7）', () => {
     });
   });
 });
+
+describe('登录归属后的四计数（V2-01 / R7、R8）', () => {
+  const owned = (row: CountTask, ownerId: string): CountTask & { ownerId: string } => ({
+    ...row,
+    ownerId,
+  });
+  const ownedCommit = (row: CountCommit, ownerId: string): CountCommit & { ownerId: string } => ({
+    ...row,
+    ownerId,
+  });
+
+  it('只改 ownerId 不改四计数', () => {
+    const tasks = [
+      task({ status: 'done' }),
+      task({ status: 'open' }),
+      task({ status: 'cancelled' }),
+    ];
+    const commits = [commit({ at: 1_000 }), commit({ at: 3_000, voidedAt: 3_500 })];
+    const before = recountBranch('product-design', tasks, commits);
+    const after = recountBranch(
+      'product-design',
+      tasks.map((row) => owned(row, 'principal-1')),
+      commits.map((row) => ownedCommit(row, 'principal-1')),
+    );
+
+    expect(after).toEqual(before);
+  });
+
+  it('多分支迁移后每个分支的计数与迁移前一致', () => {
+    const tasks = [
+      task({ branchId: 'a', status: 'done' }),
+      task({ branchId: 'a' }),
+      task({ branchId: 'b', status: 'done' }),
+    ];
+    const commits = [commit({ branchId: 'a', at: 2_000 }), commit({ branchId: 'b', at: 4_000 })];
+    const before = ['a', 'b'].map((id) => recountBranch(id, tasks, commits));
+    const after = ['a', 'b'].map((id) =>
+      recountBranch(
+        id,
+        tasks.map((row) => owned(row, 'principal-1')),
+        commits.map((row) => ownedCommit(row, 'principal-1')),
+      ),
+    );
+
+    expect(after).toEqual(before);
+    expect(after.map((row) => row.taskTotal)).toEqual([2, 1]);
+  });
+
+  it('归属迁移不产生提交，最近提交仍取原有效提交', () => {
+    const moved = recountBranch(
+      'product-design',
+      [task({ status: 'done' })],
+      [ownedCommit(commit({ at: 7_000 }), 'principal-1')],
+    );
+
+    expect(moved).toMatchObject({ commitCount: 1, ownLastCommitAt: 7_000 });
+  });
+});

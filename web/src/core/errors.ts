@@ -16,7 +16,11 @@ export type ErrorCode =
   | 'storage.read_failed'
   | 'backup.invalid_file'
   | 'backup.version_unsupported'
-  | 'auth.invalid_credentials';
+  | 'auth.invalid_credentials'
+  | 'auth.email_taken'
+  | 'auth.email_unverified'
+  | 'auth.reset_expired'
+  | 'auth.unavailable';
 
 export interface AppError {
   code: ErrorCode;

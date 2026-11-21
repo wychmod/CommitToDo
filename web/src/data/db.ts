@@ -70,5 +70,31 @@ export class CommitToDoDatabase extends Dexie {
 
 export const db = new CommitToDoDatabase();
 
-/** MVP 只有本机一个 owner；V2 接入账号后由会话提供。 */
-export const LOCAL_OWNER_ID = 'local';
+const OWNER_STORAGE_KEY = 'committodo.owner';
+
+function readOwnerId(): string {
+  try {
+    return window.localStorage.getItem(OWNER_STORAGE_KEY) ?? 'local';
+  } catch {
+    return 'local';
+  }
+}
+
+/**
+ * 业务数据的当前归属（PRD V2-01 OP-08）。
+ *
+ * 未登录固定为 `local`；登录成功后由 `assignOwnerTo()` 改为账号的 `principalId`
+ * 并写入 localStorage，刷新后仍按该归属读取。退出登录保留归属，本机数据不清空。
+ * 这是一处受控的可变导出，读取方在调用时取值即可拿到最新归属。
+ */
+export let LOCAL_OWNER_ID = readOwnerId();
+
+export function setOwnerId(next: string): void {
+  if (next.length === 0 || next === LOCAL_OWNER_ID) return;
+  LOCAL_OWNER_ID = next;
+  try {
+    window.localStorage.setItem(OWNER_STORAGE_KEY, next);
+  } catch {
+    // 浏览器禁用存储时只保留本次会话内的归属。
+  }
+}
