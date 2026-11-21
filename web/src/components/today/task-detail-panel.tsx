@@ -41,7 +41,7 @@ interface TaskDetailBodyProps {
 
 function TaskDetailBody({ task, branches, events }: TaskDetailBodyProps) {
   const closeOverlay = useShellStore((state) => state.closeOverlay);
-  const openOverlay = useShellStore((state) => state.openOverlay);
+  const openCommitDetail = useShellStore((state) => state.openCommitDetail);
   const todayDate = today(systemClock);
 
   const [title, setTitle] = useState(task.title);
@@ -266,7 +266,10 @@ function TaskDetailBody({ task, branches, events }: TaskDetailBodyProps) {
                     <button
                       type="button"
                       className={styles.historyLink}
-                      onClick={() => openOverlay('commit-detail')}
+                      onClick={() => {
+                        const payload = event.payload as { commitId?: string } | null;
+                        if (payload?.commitId) openCommitDetail(payload.commitId);
+                      }}
                     >
                       {t('taskDetail.viewCommit')}
                     </button>

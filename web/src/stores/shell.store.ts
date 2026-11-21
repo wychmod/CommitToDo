@@ -23,12 +23,15 @@ interface ShellState {
   overlayTaskId: string | null;
   /** 快速添加要预填的分支；关闭时清空。 */
   overlayBranchId: string | null;
+  /** 提交详情浮层要展示的提交；关闭时清空。 */
+  overlayCommitId: string | null;
   /** 里程碑详情浮层要展示的里程碑；关闭时清空。 */
   overlayMilestoneId: string | null;
   undoMessage: string | null;
   openOverlay: (overlay: ShellOverlay) => void;
   openQuickAdd: (branchId?: string | null) => void;
   openTaskDetail: (taskId: string) => void;
+  openCommitDetail: (commitId: string) => void;
   openMilestoneDetail: (milestoneId: string) => void;
   closeOverlay: () => void;
   showUndo: (message: string) => void;
@@ -39,11 +42,13 @@ export const useShellStore = create<ShellState>()((set) => ({
   overlay: null,
   overlayTaskId: null,
   overlayBranchId: null,
+  overlayCommitId: null,
   overlayMilestoneId: null,
   undoMessage: null,
   openOverlay: (overlay) => set({ overlay }),
   openQuickAdd: (overlayBranchId = null) => set({ overlay: 'quick-add', overlayBranchId }),
   openTaskDetail: (overlayTaskId) => set({ overlay: 'task-detail', overlayTaskId }),
+  openCommitDetail: (overlayCommitId) => set({ overlay: 'commit-detail', overlayCommitId }),
   openMilestoneDetail: (overlayMilestoneId) =>
     set({ overlay: 'milestone-detail', overlayMilestoneId }),
   closeOverlay: () =>
@@ -51,6 +56,7 @@ export const useShellStore = create<ShellState>()((set) => ({
       overlay: null,
       overlayTaskId: null,
       overlayBranchId: null,
+      overlayCommitId: null,
       overlayMilestoneId: null,
     }),
   showUndo: (undoMessage) => set({ overlay: 'undo-receipt', undoMessage }),

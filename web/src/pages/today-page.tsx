@@ -36,6 +36,7 @@ export function TodayPage() {
   const data = useTodayData();
   const openOverlay = useShellStore((state) => state.openOverlay);
   const openTaskDetail = useShellStore((state) => state.openTaskDetail);
+  const openCommitDetail = useShellStore((state) => state.openCommitDetail);
   const listCollapsed = useTodayStore((state) => state.listCollapsed);
   const toggleListCollapsed = useTodayStore((state) => state.toggleListCollapsed);
   const todayDate = today(systemClock);
@@ -186,7 +187,7 @@ export function TodayPage() {
                 key={receipt.commit.id}
                 commit={receipt.commit}
                 taskTitle={receipt.taskTitle}
-                onOpenCommit={() => openOverlay('commit-detail')}
+                onOpenCommit={() => openCommitDetail(receipt.commit.id)}
                 onSaveNote={saveReceiptNote}
               />
             ) : null}
@@ -282,7 +283,7 @@ export function TodayPage() {
                       <button
                         type="button"
                         className={styles.commit}
-                        onClick={() => openOverlay('commit-detail')}
+                        onClick={() => openCommitDetail(commit.id)}
                       >
                         <span className={styles.commitSummary}>{commit.summary}</span>
                         <span className={styles.commitMeta}>

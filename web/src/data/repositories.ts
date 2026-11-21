@@ -31,6 +31,7 @@ export interface TaskRepository {
 export interface CommitRepository {
   listRecent(ownerId: string, limit: number): Promise<Commit[]>;
   listByBranch(branchId: string): Promise<Commit[]>;
+  listBySourceBranch(sourceBranchId: string): Promise<Commit[]>;
   getById(commitId: string): Promise<Commit | undefined>;
   create(row: Commit): Promise<string>;
   update(
@@ -97,6 +98,8 @@ export const commitRepository: CommitRepository = {
       .slice(0, limit);
   },
   listByBranch: (branchId) => db.commits.where('branchId').equals(branchId).toArray(),
+  listBySourceBranch: (sourceBranchId) =>
+    db.commits.where('sourceBranchId').equals(sourceBranchId).toArray(),
   getById: (commitId) => db.commits.get(commitId),
   create: (row) => {
     assertInTransaction();

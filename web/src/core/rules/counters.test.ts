@@ -88,3 +88,43 @@ describe('recountBranch（R7 四计数重算）', () => {
     expect(target).toMatchObject({ taskTotal: 1, taskDone: 1 });
   });
 });
+
+describe('撤销完成后的四计数（M05 / R7）', () => {
+  it('撤销唯一有效提交后 commitCount 归零、ownLastCommitAt 变 null', () => {
+    const counts = recountBranch(
+      'product-design',
+      [task({ status: 'open' })],
+      [commit({ at: 1_000, voidedAt: 2_000 })],
+    );
+
+    expect(counts).toEqual({
+      taskTotal: 1,
+      taskDone: 0,
+      commitCount: 0,
+      ownLastCommitAt: null,
+    });
+  });
+
+  it('撤销较早的一条时最近提交取剩下那条的 at', () => {
+    const counts = recountBranch(
+      'product-design',
+      [task({ status: 'done' })],
+      [commit({ at: 1_000, voidedAt: 2_000 }), commit({ at: 3_000 })],
+    );
+
+    expect(counts.commitCount).toBe(1);
+    expect(counts.ownLastCommitAt).toBe(3_000);
+  });
+
+  it('撤销后待办回到 open，taskDone 减一但 taskTotal 不变', () => {
+    const before = recountBranch('product-design', [task({ status: 'done' })], [commit()]);
+    const after = recountBranch(
+      'product-design',
+      [task({ status: 'open' })],
+      [commit({ voidedAt: 2_000 })],
+    );
+
+    expect(before).toMatchObject({ taskTotal: 1, taskDone: 1, commitCount: 1 });
+    expect(after).toMatchObject({ taskTotal: 1, taskDone: 0, commitCount: 0 });
+  });
+});

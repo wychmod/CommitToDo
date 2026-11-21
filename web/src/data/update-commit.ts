@@ -1,4 +1,5 @@
 import { fail, ok, type Result } from '@/core/errors';
+import { isCommitLocked } from '@/core/rules/commit-lock';
 import { db } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
@@ -34,11 +35,14 @@ export async function updateCommit(
       if (commit.voidedAt !== null) {
         return fail('validation.invalid_input', { field: 'summary' });
       }
+      const at = deps.clock.now();
+      if (isCommitLocked(commit.date, deps.tzOffset(at), at)) {
+        return fail('domain.conflict', { field: 'commitId' });
+      }
       if (commit.summary === summary) {
         return ok(commit);
       }
 
-      const at = deps.clock.now();
       const nextCommit: Commit = {
         ...commit,
         summary,

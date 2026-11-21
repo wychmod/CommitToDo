@@ -5,6 +5,8 @@ import styles from './confirm-dialog.module.css';
 interface ConfirmDialogProps {
   titleKey: MessageKey;
   bodyKey: MessageKey;
+  /** 需要拼接分支名等动态内容时替代 `bodyKey` 的整段文案。 */
+  bodyText?: string;
   confirmKey: MessageKey;
   busy?: boolean;
   onConfirm: () => void;
@@ -15,17 +17,34 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({
   titleKey,
   bodyKey,
+  bodyText,
   confirmKey,
   busy = false,
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const confirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     confirmRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !busy) onClose();
+      if (event.key !== 'Tab') return;
+
+      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
@@ -34,6 +53,7 @@ export function ConfirmDialog({
   return (
     <div className={styles.backdrop} role="presentation" onPointerDown={onClose}>
       <div
+        ref={dialogRef}
         className={styles.dialog}
         role="dialog"
         aria-modal="true"
@@ -43,7 +63,7 @@ export function ConfirmDialog({
         <h2 className={styles.title} id="confirm-title">
           {t(titleKey)}
         </h2>
-        <p className={styles.body}>{t(bodyKey)}</p>
+        <p className={styles.body}>{bodyText ?? t(bodyKey)}</p>
         <div className={styles.actions}>
           <button type="button" className={styles.ghost} onClick={onClose} disabled={busy}>
             {t('shell.cancel')}

@@ -401,3 +401,59 @@ export function useStorageReady() {
     retry: () => setAttempt((value) => value + 1),
   };
 }
+
+export interface CommitDetailView {
+  status: 'loading' | 'ready' | 'error';
+  commit: Commit | null;
+  branches: Branch[];
+  task: Task | null;
+  /** 同一来源分支的全部提交，供 `core/rules/commit-neighbors` 找前后节点。 */
+  siblings: Commit[];
+  retry: () => void;
+}
+
+/**
+ * O03 提交详情（PRD M05 OP-01）。
+ *
+ * 一次读取提交、关联待办、分支与同源提交；锁定判定在渲染时按当前时区计算，
+ * 不写回 `date` / `at`。
+ */
+export function useCommitDetail(commitId: string | null): CommitDetailView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      const commit = commitId ? await commitRepository.getById(commitId) : undefined;
+      const ownerId = commit?.ownerId ?? LOCAL_OWNER_ID;
+      const [branches, task, siblings] = await Promise.all([
+        branchRepository.listByOwner(ownerId),
+        commit?.taskId ? taskRepository.getById(commit.taskId) : Promise.resolve(undefined),
+        commit ? commitRepository.listBySourceBranch(commit.sourceBranchId) : Promise.resolve([]),
+      ]);
+      return { ok: true as const, commit: commit ?? null, branches, task: task ?? null, siblings };
+    } catch {
+      return {
+        ok: false as const,
+        commit: null,
+        branches: [] as Branch[],
+        task: null,
+        siblings: [] as Commit[],
+      };
+    }
+  }, [commitId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) {
+    return { status: 'loading', commit: null, branches: [], task: null, siblings: [], retry };
+  }
+  if (!result.ok) {
+    return { status: 'error', commit: null, branches: [], task: null, siblings: [], retry };
+  }
+  return {
+    status: 'ready',
+    commit: result.commit,
+    branches: result.branches,
+    task: result.task,
+    siblings: result.siblings,
+    retry,
+  };
+}

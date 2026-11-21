@@ -28,7 +28,7 @@ export function BranchCommitsSection({
   status,
   retry,
 }: BranchCommitsSectionProps) {
-  const openOverlay = useShellStore((state) => state.openOverlay);
+  const openCommitDetail = useShellStore((state) => state.openCommitDetail);
   const [limit, setLimit] = useState(COMMIT_PAGE_SIZE);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export function BranchCommitsSection({
                   <button
                     type="button"
                     className={styles.item}
-                    onClick={() => openOverlay('commit-detail')}
+                    onClick={() => openCommitDetail(commit.id)}
                   >
                     <span className={styles.time}>
                       {formatCommitTime(commit.at, currentTzOffset(commit.at))}

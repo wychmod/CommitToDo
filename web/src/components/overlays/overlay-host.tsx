@@ -1,13 +1,13 @@
 import { t, type MessageKey } from '@/i18n';
 import { useShellStore, type ShellOverlay } from '@/stores/shell.store';
+import { CommitDetailPanel } from '@/components/commit-detail/commit-detail-panel';
 import { QuickAddPanel } from '@/components/today/quick-add-panel';
 import { TaskDetailPanel } from '@/components/today/task-detail-panel';
 import styles from './overlay-host.module.css';
 
-type PlaceholderOverlay = Exclude<ShellOverlay, 'quick-add' | 'task-detail'>;
+type PlaceholderOverlay = Exclude<ShellOverlay, 'quick-add' | 'task-detail' | 'commit-detail'>;
 
 const COPY: Record<PlaceholderOverlay, { title: MessageKey; body: MessageKey }> = {
-  'commit-detail': { title: 'overlay.commit-detail.title', body: 'overlay.commit-detail.body' },
   search: { title: 'overlay.search.title', body: 'overlay.search.body' },
   confirm: { title: 'overlay.confirm.title', body: 'overlay.confirm.body' },
   onboarding: { title: 'overlay.onboarding.title', body: 'overlay.onboarding.body' },
@@ -20,8 +20,8 @@ const COPY: Record<PlaceholderOverlay, { title: MessageKey; body: MessageKey }> 
 };
 
 /**
- * 全局层外壳：快速添加与待办详情已由 M03 接入真实面板；
- * 提交详情、搜索、确认框、首次引导与撤销回执仍为后续 PRD 的占位。
+ * 全局层外壳：快速添加、待办详情与提交详情已接入真实面板；
+ * 搜索、确认框、首次引导与撤销回执仍为后续 PRD 的占位。
  */
 export function OverlayHost() {
   const overlay = useShellStore((state) => state.overlay);
@@ -30,6 +30,7 @@ export function OverlayHost() {
   if (!overlay) return null;
   if (overlay === 'quick-add') return <QuickAddPanel />;
   if (overlay === 'task-detail') return <TaskDetailPanel />;
+  if (overlay === 'commit-detail') return <CommitDetailPanel />;
 
   const copy = COPY[overlay];
 
