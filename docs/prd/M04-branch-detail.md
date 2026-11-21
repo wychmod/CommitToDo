@@ -119,7 +119,7 @@
 | `tasks` | `branchId`、`title`、`status`、`dueDate`、`plannedDate`、`completedAt`、`cancelledAt` | 待办区、进度分子分母 |
 | `commits` | `branchId`、`sourceBranchId`、`date`、`at`、`summary`、`voidedAt` | 提交流、来源标注 |
 | `milestones` | `branchId`、`title`、`achievedAt`、`datePrecision` | 里程碑行 |
-| `events` | `entityType='branch'`、`action`、`payload`、`at` | 分支历史与目标修改留痕 |
+| `events` | `entityType='branch'`、`action='branch.update'`、`payload`、`at` | 分支历史与目标修改留痕；`branch.update` 已列入 `EventAction` 清单 |
 
 规则：
 

@@ -147,7 +147,7 @@ A、B 同时修改同一条待办标题 → A 先提交成功 → B 的写入被
 | `migration_state` | `_id`（集合名）、`lastId`、`pushed`、`done`、`updatedAt` | 首次迁移断点续传 |
 | `counters` | `_id`（事件名 + 日期）、`value` | 匿名统计计数器，只由云函数写 |
 | `users` | `_id`（= `openid`）、`ownerId` | 同步主体，由 V2-01 提供 |
-| `events` | `entityType='branch'`、`action='sync.conflict'`、`payload`、`at` | 分支历史留痕 |
+| `events` | `entityType='sync'`、`action='sync.conflict'`、`payload`（含 `branchId`）、`at` | 分支冲突留痕；`entityType` 由 action 前缀推导为 `sync`，分支历史按 `payload.branchId` 反查 |
 
 规则：
 
@@ -195,6 +195,7 @@ A、B 同时修改同一条待办标题 → A 先提交成功 → B 的写入被
 - 未决问题：
   - 冲突记录是否需要「恢复我的版本」动作，以及恢复时如何生成新的 `baseRev`，未定。
   - `sync.conflict` 在分支历史中的具体文案与展示形态（事件行 / 标记）需与 M06 的历程样式对齐。
+  - 已定：`sync.conflict` 的 `entityType` 为 `sync`（由 action 前缀推导），分支历史按 `payload.branchId` 反查；不另立 `branch.*` 动作。
   - 匿名统计开关默认值：本 PRD 暂定默认关闭（隐私优先），需产品与合规确认。
   - 留存的具体口径（D1 / D7 / 活跃定义）由服务端确定；本 PRD 只要求计数，不固定算法。
   - 设备移除、重命名与强制下线未在 L-03 定义，`devices.removedAt` 暂不使用。

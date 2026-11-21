@@ -179,6 +179,8 @@ M12 引导 = M03 + M05 + M06 + M02
 | 27 | M01 写 `settings` 单行 `_id='app'`，`web/src/data/db.ts` 主键为 `id` | **已定：以代码为准写 `id`**；0.12 §5.3 由技术线同步 |
 | 28 | M02 移动整棵子树时 `events` 粒度未定义 | **已定：只写一条**，`payload.movedCount` 记受影响节点数；测试按 1 条断言 |
 | 29 | V2-01 邮箱校验粒度未定 | **已定：前端粗校验**（有 `@`、两侧非空、域名含 `.`），真实有效性交服务端；登录渠道仍待定 |
+| 30 | PRD 中 `events.action` 混用裸动词（M07 `'create'`、M08 `'finish'`）与 `entity.verb` | **已定：统一为 `entity.verb`**，字面值取 `CODE-STRUCTURE` §4.2；`events` 只由用例在事务内写，R13 删空分支等既有例外不写；同一语义跨 PRD 用同一字面值（改归属 `task.update`、修改提交文案 `commit.update`）；遗留两处见 #31 |
+| 31 | V2-02 的 `sync.conflict` 与 `entityType` 推导、V2-03 模板事件、M04 `branch.update` 是否入清单 | **已定：**`sync.conflict` 的 `entityType` 为 `sync`，分支历史按 `payload.branchId` 反查，不另立 `branch.*` 动作；模板生成与撤回不写 `events`，不新增模板类动作（一次性功能，结果已由各实体 `create` 覆盖）；`branch.update` 已列入 `EventAction` 清单。三份 PRD 已同步 |
 
 ## 8. 未决问题池
 
