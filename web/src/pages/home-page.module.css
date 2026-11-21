@@ -1,0 +1,18 @@
+/* P00 营销首页：独立于应用外壳，七段纵向排布。 */
+
+.page {
+  min-height: 100vh;
+  background: var(--page);
+  color: var(--text);
+}
+
+/* 区块锚点定位时给顶边留一点呼吸，不影响演示窗内的线。 */
+.page section {
+  scroll-margin-top: var(--s6);
+}
+
+@media (max-width: 760px) {
+  .page section {
+    scroll-margin-top: var(--s4);
+  }
+}

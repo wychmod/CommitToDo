@@ -1,0 +1,272 @@
+/* 第 4 段：一处放下，沿路找回。左清单、右柱状图，两张独立演示窗。 */
+
+.section {
+  padding: var(--s10) 0;
+  background: var(--home-band);
+}
+
+.inner {
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: 0 var(--s6);
+}
+
+.title {
+  margin: 0 0 var(--s6);
+  color: var(--text);
+  font-size: var(--type-marketing);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: var(--s5);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: var(--type-label);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.cardTitle {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-card-title);
+  font-weight: 600;
+}
+
+.cardBody {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  line-height: 1.6;
+}
+
+.panel {
+  flex: 1;
+  margin-top: var(--s4);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  padding: var(--s3) 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--type-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.checklist li:last-child .checkRow {
+  border-bottom: 0;
+}
+
+.checkRow:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.checkBox {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--s4);
+  height: var(--s4);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--s1);
+  color: var(--accent-ink);
+  transition:
+    background var(--duration-micro) var(--ease-enter),
+    border-color var(--duration-micro) var(--ease-enter);
+}
+
+.checkBoxDone {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.taskText {
+  color: var(--text);
+}
+
+.doneText {
+  color: var(--subtle);
+  text-decoration: line-through;
+}
+
+.hint {
+  margin: var(--s3) 0 0;
+  color: var(--subtle);
+  font-size: var(--type-chart);
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s3);
+  min-height: calc(var(--home-timeline-height) * 0.7);
+  padding-top: var(--s4);
+}
+
+.bar {
+  flex: 1;
+  border-top: 2px solid var(--accent);
+  border-radius: var(--radius-marker) var(--radius-marker) 0 0;
+  background: var(--accent-soft);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform var(--duration-chart-bar) var(--ease-enter);
+}
+
+.chart[data-inview='true'] .bar {
+  transform: scaleY(1);
+}
+
+.bar:nth-child(2) {
+  transition-delay: var(--duration-chart-stagger);
+}
+
+.bar:nth-child(3) {
+  transition-delay: calc(var(--duration-chart-stagger) * 2);
+}
+
+.bar:nth-child(4) {
+  transition-delay: calc(var(--duration-chart-stagger) * 3);
+}
+
+.bar:nth-child(5) {
+  transition-delay: calc(var(--duration-chart-stagger) * 4);
+}
+
+.branchDiagram {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.workLine {
+  stroke: var(--coral-1);
+}
+
+.workLineMid {
+  stroke: var(--coral-2);
+}
+
+.workLineSoft {
+  stroke: var(--coral-3);
+}
+
+.healthLine {
+  stroke: var(--sky-1);
+}
+
+.workNode {
+  fill: var(--coral-1);
+}
+
+.workNodeMid {
+  fill: var(--coral-2);
+}
+
+.workNodeSoft {
+  fill: var(--coral-3);
+}
+
+.healthNode {
+  fill: var(--sky-1);
+}
+
+.trails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trail {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-secondary);
+}
+
+.trailDot {
+  width: var(--home-scene-node);
+  height: var(--home-scene-node);
+  border-radius: 50%;
+}
+
+.trailDot[data-tone='coral'] {
+  background: var(--coral-1);
+}
+
+.trailDot[data-tone='sky'] {
+  background: var(--sky-1);
+}
+
+.trailDot[data-tone='honey'] {
+  background: var(--honey-1);
+}
+
+@media (max-width: 760px) {
+  .section {
+    padding: var(--s9) 0;
+  }
+
+  .inner {
+    padding: 0 var(--s4);
+  }
+
+  .title {
+    font-size: var(--type-marketing-compact);
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transform: scaleY(1);
+    transition: none;
+  }
+}

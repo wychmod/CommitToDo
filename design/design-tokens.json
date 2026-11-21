@@ -28,7 +28,11 @@
       "neutral-bg": "#EEF2F6",
       "disabled": "#616F81",
       "disabled-bg": "#EDF1F4",
-      "shadow": "0 12px 36px #243B5310"
+      "shadow": "0 12px 36px #243B5310",
+      "home-band": "#F1F6FB",
+      "home-band-strong": "#E8F1FA",
+      "home-cta-band": "#FAF7F0",
+      "home-note": "#F9E9B3"
     },
     "dark": {
       "page": "#192230",
@@ -57,7 +61,11 @@
       "neutral-bg": "#344154",
       "disabled": "#919EAE",
       "disabled-bg": "#293444",
-      "shadow": "0 12px 36px #10172340"
+      "shadow": "0 12px 36px #10172340",
+      "home-band": "#1E2A39",
+      "home-band-strong": "#1B2838",
+      "home-cta-band": "#222B36",
+      "home-note": "#4B3F22"
     }
   },
   "branches": {
@@ -204,7 +212,12 @@
       "body": 15,
       "secondary": 13,
       "label": 12,
-      "chart": 11
+      "chart": 11,
+      "display": 84,
+      "displayCompact": 40,
+      "marketing": 36,
+      "marketingCompact": 26,
+      "cardTitle": 22
     },
     "tree": {
       "indent": 20,
@@ -239,7 +252,33 @@
       "micro": 120,
       "standard": 200,
       "entry": 320,
-      "exit": 120
+      "exit": 120,
+      "demoBezel": 200,
+      "demoHold": 400,
+      "demoCheck": 120,
+      "demoNote": 240,
+      "demoLine": 320,
+      "demoReceipt": 200,
+      "demoSettle": 210,
+      "cardStagger": 60,
+      "navSlide": 160,
+      "chartBar": 160,
+      "chartStagger": 32,
+      "timelineDraw": 620,
+      "timelineFocus": 320,
+      "sceneSweep": 200,
+      "arrow": 120
+    },
+    "home": {
+      "heroTop": 72,
+      "heroGap": 40,
+      "workbenchWidth": 780,
+      "stickySize": 92,
+      "receiptWidth": 208,
+      "timelineHeight": 300,
+      "timelineMinWidth": 560,
+      "sceneNode": 10,
+      "footerTop": 56
     },
     "ease": {
       "enter": "cubic-bezier(.2,0,0,1)",

@@ -1,0 +1,407 @@
+/* 第 5 段：时间树。线只在演示窗内，随区块结束收束。 */
+
+.section {
+  padding: var(--s10) 0;
+  background: var(--home-band-strong);
+}
+
+.inner {
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: 0 var(--s6);
+}
+
+.title {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-marketing);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.body {
+  margin: var(--s2) 0 var(--s6);
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.window {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.windowHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s4) var(--s5);
+  border-bottom: 1px solid var(--line);
+}
+
+.windowTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  font-weight: 600;
+}
+
+.range {
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+  color: var(--muted);
+  font-size: var(--type-chart);
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: var(--timeline-label-width) minmax(0, 1fr);
+  padding: var(--s3) var(--s4) var(--s2);
+}
+
+.labels {
+  position: relative;
+  height: var(--home-timeline-height);
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.laneLabel {
+  position: absolute;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+
+.child {
+  padding-left: var(--s5);
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+.chevron {
+  color: var(--subtle);
+}
+
+.scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.plot {
+  position: relative;
+  min-width: var(--home-timeline-min-width);
+  height: var(--home-timeline-height);
+}
+
+.axis {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  color: var(--subtle);
+  font-size: var(--type-chart);
+}
+
+.mergeBand {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 47%;
+  width: 7%;
+  background: var(--accent-soft);
+  opacity: 0;
+  transition: opacity var(--duration-entry) var(--ease-enter);
+}
+
+.chart[data-inview='true'] .mergeBand {
+  opacity: 0.55;
+}
+
+.lane {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-timeline-draw) var(--ease-enter);
+}
+
+.chart[data-inview='true'] .lane {
+  transform: scaleX(1);
+}
+
+.laneWork {
+  background: var(--coral-1);
+}
+
+.laneHealth {
+  background: var(--sky-1);
+}
+
+.laneLife {
+  background: var(--honey-1);
+}
+
+.curves {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.curve {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  transition: stroke-dashoffset var(--duration-timeline-draw) var(--ease-enter);
+}
+
+.chart[data-inview='true'] .curve {
+  stroke-dashoffset: 0;
+}
+
+.curveResearch {
+  stroke: var(--coral-2);
+}
+
+.curveDesign {
+  stroke: var(--coral-3);
+}
+
+.node,
+.milestone,
+.mergeDot {
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity var(--duration-standard) var(--ease-enter);
+}
+
+.chart[data-inview='true'] .node,
+.chart[data-inview='true'] .milestone,
+.chart[data-inview='true'] .mergeDot {
+  opacity: 1;
+}
+
+.node {
+  width: var(--s2);
+  height: var(--s2);
+  border-radius: 50%;
+}
+
+.node[data-kind='solid'] {
+  background: currentColor;
+}
+
+.node[data-kind='hollow'] {
+  border: 1.5px solid currentColor;
+  background: var(--panel);
+}
+
+.node[data-tone='coral'] {
+  color: var(--coral-1);
+}
+
+.node[data-tone='sky'] {
+  color: var(--sky-1);
+}
+
+.node[data-tone='honey'] {
+  color: var(--honey-1);
+}
+
+.milestone {
+  width: var(--s2);
+  height: var(--s2);
+  background: var(--coral-1);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.mergeDot {
+  width: var(--s2);
+  height: var(--s2);
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--panel);
+}
+
+.demoNode {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--s2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.demoNode:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.demoDot {
+  width: var(--s3);
+  height: var(--s3);
+  border: 2px solid var(--coral-1);
+  border-radius: 50%;
+  background: var(--panel);
+  transition:
+    background var(--duration-timeline-focus) var(--ease-enter),
+    box-shadow var(--duration-timeline-focus) var(--ease-enter);
+}
+
+.demoDot[data-selected='true'] {
+  background: var(--coral-1);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.nodeTag {
+  position: absolute;
+  right: calc(100% + var(--s1));
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-chart);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(var(--s2));
+  transition:
+    opacity var(--duration-timeline-focus) var(--ease-enter),
+    transform var(--duration-timeline-focus) var(--ease-enter);
+}
+
+.nodeTag[data-visible='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s6);
+  padding: var(--s3) var(--s5) var(--s4);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--type-chart);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.legendCommit {
+  width: var(--s2);
+  height: var(--s2);
+  border-radius: 50%;
+  background: var(--coral-1);
+}
+
+.legendMilestone {
+  width: var(--s2);
+  height: var(--s2);
+  background: var(--coral-1);
+  transform: rotate(45deg);
+}
+
+.legendMerge {
+  width: var(--s2);
+  height: var(--s2);
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+}
+
+@media (max-width: 760px) {
+  .section {
+    padding: var(--s9) 0;
+  }
+
+  .inner {
+    padding: 0 var(--s4);
+  }
+
+  .title {
+    font-size: var(--type-marketing-compact);
+  }
+
+  .chart {
+    grid-template-columns: 96px minmax(0, 1fr);
+    padding: var(--s3) var(--s3) var(--s2);
+  }
+
+  .laneLabel {
+    font-size: var(--type-chart);
+  }
+
+  .child {
+    padding-left: var(--s4);
+    font-size: var(--type-chart);
+  }
+
+  .windowHead,
+  .legend {
+    padding-right: var(--s4);
+    padding-left: var(--s4);
+  }
+}
+
+@media (max-width: 390px) {
+  .chart {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mergeBand,
+  .lane,
+  .curve,
+  .node,
+  .milestone,
+  .mergeDot,
+  .demoDot,
+  .nodeTag {
+    transition: none;
+  }
+
+  .chart .lane {
+    transform: scaleX(1);
+  }
+
+  .chart .curve {
+    stroke-dashoffset: 0;
+  }
+
+  .chart .node,
+  .chart .milestone,
+  .chart .mergeDot,
+  .chart .mergeBand {
+    opacity: 1;
+  }
+}
