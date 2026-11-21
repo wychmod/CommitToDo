@@ -4,24 +4,24 @@ import { CommitDetailPanel } from '@/components/commit-detail/commit-detail-pane
 import { MilestoneDetailPanel } from '@/components/milestone/milestone-detail-panel';
 import { MilestoneNewPanel } from '@/components/milestone/milestone-new-panel';
 import { QuickAddPanel } from '@/components/today/quick-add-panel';
+import { SearchPanel } from '@/components/search/search-panel';
 import { TaskDetailPanel } from '@/components/today/task-detail-panel';
 import styles from './overlay-host.module.css';
 
 type PlaceholderOverlay = Exclude<
   ShellOverlay,
-  'quick-add' | 'task-detail' | 'commit-detail' | 'milestone-detail' | 'milestone-new'
+  'quick-add' | 'task-detail' | 'commit-detail' | 'milestone-detail' | 'milestone-new' | 'search'
 >;
 
 const COPY: Record<PlaceholderOverlay, { title: MessageKey; body: MessageKey }> = {
-  search: { title: 'overlay.search.title', body: 'overlay.search.body' },
   confirm: { title: 'overlay.confirm.title', body: 'overlay.confirm.body' },
   onboarding: { title: 'overlay.onboarding.title', body: 'overlay.onboarding.body' },
   'undo-receipt': { title: 'overlay.undo-receipt.title', body: 'overlay.undo-receipt.body' },
 };
 
 /**
- * 全局层外壳：快速添加、待办详情、提交详情与里程碑已接入真实面板；
- * 搜索、确认框、首次引导与撤销回执仍为后续 PRD 的占位。
+ * 全局层外壳：快速添加、搜索、待办/提交/里程碑详情已接入真实面板；
+ * 确认框、首次引导与撤销回执仍为后续 PRD 的占位。
  */
 export function OverlayHost() {
   const overlay = useShellStore((state) => state.overlay);
@@ -29,6 +29,7 @@ export function OverlayHost() {
 
   if (!overlay) return null;
   if (overlay === 'quick-add') return <QuickAddPanel />;
+  if (overlay === 'search') return <SearchPanel />;
   if (overlay === 'task-detail') return <TaskDetailPanel />;
   if (overlay === 'commit-detail') return <CommitDetailPanel />;
   if (overlay === 'milestone-detail') return <MilestoneDetailPanel />;

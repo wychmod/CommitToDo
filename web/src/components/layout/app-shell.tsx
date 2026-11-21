@@ -7,6 +7,7 @@ import { ensureRootBranch } from '@/data/ensure-root-branch';
 import { grantBadge } from '@/data/grant-badge';
 import { useStorageReady } from '@/data/hooks';
 import { t, type MessageKey } from '@/i18n';
+import { SEARCH_TRIGGER_ID } from '@/stores/search.store';
 import { useShellStore } from '@/stores/shell.store';
 import { EmptyState } from '@/ui/empty-state';
 import { LoadingShell } from '@/ui/loading-shell';
@@ -68,6 +69,17 @@ export function AppShell() {
     window.scrollTo(0, top);
   }, [scrollKey]);
 
+  // 全局快捷键：Ctrl/Cmd + K 打开搜索（V1-04 OP-01）。
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k') return;
+      event.preventDefault();
+      openOverlay('search');
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [openOverlay]);
+
   const renderNav = () =>
     NAV_ITEMS.map((item) => (
       <Link
@@ -90,7 +102,13 @@ export function AppShell() {
           <button type="button" className={styles.action} onClick={() => openOverlay('quick-add')}>
             {t('shell.quickAdd')}
           </button>
-          <button type="button" className={styles.action} onClick={() => openOverlay('search')}>
+          <button
+            type="button"
+            id={SEARCH_TRIGGER_ID}
+            className={styles.action}
+            aria-keyshortcuts="Control+K Meta+K"
+            onClick={() => openOverlay('search')}
+          >
             {t('shell.search')}
           </button>
         </div>

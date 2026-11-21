@@ -610,6 +610,70 @@ export function useHistoryData(ownerId = LOCAL_OWNER_ID): HistoryDataView {
 }
 
 /**
+ * P09 全局搜索的读状态（V1-04 OP-03）。
+ *
+ * 一次读四类对象；失败时保留上一次成功的数据，弹层继续显示原查询与开关，
+ * 不把部分结果拼成看似完整的列表。
+ */
+export interface SearchDataView {
+  status: 'loading' | 'ready' | 'error';
+  branches: Branch[];
+  tasks: Task[];
+  commits: Commit[];
+  milestones: Milestone[];
+  retry: () => void;
+}
+
+const EMPTY_SEARCH: {
+  branches: Branch[];
+  tasks: Task[];
+  commits: Commit[];
+  milestones: Milestone[];
+} = { branches: [], tasks: [], commits: [], milestones: [] };
+
+export function useSearchData(ownerId = LOCAL_OWNER_ID): SearchDataView {
+  const [attempt, setAttempt] = useState(0);
+  const [cache, setCache] = useState<typeof EMPTY_SEARCH | null>(null);
+  const result = useLiveQuery(async () => {
+    try {
+      const [branches, tasks, commits, milestones] = await Promise.all([
+        branchRepository.listByOwner(ownerId),
+        taskRepository.listByOwner(ownerId),
+        commitRepository.listByOwner(ownerId),
+        milestoneRepository.listByOwner(ownerId),
+      ]);
+      return { ok: true as const, branches, tasks, commits, milestones };
+    } catch {
+      return { ok: false as const, ...EMPTY_SEARCH };
+    }
+  }, [ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  useEffect(() => {
+    if (result?.ok) {
+      setCache({
+        branches: result.branches,
+        tasks: result.tasks,
+        commits: result.commits,
+        milestones: result.milestones,
+      });
+    }
+  }, [result]);
+
+  const fallback = cache ?? EMPTY_SEARCH;
+  if (result === undefined) return { status: 'loading', ...fallback, retry };
+  if (!result.ok) return { status: 'error', ...fallback, retry };
+  return {
+    status: 'ready',
+    branches: result.branches,
+    tasks: result.tasks,
+    commits: result.commits,
+    milestones: result.milestones,
+    retry,
+  };
+}
+
+/**
  * 今天页停滞提醒（M06 OP-07）。
  *
  * 只读派生，不落库；取停滞天数最多的 5 条，无停滞时返回空数组，
