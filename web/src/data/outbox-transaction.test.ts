@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { systemIds } from '@/core/ids';
 import { db } from './db';
 import type { WriteDeps } from './deps';
 import { writeEvent } from './events';
@@ -81,8 +82,27 @@ describe('本地先写与 outbox 入队', () => {
   });
 
   it('outbox 写入失败时业务行不落库', async () => {
-    vi.spyOn(crypto, 'getRandomValues').mockImplementation(() => {
-      throw new Error('id failure');
+    // 固定随机数与时钟让 opId 可预测，先占住同一主键，写入时触发主键冲突。
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation((array) => {
+      (array as Uint8Array).fill(0);
+      return array;
+    });
+    const fixed: WriteDeps = {
+      clock: { now: () => AT },
+      ids: { ulid: () => 'event-1' },
+      tzOffset: () => 480,
+    };
+    const opId = systemIds.ulid(AT);
+    await db.outbox.add({
+      opId,
+      entity: 'task',
+      entityId: 'task-1',
+      action: 'task.create',
+      payload: {},
+      baseRev: null,
+      attempts: 0,
+      lastError: null,
+      createdAt: AT,
     });
 
     await expect(
@@ -93,10 +113,29 @@ describe('本地先写与 outbox 入队', () => {
           'task.create',
           'task-1',
           { taskId: 'task-1', branchId: 'branch-1' },
-          deps(),
+          fixed,
         );
       }),
     ).rejects.toBeTruthy();
+
+    expect(await db.tasks.count()).toBe(0);
+    expect(await db.outbox.count()).toBe(1);
+  });
+
+  it('事务提交前中断时业务行与 outbox 一并回滚', async () => {
+    await expect(
+      db.transaction('rw', [db.tasks, db.events, db.outbox], async (tx) => {
+        await tx.table<Task, string>('tasks').add(task());
+        await writeEvent(
+          tx,
+          'task.create',
+          'task-1',
+          { taskId: 'task-1', branchId: 'branch-1' },
+          deps(),
+        );
+        throw new Error('abort before commit');
+      }),
+    ).rejects.toThrow('abort before commit');
 
     expect(await db.tasks.count()).toBe(0);
     expect(await db.outbox.count()).toBe(0);
