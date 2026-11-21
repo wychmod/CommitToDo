@@ -10,6 +10,7 @@ import {
 } from '@/components/branch-detail/branch-lifecycle-panel';
 import { BranchPanel, type BranchPanelState } from '@/components/branches/branch-panel';
 import { BranchTree } from '@/components/branches/branch-tree';
+import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { BRANCH_TREE_LIMIT, countActiveBranches } from '@/core/rules/branch-quota';
 import { visibleDefaultTree } from '@/core/rules/branch-visibility';
 import { withdrawTemplate } from '@/data/apply-template';
@@ -66,6 +67,7 @@ export function BranchesPage() {
   const [actionError, setActionError] = useState<MessageKey | null>(null);
   const [templateError, setTemplateError] = useState<MessageKey | null>(null);
   const [templateBarHidden, setTemplateBarHidden] = useState(false);
+  const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
   const template = useTemplateState();
   const expandMany = useBranchesStore((state) => state.expandMany);
@@ -210,6 +212,7 @@ export function BranchesPage() {
   const handleWithdraw = useCallback(async () => {
     if (!template.rootId) return;
     setTemplateError(null);
+    setConfirmingWithdraw(false);
     setWithdrawing(true);
     const result = await withdrawTemplate(template.rootId);
     setWithdrawing(false);
@@ -275,7 +278,7 @@ export function BranchesPage() {
             <button
               type="button"
               className={styles.action}
-              onClick={() => void handleWithdraw()}
+              onClick={() => setConfirmingWithdraw(true)}
               disabled={!template.canWithdraw || withdrawing}
             >
               {t('template.withdraw')}
@@ -395,6 +398,16 @@ export function BranchesPage() {
                 ? handleArchived
                 : handleUnarchived
           }
+        />
+      ) : null}
+      {confirmingWithdraw ? (
+        <ConfirmDialog
+          titleKey="template.withdrawConfirmTitle"
+          bodyKey="template.withdrawConfirmBody"
+          confirmKey="template.withdrawConfirmAction"
+          busy={withdrawing}
+          onConfirm={() => void handleWithdraw()}
+          onClose={() => setConfirmingWithdraw(false)}
         />
       ) : null}
     </PageShell>

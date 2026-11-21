@@ -940,6 +940,10 @@ export const zhCN = {
   'template.withdrawHint': '这套模板生成的 3 条分支和 4 条待办可以一并撤回。',
   'template.withdrawDisabled': '模板里已经有提交，不能再撤回。',
   'template.withdrawFailed': '没有撤回成功，内容保持原样，请重试。',
+  'template.withdrawConfirmTitle': '撤回这套模板？',
+  'template.withdrawConfirmBody':
+    '会一并删除模板生成的 3 条分支与 4 条待办，包括你改过的分支名和新增的待办，且无法撤销。',
+  'template.withdrawConfirmAction': '确认撤回',
   'template.fitness.name': '健身',
   'template.fitness.body': '训练与饮食两组并行，先把节奏跑起来。',
   'template.reading.name': '读书',
