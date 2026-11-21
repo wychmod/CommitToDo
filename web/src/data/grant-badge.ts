@@ -1,5 +1,7 @@
 import { fail, ok, type Result } from '@/core/errors';
-import { assessBadges, BADGE_PERIOD_ONCE } from '@/core/rules/badges';
+import { BADGE_PERIOD_ALL } from '@/core/rules/badge-catalog';
+import { selectNewBadges, type GrantSelectOptions } from '@/core/rules/badge-grant';
+import { assessBadges } from '@/core/rules/badges';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
@@ -12,13 +14,16 @@ import {
 import type { Badge } from './types';
 
 /**
- * 首批徽章发放与补查（PRD M11 OP-01–OP-03 / R18）。
+ * 徽章发放与补查（PRD V1-05 OP-02–OP-05 / R18）。
  *
  * 独立事务，绝不并入触发动作的事务：徽章写入失败时主操作照常成功，
- * 下次启动或进入「我的」时再补查。`catalogId + periodKey` 唯一索引与先读后写
- * 一起保证每枚只发一次；已存在时不改写 `grantedAt` 与 `snapshot`。
+ * 下次启动或进入「我的」时再补查。同一 `catalogId` 只发一次，旧标识
+ * `first-branch` 归一到 `first-fork` 后比较，已发放的快照不被改写。
  */
-export async function grantBadge(deps: WriteDeps = defaultWriteDeps): Promise<Result<Badge[]>> {
+export async function grantBadge(
+  deps: WriteDeps = defaultWriteDeps,
+  options: GrantSelectOptions = {},
+): Promise<Result<Badge[]>> {
   try {
     return await db.transaction(
       'rw',
@@ -31,23 +36,18 @@ export async function grantBadge(deps: WriteDeps = defaultWriteDeps): Promise<Re
           badgeRepository.listByOwner(LOCAL_OWNER_ID),
         ]);
 
-        const candidates = assessBadges({ branches, commits, milestones });
         const at = deps.clock.now();
+        const assessment = assessBadges({ branches, commits, milestones }, at, deps.tzOffset(at));
+        const candidates = selectNewBadges(assessment.candidates, existing, options);
         const granted: Badge[] = [];
 
         for (const candidate of candidates) {
-          const already = existing.some(
-            (badge) =>
-              badge.catalogId === candidate.catalogId && badge.periodKey === BADGE_PERIOD_ONCE,
-          );
-          if (already) continue;
-
           const row: Badge = {
             id: deps.ids.ulid(at),
             ownerId: LOCAL_OWNER_ID,
             catalogId: candidate.catalogId,
             category: candidate.category,
-            periodKey: BADGE_PERIOD_ONCE,
+            periodKey: BADGE_PERIOD_ALL,
             grantedAt: at,
             snapshot: candidate.snapshot,
             sourceEntityId: candidate.sourceEntityId,

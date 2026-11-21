@@ -9,7 +9,8 @@ import {
 } from '@/core/rules/timeline-filter';
 import { milestoneAnchor } from '@/core/rules/timeline-placement';
 import { resolveTimeRange, TIME_RANGE_KINDS, type TimeRangeKind } from '@/core/rules/time-range';
-import { useHistoryData } from '@/data/hooks';
+import { buildBadgeMarkers } from '@/core/rules/badge-marker';
+import { useBadges, useHistoryData } from '@/data/hooks';
 import type { Branch, Commit, Milestone } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useHistoryExpandedStore, useHistoryFilterStore } from '@/stores/history.store';
@@ -65,9 +66,11 @@ function HistorySkeleton() {
  */
 export function HistoryPage() {
   const view = useHistoryData();
+  const badges = useBadges();
   const now = systemClock.now();
   const tz = currentTzOffset(now);
   const todayDate = today(systemClock, tz);
+  const markers = useMemo(() => buildBadgeMarkers(badges ?? [], tz), [badges, tz]);
 
   const saved = useHistoryFilterStore((state) => state.filter);
   const setRange = useHistoryFilterStore((state) => state.setRange);
@@ -349,6 +352,7 @@ export function HistoryPage() {
           branches={liveBranches}
           commits={view.commits}
           milestones={view.milestones}
+          badges={markers}
           range={effectiveRange}
           visibleIds={visibleIds}
           expanded={chartExpanded}

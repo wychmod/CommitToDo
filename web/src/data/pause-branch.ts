@@ -8,6 +8,7 @@ import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
 import { branchRepository } from './repositories';
+import { grantBadge } from './grant-badge';
 import type { Branch } from './types';
 
 export interface PauseBranchInput {
@@ -37,7 +38,7 @@ export async function pauseBranch(
   deps: WriteDeps = defaultWriteDeps,
 ): Promise<Result<Branch>> {
   try {
-    return await db.transaction('rw', [db.branches, db.events], async (tx) => {
+    const result = await db.transaction('rw', [db.branches, db.events], async (tx) => {
       const all = await branchRepository.listByOwner(LOCAL_OWNER_ID);
       const live = all.filter((branch) => branch.deletedAt === null);
       const subject = live.find((branch) => branch.id === input.branchId);
@@ -62,6 +63,9 @@ export async function pauseBranch(
       await writeEvent(tx, 'branch.pause', subject.id, { branchId: subject.id, reason }, deps);
       return ok(next);
     });
+    // 徽章发放失败不回滚主操作。
+    if (result.ok) await grantBadge(deps);
+    return result;
   } catch (cause) {
     return fail('storage.write_failed', { retriable: true, cause });
   }

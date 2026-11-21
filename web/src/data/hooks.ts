@@ -20,6 +20,8 @@ import {
   type BadgeJumpTarget,
   type BadgeSourceState,
 } from '@/core/rules/badge-view';
+import { buildBadgeWall, type BadgeWall } from '@/core/rules/badge-catalog';
+import { assessBadges } from '@/core/rules/badges';
 import { onboardingDataFrom, type OnboardingData } from '@/core/rules/onboarding-state';
 import { SAMPLE_OWNER_ID } from '@/core/rules/sample-tree';
 import { normalizeTheme } from '@/core/rules/theme-preference';
@@ -373,14 +375,18 @@ export interface BadgeListViewRow {
 export interface BadgesListView {
   status: 'loading' | 'ready' | 'error';
   rows: BadgeListViewRow[];
+  wall: BadgeWall;
   retry: () => void;
 }
 
+const EMPTY_BADGE_WALL = buildBadgeWall([], []);
+
 /**
- * 「我的」与今天页共用的徽章列表（M11）。
+ * 「我的」与徽章墙共用的徽章列表（V1-05 OP-01）。
  *
  * 按 `grantedAt` 倒序；跳转与撤销标注由 `resolveBadgeView` 按当前数据计算，
- * 读取失败返回 `error`，不用空列表冒充「还没有徽章」。
+ * 徽章墙由 `buildBadgeWall` 按目录与现算进度派生。读取失败返回 `error`，
+ * 不用空列表冒充「还没有徽章」。
  */
 export function useBadgeRows(ownerId = LOCAL_OWNER_ID): BadgesListView {
   const [attempt, setAttempt] = useState(0);
@@ -392,7 +398,10 @@ export function useBadgeRows(ownerId = LOCAL_OWNER_ID): BadgesListView {
         commitRepository.listByOwner(ownerId),
         milestoneRepository.listByOwner(ownerId),
       ]);
-      const tz = currentTzOffset(systemClock.now());
+      const now = systemClock.now();
+      const tz = currentTzOffset(now);
+      const assessment = assessBadges({ branches, commits, milestones }, now, tz);
+      const wall = buildBadgeWall(badges, assessment.progress);
       const rows = badges
         .slice()
         .sort(
@@ -413,16 +422,22 @@ export function useBadgeRows(ownerId = LOCAL_OWNER_ID): BadgesListView {
           );
           return { badge, state: view.state, jump: view.jump };
         });
-      return { ok: true as const, rows };
+      return { ok: true as const, rows, wall };
     } catch {
-      return { ok: false as const, rows: [] as BadgeListViewRow[] };
+      return {
+        ok: false as const,
+        rows: [] as BadgeListViewRow[],
+        wall: EMPTY_BADGE_WALL,
+      };
     }
   }, [ownerId, attempt]);
   const retry = useCallback(() => setAttempt((value) => value + 1), []);
 
-  if (result === undefined) return { status: 'loading', rows: [], retry };
-  if (!result.ok) return { status: 'error', rows: [], retry };
-  return { status: 'ready', rows: result.rows, retry };
+  if (result === undefined) {
+    return { status: 'loading', rows: [], wall: EMPTY_BADGE_WALL, retry };
+  }
+  if (!result.ok) return { status: 'error', rows: [], wall: EMPTY_BADGE_WALL, retry };
+  return { status: 'ready', rows: result.rows, wall: result.wall, retry };
 }
 
 /**

@@ -1,0 +1,330 @@
+.wall {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.headerRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.count {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-heading-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.back {
+  color: var(--accent);
+  font-size: var(--type-secondary);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--s2);
+  overflow-x: auto;
+  padding-bottom: var(--s1);
+}
+
+.tab,
+.tabActive {
+  flex: none;
+  min-height: var(--s9);
+  padding: 0 var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.tabActive {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--s3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cardButton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  width: 100%;
+  height: 100%;
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  text-align: left;
+  cursor: pointer;
+}
+
+.cardButton:hover {
+  border-color: var(--accent);
+}
+
+.cardButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.unearned {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s3) var(--s4);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.cardName {
+  color: var(--text);
+  font-size: var(--type-body);
+  font-weight: 600;
+}
+
+.cardDate {
+  color: var(--muted);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.cardSource {
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.cardState {
+  color: var(--danger);
+  font-size: var(--type-label);
+}
+
+.remaining {
+  flex: none;
+  color: var(--accent);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.dot {
+  flex: none;
+  width: var(--s2);
+  height: var(--s2);
+  border-radius: 50%;
+  background: var(--disabled);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+}
+
+.emptyText {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.emptyAction {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s9);
+  padding: 0 var(--s4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--type-secondary);
+  text-decoration: none;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
+.retry {
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s4);
+  background: color-mix(in srgb, var(--text) 35%, transparent);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  width: min(640px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.dialogHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: var(--type-heading-small);
+}
+
+.dialogCategory {
+  margin: var(--s1) 0 0;
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.dialogClose,
+.dialogLink,
+.dialogDisabled {
+  flex: none;
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--type-secondary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dialogLink {
+  align-self: flex-start;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.dialogDisabled {
+  align-self: flex-start;
+  color: var(--disabled);
+  cursor: default;
+}
+
+.dialogSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.dialogLabel {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.dialogValue {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-secondary);
+}
+
+.dialogState {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
+.dialogList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+}
+
+.dialogItem {
+  display: flex;
+  gap: var(--s3);
+  justify-content: space-between;
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--type-secondary);
+}
+
+.dialogItem:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.dialogItem dt {
+  flex: none;
+  color: var(--muted);
+}
+
+.dialogItem dd {
+  margin: 0;
+  color: var(--text);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dialog {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .overlay {
+    padding: 0;
+  }
+}

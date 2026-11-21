@@ -128,12 +128,12 @@ describe('grantBadge（M11 OP-01–OP-03）', () => {
     if (!result.ok) return;
 
     expect(result.value.map((badge) => badge.catalogId).sort()).toEqual([
-      'first-branch',
       'first-commit',
+      'first-fork',
       'first-merge',
       'first-milestone',
     ]);
-    expect(result.value.every((badge) => badge.periodKey === 'once')).toBe(true);
+    expect(result.value.every((badge) => badge.periodKey === 'all')).toBe(true);
     expect(await db.badges.toArray()).toHaveLength(4);
     const events = (await db.events.toArray()).filter((event) => event.action === 'badge.grant');
     expect(events).toHaveLength(4);

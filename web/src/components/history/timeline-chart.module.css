@@ -386,6 +386,105 @@
   cursor: pointer;
 }
 
+.badgeMarkerWrap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  pointer-events: none;
+}
+
+.badgeMarker {
+  position: absolute;
+  top: calc(50% - var(--s7));
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--s5);
+  height: var(--s5);
+  padding: 0 var(--s1);
+  border: var(--timeline-guide) solid var(--panel);
+  border-radius: var(--s9);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--type-chart);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.badgeMarker:empty::after {
+  width: var(--s2);
+  height: var(--s2);
+  border-radius: 50%;
+  background: var(--accent-ink);
+  content: '';
+}
+
+.badgeMarker:focus-visible {
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: var(--timeline-selected-ring);
+}
+
+.badgeMarkerPopover {
+  position: absolute;
+  top: calc(50% + var(--s2));
+  left: 0;
+  z-index: 4;
+  width: 200px;
+  padding: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.badgeMarkerTitle {
+  margin: 0 0 var(--s1);
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.badgeMarkerList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s2);
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+  font-size: var(--type-secondary);
+  list-style: none;
+}
+
+.mobileMarkerRow {
+  margin-top: var(--s2);
+}
+
+.mobileMarker {
+  padding: var(--s1) var(--s2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: var(--type-label);
+  cursor: pointer;
+}
+
+.mobileMarkerList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s2);
+  margin: var(--s1) 0 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: var(--type-label);
+  list-style: none;
+}
+
 .mobileOnly {
   display: none;
   margin: 0;

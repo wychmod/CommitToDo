@@ -131,7 +131,9 @@ describe('pauseBranch（OP-01 / R15）', () => {
       taskDone: 1,
       commitCount: 1,
     });
-    expect(await eventActions()).toEqual(['branch.pause']);
+    expect((await eventActions()).filter((action) => action.startsWith('branch.'))).toEqual([
+      'branch.pause',
+    ]);
   });
 
   it('原因只有空白时不写入，也不产生事件', async () => {
@@ -168,7 +170,7 @@ describe('pauseBranch（OP-01 / R15）', () => {
 
     expect(second.ok).toBe(false);
     expect(await readBranch('l1')).toMatchObject({ dropReason: '第一次' });
-    expect(await db.events.count()).toBe(1);
+    expect((await eventActions()).filter((action) => action === 'branch.pause')).toHaveLength(1);
   });
 });
 
@@ -188,7 +190,9 @@ describe('resumeBranch（OP-02 / R15）', () => {
       droppedAt: AT,
       dropReason: '先放一放',
     });
-    expect(await eventActions()).toEqual(['branch.resume']);
+    expect((await eventActions()).filter((action) => action.startsWith('branch.'))).toEqual([
+      'branch.resume',
+    ]);
   });
 
   it('祖先已合并时不可重新开始，状态不变', async () => {

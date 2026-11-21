@@ -14,6 +14,8 @@ import { assessStall } from '@/core/rules/stagnation';
 import type { TimeRange } from '@/core/rules/time-range';
 import { daysBetween } from '@/core/rules/time-range';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
+import { badgeNameKey } from '@/components/badges/badge-presentation';
+import type { BadgeMarker } from '@/core/rules/badge-marker';
 
 const LABEL_WIDTH_PX = 160;
 const DAY_WIDTH_PX = 12;
@@ -31,6 +33,7 @@ interface TimelineChartProps {
   branches: readonly Branch[];
   commits: readonly Commit[];
   milestones: readonly Milestone[];
+  badges: readonly BadgeMarker[];
   range: TimeRange;
   /** `null` 表示不筛选；否则只显示集合内的分支。 */
   visibleIds: Set<string> | null;
@@ -152,6 +155,7 @@ export function TimelineChart({
   branches,
   commits,
   milestones,
+  badges,
   range,
   visibleIds,
   expanded,
@@ -169,6 +173,7 @@ export function TimelineChart({
     laneId: string;
     cluster: TimelineCluster<LaneEvent>;
   } | null>(null);
+  const [markerOpen, setMarkerOpen] = useState<string | null>(null);
 
   useEffect(() => {
     const element = scrollRef.current;
@@ -262,6 +267,26 @@ export function TimelineChart({
 
   const dayX = (date: string): number => xPercent(dateToMs(date, tz), startMs, totalMs);
   const msX = (ms: number): number => xPercent(ms, startMs, totalMs);
+
+  const markerByDate = useMemo(
+    () => new Map(badges.map((marker) => [marker.date, marker])),
+    [badges],
+  );
+
+  // 同一天只出现一个标记：按泳道顺序落到第一个当天有节点的泳道。
+  const markerLane = useMemo(() => {
+    const assigned = new Map<string, string>();
+    for (const lane of lanes) {
+      const events = laneEvents(lane.branch, commits, milestones, tz).filter(
+        (event) => event.date >= rangeStart && event.date <= range.end,
+      );
+      for (const event of events) {
+        if (!markerByDate.has(event.date) || assigned.has(event.date)) continue;
+        assigned.set(event.date, lane.branch.id);
+      }
+    }
+    return assigned;
+  }, [lanes, commits, milestones, tz, rangeStart, range.end, markerByDate]);
 
   useEffect(() => {
     const element = scrollRef.current?.querySelector<HTMLElement>('[data-highlight="true"]');
@@ -469,6 +494,44 @@ export function TimelineChart({
                     );
                   })}
 
+                  {badges
+                    .filter((marker) => markerLane.get(marker.date) === branch.id)
+                    .map((marker) => (
+                      <div
+                        key={marker.date}
+                        className={styles.badgeMarkerWrap}
+                        style={{ left: `${dayX(marker.date)}%` }}
+                      >
+                        <button
+                          type="button"
+                          className={styles.badgeMarker}
+                          aria-label={`${t('badge.marker.title')} ${marker.date}`}
+                          aria-expanded={markerOpen === marker.date}
+                          onMouseEnter={() => setMarkerOpen(marker.date)}
+                          onMouseLeave={() =>
+                            setMarkerOpen((open) => (open === marker.date ? null : open))
+                          }
+                          onClick={() =>
+                            setMarkerOpen((open) => (open === marker.date ? null : marker.date))
+                          }
+                        >
+                          {marker.count > 1 ? marker.count : ''}
+                        </button>
+                        {markerOpen === marker.date ? (
+                          <div className={styles.badgeMarkerPopover}>
+                            <p className={styles.badgeMarkerTitle}>
+                              {marker.date} · {t('badge.marker.title')}
+                            </p>
+                            <ul className={styles.badgeMarkerList}>
+                              {marker.catalogIds.map((catalogId) => (
+                                <li key={catalogId}>{t(badgeNameKey(catalogId))}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+
                   {clusterOpen && clusterOpen.laneId === branch.id ? (
                     <div
                       className={styles.popover}
@@ -570,6 +633,31 @@ export function TimelineChart({
               {stall.kind === 'archived' ? (
                 <p className={styles.mobileNote}>{t('history.archived')}</p>
               ) : null}
+
+              {badges
+                .filter((marker) => markerLane.get(marker.date) === branch.id)
+                .map((marker) => (
+                  <div key={marker.date} className={styles.mobileMarkerRow}>
+                    <button
+                      type="button"
+                      className={styles.mobileMarker}
+                      aria-expanded={markerOpen === marker.date}
+                      onClick={() =>
+                        setMarkerOpen((open) => (open === marker.date ? null : marker.date))
+                      }
+                    >
+                      {t('badge.marker.title')}
+                      {marker.count > 1 ? ` ${marker.count}` : ''} · {marker.date}
+                    </button>
+                    {markerOpen === marker.date ? (
+                      <ul className={styles.mobileMarkerList}>
+                        {marker.catalogIds.map((catalogId) => (
+                          <li key={catalogId}>{t(badgeNameKey(catalogId))}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ))}
 
               <ul className={styles.mobileEvents}>
                 {events.map((event) => (

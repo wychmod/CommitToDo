@@ -1,29 +1,24 @@
 /**
- * 首批四枚徽章的条件判定（PRD M11 / R18）。
+ * 徽章条件判定聚合（PRD V1-05 / R18）。
  *
- * 只做纯判定：从当前数据里找出每个 `catalogId` 的「第一次」并给出快照，
- * 不读写库、不关心是否已经发过。同一枚举只取最早的一条，`id` 做稳定兜底。
- * 根分支不参与「汇流」：只有收尾子分支才可能让分支变成 `merged`。
+ * 目录固定 16 项；三类条件各自在独立模块里判定，这里只做：
+ * 合并候选、按目录顺序排序、合并「还差 N」进度。纯函数，不读写库。
  */
 
-export type BadgeCatalogId = 'first-commit' | 'first-branch' | 'first-milestone' | 'first-merge';
+import {
+  badgeOrder,
+  BADGE_PERIOD_ALL,
+  type BadgeCandidate,
+  type BadgeCatalogId,
+  type BadgeCategory,
+  type BadgeProgress,
+} from './badge-catalog';
+import { assessMilestoneBadges } from './badge-milestone';
+import { assessStructureBadges } from './badge-structure';
+import { assessTimeBadges } from './badge-time';
 
-export type BadgeCategory = 'structure' | 'time' | 'milestone';
-
-/** 首批徽章一辈子只发一次，用固定周期键配合唯一索引做幂等。 */
-export const BADGE_PERIOD_ONCE = 'once';
-
-export interface BadgeCatalogEntry {
-  catalogId: BadgeCatalogId;
-  category: BadgeCategory;
-}
-
-export const BADGE_CATALOG: readonly BadgeCatalogEntry[] = [
-  { catalogId: 'first-commit', category: 'time' },
-  { catalogId: 'first-branch', category: 'structure' },
-  { catalogId: 'first-milestone', category: 'milestone' },
-  { catalogId: 'first-merge', category: 'structure' },
-];
+export type { BadgeCandidate, BadgeCatalogId, BadgeCategory, BadgeProgress };
+export { BADGE_PERIOD_ALL };
 
 export interface BadgeBranchRow {
   id: string;
@@ -34,6 +29,9 @@ export interface BadgeBranchRow {
   createdAt: number;
   finishedAt: number | null;
   finishedIntoId: string | null;
+  droppedAt: number | null;
+  dropReason: string | null;
+  archivedAt: number | null;
   deletedAt: number | null;
 }
 
@@ -41,6 +39,8 @@ export interface BadgeCommitRow {
   id: string;
   branchId: string;
   summary: string;
+  /** 业务日期 `YYYY-MM-DD`。 */
+  date: string;
   at: number;
   voidedAt: number | null;
   deletedAt: number | null;
@@ -50,8 +50,10 @@ export interface BadgeMilestoneRow {
   id: string;
   branchId: string;
   title: string;
+  note: string | null;
   achievedAt: number;
   datePrecision: 'day' | 'month' | 'year';
+  createdAt: number;
   deletedAt: number | null;
 }
 
@@ -61,112 +63,46 @@ export interface BadgeTriggerRows {
   milestones: readonly BadgeMilestoneRow[];
 }
 
-export interface BadgeCandidate {
-  catalogId: BadgeCatalogId;
-  category: BadgeCategory;
-  sourceEntityId: string;
-  snapshot: Record<string, unknown>;
+export interface BadgeAssessment {
+  /** 按目录顺序排列。 */
+  candidates: BadgeCandidate[];
+  /** 按目录顺序排列，供徽章墙现算「还差 N」。 */
+  progress: BadgeProgress[];
 }
 
-function earliest<T>(rows: readonly T[], at: (row: T) => number, id: (row: T) => string): T | null {
-  let best: T | null = null;
-  for (const row of rows) {
-    if (best === null) {
-      best = row;
-      continue;
+function mergeProgress(groups: readonly BadgeProgress[][]): BadgeProgress[] {
+  const byId = new Map<BadgeCatalogId, BadgeProgress>();
+  for (const group of groups) {
+    for (const row of group) {
+      if (!byId.has(row.catalogId)) byId.set(row.catalogId, row);
     }
-    const delta = at(row) - at(best);
-    if (delta < 0 || (delta === 0 && id(row) < id(best))) best = row;
   }
-  return best;
+  return [...byId.values()].sort(
+    (left, right) => badgeOrder(left.catalogId) - badgeOrder(right.catalogId),
+  );
 }
 
-/** 四枚徽章各自的候选；不满足条件的跳过，四者互不串扰。 */
-export function assessBadges(rows: BadgeTriggerRows): BadgeCandidate[] {
-  const candidates: BadgeCandidate[] = [];
+/**
+ * 一次判定 16 枚徽章。
+ *
+ * `nowMs` 只影响「活跃区间到判定时刻」与「第一年」；
+ * `tzOffsetMinutes` 决定自然月、自然年与快照里的 `eventDate`。
+ */
+export function assessBadges(
+  rows: BadgeTriggerRows,
+  nowMs: number,
+  tzOffsetMinutes: number,
+): BadgeAssessment {
+  const structure = assessStructureBadges(rows, nowMs, tzOffsetMinutes);
+  const time = assessTimeBadges(rows, nowMs, tzOffsetMinutes);
+  const milestone = assessMilestoneBadges(rows, tzOffsetMinutes);
 
-  const firstCommit = earliest(
-    rows.commits.filter((commit) => commit.deletedAt === null && commit.voidedAt === null),
-    (commit) => commit.at,
-    (commit) => commit.id,
+  const candidates = [...structure.candidates, ...time.candidates, ...milestone.candidates].sort(
+    (left, right) => badgeOrder(left.catalogId) - badgeOrder(right.catalogId),
   );
-  if (firstCommit) {
-    candidates.push({
-      catalogId: 'first-commit',
-      category: 'time',
-      sourceEntityId: firstCommit.id,
-      snapshot: {
-        commitId: firstCommit.id,
-        branchId: firstCommit.branchId,
-        summary: firstCommit.summary,
-        at: firstCommit.at,
-      },
-    });
-  }
 
-  const firstBranch = earliest(
-    rows.branches.filter((branch) => branch.deletedAt === null && branch.depth === 2),
-    (branch) => branch.createdAt,
-    (branch) => branch.id,
-  );
-  if (firstBranch) {
-    candidates.push({
-      catalogId: 'first-branch',
-      category: 'structure',
-      sourceEntityId: firstBranch.id,
-      snapshot: {
-        branchId: firstBranch.id,
-        parentId: firstBranch.parentId,
-        title: firstBranch.title,
-        createdAt: firstBranch.createdAt,
-      },
-    });
-  }
-
-  const firstMilestone = earliest(
-    rows.milestones.filter((milestone) => milestone.deletedAt === null),
-    (milestone) => milestone.achievedAt,
-    (milestone) => milestone.id,
-  );
-  if (firstMilestone) {
-    candidates.push({
-      catalogId: 'first-milestone',
-      category: 'milestone',
-      sourceEntityId: firstMilestone.id,
-      snapshot: {
-        milestoneId: firstMilestone.id,
-        branchId: firstMilestone.branchId,
-        title: firstMilestone.title,
-        datePrecision: firstMilestone.datePrecision,
-        achievedAt: firstMilestone.achievedAt,
-      },
-    });
-  }
-
-  const firstMerge = earliest(
-    rows.branches.filter(
-      (branch) =>
-        branch.deletedAt === null &&
-        branch.depth > 0 &&
-        branch.status === 'merged' &&
-        branch.finishedAt !== null,
-    ),
-    (branch) => branch.finishedAt ?? 0,
-    (branch) => branch.id,
-  );
-  if (firstMerge) {
-    candidates.push({
-      catalogId: 'first-merge',
-      category: 'structure',
-      sourceEntityId: firstMerge.id,
-      snapshot: {
-        branchId: firstMerge.id,
-        finishedIntoId: firstMerge.finishedIntoId,
-        title: firstMerge.title,
-        finishedAt: firstMerge.finishedAt,
-      },
-    });
-  }
-
-  return candidates;
+  return {
+    candidates,
+    progress: mergeProgress([structure.progress, time.progress, milestone.progress]),
+  };
 }

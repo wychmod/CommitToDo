@@ -1,25 +1,21 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { localDate } from '@/core/clock';
-import { badgeHref, badgeNameKey, badgeSourceKey } from '@/components/badges/badge-presentation';
 import { isBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
 import { grantBadge } from '@/data/grant-badge';
 import { useBadgeRows } from '@/data/hooks';
 import { t } from '@/i18n';
-import { EmptyState } from '@/ui/empty-state';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
 import styles from './pages.module.css';
 
-/** P06 我的：已获徽章 + 设置与数据入口（MRD M11 OP-03 / OP-04 / OP-05）。 */
+/** P06 我的：徽章墙入口 + 设置与数据入口（V1-05 OP-01 / M11 OP-03–OP-05）。 */
 export function MePage() {
   const view = useBadgeRows();
 
   // 进入「我的」时补查漏发的徽章；导入后的本次会话跳过（OP-08）。
   useEffect(() => {
     if (view.status !== 'ready') return;
-    if (isBadgeBackfillSkipped()) return;
-    void grantBadge();
+    void grantBadge(undefined, { skipBackfill: isBadgeBackfillSkipped() });
   }, [view.status]);
 
   return (
@@ -36,39 +32,18 @@ export function MePage() {
               </button>
             </div>
           ) : null}
-          {view.status === 'ready' && view.rows.length === 0 ? (
-            <EmptyState
-              messageKey="page.me.badgeEmpty"
-              action={
-                <Link className={styles.action} to="/today">
-                  {t('page.me.action')}
-                </Link>
-              }
-            />
-          ) : null}
-          {view.status === 'ready' && view.rows.length > 0 ? (
-            <ul className={styles.badgeList}>
-              {view.rows.map((row) => (
-                <li key={row.badge.id} className={styles.badgeCard}>
-                  <div className={styles.badgeHead}>
-                    <strong>{t(badgeNameKey(row.badge.catalogId))}</strong>
-                    <span className={styles.badgeDate}>
-                      {t('badge.grantedAt')} {localDate(row.badge.grantedAt)}
-                    </span>
-                  </div>
-                  <p className={styles.badgeSource}>{t(badgeSourceKey(row.badge.catalogId))}</p>
-                  {row.state === 'ok' && row.jump ? (
-                    <Link className={styles.badgeAction} to={badgeHref(row.jump)}>
-                      {t('badge.viewHistory')}
-                    </Link>
-                  ) : (
-                    <span className={styles.badgeState}>
-                      {t(row.state === 'revoked' ? 'badge.revoked' : 'badge.missing')}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+          {view.status === 'ready' ? (
+            <div className={styles.badgeSummary}>
+              <p className={styles.badgeCount}>
+                {t('badge.wall.headerPrefix')} {view.wall.earnedCount} / {view.wall.total}
+              </p>
+              {view.wall.earnedCount === 0 ? (
+                <p className={styles.quiet}>{t('badge.wall.empty')}</p>
+              ) : null}
+              <Link className={styles.action} to="/me/badges">
+                {t('badge.wall.title')}
+              </Link>
+            </div>
           ) : null}
         </section>
 

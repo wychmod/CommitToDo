@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/layout/app-shell';
 import { AllTodosPage } from '@/pages/all-todos-page';
+import { BadgeWallPage } from '@/pages/badge-wall-page';
 import { BranchDetailPage } from '@/pages/branch-detail-page';
 import { BranchesPage } from '@/pages/branches-page';
 import { DataPage } from '@/pages/data-page';
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="history" element={<HistoryPage />} />
           <Route path="history/:year" element={<YearPage />} />
           <Route path="me" element={<MePage />} />
+          <Route path="me/badges" element={<BadgeWallPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="data" element={<DataPage />} />
           <Route path="*" element={<NotFoundPage />} />

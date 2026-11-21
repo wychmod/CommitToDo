@@ -144,6 +144,20 @@
   font-size: var(--type-secondary);
 }
 
+.badgeSummary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+}
+
+.badgeCount {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-body);
+  font-variant-numeric: tabular-nums;
+}
+
 .quota {
   margin: 0;
   padding-top: var(--s3);
