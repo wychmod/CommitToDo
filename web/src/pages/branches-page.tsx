@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Annotation } from '@/components/annotation';
+import { BranchDeletePanel } from '@/components/branch-detail/branch-delete-panel';
+import { BranchFinishPanel } from '@/components/branch-detail/branch-finish-panel';
 import { BranchPanel, type BranchPanelState } from '@/components/branches/branch-panel';
 import { BranchTree } from '@/components/branches/branch-tree';
 import { BRANCH_TREE_LIMIT, countActiveBranches } from '@/core/rules/branch-quota';
@@ -13,6 +15,8 @@ import { PageShell } from '@/ui/page-shell';
 import styles from './pages.module.css';
 
 const SKELETON_LEVELS = [0, 1, 2, 1, 2];
+
+type Overlay = { mode: 'finish' | 'delete'; branch: Branch } | null;
 
 function TreeSkeleton() {
   return (
@@ -40,10 +44,13 @@ export function BranchesPage() {
   const view = useBranchesView();
   const [searchParams, setSearchParams] = useSearchParams();
   const [panel, setPanel] = useState<BranchPanelState | null>(null);
+  const [overlay, setOverlay] = useState<Overlay>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
   const expandMany = useBranchesStore((state) => state.expandMany);
 
   const live = view.branches.filter((branch) => branch.deletedAt === null);
+  // 归档分支不进默认树；留在树上的已合并分支照常显示（只读）。
+  const treeBranches = live.filter((branch) => branch.archivedAt === null);
   const root = live.find((branch) => branch.depth === 0);
   const used = countActiveBranches(live);
 
@@ -52,6 +59,8 @@ export function BranchesPage() {
   const openCreateChild = useCallback((parent: Branch) => setPanel({ mode: 'create', parent }), []);
   const openRename = useCallback((branch: Branch) => setPanel({ mode: 'rename', branch }), []);
   const openMove = useCallback((branch: Branch) => setPanel({ mode: 'move', branch }), []);
+  const openFinish = useCallback((branch: Branch) => setOverlay({ mode: 'finish', branch }), []);
+  const openDelete = useCallback((branch: Branch) => setOverlay({ mode: 'delete', branch }), []);
 
   const openCreate = useCallback(() => {
     if (root) setPanel({ mode: 'create', parent: root });
@@ -75,6 +84,27 @@ export function BranchesPage() {
     },
     [expandMany],
   );
+
+  const handleFinish = useCallback(
+    (branch: Branch) => {
+      setOverlay(null);
+      const targetId = branch.archivedAt !== null ? branch.parentId : branch.id;
+      if (targetId) {
+        const parentChain = live
+          .find((row) => row.id === targetId)
+          ?.path.split('/')
+          .filter(Boolean);
+        if (parentChain) expandMany(parentChain);
+        setFocusId(targetId);
+      }
+    },
+    [expandMany, live],
+  );
+
+  const handleDeleted = useCallback((parentId: string | null) => {
+    setOverlay(null);
+    setFocusId(parentId);
+  }, []);
 
   const action = root ? (
     <button type="button" className={styles.action} onClick={openCreate}>
@@ -105,14 +135,18 @@ export function BranchesPage() {
       ) : (
         <>
           <BranchTree
-            branches={live}
+            branches={treeBranches}
             focusId={focusId}
             onFocusHandled={handleFocusHandled}
             onCreateChild={openCreateChild}
             onRename={openRename}
             onMove={openMove}
+            onFinish={openFinish}
+            onDelete={openDelete}
           />
-          {live.length <= 1 ? <EmptyState messageKey="branches.empty" action={action} /> : null}
+          {treeBranches.length <= 1 ? (
+            <EmptyState messageKey="branches.empty" action={action} />
+          ) : null}
           <p className={styles.quota}>
             {t('branches.quota.prefix')} {used} / {BRANCH_TREE_LIMIT} {t('branches.quota.suffix')}
           </p>
@@ -121,6 +155,24 @@ export function BranchesPage() {
 
       {panel ? (
         <BranchPanel state={panel} branches={live} onClose={closePanel} onSaved={handleSaved} />
+      ) : null}
+
+      {overlay?.mode === 'finish' ? (
+        <BranchFinishPanel
+          branch={overlay.branch}
+          branches={live}
+          onClose={() => setOverlay(null)}
+          onFinished={handleFinish}
+        />
+      ) : null}
+
+      {overlay?.mode === 'delete' ? (
+        <BranchDeletePanel
+          branch={overlay.branch}
+          branches={live}
+          onClose={() => setOverlay(null)}
+          onDeleted={handleDeleted}
+        />
       ) : null}
     </PageShell>
   );

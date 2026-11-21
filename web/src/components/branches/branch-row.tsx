@@ -7,13 +7,22 @@ import { ChevronDownIcon, ChevronRightIcon, MoreIcon } from '@/ui/icons';
 import styles from './branch-row.module.css';
 
 /** 菜单项不可用的原因；`later` 表示功能在后续版本提供。 */
-export type BranchBlockReason = 'readonly' | 'depth' | 'parent-full' | 'tree-full' | 'later';
+export type BranchBlockReason =
+  | 'readonly'
+  | 'depth'
+  | 'parent-full'
+  | 'tree-full'
+  | 'finish-parent'
+  | 'finish-children'
+  | 'later';
 
 const REASON_KEYS: Record<BranchBlockReason, MessageKey> = {
   readonly: 'branches.reason.readonly',
   depth: 'branches.reason.depth',
   'parent-full': 'branches.reason.parentFull',
   'tree-full': 'branches.reason.treeFull',
+  'finish-parent': 'branches.reason.finishParent',
+  'finish-children': 'branches.reason.finishChildren',
   later: 'branches.reason.later',
 };
 
@@ -31,11 +40,15 @@ interface BranchRowProps {
   createReason: BranchBlockReason | null;
   renameReason: BranchBlockReason | null;
   moveReason: BranchBlockReason | null;
+  finishReason: BranchBlockReason | null;
+  deleteReason: BranchBlockReason | null;
   onToggle: (branchId: string, expanded: boolean) => void;
   onFocusHandled: () => void;
   onCreateChild: (branch: Branch) => void;
   onRename: (branch: Branch) => void;
   onMove: (branch: Branch) => void;
+  onFinish: (branch: Branch) => void;
+  onDelete: (branch: Branch) => void;
   children?: ReactNode;
 }
 
@@ -60,11 +73,15 @@ export function BranchRow({
   createReason,
   renameReason,
   moveReason,
+  finishReason,
+  deleteReason,
   onToggle,
   onFocusHandled,
   onCreateChild,
   onRename,
   onMove,
+  onFinish,
+  onDelete,
   children,
 }: BranchRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -135,8 +152,18 @@ export function BranchRow({
         reason: moveReason,
         run: () => onMove(branch),
       },
-      { key: 'finish', labelKey: 'branches.finish', reason: 'later' },
-      { key: 'delete', labelKey: 'branches.delete', reason: 'later' },
+      {
+        key: 'finish',
+        labelKey: 'branches.finish',
+        reason: finishReason,
+        run: () => onFinish(branch),
+      },
+      {
+        key: 'delete',
+        labelKey: 'branches.delete',
+        reason: deleteReason,
+        run: () => onDelete(branch),
+      },
     );
   }
 

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { systemClock, today } from '@/core/clock';
 import { canCreateChild } from '@/core/rules/branch-hierarchy';
+import { collectSubtree } from '@/core/rules/branch-path';
 import { assessCreateQuota } from '@/core/rules/branch-quota';
 import { computeBranchProgress, type BranchProgress } from '@/core/rules/branch-progress';
 import { branchTreeReadonlyReason } from '@/core/rules/branch-readonly';
+import { finishEntryReason } from '@/core/rules/finish-precheck';
 import { branchTrail } from '@/core/rules/quick-add';
 import {
   useBranchCommits,
@@ -22,6 +24,8 @@ import { BranchPanel, type BranchPanelState } from '@/components/branches/branch
 import { BranchActions } from '@/components/branch-detail/branch-actions';
 import { BranchChildrenSection } from '@/components/branch-detail/branch-children-section';
 import { BranchCommitsSection } from '@/components/branch-detail/branch-commits-section';
+import { BranchDeletePanel } from '@/components/branch-detail/branch-delete-panel';
+import { BranchFinishPanel } from '@/components/branch-detail/branch-finish-panel';
 import { BranchHeader } from '@/components/branch-detail/branch-header';
 import { BranchMilestonesSection } from '@/components/branch-detail/branch-milestones-section';
 import { BranchTasksSection } from '@/components/branch-detail/branch-tasks-section';
@@ -41,6 +45,26 @@ function createChildReasonKey(
   return null;
 }
 
+/** 收尾入口不可用的原因；`null` 表示可收尾。 */
+function finishReasonKey(
+  branch: Branch,
+  branches: readonly Branch[],
+  readonly: boolean,
+): MessageKey | null {
+  if (readonly) return 'branches.reason.readonly';
+  const parent = branch.parentId ? branches.find((row) => row.id === branch.parentId) : undefined;
+  const descendants = collectSubtree(branches, branch.path).filter((row) => row.id !== branch.id);
+  const reason = finishEntryReason(branch, parent, descendants);
+  if (reason === null) return null;
+  if (reason === 'parent-missing' || reason === 'parent-readonly') {
+    return 'branches.reason.finishParent';
+  }
+  if (reason === 'unfinished-descendant') return 'branches.reason.finishChildren';
+  return 'branches.reason.readonly';
+}
+
+type Overlay = 'finish' | 'delete' | null;
+
 /**
  * P03 分支详情（PRD M04）。
  *
@@ -49,6 +73,7 @@ function createChildReasonKey(
  */
 export function BranchDetailPage() {
   const { branchId } = useParams<{ branchId: string }>();
+  const navigate = useNavigate();
   const header = useBranchHeader(branchId);
   const tasks = useBranchTasks(branchId);
   const commits = useBranchCommits(branchId);
@@ -58,6 +83,7 @@ export function BranchDetailPage() {
   const milestoneFocusId = useShellStore((state) => state.milestoneFocusId);
   const setMilestoneFocus = useShellStore((state) => state.setMilestoneFocus);
   const [panel, setPanel] = useState<BranchPanelState | null>(null);
+  const [overlay, setOverlay] = useState<Overlay>(null);
 
   // 保存里程碑后只短暂高亮，不长期驻留（M07 OP-07）。
   useEffect(() => {
@@ -114,6 +140,8 @@ export function BranchDetailPage() {
 
   const readonlyReason = branchTreeReadonlyReason(branch, byId);
   const createReason = createChildReasonKey(branch, header.branches, readonlyReason !== null);
+  const finishReason = finishReasonKey(branch, header.branches, readonlyReason !== null);
+  const canFinish = branch.depth > 0;
   const trail = branchTrail(branch, byId);
   const progress: BranchProgress =
     tasks.status === 'ready'
@@ -136,9 +164,15 @@ export function BranchDetailPage() {
         <BranchActions
           createReason={createReason}
           readonly={readonlyReason !== null}
+          showFinish={canFinish}
+          finishReason={finishReason}
+          showDelete={canFinish}
+          deleteReason={readonlyReason !== null ? 'branches.reason.readonly' : null}
           onOpenCreate={() => setPanel({ mode: 'create', parent: branch })}
           onOpenRename={() => setPanel({ mode: 'rename', branch })}
           onOpenMove={() => setPanel({ mode: 'move', branch })}
+          onOpenFinish={() => setOverlay('finish')}
+          onOpenDelete={() => setOverlay('delete')}
         />
       }
     >
@@ -204,6 +238,27 @@ export function BranchDetailPage() {
           branches={header.branches.filter((row) => row.deletedAt === null)}
           onClose={() => setPanel(null)}
           onSaved={() => setPanel(null)}
+        />
+      ) : null}
+
+      {overlay === 'finish' ? (
+        <BranchFinishPanel
+          branch={branch}
+          branches={header.branches}
+          onClose={() => setOverlay(null)}
+          onFinished={() => setOverlay(null)}
+        />
+      ) : null}
+
+      {overlay === 'delete' ? (
+        <BranchDeletePanel
+          branch={branch}
+          branches={header.branches}
+          onClose={() => setOverlay(null)}
+          onDeleted={(parentId) => {
+            setOverlay(null);
+            navigate(parentId ? `/branches/${parentId}` : '/branches', { replace: true });
+          }}
         />
       ) : null}
     </PageShell>

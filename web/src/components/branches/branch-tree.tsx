@@ -1,5 +1,7 @@
 import { canCreateChild } from '@/core/rules/branch-hierarchy';
+import { collectSubtree } from '@/core/rules/branch-path';
 import { assessCreateQuota } from '@/core/rules/branch-quota';
+import { finishEntryReason } from '@/core/rules/finish-precheck';
 import type { Branch } from '@/data/types';
 import { t } from '@/i18n';
 import { isExpandedByDefault, useBranchesStore } from '@/stores/branches.store';
@@ -13,6 +15,8 @@ interface BranchTreeProps {
   onCreateChild: (parent: Branch) => void;
   onRename: (branch: Branch) => void;
   onMove: (branch: Branch) => void;
+  onFinish: (branch: Branch) => void;
+  onDelete: (branch: Branch) => void;
 }
 
 function buildChildrenMap(branches: readonly Branch[]): Map<string, Branch[]> {
@@ -46,6 +50,8 @@ export function BranchTree({
   onCreateChild,
   onRename,
   onMove,
+  onFinish,
+  onDelete,
 }: BranchTreeProps) {
   const expandedMap = useBranchesStore((state) => state.expanded);
   const setExpanded = useBranchesStore((state) => state.setExpanded);
@@ -66,6 +72,18 @@ export function BranchTree({
     return null;
   };
 
+  const finishReasonFor = (branch: Branch): BranchBlockReason | null => {
+    const readonly = readonlyReason(branch);
+    if (readonly) return readonly;
+    const parent = branch.parentId ? branches.find((row) => row.id === branch.parentId) : undefined;
+    const descendants = collectSubtree(branches, branch.path).filter((row) => row.id !== branch.id);
+    const reason = finishEntryReason(branch, parent, descendants);
+    if (reason === null) return null;
+    if (reason === 'parent-missing' || reason === 'parent-readonly') return 'finish-parent';
+    if (reason === 'unfinished-descendant') return 'finish-children';
+    return 'readonly';
+  };
+
   const renderNode = (branch: Branch) => {
     const children = childrenOf.get(branch.id) ?? [];
     const expanded = expandedMap[branch.id] ?? isExpandedByDefault(branch.depth);
@@ -81,11 +99,15 @@ export function BranchTree({
         createReason={createReasonFor(branch)}
         renameReason={readonlyReason(branch)}
         moveReason={moveReason}
+        finishReason={finishReasonFor(branch)}
+        deleteReason={readonlyReason(branch)}
         onToggle={setExpanded}
         onFocusHandled={onFocusHandled}
         onCreateChild={onCreateChild}
         onRename={onRename}
         onMove={onMove}
+        onFinish={onFinish}
+        onDelete={onDelete}
       >
         {children.length > 0 && expanded ? (
           <ul className={styles.group}>{children.map(renderNode)}</ul>

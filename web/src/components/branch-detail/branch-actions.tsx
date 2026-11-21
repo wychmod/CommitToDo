@@ -7,22 +7,44 @@ interface BranchActionsProps {
   /** `null` 表示可新建子分支；非空时菜单项禁用并显示原因。 */
   createReason: MessageKey | null;
   readonly: boolean;
+  /** `null` 表示可收尾；根分支不展示收尾项。 */
+  showFinish: boolean;
+  finishReason: MessageKey | null;
+  /** `null` 表示可打开删除确认；根分支不展示删除项。 */
+  showDelete: boolean;
+  deleteReason: MessageKey | null;
   onOpenCreate: () => void;
   onOpenRename: () => void;
   onOpenMove: () => void;
+  onOpenFinish: () => void;
+  onOpenDelete: () => void;
+}
+
+interface MenuItem {
+  key: string;
+  labelKey: MessageKey;
+  reason: MessageKey | null;
+  run: () => void;
 }
 
 /**
- * 分支详情页头的「更多」菜单（M04 §4.1 / B01）。
+ * 分支详情页头的「更多」菜单（M04 §4.1 / M08 OP-01、OP-06、OP-08）。
  *
- * 不可用项保留并写明原因；收尾入口在只读分支上不出现。
+ * 收尾是首项，删除空分支是末项；根分支不展示这两项。
+ * 不可用项保留并写明原因，不用隐藏代替说明。
  */
 export function BranchActions({
   createReason,
   readonly,
+  showFinish,
+  finishReason,
+  showDelete,
+  deleteReason,
   onOpenCreate,
   onOpenRename,
   onOpenMove,
+  onOpenFinish,
+  onOpenDelete,
 }: BranchActionsProps) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -54,6 +76,44 @@ export function BranchActions({
     action();
   };
 
+  const items: MenuItem[] = [];
+  if (showFinish) {
+    items.push({
+      key: 'finish',
+      labelKey: 'branches.finish',
+      reason: finishReason,
+      run: onOpenFinish,
+    });
+  }
+  items.push(
+    {
+      key: 'create',
+      labelKey: 'branches.newChild',
+      reason: createReason,
+      run: onOpenCreate,
+    },
+    {
+      key: 'rename',
+      labelKey: 'branches.rename',
+      reason: readonly ? 'branches.reason.readonly' : null,
+      run: onOpenRename,
+    },
+    {
+      key: 'move',
+      labelKey: 'branches.move',
+      reason: readonly ? 'branches.reason.readonly' : null,
+      run: onOpenMove,
+    },
+  );
+  if (showDelete) {
+    items.push({
+      key: 'delete',
+      labelKey: 'branches.delete',
+      reason: deleteReason,
+      run: onOpenDelete,
+    });
+  }
+
   return (
     <div className={styles.anchor} ref={anchorRef}>
       <button
@@ -69,46 +129,19 @@ export function BranchActions({
       </button>
       {open ? (
         <div className={styles.menu} role="menu" aria-label={t('branchDetail.actions.more')}>
-          <button
-            type="button"
-            role="menuitem"
-            className={styles.item}
-            disabled={createReason !== null}
-            onClick={() => run(onOpenCreate)}
-          >
-            <span>{t('branches.newChild')}</span>
-            {createReason ? <span className={styles.reason}>{t(createReason)}</span> : null}
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            className={styles.item}
-            disabled={readonly}
-            onClick={() => run(onOpenRename)}
-          >
-            <span>{t('branches.rename')}</span>
-            {readonly ? (
-              <span className={styles.reason}>{t('branches.reason.readonly')}</span>
-            ) : null}
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            className={styles.item}
-            disabled={readonly}
-            onClick={() => run(onOpenMove)}
-          >
-            <span>{t('branches.move')}</span>
-            {readonly ? (
-              <span className={styles.reason}>{t('branches.reason.readonly')}</span>
-            ) : null}
-          </button>
-          {readonly ? null : (
-            <button type="button" role="menuitem" className={styles.item} disabled>
-              <span>{t('branches.finish')}</span>
-              <span className={styles.reason}>{t('branches.reason.later')}</span>
+          {items.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              role="menuitem"
+              className={styles.item}
+              disabled={item.reason !== null}
+              onClick={() => run(item.run)}
+            >
+              <span>{t(item.labelKey)}</span>
+              {item.reason ? <span className={styles.reason}>{t(item.reason)}</span> : null}
             </button>
-          )}
+          ))}
         </div>
       ) : null}
     </div>

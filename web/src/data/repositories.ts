@@ -14,9 +14,12 @@ export interface BranchRepository {
   getById(branchId: string): Promise<Branch | undefined>;
   create(row: Branch): Promise<string>;
   put(row: Branch): Promise<string>;
+  /** 物理删除整棵空子树（R13），只允许在用例事务内调用。 */
+  remove(ids: readonly string[]): Promise<void>;
 }
 
 export interface TaskRepository {
+  listByOwner(ownerId: string): Promise<Task[]>;
   listOpenByOwner(ownerId: string): Promise<Task[]>;
   listByBranch(branchId: string): Promise<Task[]>;
   getById(taskId: string): Promise<Task | undefined>;
@@ -75,9 +78,14 @@ export const branchRepository: BranchRepository = {
     assertInTransaction();
     return db.branches.put(row);
   },
+  remove: async (ids) => {
+    assertInTransaction();
+    await db.branches.bulkDelete([...ids]);
+  },
 };
 
 export const taskRepository: TaskRepository = {
+  listByOwner: (ownerId) => db.tasks.where('ownerId').equals(ownerId).toArray(),
   listOpenByOwner: (ownerId) =>
     db.tasks.where('[ownerId+status]').equals([ownerId, 'open']).toArray(),
   listByBranch: (branchId) => db.tasks.where('branchId').equals(branchId).toArray(),

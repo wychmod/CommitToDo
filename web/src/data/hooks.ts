@@ -2,6 +2,10 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { currentTzOffset, systemClock, today } from '@/core/clock';
 import { normalizeAnnotationMode } from '@/core/rules/annotation-visibility';
+import { collectSubtree } from '@/core/rules/branch-path';
+import { assessDelete, type DeleteGuard } from '@/core/rules/delete-guard';
+import { assessFinish, type FinishPrecheck } from '@/core/rules/finish-precheck';
+import { planFinishMigration, type FinishPlan } from '@/core/rules/finish-plan';
 import { stallReminders } from '@/core/rules/stagnation';
 import { normalizeTheme } from '@/core/rules/theme-preference';
 import { resolveTreeDensity } from '@/core/rules/tree-density';
@@ -633,4 +637,100 @@ export function useMilestoneDetail(
     siblings: result.siblings,
     retry,
   };
+}
+
+export interface BranchFinishView {
+  status: 'loading' | 'ready' | 'error';
+  precheck: FinishPrecheck | null;
+  plan: FinishPlan | null;
+  retry: () => void;
+}
+
+/**
+ * 收尾预检（M08 OP-01）。
+ *
+ * 读取分支结构、本分支待办与提交，算出合并去向、提交数、未完成待办数与不可收尾原因；
+ * 只读派生，不落库。确认面板打开时计算，失败不打开确认框。
+ */
+export function useBranchFinishPlan(branchId: string | undefined): BranchFinishView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      if (!branchId) return { ok: true as const, precheck: null, plan: null };
+      const [subject, branches, tasks, commits] = await Promise.all([
+        branchRepository.getById(branchId),
+        branchRepository.listByOwner(LOCAL_OWNER_ID),
+        taskRepository.listByOwner(LOCAL_OWNER_ID),
+        commitRepository.listByOwner(LOCAL_OWNER_ID),
+      ]);
+      if (!subject || subject.deletedAt !== null) {
+        return { ok: true as const, precheck: null, plan: null };
+      }
+      const live = branches.filter((branch) => branch.deletedAt === null);
+      const parent = subject.parentId
+        ? live.find((branch) => branch.id === subject.parentId)
+        : undefined;
+      const descendants = collectSubtree(live, subject.path).filter(
+        (branch) => branch.id !== subject.id,
+      );
+      const plan = planFinishMigration(subject.id, tasks, commits, []);
+      const precheck = assessFinish({
+        subject,
+        parent,
+        descendants,
+        commitCount: plan.movedCommits.length,
+        openTaskCount: plan.movedTasks.length,
+      });
+      return { ok: true as const, precheck, plan };
+    } catch {
+      return { ok: false as const, precheck: null, plan: null };
+    }
+  }, [branchId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) return { status: 'loading', precheck: null, plan: null, retry };
+  if (!result.ok) return { status: 'error', precheck: null, plan: null, retry };
+  return { status: 'ready', precheck: result.precheck, plan: result.plan, retry };
+}
+
+export interface BranchDeleteView {
+  status: 'loading' | 'ready' | 'error';
+  guard: DeleteGuard | null;
+  retry: () => void;
+}
+
+/**
+ * 删除空分支前的整棵子树检查（M08 OP-06）。
+ *
+ * 逐条返回待办、提交、里程碑、子分支与历史痕迹原因；检查未通过时不显示确认框。
+ */
+export function useBranchDeleteGuard(branchId: string | undefined): BranchDeleteView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      if (!branchId) return { ok: true as const, guard: null };
+      const [subject, branches, tasks, commits, milestones, events] = await Promise.all([
+        branchRepository.getById(branchId),
+        branchRepository.listByOwner(LOCAL_OWNER_ID),
+        taskRepository.listByOwner(LOCAL_OWNER_ID),
+        commitRepository.listByOwner(LOCAL_OWNER_ID),
+        milestoneRepository.listByOwner(LOCAL_OWNER_ID),
+        eventRepository.listRecent(LOCAL_OWNER_ID, Number.MAX_SAFE_INTEGER),
+      ]);
+      if (!subject || subject.deletedAt !== null) {
+        return { ok: true as const, guard: null };
+      }
+      const live = branches.filter((branch) => branch.deletedAt === null);
+      const subtree = collectSubtree(live, subject.path);
+      const guard = assessDelete({ subject, subtree, tasks, commits, milestones, events });
+      return { ok: true as const, guard };
+    } catch {
+      return { ok: false as const, guard: null };
+    }
+  }, [branchId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) return { status: 'loading', guard: null, retry };
+  if (!result.ok) return { status: 'error', guard: null, retry };
+  return { status: 'ready', guard: result.guard, retry };
 }

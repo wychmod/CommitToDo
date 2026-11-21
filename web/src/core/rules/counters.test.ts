@@ -129,6 +129,61 @@ describe('撤销完成后的四计数（M05 / R7）', () => {
   });
 });
 
+describe('收尾合并后的父分支四计数（M08 / R7）', () => {
+  it('并入待办按当前归属重算，cancelled 不计入 taskTotal', () => {
+    const counts = recountBranch(
+      'main',
+      [
+        task({ branchId: 'main', status: 'done' }),
+        task({ branchId: 'main', status: 'open' }),
+        task({ branchId: 'main', status: 'open' }),
+        task({ branchId: 'main', status: 'cancelled' }),
+      ],
+      [],
+    );
+
+    expect(counts).toMatchObject({ taskTotal: 3, taskDone: 1 });
+  });
+
+  it('ownLastCommitAt 取合并后有效提交的最大值，而非保留父分支原值', () => {
+    const counts = recountBranch(
+      'main',
+      [],
+      [
+        commit({ branchId: 'main', at: 1_000 }),
+        commit({ branchId: 'main', at: 9_000 }),
+        commit({ branchId: 'main', at: 5_000 }),
+      ],
+    );
+
+    expect(counts.commitCount).toBe(3);
+    expect(counts.ownLastCommitAt).toBe(9_000);
+  });
+
+  it('并入提交全部已撤销时 commitCount 与 ownLastCommitAt 不变', () => {
+    const counts = recountBranch(
+      'main',
+      [],
+      [
+        commit({ branchId: 'main', at: 2_000 }),
+        commit({ branchId: 'main', at: 8_000, voidedAt: 8_100 }),
+      ],
+    );
+
+    expect(counts).toMatchObject({ commitCount: 1, ownLastCommitAt: 2_000 });
+  });
+
+  it('并入提交时间早于父分支最近提交时保留父分支最大值', () => {
+    const counts = recountBranch(
+      'main',
+      [],
+      [commit({ branchId: 'main', at: 12_000 }), commit({ branchId: 'main', at: 3_000 })],
+    );
+
+    expect(counts.ownLastCommitAt).toBe(12_000);
+  });
+});
+
 describe('里程碑不计入四计数（M07 / R7）', () => {
   it('新建里程碑后重算结果仍只由任务与提交决定', () => {
     const tasks = [task({ status: 'done' })];
