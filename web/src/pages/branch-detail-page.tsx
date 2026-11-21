@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { systemClock, today } from '@/core/clock';
 import { canCreateChild } from '@/core/rules/branch-hierarchy';
@@ -55,7 +55,16 @@ export function BranchDetailPage() {
   const milestones = useBranchMilestones(branchId);
   const openTaskDetail = useShellStore((state) => state.openTaskDetail);
   const openQuickAdd = useShellStore((state) => state.openQuickAdd);
+  const milestoneFocusId = useShellStore((state) => state.milestoneFocusId);
+  const setMilestoneFocus = useShellStore((state) => state.setMilestoneFocus);
   const [panel, setPanel] = useState<BranchPanelState | null>(null);
+
+  // 保存里程碑后只短暂高亮，不长期驻留（M07 OP-07）。
+  useEffect(() => {
+    if (!milestoneFocusId) return;
+    const timer = window.setTimeout(() => setMilestoneFocus(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [milestoneFocusId, setMilestoneFocus]);
 
   const todayDate = today(systemClock);
   const byId = useMemo(
@@ -181,6 +190,8 @@ export function BranchDetailPage() {
         />
 
         <BranchMilestonesSection
+          branchId={branch.id}
+          readonly={readonlyReason !== null}
           milestones={milestones.milestones}
           status={milestones.status}
           retry={milestones.retry}

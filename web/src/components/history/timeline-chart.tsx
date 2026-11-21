@@ -46,6 +46,8 @@ interface TimelineChartProps {
 interface LaneEvent {
   id: string;
   at: number;
+  /** 同一日期内的稳定顺序：里程碑按创建时刻，提交按发生时刻。 */
+  sortKey: number;
   date: string;
   kind: 'commit' | 'milestone';
   title: string;
@@ -117,6 +119,7 @@ function laneEvents(
     events.push({
       id: commit.id,
       at: commit.at,
+      sortKey: commit.at,
       date: commit.date,
       kind: 'commit',
       title: commit.summary,
@@ -129,13 +132,14 @@ function laneEvents(
     events.push({
       id: milestone.id,
       at: dateToMs(date, tz),
+      sortKey: milestone.createdAt,
       date,
       kind: 'milestone',
       title: milestone.title,
       milestoneId: milestone.id,
     });
   }
-  return events.sort((a, b) => a.at - b.at);
+  return events.sort((a, b) => a.at - b.at || a.sortKey - b.sortKey || a.id.localeCompare(b.id));
 }
 
 /**

@@ -1,0 +1,207 @@
+/* S04 新建里程碑：桌面右侧面板，390 px 全屏。 */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  background: color-mix(in srgb, var(--text) 35%, transparent);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  width: min(100%, 30rem);
+  height: 100%;
+  padding: var(--s6);
+  overflow-y: auto;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  animation: panel-in var(--duration-entry) var(--ease-enter);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.title {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-heading-small);
+  font-weight: 600;
+}
+
+.close {
+  padding: var(--s1) var(--s2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--inset);
+  color: var(--text);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.label {
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--type-body);
+  font-family: inherit;
+}
+
+.textarea {
+  min-height: var(--s10);
+  resize: vertical;
+}
+
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.input:disabled {
+  color: var(--disabled);
+}
+
+.precision {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.precisionOptions {
+  display: flex;
+  gap: var(--s3);
+}
+
+.precisionOption {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.precisionOption input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.fieldError {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--type-label);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: var(--s3);
+}
+
+.save {
+  padding: var(--s2) var(--s5);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--type-body);
+  cursor: pointer;
+}
+
+.save:disabled {
+  color: var(--disabled);
+  border-color: var(--line);
+  background: var(--inset);
+  cursor: not-allowed;
+}
+
+.save:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.state {
+  margin: 0;
+  color: var(--subtle);
+  font-size: var(--type-secondary);
+}
+
+.ghost {
+  align-self: flex-start;
+  min-height: var(--s8);
+  padding: 0 var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s2);
+  padding: var(--s3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-panel);
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
+.errorBox p {
+  margin: 0;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--s6));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 390px) {
+  .panel {
+    width: 100%;
+    border-left: 0;
+    padding: var(--s4);
+  }
+}

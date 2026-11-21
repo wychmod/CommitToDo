@@ -76,6 +76,9 @@ export function HistoryPage() {
   const toggleExpanded = useHistoryExpandedStore((state) => state.toggleExpanded);
   const openCommitDetail = useShellStore((state) => state.openCommitDetail);
   const openMilestoneDetail = useShellStore((state) => state.openMilestoneDetail);
+  const openMilestoneNew = useShellStore((state) => state.openMilestoneNew);
+  const milestoneFocusId = useShellStore((state) => state.milestoneFocusId);
+  const setMilestoneFocus = useShellStore((state) => state.setMilestoneFocus);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [extraStart, setExtraStart] = useState<string | null>(null);
@@ -114,7 +117,34 @@ export function HistoryPage() {
     earliest !== null &&
     (effectiveRange.start === null || effectiveRange.start > earliest);
 
+  const focusMilestone = useMemo(
+    () =>
+      milestoneFocusId
+        ? view.milestones.find((row) => row.id === milestoneFocusId && row.deletedAt === null)
+        : undefined,
+    [milestoneFocusId, view.milestones],
+  );
+
+  // 保存里程碑后把它所在的区间补进来，并在 2.5 秒后撤掉高亮。
+  useEffect(() => {
+    if (!focusMilestone) return;
+    const anchor = milestoneAnchor(focusMilestone.achievedAt, focusMilestone.datePrecision, tz);
+    if (baseRange.start !== null && anchor < baseRange.start) setExtraStart(anchor);
+  }, [focusMilestone, baseRange.start, tz]);
+
+  useEffect(() => {
+    if (!milestoneFocusId) return;
+    const timer = window.setTimeout(() => setMilestoneFocus(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [milestoneFocusId, setMilestoneFocus]);
+
   const directTarget = useMemo<DirectTarget | null>(() => {
+    if (focusMilestone) {
+      return {
+        branchId: focusMilestone.branchId,
+        date: milestoneAnchor(focusMilestone.achievedAt, focusMilestone.datePrecision, tz),
+      };
+    }
     const commitId = searchParams.get('commit');
     if (commitId) {
       const commit = view.commits.find((row) => row.id === commitId);
@@ -133,7 +163,7 @@ export function HistoryPage() {
     const branchId = searchParams.get('branch');
     if (branchId) return { branchId, date: searchParams.get('date') ?? todayDate };
     return null;
-  }, [searchParams, view.commits, view.milestones, todayDate, tz]);
+  }, [focusMilestone, searchParams, view.commits, view.milestones, todayDate, tz]);
 
   const direct = useMemo(
     () => resolveDirectTarget(saved, liveBranches, directTarget),
@@ -149,6 +179,14 @@ export function HistoryPage() {
   }, [liveBranches, saved.branchId, direct]);
 
   const highlight = useMemo<TimelineHighlight | null>(() => {
+    if (focusMilestone) {
+      return {
+        branchId: focusMilestone.branchId,
+        date: milestoneAnchor(focusMilestone.achievedAt, focusMilestone.datePrecision, tz),
+        commitId: null,
+        milestoneId: focusMilestone.id,
+      };
+    }
     if (!direct.target) return null;
     return {
       branchId: direct.target.branchId,
@@ -156,7 +194,7 @@ export function HistoryPage() {
       commitId: searchParams.get('commit'),
       milestoneId: searchParams.get('milestone'),
     };
-  }, [direct, searchParams]);
+  }, [focusMilestone, direct, searchParams, tz]);
 
   const chartExpanded = useMemo(() => {
     if (!direct.target) return expanded;
@@ -264,9 +302,17 @@ export function HistoryPage() {
             ))}
           </select>
         </label>
+
+        <button
+          type="button"
+          className={styles.addMilestone}
+          onClick={() => openMilestoneNew(saved.branchId)}
+        >
+          {t('history.addMilestone')}
+        </button>
       </div>
 
-      {direct.temporary ? (
+      {direct.temporary && !focusMilestone ? (
         <p className={styles.temporary} role="status">
           {t('history.direct.temporary')}
         </p>

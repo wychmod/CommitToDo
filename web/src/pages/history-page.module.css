@@ -33,6 +33,27 @@
   outline-offset: 2px;
 }
 
+.addMilestone {
+  min-height: var(--s8);
+  padding: 0 var(--s3);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.addMilestone:hover {
+  border-color: var(--accent);
+  background: var(--panel);
+}
+
+.addMilestone:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .temporary {
   margin: 0;
   padding: var(--s2) var(--s3);

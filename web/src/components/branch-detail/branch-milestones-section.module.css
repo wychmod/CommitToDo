@@ -41,6 +41,18 @@
   color: var(--accent);
 }
 
+.add:disabled {
+  color: var(--disabled);
+  border-color: var(--line);
+  cursor: not-allowed;
+}
+
+.add:focus-visible,
+.item:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -67,6 +79,11 @@
 .item:hover {
   border-color: var(--line);
   background: var(--panel);
+}
+
+.item[data-highlighted='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .date {

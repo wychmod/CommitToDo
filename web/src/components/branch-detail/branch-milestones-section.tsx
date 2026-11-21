@@ -1,35 +1,39 @@
 import { useMemo } from 'react';
 import { currentTzOffset } from '@/core/clock';
 import { formatMilestoneDate } from '@/core/rules/milestone-date';
+import { orderMilestones } from '@/core/rules/milestone-order';
 import type { Milestone } from '@/data/types';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
 import styles from './branch-milestones-section.module.css';
 
 interface BranchMilestonesSectionProps {
+  branchId: string;
+  readonly: boolean;
   milestones: readonly Milestone[];
   status: 'loading' | 'ready' | 'error';
   retry: () => void;
 }
 
 /**
- * 分支详情 · 里程碑行（M04 §4.5）。
+ * 分支详情 · 里程碑行（M04 §4.5 / M07 OP-04）。
  *
- * 只列标题与按精度渲染的日期；新建与详情分别交给 M07 的浮层。
+ * 只列标题与按精度渲染的日期；同月按 `createdAt` 稳定排序。
+ * 新建预填本分支，保存后本行短暂高亮（`milestoneFocusId`）。
  */
 export function BranchMilestonesSection({
+  branchId,
+  readonly,
   milestones,
   status,
   retry,
 }: BranchMilestonesSectionProps) {
   const openMilestoneDetail = useShellStore((state) => state.openMilestoneDetail);
-  const openOverlay = useShellStore((state) => state.openOverlay);
+  const openMilestoneNew = useShellStore((state) => state.openMilestoneNew);
+  const focusId = useShellStore((state) => state.milestoneFocusId);
 
   const visible = useMemo(
-    () =>
-      milestones
-        .filter((item) => item.deletedAt === null)
-        .sort((a, b) => b.achievedAt - a.achievedAt),
+    () => orderMilestones(milestones.filter((item) => item.deletedAt === null)).reverse(),
     [milestones],
   );
 
@@ -40,7 +44,13 @@ export function BranchMilestonesSection({
           {t('branchDetail.section.milestones')}
           <span className={styles.count}>{visible.length}</span>
         </h2>
-        <button type="button" className={styles.add} onClick={() => openOverlay('milestone-new')}>
+        <button
+          type="button"
+          className={styles.add}
+          disabled={readonly}
+          title={readonly ? t('milestone.form.readonlyBranch') : undefined}
+          onClick={() => openMilestoneNew(branchId)}
+        >
           {t('branchDetail.milestones.new')}
         </button>
       </div>
@@ -71,6 +81,7 @@ export function BranchMilestonesSection({
               <button
                 type="button"
                 className={styles.item}
+                data-highlighted={focusId === item.id ? 'true' : undefined}
                 onClick={() => openMilestoneDetail(item.id)}
               >
                 <span className={styles.date}>

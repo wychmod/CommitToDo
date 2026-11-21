@@ -43,8 +43,10 @@ export interface CommitRepository {
 }
 
 export interface MilestoneRepository {
+  getById(id: string): Promise<Milestone | undefined>;
   listByOwner(ownerId: string): Promise<Milestone[]>;
   listByBranch(branchId: string): Promise<Milestone[]>;
+  create(row: Milestone): Promise<string>;
 }
 
 export interface BadgeRepository {
@@ -114,8 +116,13 @@ export const commitRepository: CommitRepository = {
 };
 
 export const milestoneRepository: MilestoneRepository = {
+  getById: (id) => db.milestones.get(id),
   listByOwner: (ownerId) => db.milestones.where('ownerId').equals(ownerId).toArray(),
   listByBranch: (branchId) => db.milestones.where('branchId').equals(branchId).toArray(),
+  create: (row) => {
+    assertInTransaction();
+    return db.milestones.add(row);
+  },
 };
 
 export const badgeRepository: BadgeRepository = {

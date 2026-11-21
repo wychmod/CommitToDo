@@ -1,0 +1,165 @@
+/* S04 里程碑详情：桌面右侧面板，390 px 全屏。 */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  background: color-mix(in srgb, var(--text) 35%, transparent);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  width: min(100%, 30rem);
+  height: 100%;
+  padding: var(--s6);
+  overflow-y: auto;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  animation: panel-in var(--duration-entry) var(--ease-enter);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.title {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-heading-small);
+  font-weight: 600;
+}
+
+.close {
+  padding: var(--s1) var(--s2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--inset);
+  color: var(--text);
+}
+
+.heading {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-section);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  gap: var(--s2);
+  font-size: var(--type-secondary);
+}
+
+.fact dt {
+  flex: none;
+  color: var(--muted);
+}
+
+.fact dd {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.noteBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.noteLabel {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-label);
+  font-weight: 400;
+}
+
+.note {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-body);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.readonly {
+  margin: 0;
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+.state {
+  margin: 0;
+  color: var(--subtle);
+  font-size: var(--type-secondary);
+}
+
+.ghost {
+  align-self: flex-start;
+  min-height: var(--s8);
+  padding: 0 var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s2);
+  padding: var(--s3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-panel);
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
+.errorBox p {
+  margin: 0;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--s6));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 390px) {
+  .panel {
+    width: 100%;
+    border-left: 0;
+    padding: var(--s4);
+  }
+}

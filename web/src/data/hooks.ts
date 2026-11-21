@@ -551,3 +551,86 @@ export function useStallReminders(todayDate: string, ownerId = LOCAL_OWNER_ID) {
     });
   }, [data, todayDate, tzOffset]);
 }
+
+export interface MilestoneDetailView {
+  status: 'loading' | 'ready' | 'error';
+  milestone: Milestone | null;
+  branch: Branch | null;
+  branches: Branch[];
+  siblings: Milestone[];
+  retry: () => void;
+}
+
+/** S04 里程碑详情的读状态（M07 OP-03）。 */
+export function useMilestoneDetail(
+  milestoneId: string | null,
+  ownerId = LOCAL_OWNER_ID,
+): MilestoneDetailView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    if (!milestoneId) {
+      return {
+        ok: true as const,
+        milestone: null,
+        branches: [] as Branch[],
+        siblings: [] as Milestone[],
+      };
+    }
+    try {
+      const milestone = await milestoneRepository.getById(milestoneId);
+      if (!milestone || milestone.deletedAt !== null) {
+        return {
+          ok: true as const,
+          milestone: null,
+          branches: [] as Branch[],
+          siblings: [] as Milestone[],
+        };
+      }
+      const [branches, siblings] = await Promise.all([
+        branchRepository.listByOwner(ownerId),
+        milestoneRepository.listByBranch(milestone.branchId),
+      ]);
+      return { ok: true as const, milestone, branches, siblings };
+    } catch {
+      return {
+        ok: false as const,
+        milestone: null,
+        branches: [] as Branch[],
+        siblings: [] as Milestone[],
+      };
+    }
+  }, [milestoneId, ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) {
+    return {
+      status: 'loading',
+      milestone: null,
+      branch: null,
+      branches: [],
+      siblings: [],
+      retry,
+    };
+  }
+  if (!result.ok) {
+    return {
+      status: 'error',
+      milestone: null,
+      branch: null,
+      branches: [],
+      siblings: [],
+      retry,
+    };
+  }
+  const branch = result.milestone
+    ? (result.branches.find((row) => row.id === result.milestone?.branchId) ?? null)
+    : null;
+  return {
+    status: 'ready',
+    milestone: result.milestone,
+    branch,
+    branches: result.branches,
+    siblings: result.siblings,
+    retry,
+  };
+}

@@ -128,3 +128,26 @@ describe('撤销完成后的四计数（M05 / R7）', () => {
     expect(after).toMatchObject({ taskTotal: 1, taskDone: 0, commitCount: 0 });
   });
 });
+
+describe('里程碑不计入四计数（M07 / R7）', () => {
+  it('新建里程碑后重算结果仍只由任务与提交决定', () => {
+    const tasks = [task({ status: 'done' })];
+    const commits = [commit({ at: 4_000 })];
+    const counts = recountBranch('product-design', tasks, commits);
+
+    // 里程碑（无论 achievedAt 多晚）不进入 recountBranch 的输入，
+    // 这里固化「四计数只统计任务与提交」的契约。
+    expect(counts).toEqual({
+      taskTotal: 1,
+      taskDone: 1,
+      commitCount: 1,
+      ownLastCommitAt: 4_000,
+    });
+    expect(Object.keys(counts).sort()).toEqual([
+      'commitCount',
+      'ownLastCommitAt',
+      'taskDone',
+      'taskTotal',
+    ]);
+  });
+});
