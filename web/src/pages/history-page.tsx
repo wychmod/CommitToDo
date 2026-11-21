@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { TimelineChart, type TimelineHighlight } from '@/components/history/timeline-chart';
 import { addDays, currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
+import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import {
   filterBranchIds,
   resolveDirectTarget,
@@ -16,10 +17,61 @@ import { t, type MessageKey } from '@/i18n';
 import { useHistoryExpandedStore, useHistoryFilterStore } from '@/stores/history.store';
 import { useShellStore } from '@/stores/shell.store';
 import { EmptyState } from '@/ui/empty-state';
+import { SvgIcon } from '@/ui/icons/svg-icon';
 import { PageShell } from '@/ui/page-shell';
 import styles from './history-page.module.css';
 
 const LOAD_STEP_DAYS = 90;
+
+const RANGE_LABEL_KEY: Record<TimeRangeKind, MessageKey> = {
+  recent90: 'history.range.recent90',
+  thisYear: 'history.range.thisYear',
+  all: 'history.range.all',
+};
+
+const TREE_ICON = (
+  <SvgIcon size={18}>
+    <path d="M12 4v4.5M12 8.5H6.5v5M12 8.5h5.5v5" />
+    <circle cx="12" cy="3.5" r="1.4" />
+    <circle cx="6.5" cy="15" r="1.4" />
+    <circle cx="17.5" cy="15" r="1.4" />
+  </SvgIcon>
+);
+
+const MILESTONE_ICON = (
+  <SvgIcon size={18}>
+    <path d="m12 3 7 7-7 7-7-7Z" />
+  </SvgIcon>
+);
+
+const CHEVRON_ICON = (
+  <SvgIcon size={16}>
+    <path d="m6 9 6 6 6-6" />
+  </SvgIcon>
+);
+
+const DIAGONAL_ICON = (
+  <SvgIcon size={16}>
+    <path d="M7 17 17 7M9 7h8v8" />
+  </SvgIcon>
+);
+
+function dottedDate(date: string): string {
+  return date.split('-').join('.');
+}
+
+function branchTrail(branches: readonly Branch[], branchId: string): Branch[] {
+  const byId = new Map(branches.map((branch) => [branch.id, branch]));
+  const trail: Branch[] = [];
+  const seen = new Set<string>();
+  let cursor = byId.get(branchId);
+  while (cursor && cursor.parentId !== null && !seen.has(cursor.id)) {
+    seen.add(cursor.id);
+    trail.unshift(cursor);
+    cursor = byId.get(cursor.parentId);
+  }
+  return trail;
+}
 
 function isValidCommit(commit: Commit): boolean {
   return commit.voidedAt === null && commit.deletedAt === null;
@@ -86,7 +138,25 @@ export function HistoryPage() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [extraStart, setExtraStart] = useState<string | null>(null);
+  const [branchMenuOpen, setBranchMenuOpen] = useState(false);
   const loadingEarlier = useRef(false);
+  const branchMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!branchMenuOpen) return;
+    const closeOnPointer = (event: MouseEvent): void => {
+      if (!branchMenuRef.current?.contains(event.target as Node)) setBranchMenuOpen(false);
+    };
+    const closeOnKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setBranchMenuOpen(false);
+    };
+    document.addEventListener('mousedown', closeOnPointer);
+    document.addEventListener('keydown', closeOnKey);
+    return () => {
+      document.removeEventListener('mousedown', closeOnPointer);
+      document.removeEventListener('keydown', closeOnKey);
+    };
+  }, [branchMenuOpen]);
 
   useEffect(() => {
     setExtraStart(null);
@@ -104,6 +174,18 @@ export function HistoryPage() {
         .sort((a, b) => a.order - b.order),
     [liveBranches, root?.id],
   );
+
+  const branchOptions = useMemo(
+    () => [
+      { value: null as string | null, label: t('history.branch.all') },
+      ...(root ? [{ value: root.id as string | null, label: root.title }] : []),
+      ...levelOne.map((branch) => ({ value: branch.id as string | null, label: branch.title })),
+    ],
+    [levelOne, root],
+  );
+  const selectedBranchLabel =
+    branchOptions.find((option) => option.value === saved.branchId)?.label ??
+    t('history.branch.all');
 
   const earliest = useMemo(
     () => earliestActivity(liveBranches, view.commits, view.milestones, tz),
@@ -230,6 +312,43 @@ export function HistoryPage() {
     );
   }, [view.commits, view.milestones, visibleIds, effectiveRange.start, effectiveRange.end, tz]);
 
+  const rangeStartDate = effectiveRange.start ?? earliest;
+  const rangeText =
+    rangeStartDate === null
+      ? `— ${dottedDate(effectiveRange.end)}`
+      : `${dottedDate(rangeStartDate)} — ${dottedDate(effectiveRange.end)}`;
+  const todayLabel = `${t('history.today')}${Number(todayDate.slice(5, 7))}${t(
+    'history.axis.monthSuffix',
+  )}${Number(todayDate.slice(8, 10))}${t('history.daySuffix')}`;
+
+  const milestoneRows = useMemo(() => {
+    if (!hasVisibleEvents) return [];
+    return view.milestones
+      .filter((milestone) => milestone.deletedAt === null)
+      .filter((milestone) => visibleIds === null || visibleIds.has(milestone.branchId))
+      .map((milestone) => ({
+        milestone,
+        date: milestoneAnchor(milestone.achievedAt, milestone.datePrecision, tz),
+        trail: branchTrail(liveBranches, milestone.branchId),
+      }))
+      .filter(
+        (row) => row.date >= (effectiveRange.start ?? row.date) && row.date <= effectiveRange.end,
+      )
+      .sort(
+        (left, right) =>
+          right.date.localeCompare(left.date) ||
+          right.milestone.achievedAt - left.milestone.achievedAt,
+      );
+  }, [
+    hasVisibleEvents,
+    view.milestones,
+    visibleIds,
+    liveBranches,
+    effectiveRange.start,
+    effectiveRange.end,
+    tz,
+  ]);
+
   const clearDirectParams = useCallback(() => {
     const keys = ['branch', 'date', 'commit', 'milestone'];
     if (!keys.some((key) => searchParams.has(key))) return;
@@ -273,113 +392,225 @@ export function HistoryPage() {
     );
 
   return (
-    <PageShell titleKey="page.history.title" bodyKey="page.history.body">
-      <div className={styles.filters}>
-        <label className={styles.field}>
-          <span className={styles.fieldLabel}>{t('history.range.label')}</span>
-          <select
-            className={styles.select}
-            value={saved.range}
-            onChange={(event) => handleRangeChange(event.target.value as TimeRangeKind)}
-          >
-            {TIME_RANGE_KINDS.map((kind) => (
-              <option key={kind} value={kind}>
-                {t(`history.range.${kind}` as MessageKey)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.fieldLabel}>{t('history.branch.label')}</span>
-          <select
-            className={styles.select}
-            value={saved.branchId ?? ''}
-            onChange={(event) => handleBranchChange(event.target.value || null)}
-          >
-            <option value="">{t('history.branch.all')}</option>
-            {root ? <option value={root.id}>{root.title}</option> : null}
-            {levelOne.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.title}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <button
-          type="button"
-          className={styles.addMilestone}
-          onClick={() => openMilestoneNew(saved.branchId)}
-        >
-          {t('history.addMilestone')}
-        </button>
-
-        <Link className={styles.addMilestone} to={`/history/${todayDate.slice(0, 4)}`}>
-          {t('history.year')}
+    <PageShell
+      titleKey="page.history.title"
+      bodyKey="page.history.body"
+      action={
+        <Link className={styles.yearLink} to={`/history/${todayDate.slice(0, 4)}`}>
+          {todayDate.slice(0, 4)} {t('history.year')}
+          {DIAGONAL_ICON}
         </Link>
-      </div>
-
-      {direct.temporary && !focusMilestone ? (
-        <p className={styles.temporary} role="status">
-          {t('history.direct.temporary')}
-        </p>
-      ) : null}
-
-      {view.status === 'error' ? (
-        <div className={styles.errorBanner} role="alert">
-          <span>{t('history.loadFailed')}</span>
-          <button type="button" className={styles.retry} onClick={view.retry}>
-            {t('history.retry')}
-          </button>
-        </div>
-      ) : null}
-
-      {view.status === 'loading' && !hasAnyActivity ? (
-        <HistorySkeleton />
-      ) : view.status !== 'error' && !hasAnyActivity ? (
-        <EmptyState
-          messageKey="page.history.empty"
-          action={
-            <div className={styles.emptyActions}>
+      }
+    >
+      <div className={styles.content}>
+        <div className={styles.toolbar}>
+          <div className={styles.segmented} role="group" aria-label={t('history.range.label')}>
+            {TIME_RANGE_KINDS.map((kind) => (
               <button
+                key={kind}
                 type="button"
-                className={styles.backfill}
-                onClick={() => openOverlay('backfill')}
+                className={styles.segment}
+                aria-pressed={saved.range === kind}
+                onClick={() => handleRangeChange(kind)}
               >
-                {t('page.history.backfill')}
+                {t(RANGE_LABEL_KEY[kind])}
               </button>
-              <Link className={styles.secondaryLink} to="/today">
-                {t('page.history.action')}
-              </Link>
-            </div>
-          }
-        />
-      ) : view.status !== 'error' && !hasVisibleEvents ? (
-        <EmptyState messageKey="history.empty.filtered" action={emptyAction} />
-      ) : hasVisibleEvents ? (
-        <TimelineChart
-          branches={liveBranches}
-          commits={view.commits}
-          milestones={view.milestones}
-          badges={markers}
-          range={effectiveRange}
-          visibleIds={visibleIds}
-          expanded={chartExpanded}
-          onToggle={(branchId) => {
-            const branch = liveBranches.find((row) => row.id === branchId);
-            const fallback = Boolean(
-              branch && branch.parentId === root?.id && branch.archivedAt === null,
-            );
-            toggleExpanded(branchId, fallback);
-          }}
-          highlight={highlight}
-          canLoadEarlier={canLoadEarlier}
-          onLoadEarlier={handleLoadEarlier}
-          onOpenCommit={openCommitDetail}
-          onOpenMilestone={openMilestoneDetail}
-        />
-      ) : null}
+            ))}
+          </div>
+
+          <div className={styles.branchMenuWrap} ref={branchMenuRef}>
+            <button
+              type="button"
+              className={styles.branchButton}
+              aria-expanded={branchMenuOpen}
+              aria-haspopup="listbox"
+              onClick={() => setBranchMenuOpen((open) => !open)}
+            >
+              {selectedBranchLabel}
+              {CHEVRON_ICON}
+            </button>
+            {branchMenuOpen ? (
+              <ul
+                className={styles.branchMenu}
+                role="listbox"
+                aria-label={t('history.branch.menu')}
+              >
+                {branchOptions.map((option) => (
+                  <li key={option.value ?? 'all'}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={saved.branchId === option.value}
+                      className={styles.branchOption}
+                      onClick={() => {
+                        setBranchMenuOpen(false);
+                        handleBranchChange(option.value);
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+
+          <span className={styles.rangeText}>{rangeText}</span>
+        </div>
+
+        {direct.temporary && !focusMilestone ? (
+          <p className={styles.temporary} role="status">
+            {t('history.direct.temporary')}
+          </p>
+        ) : null}
+
+        {view.status === 'error' ? (
+          <div className={styles.errorBanner} role="alert">
+            <span>{t('history.loadFailed')}</span>
+            <button type="button" className={styles.retry} onClick={view.retry}>
+              {t('history.retry')}
+            </button>
+          </div>
+        ) : null}
+
+        {view.status === 'loading' && !hasAnyActivity ? (
+          <HistorySkeleton />
+        ) : view.status !== 'error' && !hasAnyActivity ? (
+          <EmptyState
+            messageKey="page.history.empty"
+            action={
+              <div className={styles.emptyActions}>
+                <button
+                  type="button"
+                  className={styles.backfill}
+                  onClick={() => openOverlay('backfill')}
+                >
+                  {t('page.history.backfill')}
+                </button>
+                <Link className={styles.secondaryLink} to="/today">
+                  {t('page.history.action')}
+                </Link>
+              </div>
+            }
+          />
+        ) : view.status !== 'error' && !hasVisibleEvents ? (
+          <EmptyState messageKey="history.empty.filtered" action={emptyAction} />
+        ) : hasVisibleEvents ? (
+          <>
+            <section className={styles.panel}>
+              <div className={styles.panelHead}>
+                <div className={styles.panelTitle}>
+                  {TREE_ICON}
+                  <h2>{t('history.panel.tree')}</h2>
+                </div>
+                <span className={styles.today}>
+                  <i aria-hidden="true" />
+                  {todayLabel}
+                </span>
+              </div>
+              <TimelineChart
+                branches={liveBranches}
+                commits={view.commits}
+                milestones={view.milestones}
+                badges={markers}
+                range={effectiveRange}
+                visibleIds={visibleIds}
+                expanded={chartExpanded}
+                onToggle={(branchId) => {
+                  const branch = liveBranches.find((row) => row.id === branchId);
+                  const fallback = Boolean(
+                    branch && branch.parentId === root?.id && branch.archivedAt === null,
+                  );
+                  toggleExpanded(branchId, fallback);
+                }}
+                highlight={highlight}
+                canLoadEarlier={canLoadEarlier}
+                onLoadEarlier={handleLoadEarlier}
+                onOpenCommit={openCommitDetail}
+                onOpenMilestone={openMilestoneDetail}
+              />
+              <div className={styles.legend}>
+                <span>
+                  <i className={styles.keyDot} aria-hidden="true" />
+                  {t('history.legend.commit')}
+                </span>
+                <span>
+                  <i className={styles.keyDiamond} aria-hidden="true" />
+                  {t('history.legend.milestone')}
+                </span>
+                <span>
+                  <i className={styles.keyMerge} aria-hidden="true" />
+                  {t('history.legend.merge')}
+                </span>
+                <span>
+                  <i className={styles.keyStall} aria-hidden="true" />
+                  {t('history.legend.stall')}
+                </span>
+                <span>
+                  <i className={styles.keyDropped} aria-hidden="true" />
+                  {t('history.legend.dropped')}
+                </span>
+              </div>
+            </section>
+
+            <section className={styles.panel}>
+              <div className={styles.panelHead}>
+                <div className={styles.panelTitle}>
+                  {MILESTONE_ICON}
+                  <h2>{t('history.milestones.title')}</h2>
+                </div>
+                <div className={styles.milestoneHeadRight}>
+                  <span className={styles.panelCaption}>
+                    {t(RANGE_LABEL_KEY[saved.range])} · {milestoneRows.length}
+                    {t('history.milestones.countSuffix')}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.addMilestone}
+                    onClick={() => openMilestoneNew(saved.branchId)}
+                  >
+                    {t('history.addMilestone')}
+                  </button>
+                </div>
+              </div>
+              {milestoneRows.length === 0 ? (
+                <p className={styles.milestoneEmpty}>{t('history.milestones.empty')}</p>
+              ) : (
+                <div className={styles.milestoneRows}>
+                  {milestoneRows.map(({ milestone, date, trail }) => {
+                    const deepest = trail[trail.length - 1];
+                    const color = deepest
+                      ? `var(--${normalizeBranchColor(deepest.color)}-${branchShadeForDepth(
+                          deepest.depth,
+                        )})`
+                      : 'var(--neutral)';
+                    return (
+                      <button
+                        key={milestone.id}
+                        type="button"
+                        className={styles.milestoneRow}
+                        onClick={() => openMilestoneDetail(milestone.id)}
+                      >
+                        <span className={styles.milestoneDate}>{dottedDate(date).slice(5)}</span>
+                        <strong className={styles.milestoneName}>{milestone.title}</strong>
+                        <span className={styles.milestoneBranch}>
+                          <i
+                            className={styles.milestoneMark}
+                            style={{ '--mark-color': color } as CSSProperties}
+                            aria-hidden="true"
+                          />
+                          {trail.map((branch) => branch.title).join(' / ') ||
+                            t('history.lane.root')}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </>
+        ) : null}
+      </div>
     </PageShell>
   );
 }

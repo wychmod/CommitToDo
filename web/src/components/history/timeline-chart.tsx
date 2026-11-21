@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { currentTzOffset, systemClock, toLocalDate } from '@/core/clock';
+import { currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
 import type { Branch, Commit, Milestone } from '@/data/types';
 import { t } from '@/i18n';
 import styles from './timeline-chart.module.css';
@@ -18,7 +18,7 @@ import { badgeNameKey } from '@/components/badges/badge-presentation';
 import type { BadgeMarker } from '@/core/rules/badge-marker';
 
 const LABEL_WIDTH_PX = 160;
-const DAY_WIDTH_PX = 12;
+const MIN_DAY_WIDTH_PX = 3;
 const MIN_GAP_PX = 12;
 const DAY_MS = 86_400_000;
 
@@ -257,8 +257,15 @@ export function TimelineChart({
   const totalDays = Math.max(1, daysBetween(rangeStart, range.end) + 1);
   const totalMs = totalDays * DAY_MS;
   const startMs = dateToMs(rangeStart, tz, 0);
-  const trackWidth = Math.max(viewportWidth - LABEL_WIDTH_PX, totalDays * DAY_WIDTH_PX);
+  const trackWidth = Math.max(viewportWidth - LABEL_WIDTH_PX, totalDays * MIN_DAY_WIDTH_PX);
   const pxPerMs = trackWidth / totalMs;
+  const todayDate = today(systemClock, tz);
+  const todayX = Math.min(
+    trackWidth,
+    Math.max(0, (dateToMs(todayDate, tz, 0) - startMs) * pxPerMs),
+  );
+  const tickClass = (date: string): string =>
+    date === range.end ? styles.tickEnd : date === rangeStart ? styles.tickStart : styles.tick;
   const monthSuffix = t('history.axis.monthSuffix');
   const ticks = useMemo(
     () => monthTicks(rangeStart, range.end, monthSuffix),
@@ -334,7 +341,7 @@ export function TimelineChart({
               {ticks.map((tick) => (
                 <span
                   key={tick.date}
-                  className={styles.tick}
+                  className={tickClass(tick.date)}
                   style={{ left: `${dayX(tick.date)}%` }}
                 >
                   {tick.label}
@@ -342,6 +349,12 @@ export function TimelineChart({
               ))}
             </div>
           </div>
+
+          <span
+            className={styles.todayLine}
+            style={{ left: LABEL_WIDTH_PX + todayX }}
+            aria-hidden="true"
+          />
 
           {lanes.map((lane) => {
             const branch = lane.branch;

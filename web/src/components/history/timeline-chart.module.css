@@ -8,6 +8,7 @@
 
 .loadEarlier {
   align-self: flex-start;
+  margin: var(--s3) var(--s4) 0;
   padding: var(--s1) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
@@ -29,12 +30,10 @@
 
 .desktopOnly {
   overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-  background: var(--panel);
 }
 
 .canvas {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 100%;
@@ -71,6 +70,28 @@
   font-size: var(--type-chart);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.tickStart {
+  composes: tick;
+  transform: translate(0, -50%);
+}
+
+.tickEnd {
+  composes: tick;
+  transform: translate(-100%, -50%);
+}
+.todayLine {
+  position: absolute;
+  top: var(--timeline-axis);
+  bottom: 0;
+  z-index: 0;
+  width: var(--s4);
+  margin-left: calc(var(--s4) / -2);
+  border-radius: var(--radius-marker);
+  background: var(--accent);
+  opacity: 0.12;
+  pointer-events: none;
 }
 
 .laneRow {

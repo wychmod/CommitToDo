@@ -1,17 +1,53 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { systemClock, today } from '@/core/clock';
 import type { YearBranchShare, YearMonthBucket } from '@/core/rules/year-distribution';
+import { createLevelOneResolver, isYearCommit } from '@/core/rules/year-metrics';
 import { listSelectableYears, resolveYearParam } from '@/core/rules/year-param';
 import { useYearReviewData } from '@/data/hooks';
 import { saveYearReview } from '@/data/save-year-review';
 import { t } from '@/i18n';
 import { useHistoryFilterStore } from '@/stores/history.store';
+import { SvgIcon } from '@/ui/icons/svg-icon';
 import { PageShell } from '@/ui/page-shell';
 import { YearSharePreview } from '@/components/year/year-share-preview';
 import styles from './year-page.module.css';
 
 const FOUR_DIGITS = /^\d{4}$/;
+const TOP_BRANCHES = 3;
+
+const PENCIL_ICON = (
+  <SvgIcon size={16}>
+    <path d="m5 16-.6 3.6L8 19l10-10-3-3L5 16Zm8-8 3 3" />
+  </SvgIcon>
+);
+
+const SHARE_ICON = (
+  <SvgIcon size={16}>
+    <path d="m8.5 12 7-4.5m-7 4.5 7 4.5" />
+    <circle cx="6" cy="12" r="2.1" />
+    <circle cx="18" cy="6" r="2.1" />
+    <circle cx="18" cy="18" r="2.1" />
+  </SvgIcon>
+);
+
+const PREV_ICON = (
+  <SvgIcon size={16}>
+    <path d="m14 6-6 6 6 6" />
+  </SvgIcon>
+);
+
+const NEXT_ICON = (
+  <SvgIcon size={16}>
+    <path d="m10 6 6 6-6 6" />
+  </SvgIcon>
+);
+
+interface MonthSegment {
+  key: string | null;
+  count: number;
+  color: string | null;
+}
 
 function shareStyle(share: YearBranchShare): CSSProperties | undefined {
   if (share.branchId === null || share.color === null) return undefined;
@@ -60,15 +96,19 @@ function ShareRow({ share, to }: { share: YearBranchShare; to: string | null }) 
 
 function MonthBar({
   bucket,
+  segments,
   count,
   future,
-  max,
+  yMax,
+  current,
   onOpen,
 }: {
   bucket: YearMonthBucket;
+  segments: MonthSegment[];
   count: number | null;
   future: boolean;
-  max: number;
+  yMax: number;
+  current: boolean;
   onOpen: () => void;
 }) {
   const monthLabel = `${t('year.month.jump')}${bucket.month}${t('history.axis.monthSuffix')}`;
@@ -80,7 +120,13 @@ function MonthBar({
       : `${monthLabel} ${count}${t('year.month.countSuffix')}`;
 
   return (
-    <button type="button" className={styles.month} onClick={onOpen} aria-label={label}>
+    <button
+      type="button"
+      className={current ? styles.monthCurrent : styles.month}
+      onClick={onOpen}
+      aria-label={label}
+    >
+      <span className={styles.monthCount}>{count === null || count === 0 ? null : count}</span>
       <span className={styles.monthPlot} aria-hidden="true">
         {count === null ? (
           <span className={styles.monthEmpty} />
@@ -89,14 +135,24 @@ function MonthBar({
         ) : (
           <span
             className={styles.monthBar}
-            style={{ height: `${Math.round((count / max) * 100)}%` }}
-          />
+            style={{ height: `${Math.round((count / yMax) * 100)}%` }}
+          >
+            {segments.map((segment) => (
+              <span
+                key={segment.key ?? 'other'}
+                className={styles.monthSegment}
+                style={
+                  {
+                    '--seg-color': segment.color ? `var(--${segment.color}-1)` : 'var(--neutral)',
+                    flexGrow: segment.count,
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </span>
         )}
       </span>
-      <span className={styles.monthLabel}>{bucket.month}</span>
-      <span className={styles.monthCount}>
-        {count === null ? (future ? t('year.month.future') : null) : count}
-      </span>
+      <span className={styles.monthLabel}>{String(bucket.month).padStart(2, '0')}</span>
     </button>
   );
 }
@@ -234,54 +290,106 @@ export function YearPage() {
   const metrics = view.metrics;
 
   const emptyYear = distribution.total === 0;
-  const counts = distribution.months.map((bucket) => (emptyYear ? null : bucket.count));
+  const counts = distribution.months.map((bucket) => bucket.count);
   const max = Math.max(1, ...counts.map((count) => count ?? 0));
+  const yMax = Math.max(4, Math.ceil(max / 4) * 4);
+  const yTicks = [yMax, (yMax * 3) / 4, yMax / 2, yMax / 4, 0];
+  const currentMonth = requestedYear === currentYear ? Number(todayDate.slice(5, 7)) : null;
+  const todayDay = Number(todayDate.slice(8, 10));
+  const yearIndex = years.indexOf(requestedYear);
+  const prevYear = yearIndex > 0 ? years[yearIndex - 1] : null;
+  const nextYear = yearIndex >= 0 && yearIndex < years.length - 1 ? years[yearIndex + 1] : null;
+
+  const legendBranches = useMemo(
+    () =>
+      distribution.shares
+        .filter((share) => share.branchId !== null && share.color !== null)
+        .slice(0, TOP_BRANCHES),
+    [distribution.shares],
+  );
+
+  const monthlySegments = useMemo(() => {
+    const resolveLevelOne = createLevelOneResolver(view.branches);
+    const known = new Map(
+      legendBranches.map((share) => [share.branchId as string, share.color as string]),
+    );
+    const rows: Array<Map<string | null, number>> = Array.from(
+      { length: 12 },
+      () => new Map<string | null, number>(),
+    );
+    for (const commit of view.commits) {
+      if (!isYearCommit(commit, requestedYear)) continue;
+      const month = Number(commit.date.slice(5, 7));
+      if (!Number.isInteger(month) || month < 1 || month > 12) continue;
+      const levelOneId = resolveLevelOne(commit.branchId);
+      const key = levelOneId !== null && known.has(levelOneId) ? levelOneId : null;
+      const bucketMap = rows[month - 1];
+      bucketMap.set(key, (bucketMap.get(key) ?? 0) + 1);
+    }
+    const order: Array<string | null> = [...legendBranches.map((share) => share.branchId), null];
+    return rows.map((bucketMap) =>
+      order
+        .map((key) => ({
+          key,
+          count: bucketMap.get(key) ?? 0,
+          color: key !== null ? (known.get(key) ?? null) : null,
+        }))
+        .filter((segment) => segment.count > 0),
+    );
+  }, [view.commits, view.branches, requestedYear, legendBranches]);
+
+  const hasOtherCommits = monthlySegments.some((segments) =>
+    segments.some((segment) => segment.key === null && segment.count > 0),
+  );
 
   return (
     <PageShell
       title={
-        <h1>
-          {requestedYear}
-          {t('year.headingSuffix')}
-        </h1>
+        <div className={styles.headingWrap}>
+          <nav className={styles.crumb}>
+            <Link to="/history">{t('year.crumb.history')}</Link>
+            <span aria-hidden="true">/</span>
+            <span>{t('year.crumb.review')}</span>
+          </nav>
+          <h1 className={styles.heading}>
+            {requestedYear}
+            <span>{t('year.headingRing')}</span>
+          </h1>
+        </div>
       }
       bodyKey="page.year.body"
       action={
-        <button
-          type="button"
-          className={styles.share}
-          disabled={view.status !== 'ready' || !view.share.available}
-          title={
-            view.status === 'ready' && !view.share.available
-              ? t('year.share.emptyHint')
-              : t('year.share.title')
-          }
-          onClick={() => setShareOpen(true)}
-        >
-          {t('year.share')}
-        </button>
+        <div className={styles.picker} role="group" aria-label={t('year.switch.label')}>
+          <button
+            type="button"
+            className={styles.pickerButton}
+            aria-label={t('year.switch.prev')}
+            disabled={prevYear === null}
+            onClick={() => {
+              if (prevYear !== null) switchYear(prevYear);
+            }}
+          >
+            {PREV_ICON}
+          </button>
+          <span className={styles.pickerYear}>
+            {requestedYear}
+            {t('year.headingSuffix')}
+          </span>
+          <button
+            type="button"
+            className={styles.pickerButton}
+            aria-label={t('year.switch.next')}
+            disabled={nextYear === null}
+            onClick={() => {
+              if (nextYear !== null) switchYear(nextYear);
+            }}
+          >
+            {NEXT_ICON}
+          </button>
+        </div>
       }
     >
       <div className={styles.content}>
-        <div className={styles.yearBar} role="group" aria-label={t('year.switch.label')}>
-          {years.map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={value === requestedYear ? styles.yearChipActive : styles.yearChip}
-              aria-current={value === requestedYear ? 'true' : undefined}
-              onClick={() => switchYear(value)}
-            >
-              {value}
-              {t('year.headingSuffix')}
-            </button>
-          ))}
-        </div>
-
-        {view.status === 'ready' && !view.share.available ? (
-          <p className={styles.shareReason}>{t('year.share.emptyHint')}</p>
-        ) : null}
-
         {view.status === 'error' ? (
           <div className={styles.errorBanner} role="alert">
             <span>{t('year.loadFailed')}</span>
@@ -325,108 +433,201 @@ export function YearPage() {
               </div>
             ) : null}
 
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>{t('year.months.title')}</h2>
-              <div className={styles.monthsScroll}>
-                <div className={styles.months}>
-                  {distribution.months.map((bucket, index) => (
-                    <MonthBar
-                      key={bucket.month}
-                      bucket={bucket}
-                      count={counts[index] ?? null}
-                      future={!emptyYear && bucket.count === null}
-                      max={max}
-                      onOpen={openMonth}
-                    />
-                  ))}
+            <section className={styles.panel}>
+              <div className={styles.panelHead}>
+                <div className={styles.panelHeading}>
+                  <h2>{t('year.months.title')}</h2>
+                  <p>{t('year.months.subtitle')}</p>
                 </div>
-              </div>
-            </section>
-
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>{t('year.branches.title')}</h2>
-              {distribution.shares.length === 0 ? (
-                <p className={styles.quiet}>{t('year.empty')}</p>
-              ) : (
-                <div className={styles.branchList}>
-                  {distribution.shares.map((share) => (
-                    <ShareRow
-                      key={share.branchId ?? 'root'}
-                      share={share}
-                      to={
-                        share.branchId !== null
-                          ? `/branches/${share.branchId}`
-                          : rootId
-                            ? `/branches/${rootId}`
-                            : null
-                      }
-                    />
-                  ))}
-                </div>
-              )}
-              {distribution.top.length > 0 ? (
-                <>
-                  <h2 className={styles.sectionTitle}>{t('year.top.title')}</h2>
-                  <div className={styles.branchList}>
-                    {distribution.top.map((share) => (
-                      <ShareRow
-                        key={share.branchId}
-                        share={share}
-                        to={`/branches/${share.branchId}`}
-                      />
+                {legendBranches.length > 0 || hasOtherCommits ? (
+                  <div className={styles.legend} aria-label={t('year.chart.legend')}>
+                    {legendBranches.map((share) => (
+                      <span key={share.branchId}>
+                        <i
+                          className={styles.legendDot}
+                          style={shareStyle(share)}
+                          aria-hidden="true"
+                        />
+                        {shareTitle(share)}
+                      </span>
                     ))}
-                  </div>
-                </>
-              ) : null}
-            </section>
-
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>{t('year.summary.title')}</h2>
-              {editing ? (
-                <div className={styles.editor}>
-                  <label className={styles.srOnly} htmlFor="year-summary">
-                    {t('year.summary.label')}
-                  </label>
-                  <textarea
-                    id="year-summary"
-                    className={styles.summaryInput}
-                    rows={2}
-                    value={draft}
-                    disabled={saving}
-                    onChange={(event) => setDraft(event.target.value)}
-                    onBlur={() => void handleSave()}
-                  />
-                  <div className={styles.editorActions}>
-                    <button
-                      type="button"
-                      className={styles.save}
-                      disabled={saving}
-                      onClick={() => void handleSave()}
-                    >
-                      {saving ? t('year.summary.saving') : t('year.summary.save')}
-                    </button>
-                    {saveError ? (
-                      <span className={styles.saveError} role="alert">
-                        {t('year.summary.error')}
+                    {hasOtherCommits ? (
+                      <span>
+                        <i
+                          className={styles.legendDot}
+                          style={{ '--share-color': 'var(--neutral)' } as CSSProperties}
+                          aria-hidden="true"
+                        />
+                        {t('year.chart.other')}
                       </span>
                     ) : null}
                   </div>
+                ) : null}
+              </div>
+
+              <div className={styles.chart}>
+                <div className={styles.chartAxis} aria-hidden="true">
+                  {yTicks.map((tick) => (
+                    <span key={tick}>{tick}</span>
+                  ))}
                 </div>
-              ) : note.trim() === '' ? (
-                <button type="button" className={styles.summaryEmpty} onClick={startEdit}>
-                  {t('year.summary.placeholder')}
-                </button>
-              ) : (
-                <button type="button" className={styles.summaryText} onClick={startEdit}>
-                  {note}
-                </button>
-              )}
-              {savedHint ? (
-                <span className={styles.savedHint} role="status">
-                  {t('year.summary.saved')}
-                </span>
+                <div className={styles.chartPlot}>
+                  <div className={styles.chartGrid} aria-hidden="true">
+                    {[0, 1, 2, 3, 4].map((index) => (
+                      <span key={index} />
+                    ))}
+                  </div>
+                  <div className={styles.months}>
+                    {distribution.months.map((bucket, index) => (
+                      <MonthBar
+                        key={bucket.month}
+                        bucket={bucket}
+                        segments={monthlySegments[index]}
+                        count={counts[index] ?? null}
+                        future={bucket.count === null}
+                        yMax={yMax}
+                        current={currentMonth === bucket.month}
+                        onOpen={openMonth}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {currentMonth !== null ? (
+                <div className={styles.chartFoot}>
+                  <span className={styles.chartFootItem}>
+                    <i aria-hidden="true" />
+                    {currentMonth}
+                    {t('year.chart.until')}
+                    {todayDay}
+                    {t('year.chart.daySuffix')}
+                  </span>
+                  <span className={styles.chartFootItem}>12{t('year.chart.future')}</span>
+                </div>
               ) : null}
             </section>
+
+            <div className={styles.bottom}>
+              <section className={styles.panel}>
+                <div className={styles.panelHead}>
+                  <div className={styles.panelHeading}>
+                    <h2>{t('year.branches.title')}</h2>
+                    <p>{t('year.distribution.subtitle')}</p>
+                  </div>
+                  <span className={styles.distColumns} aria-hidden="true">
+                    <span>{t('year.metric.commits')}</span>
+                    <span>{t('year.distribution.ratio')}</span>
+                  </span>
+                </div>
+                {distribution.shares.length === 0 ? (
+                  <p className={styles.quiet}>{t('year.empty')}</p>
+                ) : (
+                  <div className={styles.branchList}>
+                    {distribution.shares.map((share) => (
+                      <ShareRow
+                        key={share.branchId ?? 'root'}
+                        share={share}
+                        to={
+                          share.branchId !== null
+                            ? `/branches/${share.branchId}`
+                            : rootId
+                              ? `/branches/${rootId}`
+                              : null
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className={styles.panel}>
+                <div className={styles.panelHead}>
+                  <div className={styles.panelHeading}>
+                    <h2>{t('year.summary.title')}</h2>
+                    <p>{t('year.summary.subtitle')}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.iconButton}
+                    aria-label={t('year.summary.edit')}
+                    disabled={saving}
+                    onClick={startEdit}
+                  >
+                    {PENCIL_ICON}
+                  </button>
+                </div>
+
+                <div className={styles.summaryBody}>
+                  {editing ? (
+                    <div className={styles.editor}>
+                      <label className={styles.srOnly} htmlFor="year-summary">
+                        {t('year.summary.label')}
+                      </label>
+                      <textarea
+                        id="year-summary"
+                        className={styles.summaryInput}
+                        rows={2}
+                        value={draft}
+                        disabled={saving}
+                        onChange={(event) => setDraft(event.target.value)}
+                        onBlur={() => void handleSave()}
+                      />
+                      <div className={styles.editorActions}>
+                        <button
+                          type="button"
+                          className={styles.save}
+                          disabled={saving}
+                          onClick={() => void handleSave()}
+                        >
+                          {saving ? t('year.summary.saving') : t('year.summary.save')}
+                        </button>
+                        {saveError ? (
+                          <span className={styles.saveError} role="alert">
+                            {t('year.summary.error')}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : note.trim() === '' ? (
+                    <button type="button" className={styles.noteEmpty} onClick={startEdit}>
+                      {t('year.summary.placeholder')}
+                    </button>
+                  ) : (
+                    <button type="button" className={styles.note} onClick={startEdit}>
+                      {note}
+                    </button>
+                  )}
+                  {savedHint ? (
+                    <span className={styles.savedHint} role="status">
+                      {t('year.summary.saved')}
+                    </span>
+                  ) : null}
+
+                  <div className={styles.shareCard}>
+                    <strong className={styles.shareTitle}>{t('year.share.cardTitle')}</strong>
+                    <p className={styles.shareBody}>{t('year.share.cardBody')}</p>
+                    {view.status === 'ready' && !view.share.available ? (
+                      <p className={styles.shareHint}>{t('year.share.emptyHint')}</p>
+                    ) : null}
+                    <button
+                      type="button"
+                      className={styles.shareButton}
+                      disabled={view.status !== 'ready' || !view.share.available}
+                      title={
+                        view.status === 'ready' && !view.share.available
+                          ? t('year.share.emptyHint')
+                          : t('year.share.title')
+                      }
+                      onClick={() => setShareOpen(true)}
+                    >
+                      {SHARE_ICON}
+                      {t('year.share.generate')}
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </div>
           </>
         )}
       </div>
