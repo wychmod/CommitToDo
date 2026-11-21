@@ -1,7 +1,7 @@
 .link {
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
+  min-height: var(--s9);
   padding: 0 var(--s4);
   border: 1px solid var(--accent);
   border-radius: var(--radius-control);
@@ -9,6 +9,44 @@
   color: var(--accent-ink);
   font-size: var(--type-secondary);
   text-decoration: none;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s9);
+  padding: 0 var(--s4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.notice {
+  margin-bottom: var(--s4);
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s7);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--type-heading-small);
+}
+
+.list a {
+  color: var(--accent);
 }
 
 .list {

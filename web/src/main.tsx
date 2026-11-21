@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './app';
+import { ThemeProvider } from './components/theme-provider';
 import { AppErrorBoundary } from './ui/error-boundary';
 import './styles/global.css';
 
@@ -13,7 +14,9 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <AppErrorBoundary>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </AppErrorBoundary>
   </React.StrictMode>,
 );

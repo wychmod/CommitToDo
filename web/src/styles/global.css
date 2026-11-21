@@ -4,10 +4,21 @@
 
 :root {
   color-scheme: light;
+
+  /* 由 K-01 的两档密度派生：树行高、列表行高与节点日期显隐。 */
+  --tree-row-height: var(--tree-height-default);
+  --tree-list-height: var(--tree-list-default);
+  --node-date-display: inline;
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
+}
+
+[data-density='compact'] {
+  --tree-row-height: var(--tree-height-compact);
+  --tree-list-height: var(--tree-list-compact);
+  --node-date-display: none;
 }
 
 html,

@@ -5,14 +5,17 @@
  * MVP 只有本机一个 owner，`ownerId` 固定为 `local`，V2 接账号后再填真实用户。
  */
 
+import type { AnnotationMode } from '@/core/rules/annotation-visibility';
+import type { Theme } from '@/core/rules/theme-preference';
+import type { TreeDensity } from '@/core/rules/tree-density';
+
 export type OwnerId = string;
 export type BranchStatus = 'active' | 'merged' | 'dropped';
 export type TaskStatus = 'open' | 'done' | 'cancelled';
 export type DatePrecision = 'day' | 'month' | 'year';
-export type Theme = 'light' | 'dark';
-export type TreeDensity = 'compact' | 'comfortable';
-export type AnnotationMode = 'off' | 'once' | 'always';
 export type BackupKind = 'auto' | 'manual' | 'pre-restore' | 'remote';
+
+export type { AnnotationMode, Theme, TreeDensity };
 
 export interface Branch {
   id: string;

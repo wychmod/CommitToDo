@@ -1,0 +1,131 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s7);
+  max-width: var(--layout-content-max);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.heading {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-heading-small);
+}
+
+.hint {
+  margin: 0;
+  color: var(--subtle);
+  font-size: var(--type-secondary);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.option {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.optionText {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s9);
+  padding: 0 var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-secondary);
+}
+
+.input:checked + .optionText {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.input:focus-visible + .optionText {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.entry {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  min-height: var(--s9);
+  padding: 0 var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  text-decoration: none;
+}
+
+.entry:hover {
+  border-color: var(--line-strong);
+}
+
+.status {
+  min-height: var(--s5);
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-control);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
+.retry {
+  min-height: var(--s8);
+  padding: 0 var(--s3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--danger);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}

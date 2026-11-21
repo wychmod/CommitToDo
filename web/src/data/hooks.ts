@@ -1,5 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { LOCAL_OWNER_ID } from './db';
+import { useEffect, useState } from 'react';
+import { normalizeAnnotationMode } from '@/core/rules/annotation-visibility';
+import { normalizeTheme } from '@/core/rules/theme-preference';
+import { resolveTreeDensity } from '@/core/rules/tree-density';
+import { db, LOCAL_OWNER_ID } from './db';
+import { DEFAULT_SETTINGS, type SettingsFields } from './settings-defaults';
 import {
   badgeRepository,
   branchRepository,
@@ -44,10 +49,67 @@ export function useBadges(ownerId = LOCAL_OWNER_ID) {
   return useLiveQuery(() => badgeRepository.listByOwner(ownerId), [ownerId]);
 }
 
-export function useSettings(ownerId = LOCAL_OWNER_ID) {
-  return useLiveQuery(() => settingsRepository.getByOwner(ownerId), [ownerId]);
+/**
+ * 偏好读数。`loaded = false` 表示查询尚未完成；行不存在时按默认值返回并视为已加载，
+ * 这样设置页不会把「首次使用」误判为加载中，也不会在读到旧行时闪烁。
+ */
+export function useSettingsState(ownerId = LOCAL_OWNER_ID) {
+  const row = useLiveQuery(async () => {
+    try {
+      return (await settingsRepository.getByOwner(ownerId)) ?? null;
+    } catch {
+      // 读取失败由工作区外壳的错误态统一承接；这里回落默认偏好，避免整页白屏。
+      return null;
+    }
+  }, [ownerId]);
+
+  const settings: SettingsFields = {
+    theme: normalizeTheme(row?.theme),
+    treeDensity: resolveTreeDensity(row?.treeDensity).density,
+    annotations: normalizeAnnotationMode(row?.annotations),
+    reminderEnabled: row?.reminderEnabled ?? DEFAULT_SETTINGS.reminderEnabled,
+    lastAutoBackupAt: row?.lastAutoBackupAt ?? null,
+  };
+
+  return { loaded: row !== undefined, settings };
 }
 
 export function useRecentEvents(ownerId = LOCAL_OWNER_ID, limit = 20) {
   return useLiveQuery(() => eventRepository.listRecent(ownerId, limit), [ownerId, limit]);
+}
+
+export type StorageStatus = 'checking' | 'ready' | 'error';
+
+/**
+ * 本机库可用性（M01 OP-08）。
+ *
+ * 打开工作区时先探测一次 `db.open()`；失败时外壳保留顶栏与导航，
+ * 主区显示可读原因与「重试」，不清空、不新建空库覆盖已有数据。
+ */
+export function useStorageReady() {
+  const [status, setStatus] = useState<StorageStatus>('checking');
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    setStatus('checking');
+
+    void (async () => {
+      try {
+        await db.open();
+        if (active) setStatus('ready');
+      } catch {
+        if (active) setStatus('error');
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [attempt]);
+
+  return {
+    status,
+    retry: () => setAttempt((value) => value + 1),
+  };
 }

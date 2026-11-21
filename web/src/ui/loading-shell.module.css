@@ -1,0 +1,18 @@
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4) 0;
+}
+
+.label {
+  color: var(--subtle);
+  font-size: var(--type-secondary);
+}
+
+.row {
+  display: block;
+  height: var(--tree-list-default);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+}

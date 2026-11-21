@@ -160,6 +160,10 @@
   - 画稿 P07 的「跟随系统」为遗留项，不实现（R19）。
   - `FRAMEWORK` K-04 字号调节属 V1，但 0.12 已删除 `settings.fontScale` 且 P07 无该控件；本阶段与后续阶段均不做，README 冲突表与 V1-08 已记录。
   - P07 的账号与同步分区归 V2-01，本阶段不显示。
+  - 分支空态的「新建分支」指向 `/branches?new=1`，由 M02 接管；本阶段只交付外壳、空态结构与入口。
+  - §8.2 声明不新增 `web/src/data/*.test.ts`，但偏好写入要同事务记 `settings.update` 事件（两张表），按 `CODE-STRUCTURE` 补一条事务测试 `update-settings.test.ts`。
+  - 偏好存放在 IndexedDB，`head` 内联脚本无法同步读取：不做内联脚本、不镜像到 `localStorage`；首帧按默认浅色渲染，深色刷新有一次极短回落，记为已知边界。
+  - 偏好默认值定为 `theme=light`、`treeDensity=comfortable`、`annotations=once`、`reminderEnabled=true`；不预建 `settings` 行，首次改偏好时才补全整行。
 - 未决问题：
   - 本机设备 ID 的生成与存放位置（`ownerId` 占位）由技术架构决定，PRD 只要求「不暴露给用户」。
 
