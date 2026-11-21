@@ -6,7 +6,9 @@ import {
   AuthForm,
   AuthHeading,
   AuthMessage,
+  AuthSteps,
   AuthSubmit,
+  AuthSwitch,
   AuthTextLink,
 } from '@/components/auth/auth-form';
 import { authErrorMessage } from '@/components/auth/auth-error';
@@ -121,22 +123,14 @@ export function RecoverPage() {
 
   return (
     <AuthShell>
-      <ol className={styles.steps}>
-        {[
-          t('auth.recover.step.email'),
-          t('auth.recover.step.sent'),
-          t('auth.recover.step.reset'),
-        ].map((label, index) => (
-          <li
-            key={label}
-            className={styles.step}
-            data-state={index === stepIndex ? 'current' : index < stepIndex ? 'done' : 'idle'}
-          >
-            <span className={styles.stepBar} aria-hidden="true" />
-            {label}
-          </li>
-        ))}
-      </ol>
+      <AuthSteps
+        current={stepIndex}
+        steps={[
+          { label: t('auth.recover.step.email') },
+          { label: t('auth.recover.step.sent') },
+          { label: t('auth.recover.step.reset') },
+        ]}
+      />
 
       {phase === 'email' ? (
         <>
@@ -163,24 +157,35 @@ export function RecoverPage() {
             />
             <AuthSubmit busy={busy}>{t('auth.recover.send')}</AuthSubmit>
           </AuthForm>
-          <div className={styles.links}>
-            <AuthTextLink to="/auth/login">{t('auth.recover.toLogin')}</AuthTextLink>
-          </div>
+          <AuthSwitch to="/auth/login" action={t('auth.recover.toLogin')} />
         </>
       ) : null}
 
       {phase === 'sent' ? (
         <>
           <span className={styles.sentIcon} aria-hidden="true">
-            <MailIcon size={20} />
+            <MailIcon size={24} />
           </span>
           <AuthHeading
             title={t('auth.recover.title.sent')}
             description={t('auth.recover.description.sent')}
           />
           {formError ? <AuthMessage>{formError}</AuthMessage> : null}
-          <div className={styles.sentEmail}>
-            <span className={styles.sentEmailText}>{email}</span>
+          <div className={styles.recoveryNote}>
+            <span>{t('auth.recover.emailLabel')}</span>
+            <strong>{email}</strong>
+          </div>
+          <div className={styles.resendRow}>
+            <button
+              type="button"
+              className={styles.secondary}
+              disabled={busy || cooldown > 0}
+              onClick={() => void sendEmail()}
+            >
+              {cooldown > 0
+                ? `${cooldown} ${t('auth.recover.resendAfter')}`
+                : t('auth.recover.resend')}
+            </button>
             <button
               type="button"
               className={styles.linkButton}
@@ -192,19 +197,7 @@ export function RecoverPage() {
               {t('auth.recover.changeEmail')}
             </button>
           </div>
-          <div className={styles.sentActions}>
-            <button
-              type="button"
-              className={styles.secondary}
-              disabled={busy || cooldown > 0}
-              onClick={() => void sendEmail()}
-            >
-              {cooldown > 0
-                ? `${cooldown} ${t('auth.recover.resendAfter')}`
-                : t('auth.recover.resend')}
-            </button>
-            <AuthTextLink to="/auth/login">{t('auth.recover.toLogin')}</AuthTextLink>
-          </div>
+          <AuthSwitch to="/auth/login" action={t('auth.recover.toLogin')} />
         </>
       ) : null}
 

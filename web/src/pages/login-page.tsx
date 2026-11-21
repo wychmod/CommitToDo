@@ -5,10 +5,10 @@ import {
   AuthField,
   AuthForm,
   AuthHeading,
-  AuthHint,
   AuthMessage,
   AuthMeta,
   AuthSubmit,
+  AuthSwitch,
   AuthTextLink,
 } from '@/components/auth/auth-form';
 import { authErrorMessage } from '@/components/auth/auth-error';
@@ -19,7 +19,6 @@ import { assignOwnerTo } from '@/data/assign-owner';
 import { signIn } from '@/data/cloud/auth';
 import { t } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
-import styles from './auth-page.module.css';
 
 /**
  * P09 登录（PRD V2-01 OP-01 / OP-03 / OP-07）。
@@ -122,18 +121,16 @@ export function LoginPage() {
 
         <AuthMeta>
           <AuthTextLink to="/auth/recover">{t('auth.login.forgot')}</AuthTextLink>
-          <AuthTextLink to={`/auth/signup?next=${encodeURIComponent(next)}`}>
-            {t('auth.login.toSignup')}
-          </AuthTextLink>
         </AuthMeta>
 
         <AuthSubmit busy={busy}>{t('auth.login.submit')}</AuthSubmit>
-        <AuthHint>{t('auth.merge.hint')}</AuthHint>
       </AuthForm>
 
-      <div className={styles.links}>
-        <AuthTextLink to="/today">{t('auth.localWorkspace')}</AuthTextLink>
-      </div>
+      <AuthSwitch
+        lead={t('auth.login.switchLead')}
+        to={`/auth/signup?next=${encodeURIComponent(next)}`}
+        action={t('auth.login.toSignup')}
+      />
     </AuthShell>
   );
 }

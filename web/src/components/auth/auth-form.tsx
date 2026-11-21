@@ -1,7 +1,7 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+﻿import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { t } from '@/i18n';
-import { EyeIcon, EyeOffIcon } from '@/ui/icons';
+import { CheckIcon, EyeIcon, EyeOffIcon, ArrowIcon } from '@/ui/icons';
 import styles from './auth-form.module.css';
 
 interface AuthFormProps {
@@ -107,10 +107,21 @@ export function AuthField({
   );
 }
 
-export function AuthSubmit({ busy, children }: { busy: boolean; children: ReactNode }) {
+export function AuthSubmit({
+  busy,
+  disabled = false,
+  children,
+}: {
+  busy: boolean;
+  disabled?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <button className={styles.submit} type="submit" disabled={busy}>
-      {busy ? t('auth.submitting') : children}
+    <button className={styles.submit} type="submit" disabled={busy || disabled}>
+      <span>{busy ? t('auth.submitting') : children}</span>
+      <span className={styles.submitArrow} aria-hidden="true">
+        <ArrowIcon size={18} />
+      </span>
     </button>
   );
 }
@@ -129,6 +140,7 @@ export function AuthMessage({
   );
 }
 
+/** 字段下方的行内动作，如「忘记密码？」。 */
 export function AuthMeta({ children }: { children: ReactNode }) {
   return <div className={styles.meta}>{children}</div>;
 }
@@ -141,7 +153,65 @@ export function AuthTextLink({ to, children }: { to: string; children: ReactNode
   );
 }
 
-/** 主操作下方的次要说明，如「登录后可在设置中开启同步」。 */
-export function AuthHint({ children }: { children: ReactNode }) {
-  return <p className={styles.hint}>{children}</p>;
+/** 表单底部的账号切换入口，与上方内容用分隔线隔开。 */
+export function AuthSwitch({ lead, to, action }: { lead?: string; to: string; action: string }) {
+  return (
+    <p className={styles.switch}>
+      {lead ? <span>{lead}</span> : null}
+      <AuthTextLink to={to}>{action}</AuthTextLink>
+    </p>
+  );
+}
+
+/** 注册前的条款确认；只做可读文字，不挂尚未上线的条款页。 */
+export function AuthConsent({
+  checked,
+  onChange,
+  disabled = false,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <label className={styles.consent}>
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      <span>
+        {t('auth.signup.consent.lead')}
+        <span className={styles.consentTerm}>{t('auth.signup.consent.terms')}</span>
+        {t('auth.signup.consent.join')}
+        <span className={styles.consentTerm}>{t('auth.signup.consent.privacy')}</span>
+        {t('auth.signup.consent.tail')}
+      </span>
+    </label>
+  );
+}
+
+export interface AuthStep {
+  label: string;
+}
+
+/** 找回密码的三步指示器：当前步高亮，已完成步打勾。 */
+export function AuthSteps({ steps, current }: { steps: readonly AuthStep[]; current: number }) {
+  return (
+    <ol className={styles.steps} aria-label={t('auth.recover.stepLabel')}>
+      {steps.map((step, index) => (
+        <li
+          key={step.label}
+          aria-current={index === current ? 'step' : undefined}
+          data-state={index === current ? 'current' : index < current ? 'done' : 'idle'}
+        >
+          <span aria-hidden="true">
+            {index < current ? <CheckIcon size={16} /> : String(index + 1)}
+          </span>
+          {step.label}
+        </li>
+      ))}
+    </ol>
+  );
 }

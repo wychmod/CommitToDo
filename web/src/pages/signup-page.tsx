@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthShell } from '@/components/auth/auth-shell';
 import {
+  AuthConsent,
   AuthField,
   AuthForm,
   AuthHeading,
-  AuthHint,
   AuthMessage,
   AuthSubmit,
-  AuthTextLink,
+  AuthSwitch,
 } from '@/components/auth/auth-form';
 import { authErrorMessage } from '@/components/auth/auth-error';
 import { readLastEmail, rememberEmail } from '@/components/auth/last-email';
@@ -18,7 +18,6 @@ import { assignOwnerTo } from '@/data/assign-owner';
 import { signUp } from '@/data/cloud/auth';
 import { t } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
-import styles from './auth-page.module.css';
 
 /**
  * P10 注册（PRD V2-01 OP-02 / OP-03 / OP-07）。
@@ -41,6 +40,7 @@ export function SignupPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
 
   if (principalId && !busy) return <Navigate to="/today" replace />;
@@ -53,6 +53,10 @@ export function SignupPage() {
 
     const normalized = normalizeEmail(email);
     let invalid = false;
+    if (!consent) {
+      setFormError(t('auth.signup.consentRequired'));
+      invalid = true;
+    }
     if (!isValidEmail(normalized)) {
       setEmailError(t('auth.error.email'));
       invalid = true;
@@ -138,16 +142,25 @@ export function SignupPage() {
           disabled={busy}
         />
 
-        <AuthSubmit busy={busy}>{t('auth.signup.submit')}</AuthSubmit>
-        <AuthHint>{t('auth.signup.hint')}</AuthHint>
+        <AuthConsent
+          checked={consent}
+          disabled={busy}
+          onChange={(checked) => {
+            setConsent(checked);
+            setFormError(null);
+          }}
+        />
+
+        <AuthSubmit busy={busy} disabled={!consent}>
+          {t('auth.signup.submit')}
+        </AuthSubmit>
       </AuthForm>
 
-      <div className={styles.links}>
-        <AuthTextLink to={`/auth/login?next=${encodeURIComponent(next)}`}>
-          {t('auth.signup.toLogin')}
-        </AuthTextLink>
-        <AuthTextLink to="/today">{t('auth.localWorkspace')}</AuthTextLink>
-      </div>
+      <AuthSwitch
+        lead={t('auth.signup.switchLead')}
+        to={`/auth/login?next=${encodeURIComponent(next)}`}
+        action={t('auth.signup.toLogin')}
+      />
     </AuthShell>
   );
 }

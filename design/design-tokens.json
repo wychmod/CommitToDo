@@ -280,6 +280,22 @@
       "sceneNode": 10,
       "footerTop": 56
     },
+    "auth": {
+      "formWidth": 380,
+      "artWidth": 680,
+      "minHeight": 640,
+      "columnGap": 96,
+      "headerHeight": 80,
+      "artPadding": 48,
+      "radius": 14,
+      "fieldHeight": 48,
+      "buttonHeight": 48,
+      "stickySize": 84,
+      "receiptWidth": 200
+    },
+    "control": {
+      "height": 34
+    },
     "ease": {
       "enter": "cubic-bezier(.2,0,0,1)",
       "exit": "cubic-bezier(.4,0,1,1)"

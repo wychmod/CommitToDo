@@ -77,6 +77,18 @@
   --home-timeline-min-width: 560px;
   --home-scene-node: 10px;
   --home-footer-top: 56px;
+  --auth-form-width: 380px;
+  --auth-art-width: 680px;
+  --auth-min-height: 640px;
+  --auth-column-gap: 96px;
+  --auth-header-height: 80px;
+  --auth-art-padding: 48px;
+  --auth-radius: 14px;
+  --auth-field-height: 48px;
+  --auth-button-height: 48px;
+  --auth-sticky-size: 84px;
+  --auth-receipt-width: 200px;
+  --control-height: 34px;
   --ease-enter: cubic-bezier(.2,0,0,1);
   --ease-exit: cubic-bezier(.4,0,1,1);
   --receipt-hold: 10000ms;

@@ -78,6 +78,40 @@ export function ArrowIcon(props: SvgIconProps) {
   );
 }
 
+/** 本机工作区入口。 */
+export function DeviceIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="3" y="5" width="18" height="12" rx="2" />
+      <path d="M12 17v3" />
+      <path d="M9 20h6" />
+    </SvgIcon>
+  );
+}
+
+/** 分支与时间树示意。 */
+export function BranchIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="7" cy="5" r="2" />
+      <circle cx="7" cy="19" r="2" />
+      <circle cx="17" cy="6" r="2" />
+      <path d="M7 7v10" />
+      <path d="M17 8c0 4-1 5-5 5H7" />
+    </SvgIcon>
+  );
+}
+
+/** 账号状态。 */
+export function UserIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c.8-3.7 3.4-5.5 7-5.5s6.2 1.8 7 5.5" />
+    </SvgIcon>
+  );
+}
+
 /** 找回密码「已发送」步骤的邮件提示。 */
 export function MailIcon(props: SvgIconProps) {
   return (
