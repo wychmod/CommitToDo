@@ -13,6 +13,80 @@ const commit = (over: Partial<CountCommit> = {}): CountCommit => ({
   ...over,
 });
 
+describe('恢复后四计数全量重算（R7，快照正文）', () => {
+  interface SnapshotBody {
+    branches: Array<{ id: string; taskTotal: number; taskDone: number; commitCount: number }>;
+    tasks: CountTask[];
+    commits: CountCommit[];
+  }
+
+  const recountAll = (body: SnapshotBody) =>
+    body.branches.map((branch) => ({
+      id: branch.id,
+      ...recountBranch(branch.id, body.tasks, body.commits),
+    }));
+
+  it('快照里保存的旧计数与正文不符时，以正文重算结果为准', () => {
+    const body: SnapshotBody = {
+      branches: [{ id: 'b', taskTotal: 99, taskDone: 99, commitCount: 99 }],
+      tasks: [
+        { branchId: 'b', status: 'done' },
+        { branchId: 'b', status: 'open' },
+      ],
+      commits: [{ branchId: 'b', at: 2_000 }],
+    };
+
+    expect(recountAll(body)).toEqual([
+      { id: 'b', taskTotal: 2, taskDone: 1, commitCount: 1, ownLastCommitAt: 2_000 },
+    ]);
+  });
+
+  it('撤销提交不计入，最近提交取有效提交最大值', () => {
+    const body: SnapshotBody = {
+      branches: [{ id: 'b', taskTotal: 0, taskDone: 0, commitCount: 0 }],
+      tasks: [],
+      commits: [
+        { branchId: 'b', at: 5_000, voidedAt: 6_000 },
+        { branchId: 'b', at: 3_000 },
+      ],
+    };
+
+    expect(recountAll(body)[0]).toMatchObject({ commitCount: 1, ownLastCommitAt: 3_000 });
+  });
+
+  it('已删除分支仍按正文重算，不保留快照旧值', () => {
+    const body: SnapshotBody = {
+      branches: [{ id: 'gone', taskTotal: 7, taskDone: 7, commitCount: 7 }],
+      tasks: [{ branchId: 'gone', status: 'done', deletedAt: 1 }],
+      commits: [],
+    };
+
+    expect(recountAll(body)[0]).toEqual({
+      id: 'gone',
+      taskTotal: 0,
+      taskDone: 0,
+      commitCount: 0,
+      ownLastCommitAt: null,
+    });
+  });
+
+  it('空快照的四计数全为 0', () => {
+    const body: SnapshotBody = {
+      branches: [{ id: 'b', taskTotal: 3, taskDone: 2, commitCount: 1 }],
+      tasks: [],
+      commits: [],
+    };
+
+    expect(recountAll(body)[0]).toEqual({
+      id: 'b',
+      taskTotal: 0,
+      taskDone: 0,
+      commitCount: 0,
+      ownLastCommitAt: null,
+    });
+  });
+});
+
 describe('recountBranch（R7 四计数重算）', () => {
   it('只统计本分支、未删除、未取消的待办', () => {
     const counts = recountBranch(

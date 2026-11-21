@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { OverlayHost } from '@/components/overlays/overlay-host';
 import { navSectionFor, type NavSection } from '@/core/rules/nav-selection';
 import { isBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
+import { runDailyAutoBackup } from '@/data/daily-auto-backup';
 import { ensureRootBranch } from '@/data/ensure-root-branch';
 import { grantBadge } from '@/data/grant-badge';
 import { useStorageReady } from '@/data/hooks';
@@ -38,11 +39,13 @@ export function AppShell() {
   const scrollKey = scrollKeyFor(location.pathname, location.search);
 
   // 首次进入工作区时确保根分支「我」存在（M02 OP-01）；用例本身幂等，重复调用安全。
-  // 随后补查漏发的徽章（M11 OP-03）；导入后的本次会话跳过（OP-08）。
+  // 随后写当日自动快照（V1-06 OP-01），失败不阻断进入；再补查漏发的徽章（M11 OP-03），
+  // 导入后的本次会话跳过（OP-08）。
   useEffect(() => {
     if (status !== 'ready') return;
     const skipBackfill = isBadgeBackfillSkipped();
-    void ensureRootBranch().then(() => {
+    void ensureRootBranch().then(async () => {
+      await runDailyAutoBackup();
       if (!skipBackfill) void grantBadge();
     });
   }, [status]);

@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { addDays, currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
+import { sortBackupsNewestFirst } from '@/core/rules/backup-retention';
 import { normalizeAnnotationMode } from '@/core/rules/annotation-visibility';
 import { collectSubtree } from '@/core/rules/branch-path';
 import { assessDelete, type DeleteGuard } from '@/core/rules/delete-guard';
@@ -35,6 +36,7 @@ import { buildYearShareModel, type YearShareModel } from '@/core/rules/year-shar
 import { db, LOCAL_OWNER_ID } from './db';
 import { DEFAULT_SETTINGS, type SettingsFields } from './settings-defaults';
 import {
+  backupRepository,
   badgeRepository,
   branchRepository,
   commitRepository,
@@ -44,7 +46,7 @@ import {
   taskRepository,
   yearReviewRepository,
 } from './repositories';
-import type { Badge, Branch, Commit, EventRecord, Milestone, Task } from './types';
+import type { Badge, Backup, Branch, Commit, EventRecord, Milestone, Task } from './types';
 
 /**
  * 读路径统一走 `useLiveQuery`（TECH-ARCHITECTURE.md §2.6 / §5.4）。
@@ -1052,6 +1054,8 @@ export interface DataOverviewView {
   status: 'loading' | 'ready' | 'error';
   counts: DataOverviewCounts;
   lastExportAt: number | null;
+  /** 最近一次备份（含异地），供概览显示时间与类型。 */
+  lastBackup: Backup | null;
   hasData: boolean;
   retry: () => void;
 }
@@ -1074,13 +1078,14 @@ export function useDataOverview(ownerId = LOCAL_OWNER_ID): DataOverviewView {
   const [attempt, setAttempt] = useState(0);
   const result = useLiveQuery(async () => {
     try {
-      const [branches, tasks, commits, milestones, badges, events] = await Promise.all([
+      const [branches, tasks, commits, milestones, badges, events, backups] = await Promise.all([
         branchRepository.listByOwner(ownerId),
         taskRepository.listByOwner(ownerId),
         commitRepository.listByOwner(ownerId),
         milestoneRepository.listByOwner(ownerId),
         badgeRepository.listByOwner(ownerId),
         eventRepository.listRecent(ownerId, Number.MAX_SAFE_INTEGER),
+        backupRepository.listByOwner(ownerId),
       ]);
       const exported = events.find((event) => event.action === 'data.export');
       return {
@@ -1093,6 +1098,7 @@ export function useDataOverview(ownerId = LOCAL_OWNER_ID): DataOverviewView {
           badges: badges.length,
         },
         lastExportAt: exported?.at ?? null,
+        lastBackup: sortBackupsNewestFirst(backups)[0] ?? null,
         hasData:
           branches.some((branch) => branch.depth > 0) ||
           tasks.length + commits.length + milestones.length + badges.length > 0,
@@ -1102,6 +1108,7 @@ export function useDataOverview(ownerId = LOCAL_OWNER_ID): DataOverviewView {
         ok: false as const,
         counts: EMPTY_DATA_COUNTS,
         lastExportAt: null,
+        lastBackup: null,
         hasData: false,
       };
     }
@@ -1113,6 +1120,7 @@ export function useDataOverview(ownerId = LOCAL_OWNER_ID): DataOverviewView {
       status: 'loading',
       counts: EMPTY_DATA_COUNTS,
       lastExportAt: null,
+      lastBackup: null,
       hasData: false,
       retry,
     };
@@ -1122,6 +1130,7 @@ export function useDataOverview(ownerId = LOCAL_OWNER_ID): DataOverviewView {
       status: 'error',
       counts: EMPTY_DATA_COUNTS,
       lastExportAt: null,
+      lastBackup: null,
       hasData: false,
       retry,
     };
@@ -1130,9 +1139,39 @@ export function useDataOverview(ownerId = LOCAL_OWNER_ID): DataOverviewView {
     status: 'ready',
     counts: result.counts,
     lastExportAt: result.lastExportAt,
+    lastBackup: result.lastBackup,
     hasData: result.hasData,
     retry,
   };
+}
+
+export interface BackupListView {
+  status: 'loading' | 'ready' | 'error';
+  /** 四类快照合并、按 `createdAt` 倒序，不分组、不截断。 */
+  rows: Backup[];
+  retry: () => void;
+}
+
+/**
+ * P08 备份列表（V1-06 OP-03）。
+ *
+ * 读取失败返回 `error`，不用空列表冒充「今天还没有自动备份」；
+ * 自动行浅色区分与新鲜度提示由页面按行数据渲染。
+ */
+export function useBackupListView(ownerId = LOCAL_OWNER_ID): BackupListView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      return { ok: true as const, rows: await backupRepository.listByOwner(ownerId) };
+    } catch {
+      return { ok: false as const, rows: [] as Backup[] };
+    }
+  }, [ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) return { status: 'loading', rows: [], retry };
+  if (!result.ok) return { status: 'error', rows: [], retry };
+  return { status: 'ready', rows: sortBackupsNewestFirst(result.rows), retry };
 }
 
 export interface WeekReviewView {

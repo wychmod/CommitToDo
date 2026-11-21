@@ -54,6 +54,98 @@
   font-size: var(--type-secondary);
 }
 
+.freshness {
+  margin: 0;
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+  color: var(--text);
+  font-size: var(--type-secondary);
+}
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.skeletonRow {
+  display: block;
+  height: var(--s10);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+}
+
+.backupList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.backupRow,
+.backupRowAuto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.backupRowAuto {
+  border-style: dashed;
+  background: var(--inset);
+  color: var(--muted);
+}
+
+.backupRowHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+}
+
+.backupTime {
+  font-size: var(--type-secondary);
+  font-weight: 600;
+}
+
+.backupKind {
+  padding: 0 var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.backupCounts {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.backupActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.rowDanger {
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--danger);
+  font: inherit;
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
 .done {
   margin: 0;
   color: var(--accent);

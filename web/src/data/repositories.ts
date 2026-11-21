@@ -2,6 +2,7 @@ import { db } from './db';
 import { assertInTransaction } from './transaction';
 import type {
   Badge,
+  Backup,
   Branch,
   Commit,
   EventRecord,
@@ -182,6 +183,31 @@ export const eventRepository: EventRepository = {
   listByEntity: async (entityId) => {
     const rows = await db.events.where('entityId').equals(entityId).toArray();
     return rows.sort((a, b) => a.at - b.at);
+  },
+};
+
+export interface BackupRepository {
+  listByOwner(ownerId: string): Promise<Backup[]>;
+  getById(backupId: string): Promise<Backup | undefined>;
+  create(row: Backup): Promise<string>;
+  update(backupId: string, patch: Partial<Omit<Backup, 'id' | 'ownerId'>>): Promise<number>;
+  remove(ids: readonly string[]): Promise<void>;
+}
+
+export const backupRepository: BackupRepository = {
+  listByOwner: (ownerId) => db.backups.where('ownerId').equals(ownerId).toArray(),
+  getById: (backupId) => db.backups.get(backupId),
+  create: (row) => {
+    assertInTransaction();
+    return db.backups.add(row);
+  },
+  update: (backupId, patch) => {
+    assertInTransaction();
+    return db.backups.update(backupId, patch);
+  },
+  remove: async (ids) => {
+    assertInTransaction();
+    await db.backups.bulkDelete([...ids]);
   },
 };
 

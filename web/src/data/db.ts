@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable, type Table } from 'dexie';
 import type {
   Badge,
+  Backup,
   Branch,
   Commit,
   EventRecord,
@@ -11,7 +12,7 @@ import type {
 } from './types';
 
 /** 当前库版本；只有增删表、索引或主键才 bump（CODE-STRUCTURE §5）。 */
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 
 /**
  * 本机权威库（TECH-ARCHITECTURE.md §5.3）。
@@ -27,6 +28,7 @@ export class CommitToDoDatabase extends Dexie {
   badges!: EntityTable<Badge, 'id'>;
   settings!: EntityTable<Settings, 'id'>;
   events!: EntityTable<EventRecord, 'id'>;
+  backups!: EntityTable<Backup, 'id'>;
   yearReviews!: Table<YearReview, string>;
 
   constructor() {
@@ -53,8 +55,13 @@ export class CommitToDoDatabase extends Dexie {
     });
 
     // P05 年轮：每用户每年一行，只存年度总结。
-    this.version(DB_VERSION).stores({
+    this.version(2).stores({
       year_reviews: 'id, ownerId, &[ownerId+year]',
+    });
+
+    // V1-06 备份与快照：保留策略按 [ownerId+kind+createdAt] 逐类取上限。
+    this.version(3).stores({
+      backups: 'id, ownerId, kind, createdAt, [ownerId+createdAt], [ownerId+kind+createdAt]',
     });
     // 表名与属性名不一致时手动映射，避免 `db.yearReviews` 为 undefined。
     this.yearReviews = this.table<YearReview, string>('year_reviews');

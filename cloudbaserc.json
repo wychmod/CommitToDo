@@ -1,0 +1,13 @@
+{
+  "envId": "",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "backup.sign",
+      "timeout": 20,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "installDependency": true
+    }
+  ]
+}

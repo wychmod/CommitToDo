@@ -135,10 +135,28 @@ export interface YearReview {
   updatedAt: number;
 }
 
+/** 本机备份与快照（PRD V1-06 §5，TECH §5.3）。`payload` 为明文 JSON 快照正文。 */
+export interface Backup {
+  id: string;
+  ownerId: OwnerId;
+  kind: BackupKind;
+  createdAt: number;
+  branchCount: number;
+  taskCount: number;
+  commitCount: number;
+  schemaVersion: number;
+  bytes: number;
+  restoredAt: number | null;
+  /** 异地备份的远端对象键；本机快照为 null。 */
+  remoteKey: string | null;
+  payload: string;
+}
+
 export interface EventRecord {
   id: string;
   ownerId: OwnerId;
-  entityType: 'branch' | 'task' | 'commit' | 'milestone' | 'badge' | 'settings' | 'sync' | 'data';
+  entityType:
+    'branch' | 'task' | 'commit' | 'milestone' | 'badge' | 'settings' | 'sync' | 'data' | 'backup';
   entityId: string;
   action: string;
   payload: Record<string, unknown>;

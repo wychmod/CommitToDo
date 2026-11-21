@@ -20,6 +20,7 @@ const ENTITIES = [
   'settings',
   'sync',
   'data',
+  'backup',
 ] as const;
 
 type EventEntity = (typeof ENTITIES)[number];
