@@ -122,7 +122,7 @@ export interface Settings {
 export interface EventRecord {
   id: string;
   ownerId: OwnerId;
-  entityType: 'branch' | 'task' | 'commit' | 'milestone' | 'badge' | 'settings';
+  entityType: 'branch' | 'task' | 'commit' | 'milestone' | 'badge' | 'settings' | 'sync';
   entityId: string;
   action: string;
   payload: Record<string, unknown>;

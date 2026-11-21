@@ -50,6 +50,19 @@ describe('writeEvent', () => {
     });
   });
 
+  it('sync.conflict 落 entityType=sync，分支回溯字段在 payload', async () => {
+    await db.transaction('rw', [db.events], async (tx) => {
+      await writeEvent(tx, 'sync.conflict', 'branch-1', {
+        branchId: 'branch-1',
+        entityId: 'branch-1',
+        field: 'title',
+      });
+    });
+
+    const [row] = await db.events.toArray();
+    expect(row).toMatchObject({ entityType: 'sync', payload: { branchId: 'branch-1' } });
+  });
+
   it('事务中断时事件一起回滚', async () => {
     await expect(
       db.transaction('rw', [db.events], async (tx) => {

@@ -19,8 +19,7 @@ export type EventPayloads = {
   'branch.create': { branchId: string; parentId: string | null };
   'branch.rename': { branchId: string; from: string; to: string };
   'branch.move': { branchId: string; fromParentId: string; toParentId: string; movedCount: number };
-  'branch.pin': { branchId: string };
-  'branch.unpin': { branchId: string };
+  'branch.update': { branchId: string; fields: string[] };
   'branch.finish': {
     branchId: string;
     finishedIntoId: string;
@@ -31,10 +30,8 @@ export type EventPayloads = {
   'branch.resume': { branchId: string };
   'branch.archive': { branchId: string; subtreeCount: number };
   'branch.unarchive': { branchId: string; subtreeCount: number };
-  'branch.delete': { branchId: string };
 
   'milestone.create': { milestoneId: string; branchId: string };
-  'milestone.delete': { milestoneId: string; branchId: string };
 
   'badge.grant': { badgeId: string; catalogId: string; periodKey: string };
 
@@ -46,7 +43,7 @@ export type EventPayloads = {
   'backup.create': { backupId: string; kind: string };
   'backup.restore': { backupId: string; schemaVersion: number };
 
-  'sync.conflict': { entityId: string; field: string };
+  'sync.conflict': { branchId: string | null; entityId: string; field: string };
 };
 
 export type EventAction = keyof EventPayloads;
