@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.20 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9，代码结构契约（用例、clock/ids、错误、events、升级、断点、命名）见 §2.10、§5.9 与 [代码结构契约](./CODE-STRUCTURE.md)。
+**状态**: 0.21 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9，代码结构契约（用例、clock/ids、错误、events、升级、断点、命名）见 §2.10、§5.9 与 [代码结构契约](./CODE-STRUCTURE.md)。
 **本版依据**: 数据模型以 `design/images/` 的页面画稿为准（逐页核对结论见 §5.3–§5.3.3 与 [页面数据核对](./PAGE-DATA-CROSSCHECK.md)），不以文字规格反推。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
@@ -555,7 +555,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 
 1. **表与集合同名、字段同名同义**：`branches` 本地表就对应将来 `branches` 集合，不做 `parent_id → parentId` 之类的映射。
 2. **ID 本地生成**：全部用 ULID，迁移时直接作为云端 `_id`，不需要重编号，也不需要维护新旧 ID 对照表。
-3. **时间统一 UTC + 业务日期按操作当时本地时区**：`createdAt`/`updatedAt`/`deletedAt` 都是 UTC 毫秒；业务日期（`date` / `dueDate` / `plannedDate`）是 `YYYY-MM-DD` 字面量，按操作当时的本地时区换算（0.18 起的 M05 口径），业务表不存 `tzOffset`；仅 `events` 审计行保留写入时的 `tzOffset`（字段是否补入代码待拍板，见 [代码结构契约 §8](./CODE-STRUCTURE.md#8-冲突与待拍板)）。
+3. **时间统一 UTC + 业务日期按操作当时本地时区**：`createdAt`/`updatedAt`/`deletedAt` 都是 UTC 毫秒；业务日期（`date` / `dueDate` / `plannedDate`）是 `YYYY-MM-DD` 字面量，按操作当时的本地时区换算（0.18 起的 M05 口径），业务表不存 `tzOffset`；`events` 审计行保留写入时的 `tzOffset`（已补入 `EventRecord`，由 `WriteDeps.tzOffset` 注入）。
 4. **软删字段预留**：`deletedAt` 从第一天就写，迁移时把删除状态一起带上去，不会「删掉的东西复活」。
 5. **导出带 `schemaVersion` 与字段级版本**：导出文件顶层是 `{ schemaVersion, fieldVersions, exportedAt, app, data }`；`fieldVersions` 记录每个实体关键字段的语义版本，字段含义变化时只针对该字段迁移。
 6. **`ownerId` 占位**：本地写入时留空或写设备 ID，V2 登录后统一回填，避免迁移时再补字段。
@@ -629,9 +629,9 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 用例与事务 | 一个用户动作一个用例文件，`动词-名词.ts`，放 `src/data/` 根；**用例是唯一开 `db.transaction` 的地方**，表清单显式列全；仓储单表、带 `rev`、内部 `assertInTransaction()` 守卫；四计数由用例在事务内调 `recountBranch()` | `src/data/*.ts`、`src/data/transaction.ts`、`src/data/repositories.ts` |
 | clock / ids | 领域代码不直接取时间与随机数；`Clock.now()`、`IdSource.ulid(now)` 由用例第二参数注入，默认 `defaultWriteDeps`；`toLocalDate(epochMs, tzOffsetMinutes)` 与 `today(clock, offset)` 是「当天」的唯一来源，偏移东正西负（UTC+8 → 480） | `src/core/clock.ts`、`src/core/ids.ts`、`src/data/deps.ts` |
 | 错误模型 | 可预期失败返回 `Result`（`ok` / `fail` + `ErrorCode`）；不变量违反抛 `Error`；Dexie 异常在用例边界映射为 `storage.*`；UI 按 `field` 落内联、否则落回执/弹层，`retriable` 决定重试 | `src/core/errors.ts` |
-| events | 只由用例写、同事务；action 为 `entity.verb`；payload 用 `EventPayloads` 映射类型化；每个动作一条，批量带 `count`；R13 物理删空分支等既有例外不写 | `src/data/events.ts`、`src/data/event-payloads.ts` |
+| events | 只由用例写、同事务；action 清单见 `CODE-STRUCTURE §4.2`（`entity.verb`，27 个）；payload 用 `EventPayloads` 映射类型化；每个动作一条，批量带 `count`；R13 删空分支、V1-08 排序/置顶、V2-03 模板、删示例树均不写；收尾+归档只写 `branch.finish`（`payload.archived`）；`sync.conflict` 的 `entityType = 'sync'` | `src/data/events.ts`、`src/data/event-payloads.ts` |
 | Dexie 升级 | 只有增删表 / 索引 / 主键才 bump `DB_VERSION`；只前进、不删数据、升级期禁写；`versionchange` 提示刷新；导出 `schemaVersion` 是文件格式版本，与 `DB_VERSION` 解耦，MVP 只接受相等版本 | `src/data/db.ts` |
-| 断点 | mobile 390 / compact 760 / wide 1440；媒体查询内允许且仅允许这三个数值；是否进设计令牌待设计线拍板 | CSS Modules |
+| 断点 | mobile 390 / compact 760 / wide 1440；媒体查询内允许且仅允许这三个数值；暂不进设计令牌，`design/` 不改 | CSS Modules |
 | 命名 | 组件 `kebab-case.tsx` + PascalCase；`*-page.tsx`；同名 `.module.css`；类名 camelCase、不用 `&__`、不 `:global`；动态值只走行内 CSS 变量；颜色/字号/时长只走令牌 | `src/components`、`src/pages`、`src/ui` |
 
 ---
@@ -851,3 +851,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 0.18 | 2026-11-21 | **按代码修正主键与时区口径**：`settings` 主键由 `_id = 'app'` 改为 `id = 'app'`，并明确本地 7 张表物理主键统一为 `id`（`web/src/data/db.ts`），`_id` 只是 V2 云端主键名；删除「业务日期同时记录 `tzOffset`」的旧表述，补 **M05 时区口径**——日期按操作当时本地时区计算，`commits.date` + `at` 足够，**不新增字段**，仅 `events` 保留审计用 `tzOffset` |
 | 0.19 | 2026-11-21 | **补齐代码结构契约**：新增 §2.10 响应式断点（390 / 760 / 1440，媒体查询内允许写这三个数值，是否进设计令牌待设计线拍板）与 §5.9 七项契约（用例与事务、clock/ids、错误模型、events、Dexie 升级、断点、命名），细则独立为 [`CODE-STRUCTURE.md`](./CODE-STRUCTURE.md)。**修正两处与代码不一致的旧表述**：§5.4「事务在仓储内部闭合」改为「用例是唯一开 `db.transaction` 的地方」；§5.7 的 `src/domain` / `src/application` / `src/data/local` 路径改为实际的 `src/core` / `src/data`（`repositories.ts`、`cloud/`）。§5.5 第 3 条同步 M05 口径。§10.1 补「代码结构」一行。待拍板项（`events.entity` vs `entityType`、`events.tzOffset`、月精度归一化、断点令牌）记在 `CODE-STRUCTURE.md` §8，不改表、不改 PRD |
 | 0.20 | 2026-11-21 | **四项待拍板落定**：①`events` 字段统一 `entityType`，代码 `EventRecord` / `writeEvent` 随文档改（未建索引，不 bump schema）；②`events.tzOffset` 补进 `EventRecord`，由 `WriteDeps.tzOffset(at)` 写入；③月精度里程碑 `achievedAt` 按「当月 1 日 00:00 本地时间转 UTC」归一，写入 §5.3 与 R6；④断点暂不进 `design/design-tokens.json`，`design/` 下文件不动，保持 390 / 760 / 1440 写在媒体查询内。`CODE-STRUCTURE.md` §2.2 / §4 / §6 / §8 同步；`docs/prd/` 未改（`events.action` 字面值由 PRD 线统一） |
+| 0.21 | 2026-11-21 | **events action 清单收敛为 27 个**（PRD 侧已统一 `entity.verb`）：补 `branch.update`；移除 `branch.pin` / `branch.unpin`（V1-08 排序置顶不写）、`branch.delete`（R13 硬删不写）、`milestone.delete`（M07 里程碑永存）；收尾+归档只写一条 `branch.finish`（`payload.archived`）；模板生成/撤回不写、不新增模板动作；`sync.conflict` 的 `entityType = 'sync'`（独立前缀），分支历史用 `payload.branchId` 过滤。代码 `event-payloads.ts`、`EventRecord.entityType`、`ENTITIES` 同步；`docs/prd/` 未改，V2-02 表与 V2-03 §7 的分歧记录在 `CODE-STRUCTURE §8 #9` |

@@ -163,22 +163,41 @@ export const fail: (code: ErrorCode, options?: Partial<AppError>) => Result<neve
 
 ### 4.2 action 命名与 payload 类型化
 
-- 格式 `entity.verb`，全小写、无驼峰：`task.create`、`task.complete`、`task.cancel`、`task.reopen`、`task.plan`、`task.update`、`task.delete`、`commit.void`、`commit.update`、`branch.create`、`branch.rename`、`branch.move`、`branch.pin`、`branch.unpin`、`branch.finish`、`branch.pause`、`branch.resume`、`branch.archive`、`branch.unarchive`、`branch.delete`、`milestone.create`、`milestone.delete`、`badge.grant`、`settings.update`、`data.export`、`data.import`、`data.clear`、`backup.create`、`backup.restore`、`sync.conflict`。
+- 格式 `entity.verb`，全小写、无驼峰。**完整清单（27 个，以此为准）**：
+  - `task`：`task.create`、`task.complete`、`task.cancel`、`task.reopen`、`task.plan`、`task.update`、`task.delete`
+  - `commit`：`commit.update`、`commit.void`
+  - `branch`：`branch.create`、`branch.rename`、`branch.move`、`branch.update`、`branch.finish`、`branch.pause`、`branch.resume`、`branch.archive`、`branch.unarchive`
+  - `milestone`：`milestone.create`
+  - `badge`：`badge.grant`
+  - `settings`：`settings.update`
+  - `data`：`data.export`、`data.import`、`data.clear`
+  - `backup`：`backup.create`、`backup.restore`
+  - `sync`：`sync.conflict`（`entityType = 'sync'`，不按业务实体归类）
+- **明确不写 events 的动作**（保持 PRD 既有例外，不新增字面值）：
+  - R13 物理删除空分支：不写 `branch.delete`；
+  - V1-08 排序与置顶：不写 `branch.pin` / `branch.unpin` / 排序类动作；
+  - V2-03 模板生成与撤回：不写模板类动作；
+  - 删除示例树（M12）与清空本机数据（O05）：不写业务事件，仅 `data.clear` 在真实清空时写一条；
+  - `milestone.delete` 不存在：M07 明确里程碑永存，只增不删。
 - 「放下 / 重新开始」的事件名跟 PRD（`branch.pause` / `branch.resume`），用例文件名跟字段（`drop-branch.ts` / `resume-branch.ts`，对应 `droppedAt`）；两者不同源是有意的，不互相改名。
+- 收尾与归档合并：收尾时若同时归档，**只写一条 `branch.finish`**，用 `payload.archived` 标记，不另写 `branch.archive`；单独归档（V1-01）才写 `branch.archive` / `branch.unarchive`。
+- `sync.conflict` 的分支历史回溯：写入 `payload.branchId`（冲突发生在分支上下文时），分支历史用它过滤；`payload.branchId = null` 表示与分支无关的冲突。
 - payload 用映射表类型化，不写 `Record<string, unknown>`：
 
 ```ts
 // src/data/event-payloads.ts
 export type EventPayloads = {
   'task.complete': { taskId: string; commitId: string; branchId: string };
+  'branch.update': { branchId: string; fields: string[] };
   'branch.finish': { branchId: string; finishedIntoId: string; archived: boolean; movedTaskCount: number };
-  'branch.move': { fromParentId: string; toParentId: string; movedCount: number };
+  'branch.move': { branchId: string; fromParentId: string; toParentId: string; movedCount: number };
+  'sync.conflict': { branchId: string | null; entityId: string; field: string };
   // …每个 action 一条
 };
 export type EventAction = keyof EventPayloads;
 ```
 
-- 写入统一走 `writeEvent(tx, action, entityId, payload, deps?)`（`src/data/events.ts`），在事务内 `tx.table('events').add`：`entityType` 由 action 前缀推导，`at` 取注入时钟，`id` 用 `ids.ulid(at)`，`tzOffset` 取 `deps.tzOffset(at)`（审计字段，与 TECH §5.3 一致）。
+- 写入统一走 `writeEvent(tx, action, entityId, payload, deps?)`（`src/data/events.ts`），在事务内 `tx.table('events').add`：`entityType` 由 action 前缀推导（`sync` 是独立前缀，因此 `sync.conflict` 落 `sync`），`at` 取注入时钟，`id` 用 `ids.ulid(at)`，`tzOffset` 取 `deps.tzOffset(at)`（审计字段，与 TECH §5.3 一致）。
 - `events` 行只增不改；审计失败不得静默吞掉——事件写失败必须让事务整体回滚（PRD M05/M08 的回滚用例）。
 
 ## 5. Dexie schema 升级与迁移
@@ -233,7 +252,7 @@ this.version(2)
 
 ## 8. 冲突与待拍板
 
-下列四项已于 2026-11-21 拍板并落地，保留记录备查；仅 #4 的月精度归一需随实现补单测，#8 已移交 PRD 线统一。
+下列事项均已有结论（2026-11-21），保留记录备查；仅 #4 的月精度归一需随实现补单测，#9 为待 PRD 侧同步的分歧。
 
 | # | 事项 | 结论 |
 | --- | --- | --- |
@@ -244,7 +263,8 @@ this.version(2)
 | 5 | PRD 测试文件名与用例文件名 | 不冲突：测试文件按 PRD 保留原名，断言对象指向对应用例即可 |
 | 6 | PRD 未提 760 断点 | 以实现层断点补入本文，不新增人工验收 |
 | 7 | `CloudBaseConfigError` | 代码与 PRD 均无此符号，不预建；V1 如引入，按 §3.2 归 `data/cloud/`，码 `cloud.not_configured` |
-| 8 | `events.action` 字面值 | 以本文 `entity.verb` 为准；PRD 内 `'create'` / `'finish'` 等不一致已移交 PRD 线统一，本文不改 PRD |
+| 8 | `events.action` 字面值 | **已定：PRD 侧已统一为 `entity.verb`，本侧按 2026-11-21 决定收敛为 27 个**：补 `branch.update`；移除 `branch.pin` / `branch.unpin` / `branch.delete` / `milestone.delete`；`sync.conflict` 的 `entityType = 'sync'`，分支历史用 `payload.branchId` 过滤；收尾+归档只写 `branch.finish`（`payload.archived`）；模板不写事件 |
+| 9 | 仍待 PRD 同步的分歧 | ①V2-02 §5 表仍写 `entityType='branch'` + `action='sync.conflict'`，与本侧「`entityType='sync'`」不一致；②V2-03 §7 仍把模板事件列为待技术线确认，本侧已定不写。两处均列出、不改 PRD |
 
 ## 9. 与验证命令的对应
 
