@@ -1,0 +1,133 @@
+.steps {
+  display: flex;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--s2);
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+.stepBar {
+  height: var(--s1);
+  border-radius: var(--radius-marker);
+  background: var(--line);
+}
+
+.step[data-state='done'] .stepBar {
+  background: var(--accent-soft);
+}
+
+.step[data-state='current'] {
+  color: var(--text);
+}
+
+.step[data-state='current'] .stepBar {
+  background: var(--accent);
+}
+
+.sentIcon {
+  display: grid;
+  place-items: center;
+  width: var(--s9);
+  height: var(--s9);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sentEmail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+  font-size: var(--type-secondary);
+}
+
+.sentEmailText {
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+
+.sentNote {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  line-height: 1.7;
+}
+
+.sentActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.secondary {
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--type-body);
+  cursor: pointer;
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: var(--line-strong);
+}
+
+.secondary:disabled {
+  background: var(--disabled-bg);
+  color: var(--disabled);
+  cursor: not-allowed;
+}
+
+.secondary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s4);
+  margin-top: var(--s2);
+}
+
+.linkButton {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.linkButton:hover {
+  text-decoration: underline;
+}
+
+.linkButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.grow {
+  flex: 1;
+}

@@ -68,5 +68,45 @@ export function PinIcon(props: SvgIconProps) {
   );
 }
 
+/** 前进入口：认证页的「打开本机工作区」与表单跳转。 */
+export function ArrowIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M4 12h15" />
+      <path d="m13 6 6 6-6 6" />
+    </SvgIcon>
+  );
+}
+
+/** 找回密码「已发送」步骤的邮件提示。 */
+export function MailIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m4 7 8 6 8-6" />
+    </SvgIcon>
+  );
+}
+
+/** 密码显示切换。 */
+export function EyeIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </SvgIcon>
+  );
+}
+
+export function EyeOffIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M4 5l16 14" />
+      <path d="M10 6.5A9.8 9.8 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-3.3 3.8" />
+      <path d="M6.4 8.2A17 17 0 0 0 2 12s3.6 6 10 6a9.9 9.9 0 0 0 4-.8" />
+    </SvgIcon>
+  );
+}
+
 export { SvgIcon };
 export type { IconSize, SvgIconProps } from './svg-icon';

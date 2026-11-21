@@ -12,6 +12,7 @@
   margin: 0;
   padding: 0;
   border: 0;
+  scroll-margin-top: var(--s6);
 }
 
 .heading {
@@ -128,4 +129,68 @@
   color: var(--danger);
   font-size: var(--type-secondary);
   cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+}
+
+.accountCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.accountRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s3);
+}
+
+.accountLabel {
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.accountEmail {
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: var(--type-body);
+  font-weight: 600;
+}
+
+.accountStatus {
+  color: var(--accent);
+  font-size: var(--type-label);
+}
+
+.entryButton {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  min-height: var(--s9);
+  padding: 0 var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.entryButton:hover {
+  border-color: var(--line-strong);
+}
+
+.entryButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }

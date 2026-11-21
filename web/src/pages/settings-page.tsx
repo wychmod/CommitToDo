@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import type { AnnotationMode } from '@/core/rules/annotation-visibility';
 import type { Theme } from '@/core/rules/theme-preference';
 import type { TreeDensity } from '@/core/rules/tree-density';
+import { signOut } from '@/data/cloud/auth';
 import { useSettingsState } from '@/data/hooks';
 import { updateSettings, type SettingsPatch } from '@/data/update-settings';
 import { t, type MessageKey } from '@/i18n';
+import { useAuthStore } from '@/stores/auth.store';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
 import styles from './settings-page.module.css';
@@ -80,9 +83,15 @@ const REMINDER_OPTIONS: ReadonlyArray<Option<'on' | 'off'>> = [
   { value: 'off', labelKey: 'settings.reminders.off' },
 ];
 
-/** 设置（P07）：外观、注解与回顾提醒，保存失败时保留用户选择并可重试。 */
+/** 设置（P07）：外观、注解、提醒、账号与同步、数据入口。 */
 export function SettingsPage() {
   const { loaded, settings } = useSettingsState();
+  const location = useLocation();
+  const principalId = useAuthStore((state) => state.principalId);
+  const email = useAuthStore((state) => state.email);
+  const clearSession = useAuthStore((state) => state.clearSession);
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [draft, setDraft] = useState<Preferences>({
     theme: settings.theme,
     treeDensity: settings.treeDensity,
@@ -109,6 +118,14 @@ export function SettingsPage() {
     settings.reminderEnabled,
   ]);
 
+  // 从登录页带回 `#account` / `#sync` 时定位到对应分区。
+  useEffect(() => {
+    if (!loaded) return;
+    const id = location.hash.replace('#', '');
+    if (!id) return;
+    document.getElementById(id)?.scrollIntoView({ block: 'start' });
+  }, [loaded, location.hash]);
+
   const save = async (patch: SettingsPatch) => {
     setDraft((current) => ({ ...current, ...patch }));
     setPending(patch);
@@ -119,6 +136,17 @@ export function SettingsPage() {
     setPending(null);
     if (!result.ok) setFailedPatch(patch);
   };
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await signOut();
+    clearSession();
+    setSigningOut(false);
+    setConfirmingSignOut(false);
+  };
+
+  const accountNext = `${location.pathname}#account`;
+  const syncNext = `${location.pathname}#sync`;
 
   return (
     <PageShell titleKey="page.settings.title" bodyKey="page.settings.body">
@@ -174,6 +202,74 @@ export function SettingsPage() {
             />
           </section>
 
+          <section id="account" className={styles.section} aria-labelledby="settings-account">
+            <h2 id="settings-account" className={styles.heading}>
+              {t('settings.account')}
+            </h2>
+            {principalId ? (
+              <>
+                <div className={styles.accountCard}>
+                  <div className={styles.accountRow}>
+                    <span className={styles.accountLabel}>{t('settings.account.current')}</span>
+                    <span className={styles.accountEmail}>{email}</span>
+                  </div>
+                  <span className={styles.accountStatus}>{t('settings.account.status')}</span>
+                </div>
+                <p className={styles.hint}>{t('auth.merge.hint')}</p>
+                <button
+                  type="button"
+                  className={styles.entryButton}
+                  onClick={() => setConfirmingSignOut(true)}
+                >
+                  {t('settings.account.signOut')}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className={styles.hint}>{t('settings.account.hint')}</p>
+                <div className={styles.actions}>
+                  <Link
+                    className={styles.entry}
+                    to={`/auth/login?next=${encodeURIComponent(accountNext)}`}
+                  >
+                    {t('settings.account.login')}
+                  </Link>
+                  <Link
+                    className={styles.entry}
+                    to={`/auth/signup?next=${encodeURIComponent(accountNext)}`}
+                  >
+                    {t('settings.account.register')}
+                  </Link>
+                </div>
+              </>
+            )}
+          </section>
+
+          <section id="sync" className={styles.section} aria-labelledby="settings-sync">
+            <h2 id="settings-sync" className={styles.heading}>
+              {t('settings.sync')}
+            </h2>
+            <p className={styles.hint}>{t('settings.sync.hint')}</p>
+            {principalId ? (
+              <p className={styles.hint}>{t('settings.sync.pending')}</p>
+            ) : (
+              <div className={styles.actions}>
+                <Link
+                  className={styles.entry}
+                  to={`/auth/login?next=${encodeURIComponent(syncNext)}`}
+                >
+                  {t('settings.account.login')}
+                </Link>
+                <Link
+                  className={styles.entry}
+                  to={`/auth/signup?next=${encodeURIComponent(syncNext)}`}
+                >
+                  {t('settings.account.register')}
+                </Link>
+              </div>
+            )}
+          </section>
+
           <section className={styles.section} aria-labelledby="settings-data">
             <h2 id="settings-data" className={styles.heading}>
               {t('settings.data')}
@@ -198,6 +294,19 @@ export function SettingsPage() {
           ) : null}
         </div>
       )}
+
+      {confirmingSignOut ? (
+        <ConfirmDialog
+          titleKey="settings.account.signOutTitle"
+          bodyKey="settings.account.signOutBody"
+          confirmKey="settings.account.signOut"
+          busy={signingOut}
+          onConfirm={() => void handleSignOut()}
+          onClose={() => {
+            if (!signingOut) setConfirmingSignOut(false);
+          }}
+        />
+      ) : null}
     </PageShell>
   );
 }
