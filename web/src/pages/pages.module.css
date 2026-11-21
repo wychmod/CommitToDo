@@ -191,3 +191,64 @@
 .treeSkeletonRow[data-depth='2'] {
   margin-left: calc(var(--tree-indent) * 2);
 }
+
+.templateEntry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s2);
+  margin-top: var(--s3);
+}
+
+.templateBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-bottom: var(--s4);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+}
+
+.templateBarCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-size: var(--type-secondary);
+}
+
+.templateBarCopy p {
+  margin: 0;
+}
+
+.templateBarActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.templateDismiss {
+  min-height: var(--s9);
+  padding: 0 var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .templateBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .templateBarActions {
+    justify-content: flex-end;
+  }
+}

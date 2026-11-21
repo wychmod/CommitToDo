@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { visibleBadgeTotal } from '@/core/rules/badge-catalog';
 import { isBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
 import { grantBadge } from '@/data/grant-badge';
 import { useBadgeRows } from '@/data/hooks';
@@ -35,7 +36,8 @@ export function MePage() {
           {view.status === 'ready' ? (
             <div className={styles.badgeSummary}>
               <p className={styles.badgeCount}>
-                {t('badge.wall.headerPrefix')} {view.wall.earnedCount} / {view.wall.total}
+                {t('badge.wall.headerPrefix')} {view.wall.earnedCount} /{' '}
+                {visibleBadgeTotal(view.wall)}
               </p>
               {view.wall.earnedCount === 0 ? (
                 <p className={styles.quiet}>{t('badge.wall.empty')}</p>
@@ -55,6 +57,9 @@ export function MePage() {
             </li>
             <li>
               <Link to="/data">{t('nav.data')}</Link>
+            </li>
+            <li>
+              <Link to="/me/help">{t('page.me.help')}</Link>
             </li>
           </ul>
         </section>

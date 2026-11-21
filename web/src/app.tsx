@@ -5,6 +5,7 @@ import { BadgeWallPage } from '@/pages/badge-wall-page';
 import { BranchDetailPage } from '@/pages/branch-detail-page';
 import { BranchesPage } from '@/pages/branches-page';
 import { DataPage } from '@/pages/data-page';
+import { HelpPage } from '@/pages/help-page';
 import { HistoryPage } from '@/pages/history-page';
 import { HomePage } from '@/pages/home-page';
 import { LoginPage } from '@/pages/login-page';
@@ -16,6 +17,7 @@ import { SettingsPage } from '@/pages/settings-page';
 import { SignupPage } from '@/pages/signup-page';
 import { SyncConflictsPage } from '@/pages/sync-conflicts-page';
 import { SyncDevicesPage } from '@/pages/sync-devices-page';
+import { TemplatesPage } from '@/pages/templates-page';
 import { TodayPage } from '@/pages/today-page';
 import { YearPage } from '@/pages/year-page';
 
@@ -35,11 +37,13 @@ export default function App() {
           <Route path="today/all" element={<AllTodosPage />} />
           <Route path="sample" element={<SamplePage />} />
           <Route path="branches" element={<BranchesPage />} />
+          <Route path="branches/templates" element={<TemplatesPage />} />
           <Route path="branches/:branchId" element={<BranchDetailPage />} />
           <Route path="history" element={<HistoryPage />} />
           <Route path="history/:year" element={<YearPage />} />
           <Route path="me" element={<MePage />} />
           <Route path="me/badges" element={<BadgeWallPage />} />
+          <Route path="me/help" element={<HelpPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="settings/sync/devices" element={<SyncDevicesPage />} />
           <Route path="settings/sync/conflicts" element={<SyncConflictsPage />} />

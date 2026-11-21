@@ -10,8 +10,8 @@ import styles from './badge-toast.module.css';
 /**
  * 今天页底部的徽章轻提示（PRD M11 OP-06）。
  *
- * 只显示发放当天的徽章，一次一条；关闭后从队列里移除并露出下一条。
- * 不自动消失、不悬浮遮挡底部导航，跨天不补。
+ * 只显示发放当天的徽章；同日多枚合并成一条「解锁 N 枚徽章」，
+ * 关闭后一起移除。不自动消失、不悬浮遮挡底部导航，跨天不补。
  */
 export function BadgeToast() {
   const view = useBadgeRows();
@@ -34,10 +34,11 @@ export function BadgeToast() {
   const row = current ? view.rows.find((item) => item.badge.id === current.id) : undefined;
   if (!row) return null;
 
+  const merged = queue.length > 1;
   const dismiss = () => {
     setDismissed((previous) => {
       const next = new Set(previous);
-      next.add(row.badge.id);
+      for (const item of queue) next.add(item.id);
       return next;
     });
   };
@@ -46,11 +47,21 @@ export function BadgeToast() {
     <section className={styles.toast} aria-live="polite">
       <div className={styles.text}>
         <span className={styles.kicker}>{t('badge.toast.prefix')}</span>
-        <strong className={styles.name}>{t(badgeNameKey(row.badge.catalogId))}</strong>
-        <span className={styles.source}>{t(badgeSourceKey(row.badge.catalogId))}</span>
+        {merged ? (
+          <>
+            <strong className={styles.name}>{queue.length}</strong>
+            <span className={styles.source}>{t('badge.toast.mergedSuffix')}</span>
+            <span className={styles.source}>{t('badge.toast.mergedSource')}</span>
+          </>
+        ) : (
+          <>
+            <strong className={styles.name}>{t(badgeNameKey(row.badge.catalogId))}</strong>
+            <span className={styles.source}>{t(badgeSourceKey(row.badge.catalogId))}</span>
+          </>
+        )}
       </div>
       <div className={styles.actions}>
-        {row.state === 'ok' && row.jump ? (
+        {!merged && row.state === 'ok' && row.jump ? (
           <Link className={styles.view} to={badgeHref(row.jump)}>
             {t('badge.viewHistory')}
           </Link>

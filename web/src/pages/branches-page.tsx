@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Annotation } from '@/components/annotation';
 import { ArchivedBranches } from '@/components/branches/archived-branches';
 import { BranchDeletePanel } from '@/components/branch-detail/branch-delete-panel';
@@ -12,7 +12,8 @@ import { BranchPanel, type BranchPanelState } from '@/components/branches/branch
 import { BranchTree } from '@/components/branches/branch-tree';
 import { BRANCH_TREE_LIMIT, countActiveBranches } from '@/core/rules/branch-quota';
 import { visibleDefaultTree } from '@/core/rules/branch-visibility';
-import { useBranchesView } from '@/data/hooks';
+import { withdrawTemplate } from '@/data/apply-template';
+import { useBranchesView, useTemplateState } from '@/data/hooks';
 import { reorderBranches, setBranchPinned } from '@/data/reorder';
 import { resumeBranch } from '@/data/resume-branch';
 import type { Branch } from '@/data/types';
@@ -63,6 +64,10 @@ export function BranchesPage() {
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<MessageKey | null>(null);
+  const [templateError, setTemplateError] = useState<MessageKey | null>(null);
+  const [templateBarHidden, setTemplateBarHidden] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const template = useTemplateState();
   const expandMany = useBranchesStore((state) => state.expandMany);
   const savedScroll = useRef(0);
 
@@ -202,6 +207,19 @@ export function BranchesPage() {
     if (!result.ok) setActionError('branches.order.failed');
   }, []);
 
+  const handleWithdraw = useCallback(async () => {
+    if (!template.rootId) return;
+    setTemplateError(null);
+    setWithdrawing(true);
+    const result = await withdrawTemplate(template.rootId);
+    setWithdrawing(false);
+    if (result.ok) {
+      setTemplateBarHidden(true);
+      return;
+    }
+    setTemplateError('template.withdrawFailed');
+  }, [template.rootId]);
+
   const handleTogglePinned = useCallback(async (branch: Branch) => {
     setActionError(null);
     const result = await setBranchPinned({
@@ -242,6 +260,42 @@ export function BranchesPage() {
       <div className={styles.notice}>
         <Annotation concept="branch" textKey="annotation.branch" />
       </div>
+
+      {!archivedView && template.rootId && !templateBarHidden ? (
+        <section className={styles.templateBar} aria-live="polite">
+          <div className={styles.templateBarCopy}>
+            <strong>{t('template.withdraw')}</strong>
+            <p className={styles.quiet}>
+              {template.withdrawReason
+                ? t('template.withdrawDisabled')
+                : t('template.withdrawHint')}
+            </p>
+          </div>
+          <div className={styles.templateBarActions}>
+            <button
+              type="button"
+              className={styles.action}
+              onClick={() => void handleWithdraw()}
+              disabled={!template.canWithdraw || withdrawing}
+            >
+              {t('template.withdraw')}
+            </button>
+            <button
+              type="button"
+              className={styles.templateDismiss}
+              onClick={() => setTemplateBarHidden(true)}
+            >
+              {t('badge.dismiss')}
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {templateError ? (
+        <p className={styles.inlineError} role="alert">
+          {t(templateError)}
+        </p>
+      ) : null}
 
       {actionError ? (
         <p className={styles.inlineError} role="alert">
@@ -288,7 +342,17 @@ export function BranchesPage() {
             onTogglePinned={handleTogglePinned}
           />
           {treeBranches.length <= 1 ? (
-            <EmptyState messageKey="branches.empty" action={action} />
+            <div className={styles.templateEntry}>
+              <EmptyState messageKey="branches.empty" action={action} />
+              {template.status === 'ready' && template.blank ? (
+                <>
+                  <p className={styles.quiet}>{t('page.branches.templateHint')}</p>
+                  <Link className={styles.action} to="/branches/templates">
+                    {t('page.branches.template')}
+                  </Link>
+                </>
+              ) : null}
+            </div>
           ) : null}
           <p className={styles.quota}>
             {t('branches.quota.prefix')} {used} / {BRANCH_TREE_LIMIT} {t('branches.quota.suffix')}

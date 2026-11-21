@@ -37,6 +37,16 @@ export function badgeNameKey(catalogId: string): MessageKey {
       return 'badge.milestoneNote.name';
     case 'year-marks':
       return 'badge.yearMarks.name';
+    case 'night-flight':
+      return 'badge.nightFlight.name';
+    case 'cross-year':
+      return 'badge.crossYear.name';
+    case 'blank-year':
+      return 'badge.blankYear.name';
+    case 'revival':
+      return 'badge.revival.name';
+    case 'full-moon':
+      return 'badge.fullMoon.name';
     default:
       return 'badge.unknown.name';
   }
@@ -76,6 +86,16 @@ export function badgeSourceKey(catalogId: string): MessageKey {
       return 'badge.milestoneNote.source';
     case 'year-marks':
       return 'badge.yearMarks.source';
+    case 'night-flight':
+      return 'badge.nightFlight.source';
+    case 'cross-year':
+      return 'badge.crossYear.source';
+    case 'blank-year':
+      return 'badge.blankYear.source';
+    case 'revival':
+      return 'badge.revival.source';
+    case 'full-moon':
+      return 'badge.fullMoon.source';
     default:
       return 'badge.unknown.source';
   }
@@ -115,6 +135,16 @@ export function badgeConditionKey(catalogId: string): MessageKey {
       return 'badge.milestoneNote.condition';
     case 'year-marks':
       return 'badge.yearMarks.condition';
+    case 'night-flight':
+      return 'badge.nightFlight.condition';
+    case 'cross-year':
+      return 'badge.crossYear.condition';
+    case 'blank-year':
+      return 'badge.blankYear.condition';
+    case 'revival':
+      return 'badge.revival.condition';
+    case 'full-moon':
+      return 'badge.fullMoon.condition';
     default:
       return 'badge.unknown.source';
   }

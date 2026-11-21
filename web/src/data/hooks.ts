@@ -22,6 +22,11 @@ import {
   type BadgeSourceState,
 } from '@/core/rules/badge-view';
 import { buildBadgeWall, type BadgeWall } from '@/core/rules/badge-catalog';
+import {
+  assessTemplateWithdraw,
+  isBlankWorkspace,
+  type TemplateWithdrawReason,
+} from '@/core/rules/template-guard';
 import { assessBadges } from '@/core/rules/badges';
 import { onboardingDataFrom, type OnboardingData } from '@/core/rules/onboarding-state';
 import { SAMPLE_OWNER_ID } from '@/core/rules/sample-tree';
@@ -33,6 +38,7 @@ import { yearBoundsFor } from '@/core/rules/year-param';
 import { buildMonthReview, type MonthReview } from '@/core/rules/month-review';
 import { computeWeeklySummary, type WeeklySummary } from '@/core/rules/weekly-summary';
 import { buildYearShareModel, type YearShareModel } from '@/core/rules/year-share';
+import { readTemplateRoot } from './apply-template';
 import { db, LOCAL_OWNER_ID } from './db';
 import { DEFAULT_SETTINGS, type SettingsFields } from './settings-defaults';
 import {
@@ -85,6 +91,67 @@ export function useBranchesView(ownerId = LOCAL_OWNER_ID): BranchesView {
   if (result === undefined) return { status: 'loading', branches: [], retry };
   if (!result.ok) return { status: 'error', branches: [], retry };
   return { status: 'ready', branches: result.rows, retry };
+}
+
+export interface TemplateState {
+  status: 'loading' | 'ready' | 'error';
+  /** 只剩根分支且没有待办、提交与里程碑。 */
+  blank: boolean;
+  /** 有可管理的模板子树时给出根分支 id。 */
+  rootId: string | null;
+  canWithdraw: boolean;
+  withdrawReason: TemplateWithdrawReason | null;
+  branchCount: number;
+  taskCount: number;
+}
+
+const TEMPLATE_STATE_EMPTY: TemplateState = {
+  status: 'loading',
+  blank: false,
+  rootId: null,
+  canWithdraw: false,
+  withdrawReason: null,
+  branchCount: 0,
+  taskCount: 0,
+};
+
+/**
+ * 模板入口与撤回状态（PRD V2-03 OP-07 / OP-10）。
+ *
+ * 入口只看真实数据，示例树由 `ownerId` 隔离；模板根 id 只是入口线索，
+ * 判定始终以库内子树为准，记录丢失时不给入口。
+ */
+export function useTemplateState(ownerId = LOCAL_OWNER_ID): TemplateState {
+  const result = useLiveQuery(async () => {
+    try {
+      const [branches, tasks, commits, milestones] = await Promise.all([
+        branchRepository.listByOwner(ownerId),
+        taskRepository.listByOwner(ownerId),
+        commitRepository.listByOwner(ownerId),
+        milestoneRepository.listByOwner(ownerId),
+      ]);
+      return { ok: true as const, branches, tasks, commits, milestones };
+    } catch {
+      return { ok: false as const };
+    }
+  }, [ownerId]);
+
+  if (result === undefined) return TEMPLATE_STATE_EMPTY;
+  if (!result.ok) return { ...TEMPLATE_STATE_EMPTY, status: 'error' };
+
+  const stored = readTemplateRoot();
+  const assessment = stored ? assessTemplateWithdraw(stored, result) : null;
+  const active = assessment && assessment.reason !== 'missing' ? assessment : null;
+
+  return {
+    status: 'ready',
+    blank: isBlankWorkspace(result),
+    rootId: active ? stored : null,
+    canWithdraw: active?.allowed ?? false,
+    withdrawReason: active && !active.allowed ? active.reason : null,
+    branchCount: active?.branchIds.length ?? 0,
+    taskCount: active?.taskIds.length ?? 0,
+  };
 }
 
 export function useBranch(branchId: string | undefined) {

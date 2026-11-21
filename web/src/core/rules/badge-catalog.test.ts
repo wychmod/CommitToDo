@@ -6,6 +6,7 @@ import {
   BADGE_PERIOD_ALL,
   badgesInCategory,
   buildBadgeWall,
+  visibleBadgeTotal,
 } from './badge-catalog';
 
 const AT = Date.UTC(2026, 10, 21, 9, 0);
@@ -37,9 +38,10 @@ describe('徽章目录（V1-05 §4.1 / R18）', () => {
 });
 
 describe('徽章墙派生（V1-05 §4.2 / OP-01）', () => {
-  it('0 枚已获得时页头为 0 / 21，彩蛋分类不出现任何条目', () => {
+  it('0 枚已获得时页头为 0 / 16，彩蛋分类不出现任何条目', () => {
     const wall = buildBadgeWall([], []);
 
+    expect(visibleBadgeTotal(wall)).toBe(16);
     expect(wall.total).toBe(21);
     expect(wall.earnedCount).toBe(0);
     expect(wall.groups.map((group) => group.total)).toEqual([8, 4, 4, 5]);

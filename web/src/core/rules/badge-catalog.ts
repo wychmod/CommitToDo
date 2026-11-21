@@ -150,8 +150,18 @@ export interface BadgeWall {
 const HALF = 0.5;
 
 /**
+ * 页头展示的总数：彩蛋在拿到前不计入，避免用总数泄露它们的存在；
+ * 全部拿到后即为完整目录数。
+ */
+export function visibleBadgeTotal(wall: BadgeWall): number {
+  const easter = wall.groups.find((group) => group.category === 'easter');
+  const hidden = (easter?.total ?? 0) - (easter?.earnedCount ?? 0);
+  return wall.total - hidden;
+}
+
+/**
  * 徽章墙：已获得在前按 `grantedAt` 倒序，未获得按目录顺序；
- * 空分类保留（页头按三类固定 8 / 4 / 4）。
+ * 空分类保留（页头按三类固定 8 / 4 / 4，彩蛋拿到前不计数）。
  */
 export function buildBadgeWall(
   badges: readonly BadgeWallBadgeRow[],

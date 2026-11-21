@@ -437,6 +437,13 @@ function SyncPanel({ principalId }: { principalId: string }) {
         </Link>
       </div>
 
+      <div className={styles.syncRow}>
+        <span className={styles.syncTerm}>{t('settings.sync.helpLink')}</span>
+        <Link className={styles.entry} to="/me/help">
+          {t('page.me.help')}
+        </Link>
+      </div>
+
       {showNotice ? <p className={styles.notice}>{t('sync.migration.done')}</p> : null}
 
       {progress && progress.completed < progress.total ? (

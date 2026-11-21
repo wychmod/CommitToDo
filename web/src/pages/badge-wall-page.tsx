@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { localDate } from '@/core/clock';
 import {
   BADGE_CATEGORY_ORDER,
+  visibleBadgeTotal,
   type BadgeCategory,
   type BadgeWallItem,
 } from '@/core/rules/badge-catalog';
@@ -68,6 +69,12 @@ function snapshotRows(snapshot: Record<string, unknown>): DetailRow[] {
   pushText('badge.detail.startDate', snapshot.startDate);
   pushText('badge.detail.day365', snapshot.day365);
   pushText('badge.detail.backfillDate', snapshot.backfillDate);
+  pushText('badge.detail.previousDate', snapshot.previousDate);
+  pushText('badge.detail.months', snapshot.month);
+  if (Array.isArray(snapshot.dates)) {
+    const dates = snapshot.dates.filter((entry): entry is string => typeof entry === 'string');
+    if (dates.length > 0) rows.push({ key: 'badge.detail.dates', value: dates.join(' · ') });
+  }
 
   const fromMonth = typeof snapshot.fromMonth === 'string' ? snapshot.fromMonth : null;
   const toMonth = typeof snapshot.toMonth === 'string' ? snapshot.toMonth : null;
@@ -222,12 +229,17 @@ function BadgeDetail({ row, onClose }: { row: BadgeListViewRow; onClose: () => v
  *
  * 页头显示「已获得 N / 16」；分类内已获得按授予时间倒序、未获得按目录顺序；
  * 未获得在达成度 ≥50% 时显示「还差 N」，否则灰点与条件一句话。
+ * 彩蛋分类在拿到第一枚前不出现，总数也只计入已拿到的彩蛋（V2-03 §4.2）。
  */
 export function BadgeWallPage() {
   const view = useBadgeRows();
   const [category, setCategory] = useState<BadgeCategory>('structure');
   const [openId, setOpenId] = useState<string | null>(null);
 
+  const easterEarned =
+    view.wall.groups.find((entry) => entry.category === 'easter')?.earnedCount ?? 0;
+  const visibleTotal = visibleBadgeTotal(view.wall);
+  const categories = BADGE_CATEGORY_ORDER.filter((entry) => entry !== 'easter' || easterEarned > 0);
   const group = view.wall.groups.find((entry) => entry.category === category);
   const openRow = openId ? view.rows.find((row) => row.badge.id === openId) : undefined;
 
@@ -238,7 +250,7 @@ export function BadgeWallPage() {
       <div className={styles.wall}>
         <div className={styles.headerRow}>
           <p className={styles.count}>
-            {t('badge.wall.headerPrefix')} {view.wall.earnedCount} / {view.wall.total}
+            {t('badge.wall.headerPrefix')} {view.wall.earnedCount} / {visibleTotal}
           </p>
           <Link className={styles.back} to="/me">
             {t('nav.back')}
@@ -266,7 +278,7 @@ export function BadgeWallPage() {
         ) : null}
 
         <div className={styles.tabs} role="tablist" aria-label={t('badge.wall.title')}>
-          {BADGE_CATEGORY_ORDER.map((entry) => (
+          {categories.map((entry) => (
             <button
               key={entry}
               type="button"
