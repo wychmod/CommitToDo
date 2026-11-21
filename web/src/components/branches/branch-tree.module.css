@@ -1,0 +1,19 @@
+.tree,
+.group {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group {
+  margin-left: calc(var(--s6) + var(--s1));
+  padding-left: var(--tree-indent);
+  border-left: var(--tree-connector) solid var(--line);
+}
+
+@media (max-width: 760px) {
+  .group {
+    margin-left: var(--s5);
+    padding-left: var(--s3);
+  }
+}

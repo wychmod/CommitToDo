@@ -30,5 +30,33 @@ export function ArrowLeftIcon(props: SvgIconProps) {
   );
 }
 
+/** 树节点展开控件：展开时朝下，折叠时朝右。 */
+export function ChevronDownIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="m6 9 6 6 6-6" />
+    </SvgIcon>
+  );
+}
+
+export function ChevronRightIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="m9 6 6 6-6 6" />
+    </SvgIcon>
+  );
+}
+
+/** 行尾「更多」操作。 */
+export function MoreIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="6" cy="12" r="1" />
+      <circle cx="12" cy="12" r="1" />
+      <circle cx="18" cy="12" r="1" />
+    </SvgIcon>
+  );
+}
+
 export { SvgIcon };
 export type { IconSize, SvgIconProps } from './svg-icon';

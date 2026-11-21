@@ -12,6 +12,8 @@ import type { Badge, Branch, Commit, EventRecord, Milestone, Settings, Task } fr
 export interface BranchRepository {
   listByOwner(ownerId: string): Promise<Branch[]>;
   getById(branchId: string): Promise<Branch | undefined>;
+  create(row: Branch): Promise<string>;
+  put(row: Branch): Promise<string>;
 }
 
 export interface TaskRepository {
@@ -44,6 +46,14 @@ export interface EventRepository {
 export const branchRepository: BranchRepository = {
   listByOwner: (ownerId) => db.branches.where('ownerId').equals(ownerId).sortBy('order'),
   getById: (branchId) => db.branches.get(branchId),
+  create: (row) => {
+    assertInTransaction();
+    return db.branches.add(row);
+  },
+  put: (row) => {
+    assertInTransaction();
+    return db.branches.put(row);
+  },
 };
 
 export const taskRepository: TaskRepository = {
@@ -83,5 +93,5 @@ export const eventRepository: EventRepository = {
   },
 };
 
-// TODO(写路径): 分支/待办/提交/里程碑的 create / update / finish / drop
+// TODO(写路径): 待办/提交/里程碑的 create / update / finish / drop
 // 在实现页面前补上；写入必须同事务维护 branches 的四个计数（§5.3.3 R7）。

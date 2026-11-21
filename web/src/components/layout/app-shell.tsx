@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { OverlayHost } from '@/components/overlays/overlay-host';
 import { navSectionFor, type NavSection } from '@/core/rules/nav-selection';
+import { ensureRootBranch } from '@/data/ensure-root-branch';
 import { useStorageReady } from '@/data/hooks';
 import { t, type MessageKey } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
@@ -32,6 +33,12 @@ export function AppShell() {
   const { status, retry } = useStorageReady();
   const section = navSectionFor(location.pathname);
   const scrollKey = scrollKeyFor(location.pathname, location.search);
+
+  // 首次进入工作区时确保根分支「我」存在（M02 OP-01）；用例本身幂等，重复调用安全。
+  useEffect(() => {
+    if (status !== 'ready') return;
+    void ensureRootBranch();
+  }, [status]);
 
   useEffect(() => {
     const save = () => {

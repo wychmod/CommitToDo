@@ -1,0 +1,246 @@
+.node {
+  position: relative;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--s6) var(--tree-identity) minmax(0, 1fr) auto auto var(--s6);
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--tree-row-height);
+  padding: 0 var(--s1);
+  border-radius: var(--radius-control);
+}
+
+.row:hover {
+  background: var(--inset);
+}
+
+.toggle,
+.togglePlaceholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--s6);
+  height: var(--s6);
+}
+
+.toggle {
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.dot {
+  width: var(--tree-identity);
+  height: var(--tree-identity);
+  border-radius: 50%;
+  background: var(--neutral);
+}
+
+.dot[data-color='coral'][data-shade='1'] {
+  background: var(--coral-1);
+}
+
+.dot[data-color='coral'][data-shade='2'] {
+  background: var(--coral-2);
+}
+
+.dot[data-color='coral'][data-shade='3'] {
+  background: var(--coral-3);
+}
+
+.dot[data-color='sky'][data-shade='1'] {
+  background: var(--sky-1);
+}
+
+.dot[data-color='sky'][data-shade='2'] {
+  background: var(--sky-2);
+}
+
+.dot[data-color='sky'][data-shade='3'] {
+  background: var(--sky-3);
+}
+
+.dot[data-color='honey'][data-shade='1'] {
+  background: var(--honey-1);
+}
+
+.dot[data-color='honey'][data-shade='2'] {
+  background: var(--honey-2);
+}
+
+.dot[data-color='honey'][data-shade='3'] {
+  background: var(--honey-3);
+}
+
+.dot[data-color='mint'][data-shade='1'] {
+  background: var(--mint-1);
+}
+
+.dot[data-color='mint'][data-shade='2'] {
+  background: var(--mint-2);
+}
+
+.dot[data-color='mint'][data-shade='3'] {
+  background: var(--mint-3);
+}
+
+.dot[data-color='iris'][data-shade='1'] {
+  background: var(--iris-1);
+}
+
+.dot[data-color='iris'][data-shade='2'] {
+  background: var(--iris-2);
+}
+
+.dot[data-color='iris'][data-shade='3'] {
+  background: var(--iris-3);
+}
+
+.dot[data-color='rose'][data-shade='1'] {
+  background: var(--rose-1);
+}
+
+.dot[data-color='rose'][data-shade='2'] {
+  background: var(--rose-2);
+}
+
+.dot[data-color='rose'][data-shade='3'] {
+  background: var(--rose-3);
+}
+
+.dot[data-color='teal'][data-shade='1'] {
+  background: var(--teal-1);
+}
+
+.dot[data-color='teal'][data-shade='2'] {
+  background: var(--teal-2);
+}
+
+.dot[data-color='teal'][data-shade='3'] {
+  background: var(--teal-3);
+}
+
+.name {
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--type-body);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name:hover {
+  color: var(--accent);
+}
+
+.status {
+  color: var(--muted);
+  font-size: var(--type-label);
+  white-space: nowrap;
+}
+
+.row[data-status='merged'] .status {
+  color: var(--info);
+}
+
+.row[data-status='dropped'] .status {
+  color: var(--subtle);
+}
+
+.progress {
+  color: var(--subtle);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.menuAnchor {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--s6);
+  height: var(--s6);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.more:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + var(--s1));
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: var(--layout-sidebar);
+  padding: var(--s1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.menuItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s1);
+  padding: var(--s2) var(--s3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--type-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.menuItem:disabled {
+  color: var(--disabled);
+  cursor: not-allowed;
+}
+
+.menuReason {
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+@media (max-width: 760px) {
+  .row {
+    grid-template-columns: var(--s6) var(--tree-identity) minmax(0, 1fr) auto var(--s6);
+  }
+
+  .progress {
+    display: none;
+  }
+}

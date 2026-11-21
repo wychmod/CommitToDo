@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { normalizeAnnotationMode } from '@/core/rules/annotation-visibility';
 import { normalizeTheme } from '@/core/rules/theme-preference';
 import { resolveTreeDensity } from '@/core/rules/tree-density';
@@ -14,6 +14,7 @@ import {
   settingsRepository,
   taskRepository,
 } from './repositories';
+import type { Branch } from './types';
 
 /**
  * 读路径统一走 `useLiveQuery`（TECH-ARCHITECTURE.md §2.6 / §5.4）。
@@ -24,6 +25,34 @@ import {
 
 export function useBranches(ownerId = LOCAL_OWNER_ID) {
   return useLiveQuery(() => branchRepository.listByOwner(ownerId), [ownerId]);
+}
+
+export interface BranchesView {
+  status: 'loading' | 'ready' | 'error';
+  branches: Branch[];
+  retry: () => void;
+}
+
+/**
+ * 分支树页的读状态（PRD M02 §4.4）。
+ *
+ * 读取失败不抛出整页白屏：返回 `error` 让分支页保留外框与重试入口；
+ * 重试只是重新订阅同一条查询，已有数据不会被清空。
+ */
+export function useBranchesView(ownerId = LOCAL_OWNER_ID): BranchesView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      return { ok: true as const, rows: await branchRepository.listByOwner(ownerId) };
+    } catch {
+      return { ok: false as const, rows: [] as Branch[] };
+    }
+  }, [ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) return { status: 'loading', branches: [], retry };
+  if (!result.ok) return { status: 'error', branches: [], retry };
+  return { status: 'ready', branches: result.rows, retry };
 }
 
 export function useBranch(branchId: string | undefined) {

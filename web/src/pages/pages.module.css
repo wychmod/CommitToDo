@@ -70,3 +70,37 @@
   color: var(--muted);
   font-size: var(--type-secondary);
 }
+
+.quota {
+  margin: 0;
+  padding-top: var(--s3);
+  color: var(--subtle);
+  font-size: var(--type-secondary);
+}
+
+.treeLoading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.treeLoadingLabel {
+  margin-bottom: var(--s2);
+  color: var(--subtle);
+  font-size: var(--type-secondary);
+}
+
+.treeSkeletonRow {
+  display: block;
+  height: var(--tree-row-height);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+}
+
+.treeSkeletonRow[data-depth='1'] {
+  margin-left: var(--tree-indent);
+}
+
+.treeSkeletonRow[data-depth='2'] {
+  margin-left: calc(var(--tree-indent) * 2);
+}
