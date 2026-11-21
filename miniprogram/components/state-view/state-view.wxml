@@ -1,0 +1,20 @@
+<view wx:if="{{state === 'loading'}}" class="state">
+  <view class="skeleton">
+    <view class="skeleton-line" style="width: 42%"></view>
+    <view class="skeleton-line" style="width: 82%"></view>
+    <view class="skeleton-line" style="width: 68%"></view>
+    <view class="skeleton-line" style="width: 74%"></view>
+  </view>
+</view>
+
+<view wx:elif="{{state === 'empty'}}" class="state">
+  <text class="state-title">{{title}}</text>
+  <text class="state-body">{{body}}</text>
+  <view wx:if="{{actionText}}" class="state-action" bindtap="onAction">{{actionText}}</view>
+</view>
+
+<view wx:elif="{{state === 'error'}}" class="state">
+  <text class="state-title">{{title || '暂时读不到内容'}}</text>
+  <text class="state-body">{{body}}</text>
+  <view wx:if="{{actionText}}" class="state-action" bindtap="onAction">{{actionText}}</view>
+</view>

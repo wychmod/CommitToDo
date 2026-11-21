@@ -1,0 +1,48 @@
+.state {
+  padding: 56px 24px;
+  text-align: center;
+}
+
+.state-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1b2432;
+}
+
+.state-body {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #526174;
+}
+
+.state-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  margin-top: 16px;
+  padding: 0 18px;
+  border-radius: 6px;
+  background: #245f9d;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.skeleton {
+  padding: 4px 6px;
+  text-align: left;
+}
+
+.skeleton-line {
+  height: 12px;
+  margin-top: 10px;
+  border-radius: 4px;
+  background: #f3f6f9;
+}
+
+.skeleton-line:first-child {
+  margin-top: 0;
+}

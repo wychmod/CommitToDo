@@ -1,0 +1,9 @@
+{
+  "desc": "CommitToDo 第二端只读页面，不参与搜索收录",
+  "rules": [
+    {
+      "action": "disallow",
+      "page": "*"
+    }
+  ]
+}

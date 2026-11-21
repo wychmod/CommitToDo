@@ -1,0 +1,42 @@
+{
+  "pages": [
+    "pages/today/today",
+    "pages/branches/branches",
+    "pages/history/history",
+    "pages/me/me",
+    "pages/login/login",
+    "pages/branch-detail/branch-detail",
+    "pages/archive/archive",
+    "pages/detail/detail",
+    "pages/year/year",
+    "pages/badges/badges",
+    "pages/help/help"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "CommitToDo",
+    "backgroundColor": "#F8F9FA",
+    "backgroundTextStyle": "dark",
+    "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#526174",
+    "selectedColor": "#245F9D",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/today/today", "text": "今天" },
+      { "pagePath": "pages/branches/branches", "text": "分支" },
+      { "pagePath": "pages/history/history", "text": "历程" },
+      { "pagePath": "pages/me/me", "text": "我的" }
+    ]
+  },
+  "usingComponents": {
+    "state-view": "/components/state-view/state-view"
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

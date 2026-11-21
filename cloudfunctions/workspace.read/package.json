@@ -1,0 +1,10 @@
+{
+  "name": "workspace.read",
+  "version": "1.0.0",
+  "private": true,
+  "description": "V2-04 第二端只读：按账号归属返回今天、分支、历程、年轮、徽章与设备",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.1.0"
+  }
+}

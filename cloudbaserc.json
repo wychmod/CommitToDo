@@ -8,6 +8,13 @@
       "runtime": "Nodejs16.13",
       "handler": "index.main",
       "installDependency": true
+    },
+    {
+      "name": "workspace.read",
+      "timeout": 20,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "installDependency": true
     }
   ]
 }

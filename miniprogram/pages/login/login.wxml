@@ -1,0 +1,42 @@
+<view class="login">
+  <view class="login-top">
+    <view class="login-mark"></view>
+    <view class="login-title">把每次完成，</view>
+    <view class="login-title">留在<text class="login-highlight">分支</text>上。</view>
+    <text class="login-body">登录后查看你的树：今天要做什么、每条分支走到哪、今年走了多远。</text>
+
+    <view class="login-illustration">
+      <view class="login-line">
+        <view class="login-note">C</view>
+        <text>完成一条待办</text>
+      </view>
+      <view class="login-line" style="margin-top: 14px">
+        <view class="login-arrow"></view>
+      </view>
+      <view class="login-branch" style="margin-top: 14px">
+        <view class="dot dot-round" style="background: #A84427"></view>
+        <text>工作</text>
+        <view class="dot dot-round" style="background: #286BA3; margin-left: 14px"></view>
+        <text>主业</text>
+        <view class="dot dot-round" style="background: #906511; margin-left: 14px"></view>
+        <text>身体</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="login-actions">
+    <view class="login-button {{checking ? 'login-button-disabled' : ''}}" bindtap="onLogin">
+      {{checking ? '正在检查登录状态…' : '登录 CommitToDo'}}
+    </view>
+
+    <text wx:if="{{expired}}" class="login-hint">登录状态已失效。重新登录后会回到刚才的页面。</text>
+    <text wx:if="{{error}}" class="login-hint login-hint-danger">{{error}}</text>
+
+    <block wx:if="{{unbound}}">
+      <text class="login-hint">这个微信还没有绑定 CommitToDo 账号。先在网页端登录并完成绑定，再回到这里重试。</text>
+      <text class="login-hint" bindtap="onCopyWeb">复制网页地址</text>
+    </block>
+
+    <text wx:if="{{!unbound && !expired && !error}}" class="login-hint">第二端只读：查看今天、分支、历程与年轮；写入仍回到网页主端。</text>
+  </view>
+</view>
