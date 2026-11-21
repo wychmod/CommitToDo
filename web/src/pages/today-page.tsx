@@ -2,14 +2,16 @@ import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { localClockTime, localDate, systemClock, today } from '@/core/clock';
 import { branchTrail } from '@/core/rules/quick-add';
+import { needsOnboarding } from '@/core/rules/onboarding-state';
 import { groupTodayTasks } from '@/core/rules/today-groups';
 import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
-import { useTodayData, useStallReminders } from '@/data/hooks';
+import { useOnboardingData, useTodayData, useStallReminders } from '@/data/hooks';
 import { planTask } from '@/data/plan-task';
 import { updateCommit } from '@/data/update-commit';
 import type { Commit, Task } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
+import { useOnboardingStore } from '@/stores/onboarding.store';
 import { useShellStore } from '@/stores/shell.store';
 import { useTodayStore } from '@/stores/today.store';
 import { EmptyState } from '@/ui/empty-state';
@@ -17,6 +19,7 @@ import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
 import { CompletionReceipt } from '@/components/today/completion-receipt';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
+import { OnboardingCard } from '@/components/onboarding/onboarding-card';
 import { readonlyReasonKey } from '@/components/today/readonly';
 import { TaskRow } from '@/components/today/task-row';
 import { BadgeToast } from '@/components/today/badge-toast';
@@ -41,6 +44,11 @@ export function TodayPage() {
   const openCommitDetail = useShellStore((state) => state.openCommitDetail);
   const listCollapsed = useTodayStore((state) => state.listCollapsed);
   const toggleListCollapsed = useTodayStore((state) => state.toggleListCollapsed);
+  const onboarding = useOnboardingData();
+  const onboardingSkipped = useOnboardingStore((state) => state.skipped);
+  const reopenOnboarding = useOnboardingStore((state) => state.reopen);
+  const canReopen =
+    onboarding.status === 'ready' && onboardingSkipped && needsOnboarding(onboarding.data);
   const todayDate = today(systemClock);
   const stalls = useStallReminders(todayDate);
 
@@ -158,17 +166,26 @@ export function TodayPage() {
         </div>
       ) : null}
 
+      {data.status === 'ready' ? <OnboardingCard /> : null}
+
       {data.status === 'ready' && total === 0 ? (
         <EmptyState
           messageKey="page.today.empty"
           action={
-            <button
-              type="button"
-              className={styles.action}
-              onClick={() => openOverlay('quick-add')}
-            >
-              {t('page.today.action')}
-            </button>
+            <div className={styles.emptyActions}>
+              <button
+                type="button"
+                className={styles.action}
+                onClick={() => openOverlay('quick-add')}
+              >
+                {t('page.today.action')}
+              </button>
+              {canReopen ? (
+                <button type="button" className={styles.reopenLink} onClick={reopenOnboarding}>
+                  {t('onboarding.reopen')}
+                </button>
+              ) : null}
+            </div>
           }
         />
       ) : null}

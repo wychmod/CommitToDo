@@ -10,6 +10,7 @@ import { LoginPage } from '@/pages/login-page';
 import { MePage } from '@/pages/me-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 import { RecoverPage } from '@/pages/recover-page';
+import { SamplePage } from '@/pages/sample-page';
 import { SettingsPage } from '@/pages/settings-page';
 import { SignupPage } from '@/pages/signup-page';
 import { TodayPage } from '@/pages/today-page';
@@ -29,6 +30,7 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route path="today" element={<TodayPage />} />
           <Route path="today/all" element={<AllTodosPage />} />
+          <Route path="sample" element={<SamplePage />} />
           <Route path="branches" element={<BranchesPage />} />
           <Route path="branches/:branchId" element={<BranchDetailPage />} />
           <Route path="history" element={<HistoryPage />} />

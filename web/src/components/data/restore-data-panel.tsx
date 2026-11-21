@@ -4,6 +4,7 @@ import { validateImportFile, type ImportFileData } from '@/core/rules/import-val
 import { markBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
 import { importData } from '@/data/import-data';
 import { t, type MessageKey } from '@/i18n';
+import { useOnboardingStore } from '@/stores/onboarding.store';
 import styles from './restore-data-panel.module.css';
 
 const COUNT_KEYS: ReadonlyArray<{
@@ -110,6 +111,8 @@ export function RestoreDataPanel({
     const result = await importData({ text });
     if (result.ok) {
       markBadgeBackfillSkipped();
+      // 恢复出来的是真实数据，引导不再出现。
+      useOnboardingStore.getState().finish();
       window.location.assign('/today');
       return;
     }

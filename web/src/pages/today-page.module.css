@@ -19,6 +19,24 @@
   outline-offset: 2px;
 }
 
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.reopenLink {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--type-secondary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .errorBox {
   display: flex;
   flex-direction: column;

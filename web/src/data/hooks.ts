@@ -19,6 +19,8 @@ import {
   type BadgeJumpTarget,
   type BadgeSourceState,
 } from '@/core/rules/badge-view';
+import { onboardingDataFrom, type OnboardingData } from '@/core/rules/onboarding-state';
+import { SAMPLE_OWNER_ID } from '@/core/rules/sample-tree';
 import { normalizeTheme } from '@/core/rules/theme-preference';
 import { resolveTreeDensity } from '@/core/rules/tree-density';
 import { db, LOCAL_OWNER_ID } from './db';
@@ -805,6 +807,150 @@ export function useBranchDeleteGuard(branchId: string | undefined): BranchDelete
   if (result === undefined) return { status: 'loading', guard: null, retry };
   if (!result.ok) return { status: 'error', guard: null, retry };
   return { status: 'ready', guard: result.guard, retry };
+}
+
+export interface OnboardingDataView {
+  status: 'loading' | 'ready' | 'error';
+  data: OnboardingData;
+  branches: Branch[];
+  rootId: string | null;
+  firstOpenTask: Task | null;
+  firstCommit: Commit | null;
+  retry: () => void;
+}
+
+/**
+ * 首次引导的数据来源（M12 OP-01）。
+ *
+ * 步骤由真实数据推导；同时给出根分支与最早一条未完成待办，
+ * 供卡片在第 2/3 步默认落点和第 3/3 步直接完成。
+ */
+export function useOnboardingData(ownerId = LOCAL_OWNER_ID): OnboardingDataView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      const [branches, tasks, commits, milestones] = await Promise.all([
+        branchRepository.listByOwner(ownerId),
+        taskRepository.listByOwner(ownerId),
+        commitRepository.listByOwner(ownerId),
+        milestoneRepository.listByOwner(ownerId),
+      ]);
+      const root =
+        branches
+          .filter((branch) => branch.deletedAt === null && branch.parentId === null)
+          .sort(
+            (left, right) => left.createdAt - right.createdAt || left.id.localeCompare(right.id),
+          )[0] ?? null;
+      const firstOpenTask =
+        tasks
+          .filter((task) => task.deletedAt === null && task.status === 'open')
+          .sort(
+            (left, right) => left.createdAt - right.createdAt || left.id.localeCompare(right.id),
+          )[0] ?? null;
+      const firstCommit =
+        commits
+          .filter((commit) => commit.deletedAt === null && commit.voidedAt === null)
+          .sort((left, right) => left.at - right.at || left.id.localeCompare(right.id))[0] ?? null;
+      return {
+        ok: true as const,
+        data: onboardingDataFrom({ branches, tasks, commits, milestones }),
+        branches,
+        rootId: root?.id ?? null,
+        firstOpenTask,
+        firstCommit,
+      };
+    } catch {
+      return {
+        ok: false as const,
+        data: EMPTY_ONBOARDING_DATA,
+        branches: [],
+        rootId: null,
+        firstOpenTask: null,
+        firstCommit: null,
+      };
+    }
+  }, [ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) {
+    return {
+      status: 'loading',
+      data: EMPTY_ONBOARDING_DATA,
+      branches: [],
+      rootId: null,
+      firstOpenTask: null,
+      firstCommit: null,
+      retry,
+    };
+  }
+  if (!result.ok) {
+    return {
+      status: 'error',
+      data: EMPTY_ONBOARDING_DATA,
+      branches: [],
+      rootId: null,
+      firstOpenTask: null,
+      firstCommit: null,
+      retry,
+    };
+  }
+  return {
+    status: 'ready',
+    data: result.data,
+    branches: result.branches,
+    rootId: result.rootId,
+    firstOpenTask: result.firstOpenTask,
+    firstCommit: result.firstCommit,
+    retry,
+  };
+}
+
+const EMPTY_ONBOARDING_DATA: OnboardingData = {
+  extraBranchCount: 0,
+  taskCount: 0,
+  commitCount: 0,
+  milestoneCount: 0,
+};
+
+export interface SampleTreeView {
+  status: 'loading' | 'ready' | 'error';
+  branches: Branch[];
+  commits: Commit[];
+  milestones: Milestone[];
+  retry: () => void;
+}
+
+/** 只读的示例命名空间（M12 OP-05）；真实读路径不会看到这些行。 */
+export function useSampleTree(): SampleTreeView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      const [branches, commits, milestones] = await Promise.all([
+        branchRepository.listByOwner(SAMPLE_OWNER_ID),
+        commitRepository.listByOwner(SAMPLE_OWNER_ID),
+        milestoneRepository.listByOwner(SAMPLE_OWNER_ID),
+      ]);
+      return {
+        ok: true as const,
+        branches: branches
+          .slice()
+          .sort((left, right) => left.depth - right.depth || left.order - right.order),
+        commits: commits.slice().sort((left, right) => right.at - left.at),
+        milestones: milestones.slice().sort((left, right) => right.achievedAt - left.achievedAt),
+      };
+    } catch {
+      return { ok: false as const, branches: [], commits: [], milestones: [] };
+    }
+  }, [attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) {
+    return { status: 'loading', branches: [], commits: [], milestones: [], retry };
+  }
+  if (!result.ok) {
+    return { status: 'error', branches: [], commits: [], milestones: [], retry };
+  }
+  return { status: 'ready', ...result, retry };
 }
 
 export interface DataOverviewCounts {

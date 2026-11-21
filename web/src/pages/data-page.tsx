@@ -6,6 +6,7 @@ import { RestoreDataPanel } from '@/components/data/restore-data-panel';
 import { exportData } from '@/data/export-data';
 import { useDataOverview, type DataOverviewCounts } from '@/data/hooks';
 import { t, type MessageKey } from '@/i18n';
+import { ONBOARDING_STORAGE_KEY, useOnboardingStore } from '@/stores/onboarding.store';
 import { PageShell } from '@/ui/page-shell';
 import styles from './data-page.module.css';
 
@@ -17,9 +18,11 @@ const STATS: ReadonlyArray<{ key: keyof DataOverviewCounts; label: MessageKey }>
   { key: 'badges', label: 'data.overview.badges' },
 ];
 
-/** 清空后要一起丢掉的本机 UI 状态（筛选、展开、注解已看与滚动位置）。 */
+/** 清空后要一起丢掉的本机 UI 状态（筛选、展开、注解已看、滚动位置与引导）。 */
 function clearLocalUiState(): void {
   try {
+    useOnboardingStore.getState().reset();
+    window.localStorage.removeItem(ONBOARDING_STORAGE_KEY);
     window.localStorage.removeItem('history.filter');
     for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
       const key = window.localStorage.key(index);
