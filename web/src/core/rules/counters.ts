@@ -12,6 +12,8 @@ export interface CountTask {
 }
 
 export interface CountCommit {
+  /** 提交主键；同一条提交因同步重放出现两次时按它去重。 */
+  id?: string;
   branchId: string;
   at: number;
   voidedAt?: number | null;
@@ -36,6 +38,7 @@ export function recountBranch(
   let taskDone = 0;
   let commitCount = 0;
   let ownLastCommitAt: number | null = null;
+  const seenCommitIds = new Set<string>();
 
   for (const task of tasks) {
     if (task.branchId !== branchId || !isLive(task)) continue;
@@ -46,6 +49,10 @@ export function recountBranch(
 
   for (const commit of commits) {
     if (commit.branchId !== branchId || !isLive(commit) || commit.voidedAt) continue;
+    if (commit.id) {
+      if (seenCommitIds.has(commit.id)) continue;
+      seenCommitIds.add(commit.id);
+    }
     commitCount += 1;
     if (ownLastCommitAt === null || commit.at > ownLastCommitAt) ownLastCommitAt = commit.at;
   }

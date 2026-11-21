@@ -165,3 +165,63 @@ export interface EventRecord {
   tzOffset: number;
   deviceId: string | null;
 }
+
+/** 待推送队列（PRD V2-02 §5）：本地先写时与业务写入同事务落库。 */
+export interface OutboxOp {
+  /** 推送幂等键，ULID。 */
+  opId: string;
+  entity: 'branch' | 'task' | 'commit' | 'milestone' | 'badge' | 'sync';
+  entityId: string;
+  action: string;
+  /** 推送时的实体快照；行已被删除时为动作 payload。 */
+  payload: Record<string, unknown>;
+  baseRev: number | null;
+  attempts: number;
+  lastError: string | null;
+  createdAt: number;
+}
+
+/** 冲突记录（PRD V2-02 §5）：服务端拒绝过期写入时落库，只读展示。 */
+export interface SyncConflict {
+  id: string;
+  ownerId: OwnerId;
+  entity: string;
+  entityId: string;
+  branchId: string | null;
+  field: string | null;
+  localPayload: Record<string, unknown> | null;
+  serverPayload: Record<string, unknown> | null;
+  deviceId: string | null;
+  localRev: number | null;
+  serverRev: number | null;
+  at: number;
+  /** 本期不写入，只保留字段给后续的解决动作。 */
+  resolved?: boolean;
+  resolvedAt?: number | null;
+}
+
+/** 已连接设备（PRD V2-02 §5）。`removedAt` 保留但本期不在界面消费。 */
+export interface Device {
+  id: string;
+  ownerId: OwnerId;
+  label: string;
+  platform: string;
+  lastSyncAt: number | null;
+  createdAt: number;
+  removedAt: number | null;
+}
+
+/** 首次迁移断点（PRD V2-02 §5），`id` 为集合名。 */
+export interface MigrationState {
+  id: string;
+  lastId: string | null;
+  pushed: number;
+  done: boolean;
+  updatedAt: number;
+}
+
+/** 匿名计数（PRD V2-02 §5），只由云函数写；本机不写这一行。 */
+export interface Counter {
+  id: string;
+  value: number;
+}

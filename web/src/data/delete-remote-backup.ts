@@ -19,7 +19,7 @@ export async function deleteRemoteBackup(input: { backupId: string }): Promise<R
   if (!deleted.ok) return deleted;
 
   try {
-    return await db.transaction('rw', [db.backups], async () => {
+    return await db.transaction('rw', [db.backups, db.outbox], async () => {
       await backupRepository.remove([target.id]);
       return ok(null);
     });

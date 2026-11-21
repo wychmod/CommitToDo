@@ -41,7 +41,7 @@ export async function reorderTasks(
   }
 
   try {
-    return await db.transaction('rw', [db.tasks], async () => {
+    return await db.transaction('rw', [db.tasks, db.outbox], async () => {
       const rows = await db.tasks.bulkGet(input.orderedIds);
       let written = 0;
       for (const row of rows) {
@@ -84,7 +84,7 @@ export async function reorderBranches(
   }
 
   try {
-    return await db.transaction('rw', [db.branches], async () => {
+    return await db.transaction('rw', [db.branches, db.outbox], async () => {
       const rows = await db.branches.bulkGet(input.orderedIds);
       for (const row of rows) {
         if (!row || row.ownerId !== LOCAL_OWNER_ID) {
@@ -128,7 +128,7 @@ export async function setBranchPinned(
   deps: WriteDeps = defaultWriteDeps,
 ): Promise<Result<Branch>> {
   try {
-    return await db.transaction('rw', [db.branches], async () => {
+    return await db.transaction('rw', [db.branches, db.outbox], async () => {
       const row = await branchRepository.getById(input.branchId);
       if (!row || row.ownerId !== LOCAL_OWNER_ID) {
         return fail('domain.not_found', { field: 'branchId' });

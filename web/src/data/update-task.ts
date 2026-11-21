@@ -43,7 +43,7 @@ export async function updateTask(
   try {
     return await db.transaction(
       'rw',
-      [db.branches, db.tasks, db.commits, db.events],
+      [db.branches, db.tasks, db.commits, db.events, db.outbox],
       async (tx) => {
         const task = await taskRepository.getById(input.taskId);
         if (!task || task.deletedAt !== null) {

@@ -36,6 +36,7 @@ export async function runDailyAutoBackup(
         db.settings,
         db.events,
         db.backups,
+        db.outbox,
       ],
       async (tx) => {
         const now = deps.clock.now();

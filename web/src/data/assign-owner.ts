@@ -28,6 +28,7 @@ export async function assignOwnerTo(principalId: string): Promise<Result<{ moved
         db.events,
         db.backups,
         db.yearReviews,
+        db.outbox,
       ],
       async () => {
         let count = 0;

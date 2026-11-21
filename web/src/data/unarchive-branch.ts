@@ -24,7 +24,7 @@ export async function unarchiveBranch(
   deps: WriteDeps = defaultWriteDeps,
 ): Promise<Result<Branch>> {
   try {
-    return await db.transaction('rw', [db.branches, db.events], async (tx) => {
+    return await db.transaction('rw', [db.branches, db.events, db.outbox], async (tx) => {
       const all = await branchRepository.listByOwner(LOCAL_OWNER_ID);
       const live = all.filter((branch) => branch.deletedAt === null);
       const subject = live.find((branch) => branch.id === input.branchId);

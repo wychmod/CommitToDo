@@ -91,7 +91,7 @@ beforeEach(async () => {
 
 describe('Dexie 事务一致性', () => {
   it('完成待办时，提交与四计数在同一事务内落库', async () => {
-    await db.transaction('rw', [db.tasks, db.commits, db.branches], async () => {
+    await db.transaction('rw', [db.tasks, db.commits, db.branches, db.outbox], async () => {
       await db.tasks.add(makeTask());
       await db.commits.add(makeCommit());
 
@@ -112,7 +112,7 @@ describe('Dexie 事务一致性', () => {
 
   it('事务中途失败时，提交与计数一起回滚', async () => {
     await expect(
-      db.transaction('rw', [db.tasks, db.commits, db.branches], async () => {
+      db.transaction('rw', [db.tasks, db.commits, db.branches, db.outbox], async () => {
         await db.tasks.add(makeTask());
         await db.commits.add(makeCommit());
         await db.branches.update(BRANCH_ID, { taskTotal: 1, taskDone: 1, commitCount: 1 });

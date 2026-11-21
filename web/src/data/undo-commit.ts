@@ -35,7 +35,7 @@ export async function undoCommit(
   try {
     return await db.transaction(
       'rw',
-      [db.commits, db.tasks, db.branches, db.events],
+      [db.commits, db.tasks, db.branches, db.events, db.outbox],
       async (tx) => {
         const commit = await commitRepository.getById(input.commitId);
         if (!commit || commit.deletedAt !== null) {

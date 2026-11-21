@@ -35,7 +35,7 @@ export async function deleteEmptyBranch(
   try {
     return await db.transaction(
       'rw',
-      [db.branches, db.tasks, db.commits, db.milestones, db.events],
+      [db.branches, db.tasks, db.commits, db.milestones, db.events, db.outbox],
       async () => {
         const all = await branchRepository.listByOwner(LOCAL_OWNER_ID);
         const live = all.filter((branch) => branch.deletedAt === null);

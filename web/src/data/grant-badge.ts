@@ -27,7 +27,7 @@ export async function grantBadge(
   try {
     return await db.transaction(
       'rw',
-      [db.badges, db.branches, db.commits, db.milestones, db.events],
+      [db.badges, db.branches, db.commits, db.milestones, db.events, db.outbox],
       async (tx) => {
         const [branches, commits, milestones, existing] = await Promise.all([
           branchRepository.listByOwner(LOCAL_OWNER_ID),

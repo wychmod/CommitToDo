@@ -25,7 +25,7 @@ export async function loadSampleTree(
   try {
     return await db.transaction(
       'rw',
-      [db.branches, db.tasks, db.commits, db.milestones],
+      [db.branches, db.tasks, db.commits, db.milestones, db.outbox],
       async () => {
         await Promise.all([
           db.branches.where('ownerId').equals(SAMPLE_OWNER_ID).delete(),
@@ -55,7 +55,7 @@ export async function clearSampleTree(): Promise<Result<true>> {
   try {
     return await db.transaction(
       'rw',
-      [db.branches, db.tasks, db.commits, db.milestones],
+      [db.branches, db.tasks, db.commits, db.milestones, db.outbox],
       async () => {
         await Promise.all([
           db.branches.where('ownerId').equals(SAMPLE_OWNER_ID).delete(),

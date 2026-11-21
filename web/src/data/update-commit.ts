@@ -27,7 +27,7 @@ export async function updateCommit(
   }
 
   try {
-    return await db.transaction('rw', [db.commits, db.events], async (tx) => {
+    return await db.transaction('rw', [db.commits, db.events, db.outbox], async (tx) => {
       const commit = await commitRepository.getById(input.commitId);
       if (!commit || commit.deletedAt !== null) {
         return fail('domain.not_found', { field: 'commitId' });

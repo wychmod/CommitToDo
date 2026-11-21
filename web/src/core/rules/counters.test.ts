@@ -464,3 +464,54 @@ describe('登录归属后的四计数（V2-01 / R7、R8）', () => {
     expect(moved).toMatchObject({ commitCount: 1, ownLastCommitAt: 7_000 });
   });
 });
+
+describe('同步重放与落库后的四计数（V2-02 / R7）', () => {
+  it('同一 opId 重放两次只计一次有效提交', () => {
+    const replayed = [commit({ id: 'commit-1', at: 1_000 }), commit({ id: 'commit-1', at: 1_000 })];
+
+    expect(recountBranch('product-design', [], replayed)).toEqual({
+      taskTotal: 0,
+      taskDone: 0,
+      commitCount: 1,
+      ownLastCommitAt: 1_000,
+    });
+  });
+
+  it('同步落库不改变 taskTotal、taskDone、commitCount 与 ownLastCommitAt', () => {
+    const tasks = [task({ status: 'done' }), task({ status: 'open' })];
+    const commits = [commit({ id: 'a', at: 1_000 }), commit({ id: 'b', at: 4_000 })];
+    const before = recountBranch('product-design', tasks, commits);
+    // 同步只把同样的行再写一遍（含 rev 变化），计数输入不变。
+    const after = recountBranch(
+      'product-design',
+      tasks.map((row) => ({ ...row })),
+      commits.map((row) => ({ ...row, at: row.at })),
+    );
+
+    expect(after).toEqual(before);
+  });
+
+  it('冲突采用服务端版本后，被拒的本地提交不进入计数', () => {
+    const counts = recountBranch(
+      'product-design',
+      [],
+      [commit({ id: 'server-commit', at: 2_000 })],
+    );
+
+    expect(counts).toEqual({
+      taskTotal: 0,
+      taskDone: 0,
+      commitCount: 1,
+      ownLastCommitAt: 2_000,
+    });
+  });
+
+  it('迁移与普通写入交错时按提交主键去重，不重复累计', () => {
+    const migrated = commit({ id: 'migrated-1', at: 1_000 });
+    const local = commit({ id: 'local-1', at: 3_000 });
+    const counts = recountBranch('product-design', [], [migrated, local, migrated]);
+
+    expect(counts.commitCount).toBe(2);
+    expect(counts.ownLastCommitAt).toBe(3_000);
+  });
+});

@@ -43,7 +43,7 @@ export async function bulkImportTasks(
   try {
     return await db.transaction(
       'rw',
-      [db.branches, db.tasks, db.commits, db.events],
+      [db.branches, db.tasks, db.commits, db.events, db.outbox],
       async (tx) => {
         const branches = await branchRepository.listByOwner(LOCAL_OWNER_ID);
         const target = branches.find(

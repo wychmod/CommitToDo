@@ -35,7 +35,16 @@ export async function importData(
   try {
     return await db.transaction(
       'rw',
-      [db.branches, db.tasks, db.commits, db.milestones, db.badges, db.settings, db.events],
+      [
+        db.branches,
+        db.tasks,
+        db.commits,
+        db.milestones,
+        db.badges,
+        db.settings,
+        db.events,
+        db.outbox,
+      ],
       async (tx) => {
         await Promise.all([
           db.branches.clear(),

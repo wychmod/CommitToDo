@@ -20,7 +20,7 @@ export async function ensureRootBranch(
   deps: WriteDeps = defaultWriteDeps,
 ): Promise<Result<Branch>> {
   try {
-    return await db.transaction('rw', [db.branches, db.events], async (tx) => {
+    return await db.transaction('rw', [db.branches, db.events, db.outbox], async (tx) => {
       const branches = await branchRepository.listByOwner(LOCAL_OWNER_ID);
       const existing = branches.find((branch) => branch.depth === 0 && branch.deletedAt === null);
       if (existing) return ok(existing);

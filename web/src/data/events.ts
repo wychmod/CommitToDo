@@ -2,6 +2,7 @@ import type { Transaction } from 'dexie';
 import { LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import type { EventAction, EventPayloads } from './event-payloads';
+import { enqueueWrite } from './outbox';
 import type { EventRecord } from './types';
 
 /**
@@ -56,5 +57,7 @@ export async function writeEvent<A extends EventAction>(
     deviceId: null,
   };
   await tx.table<EventRecord, string>('events').add(row);
+  // 一个用户动作一条 outbox；与事件同事务，失败时业务写入一并回滚。
+  await enqueueWrite(tx, action, entityId, payload as Record<string, unknown>, deps);
   return id;
 }

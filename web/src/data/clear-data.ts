@@ -26,6 +26,7 @@ export async function clearAllData(
         db.settings,
         db.events,
         db.backups,
+        db.outbox,
       ],
       async (tx) => {
         const counts = {} as ExportCounts;

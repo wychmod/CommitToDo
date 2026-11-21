@@ -4,15 +4,20 @@ import type {
   Backup,
   Branch,
   Commit,
+  Counter,
+  Device,
   EventRecord,
+  MigrationState,
   Milestone,
+  OutboxOp,
   Settings,
+  SyncConflict,
   Task,
   YearReview,
 } from './types';
 
 /** 当前库版本；只有增删表、索引或主键才 bump（CODE-STRUCTURE §5）。 */
-export const DB_VERSION = 3;
+export const DB_VERSION = 4;
 
 /**
  * 本机权威库（TECH-ARCHITECTURE.md §5.3）。
@@ -30,6 +35,11 @@ export class CommitToDoDatabase extends Dexie {
   events!: EntityTable<EventRecord, 'id'>;
   backups!: EntityTable<Backup, 'id'>;
   yearReviews!: Table<YearReview, string>;
+  outbox!: EntityTable<OutboxOp, 'opId'>;
+  conflicts!: EntityTable<SyncConflict, 'id'>;
+  devices!: EntityTable<Device, 'id'>;
+  migrationState!: Table<MigrationState, 'id'>;
+  counters!: EntityTable<Counter, 'id'>;
 
   constructor() {
     super('committodo');
@@ -63,8 +73,18 @@ export class CommitToDoDatabase extends Dexie {
     this.version(3).stores({
       backups: 'id, ownerId, kind, createdAt, [ownerId+createdAt], [ownerId+kind+createdAt]',
     });
+
+    // V2-02 同步：待推队列、冲突、设备、迁移断点与匿名计数（TECH §5.3）。
+    this.version(4).stores({
+      outbox: 'opId, createdAt, entity',
+      conflicts: 'id, at, entityId',
+      devices: 'id, lastSyncAt',
+      migration_state: 'id',
+      counters: 'id',
+    });
     // 表名与属性名不一致时手动映射，避免 `db.yearReviews` 为 undefined。
     this.yearReviews = this.table<YearReview, string>('year_reviews');
+    this.migrationState = this.table<MigrationState, 'id'>('migration_state');
   }
 }
 

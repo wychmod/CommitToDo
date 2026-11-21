@@ -42,7 +42,7 @@ export async function createMilestone(
   try {
     const result = await db.transaction(
       'rw',
-      [db.branches, db.milestones, db.events],
+      [db.branches, db.milestones, db.events, db.outbox],
       async (tx) => {
         const at = deps.clock.now();
         const tzOffset = deps.tzOffset(at);

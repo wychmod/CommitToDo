@@ -35,7 +35,7 @@ export async function createBranch(
   }
 
   try {
-    const result = await db.transaction('rw', [db.branches, db.events], async (tx) => {
+    const result = await db.transaction('rw', [db.branches, db.events, db.outbox], async (tx) => {
       const all = await branchRepository.listByOwner(LOCAL_OWNER_ID);
       const live = all.filter((branch) => branch.deletedAt === null);
       const parent = live.find((branch) => branch.id === input.parentId);

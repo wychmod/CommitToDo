@@ -22,7 +22,7 @@ describe('writeEvent', () => {
       tzOffset: () => 480,
     };
 
-    await db.transaction('rw', [db.events], async (tx) => {
+    await db.transaction('rw', [db.events, db.outbox], async (tx) => {
       await writeEvent(
         tx,
         'branch.finish',
@@ -51,7 +51,7 @@ describe('writeEvent', () => {
   });
 
   it('sync.conflict 落 entityType=sync，分支回溯字段在 payload', async () => {
-    await db.transaction('rw', [db.events], async (tx) => {
+    await db.transaction('rw', [db.events, db.outbox], async (tx) => {
       await writeEvent(tx, 'sync.conflict', 'branch-1', {
         branchId: 'branch-1',
         entityId: 'branch-1',
@@ -65,7 +65,7 @@ describe('writeEvent', () => {
 
   it('事务中断时事件一起回滚', async () => {
     await expect(
-      db.transaction('rw', [db.events], async (tx) => {
+      db.transaction('rw', [db.events, db.outbox], async (tx) => {
         await writeEvent(tx, 'task.complete', 'task-1', {
           taskId: 'task-1',
           commitId: 'commit-1',

@@ -39,7 +39,7 @@ export async function saveYearReview(
   const note = input.note.trim();
 
   try {
-    return await db.transaction('rw', [db.yearReviews], async () => {
+    return await db.transaction('rw', [db.yearReviews, db.outbox], async () => {
       const existing = await yearReviewRepository.getByOwnerYear(LOCAL_OWNER_ID, input.year);
 
       if (note === '') {

@@ -27,7 +27,7 @@ export async function renameBranch(
   }
 
   try {
-    return await db.transaction('rw', [db.branches, db.events], async (tx) => {
+    return await db.transaction('rw', [db.branches, db.events, db.outbox], async (tx) => {
       const all = await branchRepository.listByOwner(LOCAL_OWNER_ID);
       const live = all.filter((branch) => branch.deletedAt === null);
       const branch = live.find((row) => row.id === input.branchId);

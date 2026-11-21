@@ -41,7 +41,16 @@ export async function exportData(
   try {
     return await db.transaction(
       'rw',
-      [db.branches, db.tasks, db.commits, db.milestones, db.badges, db.settings, db.events],
+      [
+        db.branches,
+        db.tasks,
+        db.commits,
+        db.milestones,
+        db.badges,
+        db.settings,
+        db.events,
+        db.outbox,
+      ],
       async (tx) => {
         const [branches, tasks, commits, milestones, badges, settings, events] = await Promise.all([
           branchRepository.listByOwner(LOCAL_OWNER_ID),

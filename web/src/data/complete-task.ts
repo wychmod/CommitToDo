@@ -28,7 +28,7 @@ export async function completeTask(
   try {
     const result = await db.transaction(
       'rw',
-      [db.tasks, db.commits, db.branches, db.events],
+      [db.tasks, db.commits, db.branches, db.events, db.outbox],
       async (tx) => {
         const task = await taskRepository.getById(input.taskId);
         if (!task || task.deletedAt !== null) {

@@ -29,7 +29,7 @@ export async function planTask(
   }
 
   try {
-    return await db.transaction('rw', [db.branches, db.tasks, db.events], async (tx) => {
+    return await db.transaction('rw', [db.branches, db.tasks, db.events, db.outbox], async (tx) => {
       const task = await taskRepository.getById(input.taskId);
       if (!task || task.deletedAt !== null) {
         return fail('domain.not_found', { field: 'taskId' });

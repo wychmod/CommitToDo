@@ -24,7 +24,7 @@ export async function updateBranchGoal(
   const goal = input.goal?.trim() || null;
 
   try {
-    return await db.transaction('rw', [db.branches, db.events], async (tx) => {
+    return await db.transaction('rw', [db.branches, db.events, db.outbox], async (tx) => {
       const branch = await branchRepository.getById(input.branchId);
       if (!branch || branch.deletedAt !== null) {
         return fail('domain.not_found', { field: 'branchId' });

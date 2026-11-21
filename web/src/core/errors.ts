@@ -20,7 +20,10 @@ export type ErrorCode =
   | 'auth.email_taken'
   | 'auth.email_unverified'
   | 'auth.reset_expired'
-  | 'auth.unavailable';
+  | 'auth.unavailable'
+  | 'sync.unavailable'
+  | 'sync.failed'
+  | 'sync.conflict';
 
 export interface AppError {
   code: ErrorCode;

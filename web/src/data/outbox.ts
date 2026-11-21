@@ -1,0 +1,74 @@
+import type { Transaction } from 'dexie';
+import { systemIds } from '@/core/ids';
+import { defaultWriteDeps, type WriteDeps } from './deps';
+import type { OutboxOp } from './types';
+
+/**
+ * 本地先写并入队（PRD V2-02 OP-01）。
+ *
+ * 与业务写入同事务落 `outbox`，界面不等云端返回；任一步失败整体回滚。
+ * 每用户动作只入队一条，payload 取动作完成后的实体快照，`baseRev` 为快照版本，
+ * 首次写入（`.create`）不带 `baseRev`，服务端据此识别首次与过期写入。
+ */
+
+export const SYNCED_ENTITIES = ['branch', 'task', 'commit', 'milestone', 'badge', 'sync'] as const;
+
+export type SyncedEntity = (typeof SYNCED_ENTITIES)[number];
+
+const SNAPSHOT_TABLES: Partial<Record<SyncedEntity, string>> = {
+  branch: 'branches',
+  task: 'tasks',
+  commit: 'commits',
+  milestone: 'milestones',
+  badge: 'badges',
+};
+
+export function isSyncedEntity(entity: string): entity is SyncedEntity {
+  return (SYNCED_ENTITIES as readonly string[]).includes(entity);
+}
+
+/** `settings` / `data` / `backup` 不参与同步，直接返回 null，不写 outbox。 */
+export async function enqueueWrite(
+  tx: Transaction,
+  action: string,
+  entityId: string,
+  payload: Record<string, unknown>,
+  deps: WriteDeps = defaultWriteDeps,
+): Promise<string | null> {
+  const separator = action.indexOf('.');
+  const entity = separator > 0 ? action.slice(0, separator) : '';
+  if (!isSyncedEntity(entity)) return null;
+
+  const tableName = SNAPSHOT_TABLES[entity];
+  let snapshot: Record<string, unknown> | null = null;
+  let baseRev: number | null = null;
+  if (tableName) {
+    try {
+      const row = await tx.table<Record<string, unknown>, string>(tableName).get(entityId);
+      if (row) {
+        snapshot = row;
+        const rev = typeof row.rev === 'number' ? row.rev : null;
+        baseRev = action.endsWith('.create') ? null : rev;
+      }
+    } catch {
+      // 事务未包含该实体表（例如只测事件写入）时退回动作 payload。
+      snapshot = null;
+    }
+  }
+
+  const at = deps.clock.now();
+  const op: OutboxOp = {
+    // opId 不使用调用方的 ID 序列，避免占掉业务行与事件的顺序。
+    opId: systemIds.ulid(at),
+    entity,
+    entityId,
+    action,
+    payload: snapshot ?? payload,
+    baseRev,
+    attempts: 0,
+    lastError: null,
+    createdAt: at,
+  };
+  await tx.table<OutboxOp, string>('outbox').add(op);
+  return op.opId;
+}

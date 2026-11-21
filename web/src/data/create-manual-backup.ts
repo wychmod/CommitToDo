@@ -28,6 +28,7 @@ export async function createManualBackup(
         db.settings,
         db.events,
         db.backups,
+        db.outbox,
       ],
       async (tx) => {
         const now = deps.clock.now();

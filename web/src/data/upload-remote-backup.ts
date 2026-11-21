@@ -42,7 +42,7 @@ export async function uploadRemoteBackup(
   }
 
   try {
-    return await db.transaction('rw', [db.backups, db.events], async (tx) => {
+    return await db.transaction('rw', [db.backups, db.events, db.outbox], async (tx) => {
       const existing = await backupRepository.listByOwner(LOCAL_OWNER_ID);
       const previousRemote = existing.find(
         (row) => row.kind === 'remote' && row.remoteKey !== null,

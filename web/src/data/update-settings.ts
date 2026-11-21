@@ -48,7 +48,7 @@ export async function updateSettings(
   }
 
   try {
-    return await db.transaction('rw', [db.settings, db.events], async (tx) => {
+    return await db.transaction('rw', [db.settings, db.events, db.outbox], async (tx) => {
       const existing = await settingsRepository.getById(SETTINGS_ID);
       const at = deps.clock.now();
       const row: Settings = {

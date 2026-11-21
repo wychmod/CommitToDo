@@ -43,7 +43,7 @@ export async function finishBranch(
   try {
     const result = await db.transaction(
       'rw',
-      [db.branches, db.tasks, db.commits, db.events],
+      [db.branches, db.tasks, db.commits, db.events, db.outbox],
       async (tx) => {
         const all = await branchRepository.listByOwner(LOCAL_OWNER_ID);
         const live = all.filter((branch) => branch.deletedAt === null);
