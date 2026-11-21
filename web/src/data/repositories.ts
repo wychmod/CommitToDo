@@ -59,6 +59,7 @@ export interface BadgeRepository {
 export interface SettingsRepository {
   getByOwner(ownerId: string): Promise<Settings | undefined>;
   getById(id: string): Promise<Settings | undefined>;
+  listByOwner(ownerId: string): Promise<Settings[]>;
   put(row: Settings): Promise<string>;
 }
 
@@ -140,6 +141,7 @@ export const badgeRepository: BadgeRepository = {
 export const settingsRepository: SettingsRepository = {
   getByOwner: async (ownerId) => db.settings.where('ownerId').equals(ownerId).first(),
   getById: (id) => db.settings.get(id),
+  listByOwner: (ownerId) => db.settings.where('ownerId').equals(ownerId).toArray(),
   put: (row) => {
     assertInTransaction();
     return db.settings.put(row);

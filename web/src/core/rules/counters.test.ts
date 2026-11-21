@@ -184,6 +184,49 @@ describe('收尾合并后的父分支四计数（M08 / R7）', () => {
   });
 });
 
+describe('导入后的四计数全量重算（M10 / R7、R3）', () => {
+  it('不采用文件里的旧计数，按文件内实际待办与有效提交输出', () => {
+    const counts = recountBranch(
+      'imported',
+      [
+        task({ branchId: 'imported', status: 'done' }),
+        task({ branchId: 'imported' }),
+        task({ branchId: 'imported', status: 'cancelled' }),
+        task({ branchId: 'imported', deletedAt: 1 }),
+      ],
+      [
+        commit({ branchId: 'imported', at: 1_000 }),
+        commit({ branchId: 'imported', at: 2_000, voidedAt: 2_500 }),
+      ],
+    );
+
+    expect(counts).toEqual({
+      taskTotal: 2,
+      taskDone: 1,
+      commitCount: 1,
+      ownLastCommitAt: 1_000,
+    });
+  });
+
+  it('文件内提交全部已撤销时 commitCount 为零、ownLastCommitAt 为 null', () => {
+    const counts = recountBranch(
+      'imported',
+      [],
+      [
+        commit({ branchId: 'imported', at: 1_000, voidedAt: 1_500 }),
+        commit({ branchId: 'imported', at: 2_000, voidedAt: 2_500 }),
+      ],
+    );
+
+    expect(counts).toEqual({
+      taskTotal: 0,
+      taskDone: 0,
+      commitCount: 0,
+      ownLastCommitAt: null,
+    });
+  });
+});
+
 describe('里程碑不计入四计数（M07 / R7）', () => {
   it('新建里程碑后重算结果仍只由任务与提交决定', () => {
     const tasks = [task({ status: 'done' })];

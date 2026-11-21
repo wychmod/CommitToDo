@@ -741,6 +741,101 @@ export function useBranchDeleteGuard(branchId: string | undefined): BranchDelete
   return { status: 'ready', guard: result.guard, retry };
 }
 
+export interface DataOverviewCounts {
+  branches: number;
+  tasks: number;
+  commits: number;
+  milestones: number;
+  badges: number;
+}
+
+export interface DataOverviewView {
+  status: 'loading' | 'ready' | 'error';
+  counts: DataOverviewCounts;
+  lastExportAt: number | null;
+  hasData: boolean;
+  retry: () => void;
+}
+
+const EMPTY_DATA_COUNTS: DataOverviewCounts = {
+  branches: 0,
+  tasks: 0,
+  commits: 0,
+  milestones: 0,
+  badges: 0,
+};
+
+/**
+ * P08 数据概览（M10 OP-02）。
+ *
+ * 五类实体计数与最近一次导出的时间；最近导出时间由最新的 `data.export` 事件推导，
+ * 不给 `settings` 增加字段。只有根分支、没有待办/提交/里程碑/徽章时视为「没有可导出的数据」。
+ */
+export function useDataOverview(ownerId = LOCAL_OWNER_ID): DataOverviewView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      const [branches, tasks, commits, milestones, badges, events] = await Promise.all([
+        branchRepository.listByOwner(ownerId),
+        taskRepository.listByOwner(ownerId),
+        commitRepository.listByOwner(ownerId),
+        milestoneRepository.listByOwner(ownerId),
+        badgeRepository.listByOwner(ownerId),
+        eventRepository.listRecent(ownerId, Number.MAX_SAFE_INTEGER),
+      ]);
+      const exported = events.find((event) => event.action === 'data.export');
+      return {
+        ok: true as const,
+        counts: {
+          branches: branches.length,
+          tasks: tasks.length,
+          commits: commits.length,
+          milestones: milestones.length,
+          badges: badges.length,
+        },
+        lastExportAt: exported?.at ?? null,
+        hasData:
+          branches.some((branch) => branch.depth > 0) ||
+          tasks.length + commits.length + milestones.length + badges.length > 0,
+      };
+    } catch {
+      return {
+        ok: false as const,
+        counts: EMPTY_DATA_COUNTS,
+        lastExportAt: null,
+        hasData: false,
+      };
+    }
+  }, [ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) {
+    return {
+      status: 'loading',
+      counts: EMPTY_DATA_COUNTS,
+      lastExportAt: null,
+      hasData: false,
+      retry,
+    };
+  }
+  if (!result.ok) {
+    return {
+      status: 'error',
+      counts: EMPTY_DATA_COUNTS,
+      lastExportAt: null,
+      hasData: false,
+      retry,
+    };
+  }
+  return {
+    status: 'ready',
+    counts: result.counts,
+    lastExportAt: result.lastExportAt,
+    hasData: result.hasData,
+    retry,
+  };
+}
+
 export interface WeekReviewView {
   status: 'loading' | 'ready' | 'error';
   stats: WeekReviewStats | null;

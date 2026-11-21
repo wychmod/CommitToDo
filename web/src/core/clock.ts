@@ -25,6 +25,11 @@ export function toLocalDate(epochMs: number, tzOffsetMinutes: number): string {
   return `${year}-${pad2(month)}-${pad2(day)}`;
 }
 
+/** 把 UTC 毫秒转成 ISO 8601 字符串，用于导出文件的 `exportedAt`。 */
+export function toIsoString(epochMs: number): string {
+  return new Date(epochMs).toISOString();
+}
+
 /** 当前时区偏移（东正西负，分钟）。 */
 export function currentTzOffset(epochMs: number): number {
   return -new Date(epochMs).getTimezoneOffset();

@@ -11,7 +11,16 @@ import type { EventRecord } from './types';
  * 事件写失败必须让事务整体回滚，不捕获、不吞掉。
  */
 
-const ENTITIES = ['branch', 'task', 'commit', 'milestone', 'badge', 'settings', 'sync'] as const;
+const ENTITIES = [
+  'branch',
+  'task',
+  'commit',
+  'milestone',
+  'badge',
+  'settings',
+  'sync',
+  'data',
+] as const;
 
 type EventEntity = (typeof ENTITIES)[number];
 
