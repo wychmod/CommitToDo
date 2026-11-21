@@ -9,20 +9,25 @@ import type { Settings } from './types';
 /**
  * 改偏好（M01 OP-03–OP-05）。
  *
- * 一个用户动作一个用例：主题、树密度、注解三者共用同一条 `settings` 单行，
+ * 一个用户动作一个用例：主题、树密度、注解与回顾提醒共用同一条 `settings` 单行，
  * 写入后同事务记一条 `settings.update` 事件（CODE-STRUCTURE §4.2）。
  * 偏好写入失败返回 `Result`，页面保持用户刚选的值并提供重试。
  */
 
-export type SettingsPatch = Partial<Pick<Settings, 'theme' | 'treeDensity' | 'annotations'>>;
+export type SettingsPatch = Partial<
+  Pick<Settings, 'theme' | 'treeDensity' | 'annotations' | 'reminderEnabled'>
+>;
 
-const ALLOWED: Record<keyof SettingsPatch, readonly string[]> = {
+type ChoiceField = Exclude<keyof SettingsPatch, 'reminderEnabled'>;
+
+const ALLOWED: Record<ChoiceField, readonly string[]> = {
   theme: ['light', 'dark'],
   treeDensity: ['compact', 'comfortable'],
   annotations: ['off', 'once', 'always'],
 };
 
-const PATCH_KEYS = Object.keys(ALLOWED) as Array<keyof SettingsPatch>;
+const CHOICE_KEYS = Object.keys(ALLOWED) as ChoiceField[];
+const PATCH_KEYS: Array<keyof SettingsPatch> = [...CHOICE_KEYS, 'reminderEnabled'];
 
 export async function updateSettings(
   input: SettingsPatch,
@@ -33,10 +38,13 @@ export async function updateSettings(
     return fail('validation.invalid_input');
   }
 
-  for (const field of fields) {
-    if (!ALLOWED[field].includes(input[field] as string)) {
+  for (const field of CHOICE_KEYS) {
+    if (input[field] !== undefined && !ALLOWED[field].includes(input[field] as string)) {
       return fail('validation.invalid_input', { field });
     }
+  }
+  if (input.reminderEnabled !== undefined && typeof input.reminderEnabled !== 'boolean') {
+    return fail('validation.invalid_input', { field: 'reminderEnabled' });
   }
 
   try {

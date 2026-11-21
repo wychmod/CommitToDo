@@ -8,6 +8,7 @@ import { saveYearReview } from '@/data/save-year-review';
 import { t } from '@/i18n';
 import { useHistoryFilterStore } from '@/stores/history.store';
 import { PageShell } from '@/ui/page-shell';
+import { YearSharePreview } from '@/components/year/year-share-preview';
 import styles from './year-page.module.css';
 
 const FOUR_DIGITS = /^\d{4}$/;
@@ -149,6 +150,7 @@ export function YearPage() {
   }, [shouldCorrect, parsed.normalized, navigate]);
 
   const [editing, setEditing] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [committed, setCommitted] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -163,6 +165,7 @@ export function YearPage() {
 
   useEffect(() => {
     setEditing(false);
+    setShareOpen(false);
     setDraft('');
     setCommitted(null);
     setSaveError(false);
@@ -244,7 +247,17 @@ export function YearPage() {
       }
       bodyKey="page.year.body"
       action={
-        <button type="button" className={styles.share} disabled title={t('year.share.hint')}>
+        <button
+          type="button"
+          className={styles.share}
+          disabled={view.status !== 'ready' || !view.share.available}
+          title={
+            view.status === 'ready' && !view.share.available
+              ? t('year.share.emptyHint')
+              : t('year.share.title')
+          }
+          onClick={() => setShareOpen(true)}
+        >
           {t('year.share')}
         </button>
       }
@@ -264,6 +277,10 @@ export function YearPage() {
             </button>
           ))}
         </div>
+
+        {view.status === 'ready' && !view.share.available ? (
+          <p className={styles.shareReason}>{t('year.share.emptyHint')}</p>
+        ) : null}
 
         {view.status === 'error' ? (
           <div className={styles.errorBanner} role="alert">
@@ -413,6 +430,10 @@ export function YearPage() {
           </>
         )}
       </div>
+
+      {shareOpen && view.status === 'ready' ? (
+        <YearSharePreview model={view.share} onClose={() => setShareOpen(false)} />
+      ) : null}
     </PageShell>
   );
 }

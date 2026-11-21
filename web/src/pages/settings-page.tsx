@@ -14,6 +14,7 @@ interface Preferences {
   theme: Theme;
   treeDensity: TreeDensity;
   annotations: AnnotationMode;
+  reminderEnabled: boolean;
 }
 
 interface Option<T extends string> {
@@ -74,13 +75,19 @@ const ANNOTATION_OPTIONS: ReadonlyArray<Option<AnnotationMode>> = [
   { value: 'off', labelKey: 'settings.annotations.off' },
 ];
 
-/** 设置（P07）：主题、树密度、注解三组偏好，保存失败时保留用户选择并可重试。 */
+const REMINDER_OPTIONS: ReadonlyArray<Option<'on' | 'off'>> = [
+  { value: 'on', labelKey: 'settings.reminders.on' },
+  { value: 'off', labelKey: 'settings.reminders.off' },
+];
+
+/** 设置（P07）：外观、注解与回顾提醒，保存失败时保留用户选择并可重试。 */
 export function SettingsPage() {
   const { loaded, settings } = useSettingsState();
   const [draft, setDraft] = useState<Preferences>({
     theme: settings.theme,
     treeDensity: settings.treeDensity,
     annotations: settings.annotations,
+    reminderEnabled: settings.reminderEnabled,
   });
   const [pending, setPending] = useState<SettingsPatch | null>(null);
   const [failedPatch, setFailedPatch] = useState<SettingsPatch | null>(null);
@@ -92,8 +99,15 @@ export function SettingsPage() {
       theme: settings.theme,
       treeDensity: settings.treeDensity,
       annotations: settings.annotations,
+      reminderEnabled: settings.reminderEnabled,
     });
-  }, [loaded, settings.theme, settings.treeDensity, settings.annotations]);
+  }, [
+    loaded,
+    settings.theme,
+    settings.treeDensity,
+    settings.annotations,
+    settings.reminderEnabled,
+  ]);
 
   const save = async (patch: SettingsPatch) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -143,6 +157,20 @@ export function SettingsPage() {
               value={draft.annotations}
               options={ANNOTATION_OPTIONS}
               onChange={(annotations) => void save({ annotations })}
+            />
+          </section>
+
+          <section className={styles.section} aria-labelledby="settings-reminders">
+            <h2 id="settings-reminders" className={styles.heading}>
+              {t('settings.reminders')}
+            </h2>
+            <p className={styles.hint}>{t('settings.reminders.hint')}</p>
+            <OptionGroup
+              legendKey="settings.reminders.mode"
+              name="reminders"
+              value={draft.reminderEnabled ? 'on' : 'off'}
+              options={REMINDER_OPTIONS}
+              onChange={(value) => void save({ reminderEnabled: value === 'on' })}
             />
           </section>
 

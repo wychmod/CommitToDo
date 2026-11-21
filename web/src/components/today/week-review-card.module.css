@@ -1,4 +1,4 @@
-/* S01-week-review：今天页底部的只读回顾卡。 */
+/* S01-week-review：今天页底部的本周摘要与周回顾。 */
 
 .card {
   margin-top: var(--s5);
@@ -10,22 +10,44 @@
 
 .head {
   display: flex;
+  align-items: center;
+  gap: var(--s2);
+  background: var(--inset);
+}
+
+.toggle {
+  display: flex;
+  flex: 1;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--s3);
-  width: 100%;
+  min-width: 0;
   padding: var(--s3) var(--s4);
   border: 0;
-  background: var(--inset);
+  background: transparent;
   color: var(--text);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.head:focus-visible {
+.toggle:focus-visible,
+.monthLink:focus-visible,
+.retry:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
+}
+
+.monthLink {
+  flex: none;
+  margin-right: var(--s3);
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--accent);
+  font-size: var(--type-secondary);
+  cursor: pointer;
 }
 
 .title {
@@ -55,9 +77,49 @@
 .panel {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
   padding: var(--s4);
   border-top: 1px solid var(--line);
+  animation: panel-in var(--duration-standard) var(--ease-enter);
+}
+
+.panelSkeleton {
+  display: block;
+  min-height: var(--s10);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+}
+
+.summaryBlock,
+.formalBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.formalBlock {
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line);
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-body);
+}
+
+.range {
+  color: var(--muted);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
 }
 
 .facts {
@@ -86,14 +148,23 @@
   font-variant-numeric: tabular-nums;
 }
 
+.stallText,
 .question {
   margin: 0;
-  padding-top: var(--s3);
-  border-top: 1px solid var(--line);
   color: var(--text);
   font-size: var(--type-body);
   line-height: 1.6;
   overflow-wrap: anywhere;
+}
+
+.stallText {
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.question {
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line);
 }
 
 .error {
@@ -113,16 +184,28 @@
   cursor: pointer;
 }
 
-.retry:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--s1) * -1));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 390px) {
-  .head {
+  .toggle {
     flex-direction: column;
     gap: var(--s1);
     padding: var(--s3);
+  }
+
+  .monthLink {
+    align-self: stretch;
+    margin: 0 var(--s3) var(--s3) 0;
   }
 
   .panel {

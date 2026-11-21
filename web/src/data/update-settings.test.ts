@@ -73,6 +73,14 @@ describe('updateSettings', () => {
     expect(await db.events.count()).toBe(2);
   });
 
+  it('回顾提醒开关按布尔值写入并记录字段', async () => {
+    const result = await updateSettings({ reminderEnabled: false }, makeDeps());
+    expect(result.ok).toBe(true);
+    expect(await db.settings.get('app')).toMatchObject({ reminderEnabled: false, rev: 1 });
+    expect(await db.events.toArray()).toHaveLength(1);
+    expect((await db.events.toArray())[0]?.payload).toEqual({ fields: ['reminderEnabled'] });
+  });
+
   it('非法取值被拒，不写偏好也不写事件', async () => {
     const result = await updateSettings({ theme: 'system' as never }, makeDeps());
     expect(result.ok).toBe(false);

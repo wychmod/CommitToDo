@@ -12,6 +12,7 @@ import { updateCommit } from '@/data/update-commit';
 import type { Commit, Task } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useOnboardingStore } from '@/stores/onboarding.store';
+import { useReviewStore } from '@/stores/review.store';
 import { useShellStore } from '@/stores/shell.store';
 import { useTodayStore } from '@/stores/today.store';
 import { EmptyState } from '@/ui/empty-state';
@@ -24,6 +25,8 @@ import { readonlyReasonKey } from '@/components/today/readonly';
 import { TaskRow } from '@/components/today/task-row';
 import { BadgeToast } from '@/components/today/badge-toast';
 import { WeekReviewCard } from '@/components/today/week-review-card';
+import { MonthReviewPanel } from '@/components/today/month-review-panel';
+import { ReviewReminder } from '@/components/today/review-reminder';
 import styles from './today-page.module.css';
 
 interface ReceiptState {
@@ -39,6 +42,7 @@ interface ReceiptState {
  */
 export function TodayPage() {
   const data = useTodayData();
+  const monthOpen = useReviewStore((state) => state.monthOpen);
   const openOverlay = useShellStore((state) => state.openOverlay);
   const openTaskDetail = useShellStore((state) => state.openTaskDetail);
   const openCommitDetail = useShellStore((state) => state.openCommitDetail);
@@ -166,6 +170,7 @@ export function TodayPage() {
         </div>
       ) : null}
 
+      {data.status === 'ready' ? <ReviewReminder /> : null}
       {data.status === 'ready' ? <OnboardingCard /> : null}
 
       {data.status === 'ready' && total === 0 ? (
@@ -347,6 +352,7 @@ export function TodayPage() {
       ) : null}
 
       {data.status === 'ready' ? <WeekReviewCard /> : null}
+      {data.status === 'ready' && monthOpen ? <MonthReviewPanel /> : null}
       {data.status === 'ready' ? <BadgeToast /> : null}
 
       {cancelTarget ? (

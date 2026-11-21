@@ -1,0 +1,264 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s6);
+  background: color-mix(in srgb, var(--text) 35%, transparent);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, var(--layout-content-max));
+  max-height: calc(100dvh - var(--s6) * 2);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: panel-in var(--duration-entry) var(--ease-enter);
+}
+
+.header {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding: var(--s5);
+  border-bottom: 1px solid var(--line);
+}
+
+.title {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-heading-small);
+}
+
+.month {
+  margin: var(--s1) 0 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.close,
+.navButton,
+.retry {
+  min-height: var(--s8);
+  padding: 0 var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.close:focus-visible,
+.navButton:focus-visible,
+.retry:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.navButton:disabled {
+  background: var(--disabled-bg);
+  color: var(--disabled);
+  cursor: default;
+}
+
+.navigation {
+  display: flex;
+  flex: none;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s5);
+  border-bottom: 1px solid var(--line);
+  background: var(--inset);
+}
+
+.body {
+  flex: 1;
+  padding: var(--s5);
+  overflow-y: auto;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.section {
+  padding-bottom: var(--s4);
+  border-bottom: 1px solid var(--line);
+}
+
+.section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 var(--s3);
+  color: var(--muted);
+  font-size: var(--type-label);
+  font-weight: 600;
+}
+
+.total {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-section);
+  font-variant-numeric: tabular-nums;
+}
+
+.range,
+.quiet {
+  margin: var(--s1) 0 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.shareList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.shareRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: var(--s3);
+  min-width: 0;
+}
+
+.shareName {
+  color: var(--text);
+  font-size: var(--type-body);
+  overflow-wrap: anywhere;
+}
+
+.shareRatio,
+.delta,
+.deltaEmphasis {
+  font-size: var(--type-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.shareRatio {
+  color: var(--text);
+}
+
+.delta {
+  color: var(--muted);
+}
+
+.deltaEmphasis {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.structure {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s3);
+  margin: 0;
+}
+
+.structure div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.structure dt {
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.structure dd {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-heading-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.stall,
+.observation {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-body);
+  line-height: 1.6;
+}
+
+.observation {
+  overflow-wrap: anywhere;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-bottom: var(--s4);
+  padding: var(--s3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-control);
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
+.skeleton {
+  display: block;
+  min-height: var(--s9);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--s2));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 390px) {
+  .backdrop {
+    padding: 0;
+  }
+
+  .panel {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .header,
+  .body {
+    padding: var(--s4);
+  }
+
+  .navigation {
+    padding: var(--s3) var(--s4);
+  }
+
+  .shareRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .delta,
+  .deltaEmphasis {
+    grid-column: 1 / -1;
+  }
+}

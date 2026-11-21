@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { currentTzOffset, systemClock, today } from '@/core/clock';
+import { addDays, currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
 import { normalizeAnnotationMode } from '@/core/rules/annotation-visibility';
 import { collectSubtree } from '@/core/rules/branch-path';
 import { assessDelete, type DeleteGuard } from '@/core/rules/delete-guard';
@@ -12,6 +12,7 @@ import {
   assessWeekReview,
   collectWeekCommits,
   isWeekReviewDay,
+  weekDayOf,
   type WeekReviewStats,
 } from '@/core/rules/week-review';
 import {
@@ -26,6 +27,9 @@ import { resolveTreeDensity } from '@/core/rules/tree-density';
 import { buildYearDistribution, type YearDistribution } from '@/core/rules/year-distribution';
 import { computeYearMetrics, type YearMetrics } from '@/core/rules/year-metrics';
 import { yearBoundsFor } from '@/core/rules/year-param';
+import { buildMonthReview, type MonthReview } from '@/core/rules/month-review';
+import { computeWeeklySummary, type WeeklySummary } from '@/core/rules/weekly-summary';
+import { buildYearShareModel, type YearShareModel } from '@/core/rules/year-share';
 import { db, LOCAL_OWNER_ID } from './db';
 import { DEFAULT_SETTINGS, type SettingsFields } from './settings-defaults';
 import {
@@ -1054,44 +1058,113 @@ export function useDataOverview(ownerId = LOCAL_OWNER_ID): DataOverviewView {
 
 export interface WeekReviewView {
   status: 'loading' | 'ready' | 'error';
+  summary: WeeklySummary | null;
   stats: WeekReviewStats | null;
   question: WeekQuestion | null;
   retry: () => void;
 }
 
 /**
- * 周回顾（M09 OP-01–OP-05）。
+ * 本周摘要与周回顾（M09 / V1-03）。
  *
- * 只在当地周六/周日晚间查询；全部现算、不落库。非周末直接返回不可见，
- * 不渲染骨架也不占位。读取失败保留卡片标题，由面板给出重试。
+ * 摘要每天现算；正式周回顾在周六、周日统计本周，周一沿用上一周周日的口径。
+ * 全部只读、不落库，读取失败保留卡片标题并提供重试。
  */
 export function useWeekReview(): WeekReviewView {
   const [attempt, setAttempt] = useState(0);
   const todayDate = today(systemClock);
-  const weekend = isWeekReviewDay(todayDate);
+  const reviewDate = weekDayOf(todayDate) === 1 ? addDays(todayDate, -1) : todayDate;
+  const formalReview = isWeekReviewDay(reviewDate);
+  const tzOffsetMinutes = currentTzOffset(systemClock.now());
 
   const result = useLiveQuery(async () => {
     try {
-      if (!weekend) return { ok: true as const, stats: null, question: null };
       const [commits, branches] = await Promise.all([
         commitRepository.listByOwner(LOCAL_OWNER_ID),
         branchRepository.listByOwner(LOCAL_OWNER_ID),
       ]);
-      const stats = assessWeekReview({ todayDate, commits, branches });
-      const question = stats.visible
-        ? pickWeekQuestion({ commits: collectWeekCommits(commits, todayDate), branches })
+      const summary = computeWeeklySummary({ todayDate, commits, branches, tzOffsetMinutes });
+      const stats = formalReview
+        ? assessWeekReview({ todayDate: reviewDate, commits, branches })
         : null;
-      return { ok: true as const, stats, question };
+      const question = stats?.visible
+        ? pickWeekQuestion({ commits: collectWeekCommits(commits, reviewDate), branches })
+        : null;
+      return { ok: true as const, summary, stats, question };
     } catch {
-      return { ok: false as const, stats: null, question: null };
+      return { ok: false as const, summary: null, stats: null, question: null };
     }
-  }, [attempt, todayDate, weekend]);
+  }, [attempt, todayDate, reviewDate, formalReview, tzOffsetMinutes]);
   const retry = useCallback(() => setAttempt((value) => value + 1), []);
 
-  if (!weekend) return { status: 'ready', stats: null, question: null, retry };
-  if (result === undefined) return { status: 'loading', stats: null, question: null, retry };
-  if (!result.ok) return { status: 'error', stats: null, question: null, retry };
-  return { status: 'ready', stats: result.stats, question: result.question, retry };
+  if (result === undefined) {
+    return { status: 'loading', summary: null, stats: null, question: null, retry };
+  }
+  if (!result.ok) {
+    return { status: 'error', summary: null, stats: null, question: null, retry };
+  }
+  return {
+    status: 'ready',
+    summary: result.summary,
+    stats: result.stats,
+    question: result.question,
+    retry,
+  };
+}
+
+export interface MonthReviewView {
+  status: 'loading' | 'ready' | 'error';
+  review: MonthReview | null;
+  earliestMonth: string;
+  retry: () => void;
+}
+
+/** 月回顾只读查询；月份切换重新现算五区块， earliestMonth 限制继续向前翻页。 */
+export function useMonthReview(monthKey: string): MonthReviewView {
+  const [attempt, setAttempt] = useState(0);
+  const tzOffsetMinutes = currentTzOffset(systemClock.now());
+  const result = useLiveQuery(async () => {
+    try {
+      const [commits, branches] = await Promise.all([
+        commitRepository.listByOwner(LOCAL_OWNER_ID),
+        branchRepository.listByOwner(LOCAL_OWNER_ID),
+      ]);
+      return { ok: true as const, commits, branches };
+    } catch {
+      return { ok: false as const, commits: [] as Commit[], branches: [] as Branch[] };
+    }
+  }, [attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  const derived = useMemo(() => {
+    if (!result?.ok) return { review: null, earliestMonth: monthKey };
+    const review = buildMonthReview({
+      monthKey,
+      commits: result.commits,
+      branches: result.branches,
+      tzOffsetMinutes,
+    });
+    let earliestMonth = monthKey;
+    for (const commit of result.commits) {
+      if (commit.voidedAt !== null || commit.deletedAt !== null) continue;
+      const key = commit.date.slice(0, 7);
+      if (key < earliestMonth) earliestMonth = key;
+    }
+    for (const branch of result.branches) {
+      if (branch.deletedAt !== null) continue;
+      const key = toLocalDate(branch.createdAt, tzOffsetMinutes).slice(0, 7);
+      if (key < earliestMonth) earliestMonth = key;
+    }
+    return { review, earliestMonth };
+  }, [result, monthKey, tzOffsetMinutes]);
+
+  if (result === undefined) {
+    return { status: 'loading', review: null, earliestMonth: monthKey, retry };
+  }
+  if (!result.ok) {
+    return { status: 'error', review: null, earliestMonth: monthKey, retry };
+  }
+  return { status: 'ready', review: derived.review, earliestMonth: derived.earliestMonth, retry };
 }
 
 export interface YearReviewDataView {
@@ -1102,6 +1175,7 @@ export interface YearReviewDataView {
   note: string;
   metrics: YearMetrics;
   distribution: YearDistribution;
+  share: YearShareModel;
   retry: () => void;
 }
 
@@ -1158,6 +1232,7 @@ export function useYearReviewData(
       earliestYear: bounds.earliestYear,
       metrics: computeYearMetrics({ year, commits, branches, tzOffsetMinutes }),
       distribution: buildYearDistribution({ year, commits, branches, todayDate }),
+      share: buildYearShareModel({ year, commits, branches, todayDate, tzOffsetMinutes }),
     };
   }, [result, year, todayDate, tzOffsetMinutes]);
 
@@ -1168,6 +1243,7 @@ export function useYearReviewData(
     note: result?.ok ? result.note : '',
     metrics: derived.metrics,
     distribution: derived.distribution,
+    share: derived.share,
     retry,
   };
 
