@@ -255,6 +255,7 @@ export function SearchPanel() {
                           <button
                             type="button"
                             className={styles.row}
+                            tabIndex={-1}
                             ref={(element) => {
                               if (element) rowRefs.current.set(key, element);
                               else rowRefs.current.delete(key);
@@ -281,6 +282,7 @@ export function SearchPanel() {
                               <button
                                 type="button"
                                 className={styles.locate}
+                                tabIndex={-1}
                                 onClick={() => locateInHistory(item)}
                               >
                                 {t('search.locate')}
@@ -288,6 +290,7 @@ export function SearchPanel() {
                               <button
                                 type="button"
                                 className={styles.more}
+                                tabIndex={-1}
                                 aria-expanded={menuKey === key}
                                 onClick={() => setMenuKey(menuKey === key ? null : key)}
                               >
@@ -297,6 +300,7 @@ export function SearchPanel() {
                                 <button
                                   type="button"
                                   className={styles.menuLocate}
+                                  tabIndex={-1}
                                   onClick={() => locateInHistory(item)}
                                 >
                                   {t('search.locate')}
