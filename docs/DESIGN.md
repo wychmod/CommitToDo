@@ -14,6 +14,7 @@
 | 首页首屏 1.4 秒编排、入视播放、暂停重播、减少动效 | [首页动效规范](HOMEPAGE-MOTION.md) |
 | P01–P11、补充状态、输入反馈、导航和浮层时序 | [应用页面动效规范](UI-MOTION.md) |
 | 按页面和操作直接看 PNG | [全套画稿总览](../design/index.html) |
+| 微信小程序四张浅色定稿与生成提示词 | [小程序设计交接](miniprogram/DESIGN.md) |
 | 提取样式值或渲染画稿 | [令牌 JSON](../design/design-tokens.json) · [生成的 CSS 变量](../design/tokens.css) |
 
 ## 确认的设计基准
