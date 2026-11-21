@@ -1,0 +1,107 @@
+<view class="page">
+  <state-view wx:if="{{phase === 'loading'}}" state="loading" />
+  <state-view
+    wx:elif="{{phase === 'error'}}"
+    state="error"
+    title="{{errorTitle}}"
+    body="{{errorBody}}"
+    action-text="重试"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <view class="year-head">
+      <view>
+        <text class="page-date">12 个月的密度</text>
+        <text class="page-title">年轮</text>
+      </view>
+      <picker mode="selector" range="{{yearLabels}}" value="{{yearIndex}}" bindchange="onYearChange">
+        <view class="year-picker">
+          <text>{{year}} 年</text>
+          <view class="chevron chevron-down"></view>
+        </view>
+      </picker>
+    </view>
+
+    <view wx:if="{{offline}}" class="banner">
+      <text class="banner-text">网络不可用，显示上次内容</text>
+      <text class="banner-action" bindtap="onRetry">重试</text>
+    </view>
+
+    <view wx:if="{{empty}}" class="card" style="margin-top: 14px">
+      <state-view
+        state="empty"
+        title="这一年还没有记录"
+        body="主端留下提交后，这里会出现月度分布、分支占比与年度总结。"
+      />
+    </view>
+
+    <block wx:else>
+      <view class="metrics">
+        <view wx:for="{{metrics}}" wx:key="label" class="metric">
+          <view class="metric-card">
+            <text class="metric-value">{{item.value}}</text>
+            <text class="metric-label">{{item.label}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <view class="section-head">
+          <text class="section-label">月度分布</text>
+          <text class="section-count">{{year}} 年</text>
+        </view>
+        <view class="card">
+          <view class="months">
+            <view wx:for="{{months}}" wx:key="month" class="month">
+              <view
+                wx:if="{{item.show}}"
+                class="month-bar {{item.empty ? 'month-bar-empty' : ''}}"
+                style="height: {{item.percent}}%"
+              ></view>
+              <text class="month-label">{{item.month}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <view class="section-head">
+          <text class="section-label">一级分支占比</text>
+          <text class="section-count">按有效提交</text>
+        </view>
+        <view class="card">
+          <view wx:for="{{shares}}" wx:key="title" class="share">
+            <view class="share-main">
+              <view class="share-title">
+                <view class="dot" style="background: {{item.colorHex}}"></view>
+                <text>{{item.title}}</text>
+              </view>
+              <view class="share-bar">
+                <view class="share-bar-fill" style="width: {{item.percent}}%; background: {{item.colorHex}}"></view>
+              </view>
+            </view>
+            <text class="share-count">{{item.commits}} 条 · {{item.percent}}%</text>
+          </view>
+          <view wx:if="{{shares.length === 0}}" class="empty-inline">这一年还没有提交。</view>
+        </view>
+      </view>
+
+      <view class="section">
+        <view class="section-head">
+          <text class="section-label">年度总结</text>
+          <text class="section-count">只读</text>
+        </view>
+        <view class="card">
+          <text wx:if="{{review}}" class="review">{{review}}</text>
+          <view wx:else class="empty-inline">这一年还没有写下总结。</view>
+        </view>
+      </view>
+    </block>
+
+    <view class="meta-line">
+      <text>{{updatedAt}}</text>
+      <text>只读</text>
+    </view>
+  </block>
+</view>

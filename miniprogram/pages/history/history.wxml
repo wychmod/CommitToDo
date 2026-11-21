@@ -1,0 +1,109 @@
+<view class="page page-with-tab">
+  <state-view wx:if="{{phase === 'loading'}}" state="loading" />
+  <state-view
+    wx:elif="{{phase === 'error'}}"
+    state="error"
+    title="{{errorTitle}}"
+    body="{{errorBody}}"
+    action-text="重试"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <text class="page-date">按日期从上到下</text>
+    <text class="page-title">历程</text>
+    <text class="page-subtitle">{{rangeLabel}} · {{rows.length}} 个节点</text>
+
+    <view wx:if="{{offline}}" class="banner">
+      <text class="banner-text">网络不可用，显示上次内容</text>
+      <text class="banner-action" bindtap="onRetry">重试</text>
+    </view>
+
+    <view class="filters">
+      <picker mode="selector" range="{{rangeLabels}}" value="{{rangeIndex}}" bindchange="onRangeChange">
+        <view class="filter">
+          <text class="filter-value">{{rangeLabels[rangeIndex]}}</text>
+          <view class="chevron chevron-down"></view>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{laneLabels}}" value="{{laneIndex}}" bindchange="onLaneChange">
+        <view class="filter">
+          <text class="filter-value">{{laneLabels[laneIndex]}}</text>
+          <view class="chevron chevron-down"></view>
+        </view>
+      </picker>
+    </view>
+
+    <view class="link-row tap" bindtap="onOpenYear">
+      <text>年轮</text>
+      <view class="row-side">
+        <text class="muted">年度回顾</text>
+        <view class="chevron"></view>
+      </view>
+    </view>
+
+    <view wx:if="{{empty}}" class="card" style="margin-top: 12px">
+      <state-view
+        state="empty"
+        title="这段时间还没有记录"
+        body="主端留下提交或里程碑后，会按日期出现在这里。"
+      />
+    </view>
+
+    <block wx:else>
+      <view class="card" style="margin-top: 12px">
+        <view class="hist-legend">
+          <view class="legend-item"><view class="legend-mark"></view><text>提交</text></view>
+          <view class="legend-item"><view class="legend-mark legend-diamond"></view><text>里程碑</text></view>
+          <view class="legend-item"><view class="legend-mark legend-ring"></view><text>分出 / 合回</text></view>
+          <view class="legend-item"><view class="legend-mark legend-dash"></view><text>停滞</text></view>
+        </view>
+
+        <view
+          wx:for="{{rows}}"
+          wx:key="key"
+          class="hist-row"
+          data-kind="{{item.kind}}"
+          data-id="{{item.entityId}}"
+          bindtap="onOpenRow"
+        >
+          <text class="hist-date">{{item.showDate ? item.dayLabel : ''}}</text>
+          <view class="hist-lanes" style="width: {{laneWidth}}px">
+            <view
+              wx:for="{{lanes}}"
+              wx:key="index"
+              wx:for-item="lane"
+              class="hist-rail {{lane.stalledDays !== null ? 'hist-rail-stalled' : ''}}"
+              style="left: {{lane.left}}px; color: {{lane.colorHex}}; background: {{lane.colorHex}}"
+            ></view>
+            <view
+              wx:if="{{item.linkWidth > 0}}"
+              class="hist-link"
+              style="left: {{item.linkLeft}}px; width: {{item.linkWidth}}px"
+            ></view>
+            <view
+              class="hist-node hist-node-{{item.kind}}"
+              style="left: {{item.nodeLeft}}px; {{item.ring ? 'background: #ffffff; border: 1.5px solid ' + item.colorHex : 'background: ' + item.colorHex}}"
+            ></view>
+          </view>
+          <view class="hist-body">
+            <text class="hist-title">{{item.title}}</text>
+            <text class="hist-sub">{{item.sublabel}}</text>
+          </view>
+          <view wx:if="{{item.entityId}}" class="row-side">
+            <view class="chevron"></view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{stallNotes.length > 0}}" class="card" style="margin-top: 12px">
+        <view wx:for="{{stallNotes}}" wx:key="*this" class="hist-stall">{{item}}</view>
+      </view>
+    </block>
+
+    <view class="meta-line">
+      <text>{{updatedAt}}</text>
+      <text>只读</text>
+    </view>
+  </block>
+</view>

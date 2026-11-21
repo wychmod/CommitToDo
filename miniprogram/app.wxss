@@ -421,6 +421,11 @@ text {
   margin-right: 6px;
 }
 
+.tree-spacer {
+  width: 26px;
+  flex-shrink: 0;
+}
+
 .tree-toggle {
   display: flex;
   align-items: center;

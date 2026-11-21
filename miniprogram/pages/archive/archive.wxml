@@ -1,0 +1,64 @@
+<view class="page">
+  <state-view wx:if="{{phase === 'loading'}}" state="loading" />
+  <state-view
+    wx:elif="{{phase === 'error'}}"
+    state="error"
+    title="{{errorTitle}}"
+    body="{{errorBody}}"
+    action-text="重试"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <text class="page-date">只读保留</text>
+    <text class="page-title">归档区</text>
+    <text class="page-subtitle">归档后的分支不进入默认树，内容与进度保留在这里。</text>
+
+    <view wx:if="{{offline}}" class="banner">
+      <text class="banner-text">网络不可用，显示上次内容</text>
+      <text class="banner-action" bindtap="onRetry">重试</text>
+    </view>
+
+    <view wx:if="{{empty}}" class="card" style="margin-top: 14px">
+      <state-view
+        state="empty"
+        title="还没有归档的分支"
+        body="归档后的分支会按一级分支分组，只读保留在这里。"
+      />
+    </view>
+
+    <block wx:else>
+      <view wx:for="{{groups}}" wx:key="id" wx:for-item="group" class="section">
+        <view class="section-head">
+          <text class="section-label">{{group.title}}</text>
+          <text class="section-count">{{group.branches.length}} 条</text>
+        </view>
+        <view class="card">
+          <view
+            wx:for="{{group.branches}}"
+            wx:key="id"
+            wx:for-item="branch"
+            class="row tap"
+            data-id="{{branch.id}}"
+            bindtap="onOpen"
+          >
+            <view class="dot" style="background: {{branch.colorHex}}"></view>
+            <view class="row-main">
+              <text class="row-title">{{branch.title}}</text>
+              <text class="row-sub-text muted">{{branch.path}}</text>
+            </view>
+            <view class="row-side">
+              <text>{{branch.taskDone}} / {{branch.taskTotal}}</text>
+              <view class="chevron"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <view class="meta-line">
+      <text>{{updatedAt}}</text>
+      <text>只读</text>
+    </view>
+  </block>
+</view>

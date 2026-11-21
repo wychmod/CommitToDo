@@ -1,0 +1,55 @@
+<view class="page page-with-tab">
+  <state-view wx:if="{{phase === 'loading'}}" state="loading" />
+  <state-view
+    wx:elif="{{phase === 'error'}}"
+    state="error"
+    title="{{errorTitle}}"
+    body="{{errorBody}}"
+    action-text="重试"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <text class="page-date">账号与设备</text>
+    <text class="page-title">我的</text>
+    <text class="page-subtitle">第二端只读，写入仍在网页主端。</text>
+
+    <view wx:if="{{offline}}" class="banner">
+      <text class="banner-text">网络不可用，显示上次内容</text>
+      <text class="banner-action" bindtap="onRetry">重试</text>
+    </view>
+
+    <view class="card me-card">
+      <view class="me-row">
+        <text class="me-key">账号邮箱</text>
+        <text class="me-value">{{email}}</text>
+      </view>
+      <view class="me-row">
+        <text class="me-key">当前设备</text>
+        <text class="me-value">微信小程序</text>
+      </view>
+      <view class="me-row">
+        <text class="me-key">最近同步</text>
+        <text class="me-value">{{syncText}}</text>
+      </view>
+    </view>
+
+    <view class="link-row tap" bindtap="onOpenBadges">
+      <text>徽章墙</text>
+      <view class="chevron"></view>
+    </view>
+    <view class="link-row tap" bindtap="onOpenHelp">
+      <text>帮助</text>
+      <view class="chevron"></view>
+    </view>
+    <view class="link-row tap" bindtap="onLogout">
+      <text>退出登录</text>
+      <view class="chevron"></view>
+    </view>
+
+    <view class="meta-line">
+      <text>{{updatedAt}}</text>
+      <text>只读</text>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,14 @@
+<view class="page">
+  <text class="page-date">关于第二端</text>
+  <text class="page-title">帮助</text>
+  <text class="page-subtitle">与 Web 主端一致的口径，只补充只读说明。</text>
+
+  <view class="card" style="margin-top: 14px">
+    <view wx:for="{{sections}}" wx:key="title" class="help-section">
+      <text class="help-title">{{item.title}}</text>
+      <text class="help-body">{{item.body}}</text>
+    </view>
+  </view>
+
+  <text class="login-hint">第二端不写入任何业务数据。</text>
+</view>

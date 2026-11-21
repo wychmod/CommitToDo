@@ -1,0 +1,51 @@
+<view class="page">
+  <state-view wx:if="{{phase === 'loading'}}" state="loading" />
+  <state-view
+    wx:elif="{{phase === 'error'}}"
+    state="error"
+    title="{{errorTitle}}"
+    body="{{errorBody}}"
+    action-text="重试"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <text class="page-date">记录使用方式</text>
+    <text class="page-title">徽章墙</text>
+    <text class="page-subtitle">已获得 {{earnedCount}} / {{total}} 枚</text>
+
+    <view wx:if="{{offline}}" class="banner">
+      <text class="banner-text">网络不可用，显示上次内容</text>
+      <text class="banner-action" bindtap="onRetry">重试</text>
+    </view>
+
+    <view wx:for="{{groups}}" wx:key="category" wx:for-item="group" class="badge-group">
+      <view class="section-head">
+        <text class="section-label">{{group.label}}</text>
+        <text class="section-count">{{group.earnedCount}} / {{group.total}}</text>
+      </view>
+      <view class="card">
+        <view
+          wx:for="{{group.items}}"
+          wx:key="catalogId"
+          wx:for-item="badge"
+          class="badge-item {{badge.earned ? '' : 'badge-item-empty'}}"
+        >
+          <view class="badge-mark {{badge.earned ? '' : 'badge-mark-empty'}}">{{badge.mark}}</view>
+          <view class="badge-main">
+            <text class="badge-name">{{badge.name}}</text>
+            <text class="badge-hint">{{badge.hint}}</text>
+          </view>
+          <text class="badge-state">{{badge.stateLabel}}</text>
+        </view>
+      </view>
+    </view>
+
+    <text class="login-hint">徽章只读展示，不提供领取、分享或快捷入口。</text>
+
+    <view class="meta-line">
+      <text>{{updatedAt}}</text>
+      <text>只读</text>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,163 @@
+<view class="page">
+  <state-view wx:if="{{phase === 'loading'}}" state="loading" />
+  <state-view
+    wx:elif="{{phase === 'error'}}"
+    state="error"
+    title="{{errorTitle}}"
+    body="{{errorBody}}"
+    action-text="重试"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <view wx:if="{{offline}}" class="banner" style="margin-top: 0">
+      <text class="banner-text">网络不可用，显示上次内容</text>
+      <text class="banner-action" bindtap="onRetry">重试</text>
+    </view>
+
+    <view class="card detail-head">
+      <view class="detail-title">
+        <view class="dot" style="background: {{branch.colorHex}}"></view>
+        <text>{{branch.title}}</text>
+      </view>
+      <text class="detail-path">{{branch.path}}</text>
+      <text class="detail-goal {{branch.goal ? '' : 'detail-goal-empty'}}">{{branch.goal || '还没有写下目标'}}</text>
+    </view>
+
+    <view class="card" style="margin-top: 12px">
+      <view class="kv">
+        <text class="kv-key">状态</text>
+        <view class="kv-value">
+          <text class="tag {{branch.statusTagClass}}">{{branch.statusLabel}}</text>
+        </view>
+      </view>
+      <view class="kv">
+        <text class="kv-key">进度</text>
+        <text class="kv-value">{{branch.taskDone}} / {{branch.taskTotal}} 条待办完成</text>
+      </view>
+      <view class="kv">
+        <text class="kv-key">提交</text>
+        <text class="kv-value">{{branch.commitCount}} 条有效提交</text>
+      </view>
+      <view wx:if="{{branch.mergedIntoTitle}}" class="kv">
+        <text class="kv-key">合回</text>
+        <text class="kv-value">{{branch.mergedIntoTitle}}{{branch.finishedLabel ? ' · ' + branch.finishedLabel : ''}}</text>
+      </view>
+      <view wx:if="{{branch.dropReason}}" class="kv">
+        <text class="kv-key">放下原因</text>
+        <text class="kv-value">{{branch.dropReason}}</text>
+      </view>
+      <view wx:if="{{branch.archivedLabel}}" class="kv">
+        <text class="kv-key">已归档</text>
+        <text class="kv-value">{{branch.archivedLabel}}</text>
+      </view>
+      <view class="kv">
+        <text class="kv-key">创建</text>
+        <text class="kv-value">{{branch.createdLabel}}</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-head">
+        <text class="section-label">待办</text>
+        <text class="section-count">{{tasks.length}} 条</text>
+      </view>
+      <view class="card">
+        <view
+          wx:for="{{tasks}}"
+          wx:key="id"
+          class="row tap"
+          data-id="{{item.id}}"
+          bindtap="onOpenTask"
+        >
+          <view class="row-main">
+            <text class="row-title">{{item.title}}</text>
+            <text class="row-sub-text muted">{{item.dueLabel}}</text>
+          </view>
+          <text class="tag {{item.statusTagClass}}">{{item.statusLabel}}</text>
+          <view class="chevron"></view>
+        </view>
+        <view wx:if="{{tasks.length === 0}}" class="empty-inline">这条分支还没有待办。</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-head">
+        <text class="section-label">最近提交</text>
+        <text class="section-count">{{commits.length}} 条</text>
+      </view>
+      <view class="card">
+        <view
+          wx:for="{{commits}}"
+          wx:key="id"
+          class="receipt tap"
+          data-id="{{item.id}}"
+          bindtap="onOpenCommit"
+        >
+          <view class="receipt-check {{item.voided ? 'receipt-voided' : ''}}">{{item.voided ? '撤' : '✓'}}</view>
+          <view class="row-main">
+            <text class="row-title">{{item.summary}}</text>
+            <text class="row-sub-text muted">{{item.date}} · {{item.timeLabel}}</text>
+          </view>
+          <text wx:if="{{item.voided}}" class="tag tag-neutral">已撤销</text>
+          <view wx:else class="chevron"></view>
+        </view>
+        <view wx:if="{{commits.length === 0}}" class="empty-inline">还没有提交。</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-head">
+        <text class="section-label">子分支</text>
+        <text class="section-count">{{children.length}} 条</text>
+      </view>
+      <view class="card">
+        <view
+          wx:for="{{children}}"
+          wx:key="id"
+          class="row tap"
+          data-id="{{item.id}}"
+          bindtap="onOpenChild"
+        >
+          <view class="dot" style="background: {{item.colorHex}}"></view>
+          <view class="row-main">
+            <text class="row-title">{{item.title}}</text>
+            <text class="row-sub-text muted">{{item.taskDone}} / {{item.taskTotal}} 条待办 · {{item.commitCount}} 条提交</text>
+          </view>
+          <text wx:if="{{item.status !== 'active'}}" class="tag tag-neutral">{{item.statusLabel}}</text>
+          <view class="chevron"></view>
+        </view>
+        <view wx:if="{{children.length === 0}}" class="empty-inline">还没有子分支。</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-head">
+        <text class="section-label">里程碑</text>
+        <text class="section-count">{{milestones.length}} 条</text>
+      </view>
+      <view class="card">
+        <view
+          wx:for="{{milestones}}"
+          wx:key="id"
+          class="row tap"
+          data-id="{{item.id}}"
+          bindtap="onOpenMilestone"
+        >
+          <view class="badge-mark" style="background: {{item.colorBg}}; color: {{item.colorHex}}">◆</view>
+          <view class="row-main">
+            <text class="row-title">{{item.title}}</text>
+            <text class="row-sub-text muted">{{item.dateLabel}}</text>
+          </view>
+          <view class="chevron"></view>
+        </view>
+        <view wx:if="{{milestones.length === 0}}" class="empty-inline">还没有里程碑。</view>
+      </view>
+    </view>
+
+    <view class="meta-line">
+      <text>{{updatedAt}}</text>
+      <text>只读</text>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,103 @@
+<view class="page">
+  <state-view wx:if="{{phase === 'loading'}}" state="loading" />
+  <state-view
+    wx:elif="{{phase === 'error'}}"
+    state="error"
+    title="{{errorTitle}}"
+    body="{{errorBody}}"
+    action-text="重试"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <view wx:if="{{offline}}" class="banner" style="margin-top: 0">
+      <text class="banner-text">网络不可用，显示上次内容</text>
+      <text class="banner-action" bindtap="onRetry">重试</text>
+    </view>
+
+    <view class="card detail-head">
+      <view class="detail-title">
+        <text wx:if="{{kind === 'task'}}">{{task.title}}</text>
+        <text wx:elif="{{kind === 'commit'}}">{{commit.summary}}</text>
+        <text wx:else>{{milestone.title}}</text>
+      </view>
+      <text class="detail-path">{{branch ? branch.path : '—'}}</text>
+      <view wx:if="{{kind === 'commit' && commit.voided}}" style="margin-top: 10px">
+        <text class="tag tag-neutral">已撤销</text>
+        <text class="detail-path">{{commit.voidedLabel}}</text>
+      </view>
+      <text wx:if="{{kind === 'task' && task.note}}" class="detail-goal">{{task.note}}</text>
+      <text wx:if="{{kind === 'milestone' && milestone.note}}" class="detail-goal">{{milestone.note}}</text>
+    </view>
+
+    <view class="card" style="margin-top: 12px">
+      <view wx:if="{{branch}}" class="kv tap" bindtap="onOpenBranch">
+        <text class="kv-key">分支</text>
+        <view class="kv-value">
+          <view style="display: flex; align-items: center">
+            <text style="flex: 1">{{branch.title}}</text>
+            <view class="chevron"></view>
+          </view>
+        </view>
+      </view>
+
+      <block wx:if="{{kind === 'task'}}">
+        <view class="kv">
+          <text class="kv-key">状态</text>
+          <view class="kv-value"><text class="tag {{task.statusTagClass}}">{{task.statusLabel}}</text></view>
+        </view>
+        <view class="kv">
+          <text class="kv-key">截止</text>
+          <text class="kv-value">{{task.dueLabel}}</text>
+        </view>
+        <view class="kv">
+          <text class="kv-key">安排</text>
+          <text class="kv-value">{{task.plannedLabel}}</text>
+        </view>
+        <view wx:if="{{task.completedLabel}}" class="kv">
+          <text class="kv-key">完成于</text>
+          <text class="kv-value">{{task.completedLabel}}</text>
+        </view>
+      </block>
+
+      <block wx:elif="{{kind === 'commit'}}">
+        <view class="kv">
+          <text class="kv-key">日期</text>
+          <text class="kv-value">{{commit.date}}</text>
+        </view>
+        <view class="kv">
+          <text class="kv-key">时间</text>
+          <text class="kv-value">{{commit.timeLabel}}</text>
+        </view>
+        <view class="kv">
+          <text class="kv-key">状态</text>
+          <view class="kv-value">
+            <text class="tag {{commit.voided ? 'tag-neutral' : 'tag-success'}}">{{commit.voided ? '已撤销' : '有效提交'}}</text>
+          </view>
+        </view>
+        <view wx:if="{{taskTitle}}" class="kv">
+          <text class="kv-key">关联待办</text>
+          <text class="kv-value">{{taskTitle}}</text>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="kv">
+          <text class="kv-key">达成</text>
+          <text class="kv-value">{{milestone.dateLabel}}</text>
+        </view>
+        <view class="kv">
+          <text class="kv-key">备注</text>
+          <text class="kv-value">{{milestone.note || '没有备注'}}</text>
+        </view>
+      </block>
+    </view>
+
+    <text wx:if="{{kind === 'commit' && commit.voided}}" class="login-hint">已撤销的提交保留文案，不计入提交数与统计。</text>
+
+    <view class="meta-line">
+      <text>{{updatedAt}}</text>
+      <text>只读</text>
+    </view>
+  </block>
+</view>

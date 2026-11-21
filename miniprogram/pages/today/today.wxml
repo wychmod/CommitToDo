@@ -1,0 +1,101 @@
+<view class="page page-with-tab">
+  <state-view wx:if="{{phase === 'loading'}}" state="loading" />
+  <state-view
+    wx:elif="{{phase === 'error'}}"
+    state="error"
+    title="{{errorTitle}}"
+    body="{{errorBody}}"
+    action-text="重试"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <text class="page-date">{{dateLabel}}</text>
+    <text class="page-title">今天</text>
+    <text class="page-subtitle">{{dueCount}} 条有截止日期 · 另有 {{noDueCount}} 条无截止日期</text>
+
+    <view wx:if="{{offline}}" class="banner">
+      <text class="banner-text">网络不可用，显示上次内容</text>
+      <text class="banner-action" bindtap="onRetry">重试</text>
+    </view>
+
+    <view wx:if="{{empty}}" class="card" style="margin-top: 14px">
+      <state-view
+        state="empty"
+        title="今天还没有要做的"
+        body="在 Web 主端记一条，或从分支里挑一条开始。"
+      />
+    </view>
+
+    <block wx:else>
+      <view wx:for="{{groups}}" wx:key="key" wx:for-item="group" class="group">
+        <view class="card">
+          <view
+            class="group-head {{group.key === 'overdue' ? 'group-head-overdue' : ''}}"
+            data-key="{{group.key}}"
+            bindtap="onToggleGroup"
+          >
+            <text class="group-title">{{group.title}}</text>
+            <view class="row-side">
+              <text>{{group.tasks.length}}</text>
+              <view class="chevron {{group.open ? 'chevron-down' : ''}}"></view>
+            </view>
+          </view>
+
+          <block wx:if="{{group.open}}">
+            <view
+              wx:for="{{group.tasks}}"
+              wx:key="id"
+              wx:for-item="task"
+              class="row tap"
+              data-id="{{task.id}}"
+              bindtap="onOpenTask"
+            >
+              <view class="row-main">
+                <text class="row-title">{{task.title}}</text>
+                <view class="row-sub">
+                  <view class="dot" style="background: {{task.colorHex}}"></view>
+                  <text class="row-sub-text">{{task.branchTitle}}</text>
+                </view>
+              </view>
+              <view class="row-side">
+                <text class="row-date">{{task.dueLabel}}</text>
+                <view class="chevron"></view>
+              </view>
+            </view>
+            <view wx:if="{{group.tasks.length === 0}}" class="empty-inline">这一组是空的</view>
+          </block>
+        </view>
+      </view>
+
+      <view wx:if="{{recentCommits.length > 0}}" class="section">
+        <view class="section-head">
+          <text class="section-label">最近提交</text>
+          <text class="section-count">只读</text>
+        </view>
+        <view class="card">
+          <view
+            wx:for="{{recentCommits}}"
+            wx:key="id"
+            class="receipt tap"
+            data-id="{{item.id}}"
+            bindtap="onOpenCommit"
+          >
+            <view class="receipt-check {{item.voided ? 'receipt-voided' : ''}}">✓</view>
+            <view class="row-main">
+              <text class="row-title">{{item.summary}}</text>
+              <text class="row-sub-text muted">{{item.path}} · {{item.timeLabel}}</text>
+            </view>
+            <text wx:if="{{item.voided}}" class="tag tag-neutral">已撤销</text>
+            <view wx:else class="chevron"></view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <view class="meta-line">
+      <text>{{updatedAt}}</text>
+      <text>只读</text>
+    </view>
+  </block>
+</view>

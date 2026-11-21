@@ -34,6 +34,12 @@ function timeLabel(epochMs) {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function dateTimeLabel(epochMs) {
+  if (!epochMs) return '';
+  const date = new Date(Number(epochMs));
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 /** PRD 要求的「更新于 HH:mm」；缓存回退时用缓存写入时刻。 */
 function updatedLabel(epochMs) {
   const time = timeLabel(epochMs);
@@ -45,4 +51,4 @@ function syncLabel(epochMs) {
   return time ? `最近同步 ${time}` : '还没有同步记录';
 }
 
-module.exports = { dateLabel, monthDay, timeLabel, updatedLabel, syncLabel };
+module.exports = { dateLabel, monthDay, timeLabel, dateTimeLabel, updatedLabel, syncLabel };

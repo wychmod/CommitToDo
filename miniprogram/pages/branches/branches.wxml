@@ -1,0 +1,69 @@
+<view class="page page-with-tab">
+  <state-view wx:if="{{phase === 'loading'}}" state="loading" />
+  <state-view
+    wx:elif="{{phase === 'error'}}"
+    state="error"
+    title="{{errorTitle}}"
+    body="{{errorBody}}"
+    action-text="重试"
+    bind:action="onRetry"
+  />
+
+  <block wx:else>
+    <text class="page-date">整棵树 · 只读</text>
+    <text class="page-title">分支树</text>
+    <text class="page-subtitle">已使用 {{usage.used}} / {{usage.limit}} 条分支</text>
+
+    <view wx:if="{{offline}}" class="banner">
+      <text class="banner-text">网络不可用，显示上次内容</text>
+      <text class="banner-action" bindtap="onRetry">重试</text>
+    </view>
+
+    <view wx:if="{{empty}}" class="card" style="margin-top: 14px">
+      <state-view
+        state="empty"
+        title="还没有分支"
+        body="在 Web 主端新建第一条分支后，这里会显示整棵树。"
+      />
+    </view>
+
+    <block wx:else>
+      <view class="card tree" style="margin-top: 14px">
+        <view
+          wx:for="{{tree}}"
+          wx:key="id"
+          class="tree-row tap"
+          style="padding-left: {{10 + item.depth * 16}}px"
+          data-id="{{item.id}}"
+          bindtap="onOpen"
+        >
+          <view
+            wx:if="{{item.hasChildren}}"
+            class="tree-toggle {{item.open ? 'tree-toggle-open' : ''}}"
+            data-id="{{item.id}}"
+            catchtap="onToggle"
+          >
+            <view class="chevron"></view>
+          </view>
+          <view wx:else class="tree-spacer"></view>
+
+          <view class="dot" style="background: {{item.colorHex}}"></view>
+          <text class="tree-name">{{item.title}}</text>
+          <text wx:if="{{item.taskTotal > 0}}" class="tree-progress">{{item.taskDone}} / {{item.taskTotal}}</text>
+          <text wx:if="{{item.status !== 'active'}}" class="tag tag-neutral">{{item.statusLabel}}</text>
+          <view class="chevron"></view>
+        </view>
+      </view>
+
+      <view class="link-row tap" bindtap="onOpenArchive">
+        <text>归档区{{archivedCount > 0 ? ' · ' + archivedCount : ''}}</text>
+        <view class="chevron"></view>
+      </view>
+    </block>
+
+    <view class="meta-line">
+      <text>{{updatedAt}}</text>
+      <text>只读</text>
+    </view>
+  </block>
+</view>
