@@ -57,4 +57,34 @@ describe('recountBranch（R7 四计数重算）', () => {
       ownLastCommitAt: null,
     });
   });
+
+  it('完成待办：taskDone 与 commitCount 各 +1，ownLastCommitAt 取最新有效提交', () => {
+    const counts = recountBranch(
+      'product-design',
+      [task({ status: 'open' }), task({ status: 'done' })],
+      [commit({ at: 1_000 }), commit({ at: 5_000 })],
+    );
+
+    expect(counts).toMatchObject({ taskTotal: 2, taskDone: 1, commitCount: 2 });
+    expect(counts.ownLastCommitAt).toBe(5_000);
+  });
+
+  it('取消待办：taskTotal 减一，taskDone 不变', () => {
+    const counts = recountBranch(
+      'product-design',
+      [task({ status: 'open' }), task({ status: 'done' }), task({ status: 'cancelled' })],
+      [],
+    );
+
+    expect(counts).toMatchObject({ taskTotal: 2, taskDone: 1 });
+  });
+
+  it('改归属后两个分支分别按当前归属重算', () => {
+    const moved = task({ branchId: 'interaction', status: 'done' });
+    const source = recountBranch('product-design', [task(), moved], []);
+    const target = recountBranch('interaction', [task(), moved], []);
+
+    expect(source).toMatchObject({ taskTotal: 1, taskDone: 0 });
+    expect(target).toMatchObject({ taskTotal: 1, taskDone: 1 });
+  });
 });

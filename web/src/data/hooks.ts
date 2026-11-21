@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback, useEffect, useState } from 'react';
+import { systemClock, today } from '@/core/clock';
 import { normalizeAnnotationMode } from '@/core/rules/annotation-visibility';
 import { normalizeTheme } from '@/core/rules/theme-preference';
 import { resolveTreeDensity } from '@/core/rules/tree-density';
@@ -14,7 +15,7 @@ import {
   settingsRepository,
   taskRepository,
 } from './repositories';
-import type { Branch } from './types';
+import type { Branch, Commit, EventRecord, Task } from './types';
 
 /**
  * 读路径统一走 `useLiveQuery`（TECH-ARCHITECTURE.md §2.6 / §5.4）。
@@ -72,6 +73,135 @@ export function useRecentCommits(ownerId = LOCAL_OWNER_ID, limit = 3) {
 
 export function useMilestones(ownerId = LOCAL_OWNER_ID) {
   return useLiveQuery(() => milestoneRepository.listByOwner(ownerId), [ownerId]);
+}
+
+export interface TodayDataView {
+  status: 'loading' | 'ready' | 'error';
+  tasks: Task[];
+  branches: Branch[];
+  commits: Commit[];
+  todayDate: string;
+  retry: () => void;
+}
+
+/**
+ * P01 今天页的读状态（PRD M03 OP-08）。
+ *
+ * 一次查询同时取未完成待办、分支与最近有效提交；读取失败保留外框并给重试，
+ * 不把部分结果拼成看似成功的页面。
+ */
+export function useTodayData(ownerId = LOCAL_OWNER_ID, commitLimit = 3): TodayDataView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      const [tasks, branches, commits] = await Promise.all([
+        taskRepository.listOpenByOwner(ownerId),
+        branchRepository.listByOwner(ownerId),
+        commitRepository.listRecent(ownerId, commitLimit),
+      ]);
+      return { ok: true as const, tasks, branches, commits };
+    } catch {
+      return { ok: false as const, tasks: [], branches: [], commits: [] };
+    }
+  }, [ownerId, commitLimit, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+  const todayDate = today(systemClock);
+
+  if (result === undefined) {
+    return { status: 'loading', tasks: [], branches: [], commits: [], todayDate, retry };
+  }
+  if (!result.ok) {
+    return { status: 'error', tasks: [], branches: [], commits: [], todayDate, retry };
+  }
+  return {
+    status: 'ready',
+    tasks: result.tasks,
+    branches: result.branches,
+    commits: result.commits,
+    todayDate,
+    retry,
+  };
+}
+
+export interface AllTodosView {
+  status: 'loading' | 'ready' | 'error';
+  tasks: Task[];
+  branches: Branch[];
+  todayDate: string;
+  retry: () => void;
+}
+
+/** `/today/all` 的读状态；数据范围与今天页相同，只是分组与筛选不同。 */
+export function useAllTodosData(ownerId = LOCAL_OWNER_ID): AllTodosView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      const [tasks, branches] = await Promise.all([
+        taskRepository.listOpenByOwner(ownerId),
+        branchRepository.listByOwner(ownerId),
+      ]);
+      return { ok: true as const, tasks, branches };
+    } catch {
+      return { ok: false as const, tasks: [], branches: [] };
+    }
+  }, [ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+  const todayDate = today(systemClock);
+
+  if (result === undefined) {
+    return { status: 'loading', tasks: [], branches: [], todayDate, retry };
+  }
+  if (!result.ok) {
+    return { status: 'error', tasks: [], branches: [], todayDate, retry };
+  }
+  return {
+    status: 'ready',
+    tasks: result.tasks,
+    branches: result.branches,
+    todayDate,
+    retry,
+  };
+}
+
+export interface TaskDetailView {
+  status: 'loading' | 'ready' | 'error';
+  task: Task | null;
+  branches: Branch[];
+  events: EventRecord[];
+  retry: () => void;
+}
+
+/** 待办详情（O02）：单条待办、可接收分支与该待办的历史事件。 */
+export function useTaskDetail(taskId: string | null, ownerId = LOCAL_OWNER_ID): TaskDetailView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    if (!taskId) return { ok: true as const, task: null, branches: [], events: [] };
+    try {
+      const [task, branches, events] = await Promise.all([
+        taskRepository.getById(taskId),
+        branchRepository.listByOwner(ownerId),
+        eventRepository.listByEntity(taskId),
+      ]);
+      return { ok: true as const, task: task ?? null, branches, events };
+    } catch {
+      return { ok: false as const, task: null, branches: [], events: [] };
+    }
+  }, [taskId, ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) {
+    return { status: 'loading', task: null, branches: [], events: [], retry };
+  }
+  if (!result.ok) {
+    return { status: 'error', task: null, branches: [], events: [], retry };
+  }
+  return {
+    status: 'ready',
+    task: result.task,
+    branches: result.branches,
+    events: result.events,
+    retry,
+  };
 }
 
 export function useBadges(ownerId = LOCAL_OWNER_ID) {

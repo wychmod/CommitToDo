@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/layout/app-shell';
+import { AllTodosPage } from '@/pages/all-todos-page';
 import { BranchDetailPage } from '@/pages/branch-detail-page';
 import { BranchesPage } from '@/pages/branches-page';
 import { DataPage } from '@/pages/data-page';
@@ -27,6 +28,7 @@ export default function App() {
 
         <Route element={<AppShell />}>
           <Route path="today" element={<TodayPage />} />
+          <Route path="today/all" element={<AllTodosPage />} />
           <Route path="branches" element={<BranchesPage />} />
           <Route path="branches/:branchId" element={<BranchDetailPage />} />
           <Route path="history" element={<HistoryPage />} />

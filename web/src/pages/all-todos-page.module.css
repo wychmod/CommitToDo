@@ -1,0 +1,131 @@
+/* S01 全部待办：筛选与三组清单。 */
+
+.back {
+  align-self: flex-start;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--accent);
+}
+
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--inset);
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.errorBox p {
+  margin: 0;
+}
+
+.retry {
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-bottom: var(--s4);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.filter:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.filter input {
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.filter input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.inlineError {
+  margin: 0 0 var(--s3);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.group {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s2) var(--s4);
+  background: var(--inset);
+}
+
+.groupTitle {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-secondary);
+  font-weight: 600;
+}
+
+.groupCount {
+  color: var(--muted);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 390px) {
+  .groupHead {
+    padding: var(--s2) var(--s3);
+  }
+}

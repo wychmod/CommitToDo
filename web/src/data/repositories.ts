@@ -19,10 +19,25 @@ export interface BranchRepository {
 export interface TaskRepository {
   listOpenByOwner(ownerId: string): Promise<Task[]>;
   listByBranch(branchId: string): Promise<Task[]>;
+  getById(taskId: string): Promise<Task | undefined>;
+  create(row: Task): Promise<string>;
+  update(
+    taskId: string,
+    patch: Partial<Omit<Task, 'id' | 'ownerId'>>,
+    rev: number,
+  ): Promise<number>;
 }
 
 export interface CommitRepository {
   listRecent(ownerId: string, limit: number): Promise<Commit[]>;
+  listByBranch(branchId: string): Promise<Commit[]>;
+  getById(commitId: string): Promise<Commit | undefined>;
+  create(row: Commit): Promise<string>;
+  update(
+    commitId: string,
+    patch: Partial<Omit<Commit, 'id' | 'ownerId'>>,
+    rev: number,
+  ): Promise<number>;
 }
 
 export interface MilestoneRepository {
@@ -41,6 +56,7 @@ export interface SettingsRepository {
 
 export interface EventRepository {
   listRecent(ownerId: string, limit: number): Promise<EventRecord[]>;
+  listByEntity(entityId: string): Promise<EventRecord[]>;
 }
 
 export const branchRepository: BranchRepository = {
@@ -60,12 +76,34 @@ export const taskRepository: TaskRepository = {
   listOpenByOwner: (ownerId) =>
     db.tasks.where('[ownerId+status]').equals([ownerId, 'open']).toArray(),
   listByBranch: (branchId) => db.tasks.where('branchId').equals(branchId).toArray(),
+  getById: (taskId) => db.tasks.get(taskId),
+  create: (row) => {
+    assertInTransaction();
+    return db.tasks.add(row);
+  },
+  update: (taskId, patch, rev) => {
+    assertInTransaction();
+    return db.tasks.update(taskId, { ...patch, rev: rev + 1 });
+  },
 };
 
 export const commitRepository: CommitRepository = {
   listRecent: async (ownerId, limit) => {
     const rows = await db.commits.where('ownerId').equals(ownerId).toArray();
-    return rows.sort((a, b) => b.at - a.at).slice(0, limit);
+    return rows
+      .filter((row) => row.deletedAt === null && row.voidedAt === null)
+      .sort((a, b) => b.at - a.at)
+      .slice(0, limit);
+  },
+  listByBranch: (branchId) => db.commits.where('branchId').equals(branchId).toArray(),
+  getById: (commitId) => db.commits.get(commitId),
+  create: (row) => {
+    assertInTransaction();
+    return db.commits.add(row);
+  },
+  update: (commitId, patch, rev) => {
+    assertInTransaction();
+    return db.commits.update(commitId, { ...patch, rev: rev + 1 });
   },
 };
 
@@ -91,7 +129,8 @@ export const eventRepository: EventRepository = {
     const rows = await db.events.where('ownerId').equals(ownerId).toArray();
     return rows.sort((a, b) => b.at - a.at).slice(0, limit);
   },
+  listByEntity: async (entityId) => {
+    const rows = await db.events.where('entityId').equals(entityId).toArray();
+    return rows.sort((a, b) => a.at - b.at);
+  },
 };
-
-// TODO(写路径): 待办/提交/里程碑的 create / update / finish / drop
-// 在实现页面前补上；写入必须同事务维护 branches 的四个计数（§5.3.3 R7）。

@@ -17,8 +17,11 @@ export type ShellOverlay =
 
 interface ShellState {
   overlay: ShellOverlay | null;
+  /** 待办详情浮层要展示的待办；关闭时清空。 */
+  overlayTaskId: string | null;
   undoMessage: string | null;
   openOverlay: (overlay: ShellOverlay) => void;
+  openTaskDetail: (taskId: string) => void;
   closeOverlay: () => void;
   showUndo: (message: string) => void;
   clearUndo: () => void;
@@ -26,9 +29,11 @@ interface ShellState {
 
 export const useShellStore = create<ShellState>()((set) => ({
   overlay: null,
+  overlayTaskId: null,
   undoMessage: null,
   openOverlay: (overlay) => set({ overlay }),
-  closeOverlay: () => set({ overlay: null }),
+  openTaskDetail: (overlayTaskId) => set({ overlay: 'task-detail', overlayTaskId }),
+  closeOverlay: () => set({ overlay: null, overlayTaskId: null }),
   showUndo: (undoMessage) => set({ overlay: 'undo-receipt', undoMessage }),
   clearUndo: () => set({ overlay: null, undoMessage: null }),
 }));

@@ -48,6 +48,7 @@ function makeTask(over: Partial<Task> = {}): Task {
     ownerId: OWNER_ID,
     branchId: BRANCH_ID,
     title: '完成线框初稿',
+    note: null,
     status: 'done',
     dueDate: '2026-11-20',
     plannedDate: '2026-11-20',

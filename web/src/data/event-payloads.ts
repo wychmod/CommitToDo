@@ -9,8 +9,13 @@ export type EventPayloads = {
   'task.complete': { taskId: string; commitId: string; branchId: string };
   'task.cancel': { taskId: string; branchId: string };
   'task.reopen': { taskId: string; branchId: string; voidedCommitId: string | null };
-  'task.plan': { taskId: string; from: string | null; to: string };
-  'task.update': { taskId: string; fields: string[] };
+  'task.plan': { taskId: string; from: string | null; to: string | null };
+  'task.update': {
+    taskId: string;
+    fields: string[];
+    fromBranchId?: string;
+    toBranchId?: string;
+  };
   'task.delete': { taskId: string; branchId: string };
 
   'commit.void': { commitId: string; taskId: string | null };

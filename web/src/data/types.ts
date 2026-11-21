@@ -50,6 +50,8 @@ export interface Task {
   ownerId: OwnerId;
   branchId: string;
   title: string;
+  /** 待办的补充说明，可为空；提交文案的「补一句」另存于 `commits.summary`。 */
+  note: string | null;
   status: TaskStatus;
   /** 外部截止日期，`YYYY-MM-DD`。 */
   dueDate: string | null;

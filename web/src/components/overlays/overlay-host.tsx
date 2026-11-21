@@ -1,10 +1,12 @@
 import { t, type MessageKey } from '@/i18n';
 import { useShellStore, type ShellOverlay } from '@/stores/shell.store';
+import { QuickAddPanel } from '@/components/today/quick-add-panel';
+import { TaskDetailPanel } from '@/components/today/task-detail-panel';
 import styles from './overlay-host.module.css';
 
-const COPY: Record<ShellOverlay, { title: MessageKey; body: MessageKey }> = {
-  'quick-add': { title: 'overlay.quick-add.title', body: 'overlay.quick-add.body' },
-  'task-detail': { title: 'overlay.task-detail.title', body: 'overlay.task-detail.body' },
+type PlaceholderOverlay = Exclude<ShellOverlay, 'quick-add' | 'task-detail'>;
+
+const COPY: Record<PlaceholderOverlay, { title: MessageKey; body: MessageKey }> = {
   'commit-detail': { title: 'overlay.commit-detail.title', body: 'overlay.commit-detail.body' },
   search: { title: 'overlay.search.title', body: 'overlay.search.body' },
   confirm: { title: 'overlay.confirm.title', body: 'overlay.confirm.body' },
@@ -13,14 +15,17 @@ const COPY: Record<ShellOverlay, { title: MessageKey; body: MessageKey }> = {
 };
 
 /**
- * 全局层外壳：快速添加、待办详情、提交详情、搜索、确认框、首次引导、撤销回执。
- * 现在只渲染占位对话框，具体内容等页面实现时替换。
+ * 全局层外壳：快速添加与待办详情已由 M03 接入真实面板；
+ * 提交详情、搜索、确认框、首次引导与撤销回执仍为后续 PRD 的占位。
  */
 export function OverlayHost() {
   const overlay = useShellStore((state) => state.overlay);
   const closeOverlay = useShellStore((state) => state.closeOverlay);
 
   if (!overlay) return null;
+  if (overlay === 'quick-add') return <QuickAddPanel />;
+  if (overlay === 'task-detail') return <TaskDetailPanel />;
+
   const copy = COPY[overlay];
 
   return (
