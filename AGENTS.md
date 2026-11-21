@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本仓库的协作约束。改代码前先读这里，以及 `docs/TECH-ARCHITECTURE.md` 的对应小节。
+本仓库的协作约束。改代码前先读这里，以及 `docs/TECH-ARCHITECTURE.md` 的对应小节；用例、事务、clock/ids、错误、events、升级与命名的细则见 `docs/CODE-STRUCTURE.md`。
 
 ## 目录职责
 
@@ -32,6 +32,15 @@ i18n ← 任意层（i18n 自身不反向依赖）
 - `ui` 不得引用 `data / stores / components / pages`；`components` 不得引用 `pages`。
 - `stores` 不得引用 `data / ui / components / pages`。
 - 跨层引用一律用 `@/` 别名；页面不允许直接 `import '@/data/db'`。
+
+## 代码结构契约（细则见 `docs/CODE-STRUCTURE.md`）
+
+- **用例**：一个用户动作一个文件，`src/data/动词-名词.ts`；用例是唯一开 `db.transaction` 的地方，表清单显式列全；仓储方法单表、带 `rev`，写方法内用 `assertInTransaction()` 守卫，不嵌套事务。
+- **clock / ids**：领域代码不写 `Date.now()` / `new Date()` / `crypto.randomUUID()`；用例第二参数 `WriteDeps`（`clock` + `ids`）注入，测试传固定时钟与固定 ID。「当天」只由 `core/clock.ts` 的 `today()` / `toLocalDate()` 产出，偏移东正西负（UTC+8 → 480）。
+- **错误**：可预期失败返回 `Result`（`ok` / `fail` + `ErrorCode`），不抛给页面；不变量违反抛 `Error`；Dexie 异常在用例边界映射为 `storage.*`；`field` 非空走表单内联，否则走回执/弹层。
+- **events**：只由用例写、与业务写入同事务；action 用 `entity.verb`，payload 走 `data/event-payloads.ts` 的映射类型；每个动作一条，批量合并并带 `count`；删除空分支（R13）等既有例外不写。
+- **Dexie 升级**：只有增删表 / 索引 / 主键才 bump `DB_VERSION`，只前进、不删数据；导出文件 `schemaVersion` 与 `DB_VERSION` 各自独立递增。
+- **断点与命名**：mobile 390 / compact 760 / wide 1440，媒体查询内只允许这三个数值；组件 `kebab-case.tsx` + PascalCase，样式同名 `.module.css`，类名 camelCase，不用 `&__`、不 `:global`。
 
 ## 禁止事项
 

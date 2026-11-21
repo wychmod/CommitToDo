@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.18 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9。
+**状态**: 0.19 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9，代码结构契约（用例、clock/ids、错误、events、升级、断点、命名）见 §2.10、§5.9 与 [代码结构契约](./CODE-STRUCTURE.md)。
 **本版依据**: 数据模型以 `design/images/` 的页面画稿为准（逐页核对结论见 §5.3–§5.3.3 与 [页面数据核对](./PAGE-DATA-CROSSCHECK.md)），不以文字规格反推。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
@@ -208,6 +208,19 @@ CSS Modules 由 Vite 原生支持、零配置；令牌本身就是变量，不�
 - 不测：组件渲染与快照、样式、路由跳转、视觉效果；需要 DOM 的交互测试留到后续单独评估，MVP 不引 jsdom / browser 模式。
 - 约定：规则实现放 `src/core/` 且不 import React；函数签名用最小接口，测试数据用就地工厂函数构造，不建共享 fixture 文件。
 - 覆盖边界：MVP 不设覆盖率门槛；但**每新增一条 R 规则必须同时加用例**，涉及多表写入的规则还必须补同事务/回滚用例，否则评审不通过。
+
+### 2.10 响应式断点（已定：390 / 760 / 1440）
+
+| 名称 | 值 | 用途 |
+|---|---|---|
+| `mobile` | **390px** | 设计基准窄屏；明细与编辑改全屏面板，保留关闭入口 |
+| `compact` | **760px** | 应用外壳断点：侧栏转顶部横向导航，树保留层级与行尾操作 |
+| `wide` | **1440px** | 桌面设计基准；详情用侧栏而非覆盖层 |
+
+- CSS 自定义属性不能用在 `@media` 条件里，因此媒体查询内允许直接写这三个数值，且只允许这三个；这是「禁止硬编码尺寸」的唯一例外，其他尺寸仍必须走令牌。
+- 统一移动优先：用 `@media (max-width: 760px)` 做降级，不混写 `min-width`，避免断点交叉。
+- 三个值是否进 `design/design-tokens.json`（`breakpoint.mobile/compact/wide`）**待设计线拍板**；定前以本表为准，不新造 `--bp-*` 变量。
+- PRD 只承诺 390 / 1440 两个验收视口；760 是实现层断点，不新增人工验收项。
 
 ---
 
@@ -529,9 +542,9 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 ```
 
 - **MVP 没有同步器、没有待同步队列、没有冲突合并**：读写都直接落 Dexie，写完即完成。`syncState` / `opId` 字段已存在但不参与逻辑。
-- 事务边界在仓储方法内部闭合，不把 `db.transaction(...)` 暴露给调用方。
+- **事务由用例开**：`src/data/` 根目录的用例（`complete-task.ts` 等）是唯一出现 `db.transaction('rw', [...])` 的地方，表清单显式列全；仓储方法只做单表读写，不在内部开事务、不跨表，详见 [代码结构契约 §1](./CODE-STRUCTURE.md#1-用例层与事务边界)。
 - `liveQuery` 只允许出现在 `src/data` 或查询层，组件不直接 import Dexie。
-- 业务测试用内存仓储实现，不启动 IndexedDB。
+- 业务测试用内存实现时，用例依赖的仓储端口保持在 `data/` 内部的接口上，测试不启动真实 IndexedDB；需要验证事务一致性时走 `db` 测试项目（§2.9）。
 
 ### 5.5 迁移预置：V2 接云库时怎么一次性推上去、断点怎么续
 
@@ -541,7 +554,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 
 1. **表与集合同名、字段同名同义**：`branches` 本地表就对应将来 `branches` 集合，不做 `parent_id → parentId` 之类的映射。
 2. **ID 本地生成**：全部用 ULID，迁移时直接作为云端 `_id`，不需要重编号，也不需要维护新旧 ID 对照表。
-3. **时间统一 UTC + 另存 `tzOffset`**：`createdAt`/`updatedAt`/`deletedAt` 都是 UTC 毫秒；业务日期是 `YYYY-MM-DD` 字面量；`tzOffset` 单独存，迁移后仍能还原「当时那一天」。
+3. **时间统一 UTC + 业务日期按操作当时本地时区**：`createdAt`/`updatedAt`/`deletedAt` 都是 UTC 毫秒；业务日期（`date` / `dueDate` / `plannedDate`）是 `YYYY-MM-DD` 字面量，按操作当时的本地时区换算（0.18 起的 M05 口径），业务表不存 `tzOffset`；仅 `events` 审计行保留写入时的 `tzOffset`（字段是否补入代码待拍板，见 [代码结构契约 §8](./CODE-STRUCTURE.md#8-冲突与待拍板)）。
 4. **软删字段预留**：`deletedAt` 从第一天就写，迁移时把删除状态一起带上去，不会「删掉的东西复活」。
 5. **导出带 `schemaVersion` 与字段级版本**：导出文件顶层是 `{ schemaVersion, fieldVersions, exportedAt, app, data }`；`fieldVersions` 记录每个实体关键字段的语义版本，字段含义变化时只针对该字段迁移。
 6. **`ownerId` 占位**：本地写入时留空或写设备 ID，V2 登录后统一回填，避免迁移时再补字段。
@@ -574,21 +587,22 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 
 **强制规则**
 
-1. 领域层（实体、值对象、用例、校验、排序分组等纯函数）**不得 import `dexie`、`@cloudbase/*`、`react`、`react-dom`、`react-router-dom`，也不得 import `src/data/**`**。用 `no-restricted-imports` 固化；工程门禁尚未重建期间，作为 code review 必查项。
-2. 仓储接口定义在领域层（`src/domain/ports/*.ts`）：纯 TS 接口，参数与返回值是领域对象或 DTO，**不得出现 `Table` / `Collection` / `Transaction` / `db` 等实现类型**。
-3. `Dexie` 实例、`Table`、事务、`liveQuery` 只允许出现在 `src/data/local/**`；V1 起 `@cloudbase/*` 的备份与计数调用只允许出现在 `src/data/cloudbase/**`，V2 的云库调用同样收在这里。
-4. 一个聚合一个仓储（分支、待办、提交、里程碑、徽章、设置、备份、年度总结、事件）；方法按用例命名（`listChildren(branchId)`、`findCommitOn(date)`），不提供 `query()` 之类的万能入口。
-5. React 只通过用例或查询 hook 访问仓储；`useLiveQuery` 只能出现在 `src/data` 或查询层；组件不直接 import Dexie，V1 起也不直接调 `callFunction`。
-6. 每个仓储接口配一个内存实现，业务测试不启动 IndexedDB、不连云端。
-7. Dexie 的 `version().stores()`、将来云数据库的集合结构、导出文件的 `schemaVersion` **在同一处登记**，三者必须能互相解释。
+1. 纯领域层是 `src/core/`（实体规则、校验、排序分组、四计数、clock/ids、错误码），**不得 import `dexie`、`@cloudbase/*`、`react`、`react-dom`、`react-router-dom`，也不得 import `src/data/**`**；由 ESLint `no-restricted-imports` 固化（`web/eslint.config.js`）。
+2. 仓储接口定义在 `src/data/repositories.ts`：纯 TS 接口，参数与返回值是领域对象或 DTO，**不得出现 `Table` / `Collection` / `Transaction` / `db` 等实现类型**。
+3. `Dexie` 实例、`Table`、事务、`liveQuery` 只允许出现在 `src/data/**`；V1 起 `@cloudbase/*` 的备份与计数调用只允许出现在 `src/data/cloud/**`，V2 的云库调用同样收在这里。
+4. 一个聚合一个仓储（分支、待办、提交、里程碑、徽章、设置、事件）；方法按用例命名（`listChildren(branchId)`、`findCommitOn(date)`），不提供 `query()` 之类的万能入口。
+5. React 只通过用例或查询 hook 访问数据；`useLiveQuery` 只能出现在 `src/data`，组件不直接 import Dexie，V1 起也不直接调 `callFunction`。
+6. 每个仓储接口可配一个内存实现用于纯逻辑测试；涉及事务一致性的用例必须用 `fake-indexeddb` 跑真实 Dexie 事务（§2.9），不 mock 仓储。
+7. Dexie 的 `version().stores()`、将来云数据库的集合结构、导出文件的 `schemaVersion` **在同一处登记**（`web/src/data/db.ts` 与 `docs/TECH-ARCHITECTURE.md` §5.3），三者必须能互相解释；升级与迁移规则见 [代码结构契约 §5](./CODE-STRUCTURE.md#5-dexie-schema-升级与迁移)。
 
 **PR 检查清单**
 
-- [ ] `src/domain`、`src/application` 中 `git grep -n "from 'dexie'"` 与 `git grep -n "@cloudbase"` 均为空
+- [ ] `src/core` 中 `git grep -n "from 'dexie'"` 与 `git grep -n "@cloudbase"` 均为空
 - [ ] 组件中没有 `db.` / `Table` / `useLiveQuery` 直接引用
 - [ ] 新增或修改字段时，同时更新 Dexie 版本、集合结构与导出 `schemaVersion`
 - [ ] 仓储方法返回领域对象，不返回数据库行
 - [ ] 新增表或字段时，名称与将来集合一致，不引入本地专有命名
+- [ ] `db.transaction` 只出现在 `src/data` 的用例文件里，且表清单显式列全
 
 ### 5.8 与其余问题的耦合
 
@@ -604,6 +618,20 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 多语言 | **无耦合** | 纯文案层 |
 
 一句话：Dexie 唯一需要工程手段兜住的是**移动端复用**；V2 迁移的成败取决于字段命名与 ID 策略，而不取决于用了哪个本地引擎。
+
+### 5.9 代码结构契约（0.19，细则见 [代码结构契约](./CODE-STRUCTURE.md)）
+
+七件事的结论集中在此，开发照此实现；小节编号对应 `CODE-STRUCTURE.md` 的章节。
+
+| 事项 | 结论 | 落地位置 |
+|---|---|---|
+| 用例与事务 | 一个用户动作一个用例文件，`动词-名词.ts`，放 `src/data/` 根；**用例是唯一开 `db.transaction` 的地方**，表清单显式列全；仓储单表、带 `rev`、内部 `assertInTransaction()` 守卫；四计数由用例在事务内调 `recountBranch()` | `src/data/*.ts`、`src/data/transaction.ts`、`src/data/repositories.ts` |
+| clock / ids | 领域代码不直接取时间与随机数；`Clock.now()`、`IdSource.ulid(now)` 由用例第二参数注入，默认 `defaultWriteDeps`；`toLocalDate(epochMs, tzOffsetMinutes)` 与 `today(clock, offset)` 是「当天」的唯一来源，偏移东正西负（UTC+8 → 480） | `src/core/clock.ts`、`src/core/ids.ts`、`src/data/deps.ts` |
+| 错误模型 | 可预期失败返回 `Result`（`ok` / `fail` + `ErrorCode`）；不变量违反抛 `Error`；Dexie 异常在用例边界映射为 `storage.*`；UI 按 `field` 落内联、否则落回执/弹层，`retriable` 决定重试 | `src/core/errors.ts` |
+| events | 只由用例写、同事务；action 为 `entity.verb`；payload 用 `EventPayloads` 映射类型化；每个动作一条，批量带 `count`；R13 物理删空分支等既有例外不写 | `src/data/events.ts`、`src/data/event-payloads.ts` |
+| Dexie 升级 | 只有增删表 / 索引 / 主键才 bump `DB_VERSION`；只前进、不删数据、升级期禁写；`versionchange` 提示刷新；导出 `schemaVersion` 是文件格式版本，与 `DB_VERSION` 解耦，MVP 只接受相等版本 | `src/data/db.ts` |
+| 断点 | mobile 390 / compact 760 / wide 1440；媒体查询内允许且仅允许这三个数值；是否进设计令牌待设计线拍板 | CSS Modules |
+| 命名 | 组件 `kebab-case.tsx` + PascalCase；`*-page.tsx`；同名 `.module.css`；类名 camelCase、不用 `&__`、不 `:global`；动态值只走行内 CSS 变量；颜色/字号/时长只走令牌 | `src/components`、`src/pages`、`src/ui` |
 
 ---
 
@@ -763,6 +791,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 图标 | 自绘内联 SVG，不引图标库；尺寸 16/18/20/24、描边 1.5、颜色取 `currentColor`（§2.7） | 2026-11-21 |
 | 文案 | 单文件 key 化，只 `zh-CN`；不引 i18n 运行时库（§2.8） | 2026-11-21 |
 | 测试 | Vitest 5，只测纯逻辑与 §5.3.3 规则，不写组件快照（§2.9） | 2026-11-21 |
+| 代码结构 | 用例层与事务边界、clock/ids 注入、错误 `Result`、events 写入、Dexie 升级、断点、组件命名七项定稿（§5.9、§2.10，细则见 `CODE-STRUCTURE.md`） | 2026-11-21 |
 
 ### 10.2 已定：不做端到端加密（含异地备份）
 
@@ -819,3 +848,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 0.16 | 2026-11-21 | **备份留存口径补齐**：Q8 与 R17 明确四类快照的留存上限——`auto` 7 条、**`manual` 7 条**、`pre-restore` 1 条、`remote` 1 条；页面把四类合成**一条按 `createdAt` 倒序的时间线**，不截断、不按类合并、行内用标签区分来源。查询改为 `[ownerId+kind+createdAt]` 逐类取上限再合并，`[ownerId+createdAt]` 仅作校验，**不新增索引**；§5.3.2 补「备份列表不按类分组」说明 |
 | 0.17 | 2026-11-21 | **测试范围扩到 Dexie 事务**：引入 `fake-indexeddb@6.2.8`（devDependency），Vitest 拆成 `unit`（`src/**`，排除 `src/data/`）与 `db`（`src/data/**`，仅此处 `setupFiles` 加载 `fake-indexeddb/auto`）两个项目，纯函数用例不付 IndexedDB 开销。§2.9 范围改为「纯函数 + R 规则 + Dexie 事务一致性」，新增事务用例约定（每例 `db.delete()` 隔离、就地工厂、断言库内实际值）与覆盖要求（多表写入规则必须补同事务/回滚用例）。落地 `src/data/transactions.test.ts`：完成待办时提交与四计数同事务写入、失败整体回滚 |
 | 0.18 | 2026-11-21 | **按代码修正主键与时区口径**：`settings` 主键由 `_id = 'app'` 改为 `id = 'app'`，并明确本地 7 张表物理主键统一为 `id`（`web/src/data/db.ts`），`_id` 只是 V2 云端主键名；删除「业务日期同时记录 `tzOffset`」的旧表述，补 **M05 时区口径**——日期按操作当时本地时区计算，`commits.date` + `at` 足够，**不新增字段**，仅 `events` 保留审计用 `tzOffset` |
+| 0.19 | 2026-11-21 | **补齐代码结构契约**：新增 §2.10 响应式断点（390 / 760 / 1440，媒体查询内允许写这三个数值，是否进设计令牌待设计线拍板）与 §5.9 七项契约（用例与事务、clock/ids、错误模型、events、Dexie 升级、断点、命名），细则独立为 [`CODE-STRUCTURE.md`](./CODE-STRUCTURE.md)。**修正两处与代码不一致的旧表述**：§5.4「事务在仓储内部闭合」改为「用例是唯一开 `db.transaction` 的地方」；§5.7 的 `src/domain` / `src/application` / `src/data/local` 路径改为实际的 `src/core` / `src/data`（`repositories.ts`、`cloud/`）。§5.5 第 3 条同步 M05 口径。§10.1 补「代码结构」一行。待拍板项（`events.entity` vs `entityType`、`events.tzOffset`、月精度归一化、断点令牌）记在 `CODE-STRUCTURE.md` §8，不改表、不改 PRD |
