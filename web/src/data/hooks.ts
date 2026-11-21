@@ -1,7 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useCallback, useEffect, useState } from 'react';
-import { systemClock, today } from '@/core/clock';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { currentTzOffset, systemClock, today } from '@/core/clock';
 import { normalizeAnnotationMode } from '@/core/rules/annotation-visibility';
+import { stallReminders } from '@/core/rules/stagnation';
 import { normalizeTheme } from '@/core/rules/theme-preference';
 import { resolveTreeDensity } from '@/core/rules/tree-density';
 import { db, LOCAL_OWNER_ID } from './db';
@@ -456,4 +457,97 @@ export function useCommitDetail(commitId: string | null): CommitDetailView {
     siblings: result.siblings,
     retry,
   };
+}
+
+export interface HistoryDataView {
+  status: 'loading' | 'ready' | 'error';
+  branches: Branch[];
+  commits: Commit[];
+  milestones: Milestone[];
+  retry: () => void;
+}
+
+const EMPTY_HISTORY = {
+  branches: [] as Branch[],
+  commits: [] as Commit[],
+  milestones: [] as Milestone[],
+};
+
+/**
+ * P04 历程的读状态（M06 OP-01/OP-02/OP-03/OP-08）。
+ *
+ * 一次读分支、提交与里程碑；读取失败时保留上一次成功的数据，
+ * 图表区只给出说明与重试，不清空已加载区间。
+ */
+export function useHistoryData(ownerId = LOCAL_OWNER_ID): HistoryDataView {
+  const [attempt, setAttempt] = useState(0);
+  const [cache, setCache] = useState<{
+    branches: Branch[];
+    commits: Commit[];
+    milestones: Milestone[];
+  } | null>(null);
+  const result = useLiveQuery(async () => {
+    try {
+      const [branches, commits, milestones] = await Promise.all([
+        branchRepository.listByOwner(ownerId),
+        commitRepository.listByOwner(ownerId),
+        milestoneRepository.listByOwner(ownerId),
+      ]);
+      return { ok: true as const, branches, commits, milestones };
+    } catch {
+      return { ok: false as const, ...EMPTY_HISTORY };
+    }
+  }, [ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  useEffect(() => {
+    if (result?.ok) {
+      setCache({
+        branches: result.branches,
+        commits: result.commits,
+        milestones: result.milestones,
+      });
+    }
+  }, [result]);
+
+  const fallback = cache ?? EMPTY_HISTORY;
+  if (result === undefined) return { status: 'loading', ...fallback, retry };
+  if (!result.ok) return { status: 'error', ...fallback, retry };
+  return {
+    status: 'ready',
+    branches: result.branches,
+    commits: result.commits,
+    milestones: result.milestones,
+    retry,
+  };
+}
+
+/**
+ * 今天页停滞提醒（M06 OP-07）。
+ *
+ * 只读派生，不落库；取停滞天数最多的 5 条，无停滞时返回空数组，
+ * 区块不渲染、不占位。
+ */
+export function useStallReminders(todayDate: string, ownerId = LOCAL_OWNER_ID) {
+  const data = useLiveQuery(async () => {
+    try {
+      const [branches, commits] = await Promise.all([
+        branchRepository.listByOwner(ownerId),
+        commitRepository.listByOwner(ownerId),
+      ]);
+      return { ok: true as const, branches, commits };
+    } catch {
+      return { ok: false as const, branches: [] as Branch[], commits: [] as Commit[] };
+    }
+  }, [ownerId]);
+  const tzOffset = currentTzOffset(systemClock.now());
+
+  return useMemo(() => {
+    if (!data?.ok) return [];
+    return stallReminders(data.branches, data.commits, {
+      todayDate,
+      tzOffsetMinutes: tzOffset,
+      range: { start: null },
+    });
+  }, [data, todayDate, tzOffset]);
 }

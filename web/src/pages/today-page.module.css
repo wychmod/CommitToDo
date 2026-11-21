@@ -230,6 +230,61 @@ section.group > .groupHead {
   font-variant-numeric: tabular-nums;
 }
 
+.stallBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.stallList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stallItem {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: var(--s1) 0;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.stallList li:first-child .stallItem {
+  border-top: 0;
+}
+
+.stallItem:hover .stallName {
+  color: var(--accent);
+}
+
+.stallItem:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.stallName {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--type-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stallMeta {
+  flex: none;
+  color: var(--subtle);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
 @media (min-width: 760px) {
   .layout {
     grid-template-columns: minmax(0, 1fr) 18rem;

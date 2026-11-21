@@ -29,6 +29,7 @@ export interface TaskRepository {
 }
 
 export interface CommitRepository {
+  listByOwner(ownerId: string): Promise<Commit[]>;
   listRecent(ownerId: string, limit: number): Promise<Commit[]>;
   listByBranch(branchId: string): Promise<Commit[]>;
   listBySourceBranch(sourceBranchId: string): Promise<Commit[]>;
@@ -90,6 +91,7 @@ export const taskRepository: TaskRepository = {
 };
 
 export const commitRepository: CommitRepository = {
+  listByOwner: (ownerId) => db.commits.where('ownerId').equals(ownerId).toArray(),
   listRecent: async (ownerId, limit) => {
     const rows = await db.commits.where('ownerId').equals(ownerId).toArray();
     return rows

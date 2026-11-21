@@ -5,7 +5,7 @@ import { branchTrail } from '@/core/rules/quick-add';
 import { groupTodayTasks } from '@/core/rules/today-groups';
 import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
-import { useTodayData } from '@/data/hooks';
+import { useTodayData, useStallReminders } from '@/data/hooks';
 import { planTask } from '@/data/plan-task';
 import { updateCommit } from '@/data/update-commit';
 import type { Commit, Task } from '@/data/types';
@@ -40,6 +40,7 @@ export function TodayPage() {
   const listCollapsed = useTodayStore((state) => state.listCollapsed);
   const toggleListCollapsed = useTodayStore((state) => state.toggleListCollapsed);
   const todayDate = today(systemClock);
+  const stalls = useStallReminders(todayDate);
 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [failedId, setFailedId] = useState<string | null>(null);
@@ -271,6 +272,31 @@ export function TodayPage() {
           </div>
 
           <aside className={styles.rail} aria-label={t('today.recent.title')}>
+            {stalls.length > 0 ? (
+              <section className={styles.stallBlock} aria-label={t('today.stall.title')}>
+                <h2 className={styles.railTitle}>{t('today.stall.title')}</h2>
+                <ul className={styles.stallList}>
+                  {stalls.map((item) => (
+                    <li key={item.branchId}>
+                      <Link
+                        className={styles.stallItem}
+                        to={`/history?branch=${item.branchId}&date=${item.lastDate}`}
+                      >
+                        <span className={styles.stallName}>
+                          {byId.get(item.branchId)?.title ?? item.branchId}
+                        </span>
+                        <span className={styles.stallMeta}>
+                          {t('today.stall.daysPrefix')}
+                          {item.days}
+                          {t('today.stall.daysSuffix')}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
             <h2 className={styles.railTitle}>{t('today.recent.title')}</h2>
             {data.commits.length === 0 ? (
               <p className={styles.railEmpty}>{t('today.recent.empty')}</p>

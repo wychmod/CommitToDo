@@ -1,0 +1,500 @@
+/* P04 时间树：桌面横向泳道，760 px 以下改用纵向时间线。 */
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.loadEarlier {
+  align-self: flex-start;
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.loadEarlier:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.loadEarlier:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.desktopOnly {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+}
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 100%;
+}
+
+.axisRow {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  background: var(--inset);
+}
+
+.axisCorner {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  flex: none;
+  width: var(--timeline-label-width);
+  height: var(--timeline-axis);
+  border-right: 1px solid var(--line);
+  background: var(--inset);
+}
+
+.axisTrack {
+  position: relative;
+  flex: none;
+  height: var(--timeline-axis);
+}
+
+.tick {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--subtle);
+  font-size: var(--type-chart);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.laneRow {
+  display: flex;
+  min-height: var(--timeline-lane);
+  border-bottom: 1px solid var(--line);
+}
+
+.laneRow:last-child {
+  border-bottom: 0;
+}
+
+.laneRow[data-depth='2'],
+.laneRow[data-depth='3'] {
+  min-height: var(--timeline-expanded-lane);
+}
+
+.laneRow[data-highlighted='true'] {
+  background: var(--accent-soft);
+}
+
+.laneLabel {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s2);
+  width: var(--timeline-label-width);
+  padding: 0 var(--s2);
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.laneRow[data-highlighted='true'] .laneLabel {
+  background: var(--accent-soft);
+}
+
+.laneRow[data-depth='2'] .laneLabel {
+  padding-left: var(--s4);
+}
+
+.laneRow[data-depth='3'] .laneLabel {
+  padding-left: var(--s6);
+}
+
+.laneToggle {
+  flex: none;
+  width: var(--s6);
+  height: var(--s6);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.laneToggle:disabled {
+  color: var(--disabled);
+  background: var(--disabled-bg);
+  cursor: default;
+}
+
+.laneToggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.laneName {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--type-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.laneStatus {
+  flex: none;
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+.track {
+  position: relative;
+  flex: none;
+  align-self: stretch;
+}
+
+.track::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: var(--timeline-rail);
+  background: var(--lane-color);
+  content: '';
+  opacity: 0.55;
+}
+
+.guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--timeline-guide);
+  background: var(--line);
+}
+
+.fork {
+  position: absolute;
+  top: 0;
+  width: var(--timeline-guide);
+  height: 50%;
+  background: var(--lane-color);
+}
+
+.fork::after {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: var(--tree-identity);
+  height: var(--tree-identity);
+  border-radius: var(--radius-marker);
+  background: var(--lane-color);
+  content: '';
+  transform: translate(-50%, 50%);
+}
+
+.merge {
+  position: absolute;
+  top: 50%;
+  width: var(--timeline-guide);
+  height: 50%;
+  background: var(--lane-color);
+}
+
+.merge::after {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: var(--timeline-merge-diameter);
+  height: var(--timeline-merge-diameter);
+  border: var(--timeline-guide) solid var(--panel);
+  border-radius: 50%;
+  background: var(--lane-color);
+  content: '';
+  transform: translate(-50%, 50%);
+}
+
+.stall {
+  position: absolute;
+  top: 50%;
+  height: 0;
+  border-top: var(--timeline-stall-stroke) dashed var(--lane-color);
+}
+
+.stallDays {
+  position: absolute;
+  top: calc(50% + var(--s2));
+  transform: translateX(-100%);
+  color: var(--subtle);
+  font-size: var(--type-chart);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.historyLine {
+  position: absolute;
+  top: 50%;
+  height: 0;
+  border-top: var(--timeline-stall-stroke) solid var(--lane-color);
+  opacity: 0.35;
+}
+
+.droppedLine {
+  position: absolute;
+  top: 50%;
+  height: 0;
+  border-top: var(--timeline-stall-stroke) solid var(--line-strong);
+  opacity: 0.8;
+}
+
+.commitNode {
+  position: absolute;
+  top: 50%;
+  width: var(--timeline-commit-diameter);
+  height: var(--timeline-commit-diameter);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--lane-color);
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.milestoneNode {
+  position: absolute;
+  top: 50%;
+  width: var(--timeline-milestone-diagonal);
+  height: var(--timeline-milestone-diagonal);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-marker);
+  background: var(--lane-color);
+  cursor: pointer;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.clusterNode {
+  position: absolute;
+  top: 50%;
+  min-width: var(--s6);
+  height: var(--s6);
+  padding: 0 var(--s1);
+  border: var(--timeline-guide) solid var(--panel);
+  border-radius: var(--s9);
+  background: var(--lane-color);
+  color: var(--panel);
+  font-size: var(--type-chart);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.commitNode:focus-visible,
+.milestoneNode:focus-visible,
+.clusterNode:focus-visible {
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: var(--timeline-selected-ring);
+}
+
+[data-highlight='true'].commitNode,
+[data-highlight='true'].milestoneNode {
+  box-shadow: 0 0 0 var(--timeline-selected-ring) var(--focus);
+}
+
+.popover {
+  position: absolute;
+  top: calc(50% + var(--s6));
+  z-index: 3;
+  width: 240px;
+  padding: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.popoverTitle {
+  margin: 0 0 var(--s1);
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.popoverList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.popoverItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  width: 100%;
+  padding: var(--s1) 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.popoverList li:first-child .popoverItem {
+  border-top: 0;
+}
+
+.popoverItem:hover .popoverText {
+  color: var(--accent);
+}
+
+.popoverDate {
+  flex: none;
+  color: var(--subtle);
+  font-size: var(--type-chart);
+  font-variant-numeric: tabular-nums;
+}
+
+.popoverText {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--type-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.popoverClose {
+  width: 100%;
+  margin-top: var(--s1);
+  padding: var(--s1) 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-label);
+  cursor: pointer;
+}
+
+.mobileOnly {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mobileLane {
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-left: var(--timeline-selected-ring) solid var(--lane-color);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+}
+
+.mobileLane[data-highlighted='true'] {
+  background: var(--accent-soft);
+}
+
+.mobileHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.mobileName {
+  color: var(--text);
+  font-size: var(--type-body);
+  font-weight: 600;
+}
+
+.mobileToggle {
+  padding: var(--s1) var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: var(--type-label);
+  cursor: pointer;
+}
+
+.mobileNote {
+  margin: var(--s1) 0 0;
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+.mobileStall {
+  margin: var(--s1) 0 0;
+  color: var(--warning);
+  font-size: var(--type-label);
+}
+
+.mobileEvents {
+  display: flex;
+  flex-direction: column;
+  margin: var(--s2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mobileEvent {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: var(--s1) var(--s2);
+  width: 100%;
+  padding: var(--s2) 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobileEvents li:first-child .mobileEvent {
+  border-top: 0;
+}
+
+.mobileEvent[data-highlight='true'] .mobileText {
+  color: var(--accent);
+}
+
+.mobileDate {
+  color: var(--subtle);
+  font-size: var(--type-chart);
+  font-variant-numeric: tabular-nums;
+}
+
+.mobileText {
+  color: var(--text);
+  font-size: var(--type-secondary);
+  overflow-wrap: anywhere;
+}
+
+.mobileKind {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+@media (max-width: 760px) {
+  .desktopOnly {
+    display: none;
+  }
+
+  .mobileOnly {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+  }
+}

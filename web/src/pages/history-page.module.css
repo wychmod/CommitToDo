@@ -1,0 +1,115 @@
+/* P04 历程页：筛选条、临时提示、错误条与加载骨架。 */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.fieldLabel {
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.select {
+  min-width: 9rem;
+  padding: var(--s1) var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-secondary);
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.temporary {
+  margin: 0;
+  padding: var(--s2) var(--s3);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: var(--type-secondary);
+}
+
+.errorBanner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-control);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: var(--type-secondary);
+}
+
+.retry {
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--warning);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.retry:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+}
+
+.skeletonLabel {
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+.skeletonRow {
+  height: var(--timeline-expanded-lane);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--accent);
+  font-size: var(--type-secondary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.action:hover {
+  border-color: var(--accent);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
