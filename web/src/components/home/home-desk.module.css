@@ -135,7 +135,7 @@
   display: flex;
   align-items: flex-end;
   gap: var(--s3);
-  min-height: calc(var(--home-timeline-height) * 0.7);
+  height: calc(var(--home-timeline-height) * 0.7);
   padding-top: var(--s4);
 }
 
