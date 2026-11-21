@@ -54,6 +54,7 @@ export interface MilestoneRepository {
 
 export interface BadgeRepository {
   listByOwner(ownerId: string): Promise<Badge[]>;
+  create(row: Badge): Promise<string>;
 }
 
 export interface SettingsRepository {
@@ -136,6 +137,10 @@ export const milestoneRepository: MilestoneRepository = {
 
 export const badgeRepository: BadgeRepository = {
   listByOwner: (ownerId) => db.badges.where('ownerId').equals(ownerId).toArray(),
+  create: (row) => {
+    assertInTransaction();
+    return db.badges.add(row);
+  },
 };
 
 export const settingsRepository: SettingsRepository = {

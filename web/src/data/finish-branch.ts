@@ -6,6 +6,7 @@ import { syncBranchCounts } from './branch-counts';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
+import { grantBadge } from './grant-badge';
 import { branchRepository, commitRepository, taskRepository } from './repositories';
 import type { Branch } from './types';
 
@@ -40,7 +41,7 @@ export async function finishBranch(
   deps: WriteDeps = defaultWriteDeps,
 ): Promise<Result<Branch>> {
   try {
-    return await db.transaction(
+    const result = await db.transaction(
       'rw',
       [db.branches, db.tasks, db.commits, db.events],
       async (tx) => {
@@ -113,6 +114,9 @@ export async function finishBranch(
         return ok(next);
       },
     );
+    // 徽章发放失败不回滚主操作。
+    if (result.ok) await grantBadge(deps);
+    return result;
   } catch (cause) {
     return fail('storage.write_failed', { retriable: true, cause });
   }

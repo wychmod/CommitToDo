@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react';
 import type { AppError } from '@/core/errors';
 import { validateImportFile, type ImportFileData } from '@/core/rules/import-validate';
+import { markBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
 import { importData } from '@/data/import-data';
 import { t, type MessageKey } from '@/i18n';
 import styles from './restore-data-panel.module.css';
@@ -108,6 +109,7 @@ export function RestoreDataPanel({
     setFailed(false);
     const result = await importData({ text });
     if (result.ok) {
+      markBadgeBackfillSkipped();
       window.location.assign('/today');
       return;
     }

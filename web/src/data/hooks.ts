@@ -14,6 +14,11 @@ import {
   isWeekReviewDay,
   type WeekReviewStats,
 } from '@/core/rules/week-review';
+import {
+  resolveBadgeView,
+  type BadgeJumpTarget,
+  type BadgeSourceState,
+} from '@/core/rules/badge-view';
 import { normalizeTheme } from '@/core/rules/theme-preference';
 import { resolveTreeDensity } from '@/core/rules/tree-density';
 import { db, LOCAL_OWNER_ID } from './db';
@@ -27,7 +32,7 @@ import {
   settingsRepository,
   taskRepository,
 } from './repositories';
-import type { Branch, Commit, EventRecord, Milestone, Task } from './types';
+import type { Badge, Branch, Commit, EventRecord, Milestone, Task } from './types';
 
 /**
  * 读路径统一走 `useLiveQuery`（TECH-ARCHITECTURE.md §2.6 / §5.4）。
@@ -347,6 +352,67 @@ export function useTaskDetail(taskId: string | null, ownerId = LOCAL_OWNER_ID): 
 
 export function useBadges(ownerId = LOCAL_OWNER_ID) {
   return useLiveQuery(() => badgeRepository.listByOwner(ownerId), [ownerId]);
+}
+
+export interface BadgeListViewRow {
+  badge: Badge;
+  state: BadgeSourceState;
+  jump: BadgeJumpTarget | null;
+}
+
+export interface BadgesListView {
+  status: 'loading' | 'ready' | 'error';
+  rows: BadgeListViewRow[];
+  retry: () => void;
+}
+
+/**
+ * 「我的」与今天页共用的徽章列表（M11）。
+ *
+ * 按 `grantedAt` 倒序；跳转与撤销标注由 `resolveBadgeView` 按当前数据计算，
+ * 读取失败返回 `error`，不用空列表冒充「还没有徽章」。
+ */
+export function useBadgeRows(ownerId = LOCAL_OWNER_ID): BadgesListView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      const [badges, branches, commits, milestones] = await Promise.all([
+        badgeRepository.listByOwner(ownerId),
+        branchRepository.listByOwner(ownerId),
+        commitRepository.listByOwner(ownerId),
+        milestoneRepository.listByOwner(ownerId),
+      ]);
+      const tz = currentTzOffset(systemClock.now());
+      const rows = badges
+        .slice()
+        .sort(
+          (left, right) =>
+            right.grantedAt - left.grantedAt ||
+            right.createdAt - left.createdAt ||
+            left.id.localeCompare(right.id),
+        )
+        .map((badge) => {
+          const view = resolveBadgeView(
+            {
+              catalogId: badge.catalogId,
+              sourceEntityId: badge.sourceEntityId,
+              snapshot: badge.snapshot,
+            },
+            { branches, commits, milestones },
+            tz,
+          );
+          return { badge, state: view.state, jump: view.jump };
+        });
+      return { ok: true as const, rows };
+    } catch {
+      return { ok: false as const, rows: [] as BadgeListViewRow[] };
+    }
+  }, [ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) return { status: 'loading', rows: [], retry };
+  if (!result.ok) return { status: 'error', rows: [], retry };
+  return { status: 'ready', rows: result.rows, retry };
 }
 
 /**

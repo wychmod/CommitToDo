@@ -9,6 +9,7 @@ import {
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
+import { grantBadge } from './grant-badge';
 import { branchRepository, milestoneRepository } from './repositories';
 import type { Milestone } from './types';
 
@@ -39,72 +40,79 @@ export async function createMilestone(
   deps: WriteDeps = defaultWriteDeps,
 ): Promise<Result<CreateMilestoneOutput>> {
   try {
-    return await db.transaction('rw', [db.branches, db.milestones, db.events], async (tx) => {
-      const at = deps.clock.now();
-      const tzOffset = deps.tzOffset(at);
-      const todayDate = toLocalDate(at, tzOffset);
+    const result = await db.transaction(
+      'rw',
+      [db.branches, db.milestones, db.events],
+      async (tx) => {
+        const at = deps.clock.now();
+        const tzOffset = deps.tzOffset(at);
+        const todayDate = toLocalDate(at, tzOffset);
 
-      const issues = validateMilestoneDraft({
-        title: input.title,
-        date: input.date,
-        precision: input.precision,
-        todayDate,
-      });
-      const titleIssue = issues.find((issue) => issue.field === 'title');
-      if (titleIssue) return fail('validation.title_empty', { field: 'title' });
-      const dateIssue = issues.find((issue) => issue.field === 'date');
-      if (dateIssue) {
-        return fail('validation.invalid_input', {
-          field: 'date',
-          retriable: false,
+        const issues = validateMilestoneDraft({
+          title: input.title,
+          date: input.date,
+          precision: input.precision,
+          todayDate,
         });
-      }
-
-      const branches = (await branchRepository.listByOwner(LOCAL_OWNER_ID)).filter(
-        (branch) => branch.deletedAt === null,
-      );
-
-      let branchId: string | null = null;
-      if (input.branchId) {
-        const preferred = branches.find((branch) => branch.id === input.branchId);
-        if (!preferred) return fail('domain.not_found', { field: 'branchId' });
-        if (milestoneTargetReason(preferred) !== null) {
-          return fail('domain.readonly_branch', { field: 'branchId' });
+        const titleIssue = issues.find((issue) => issue.field === 'title');
+        if (titleIssue) return fail('validation.title_empty', { field: 'title' });
+        const dateIssue = issues.find((issue) => issue.field === 'date');
+        if (dateIssue) {
+          return fail('validation.invalid_input', {
+            field: 'date',
+            retriable: false,
+          });
         }
-        branchId = preferred.id;
-      } else {
-        branchId = defaultMilestoneBranchId(branches, null);
-      }
-      if (branchId === null) {
-        return fail('domain.not_found', { field: 'branchId' });
-      }
-      const target = branches.find((branch) => branch.id === branchId);
-      if (!target) return fail('domain.not_found', { field: 'branchId' });
 
-      const id = deps.ids.ulid(at);
-      const row: Milestone = {
-        id,
-        ownerId: LOCAL_OWNER_ID,
-        branchId,
-        title: input.title.trim(),
-        note: input.note?.trim() ? input.note.trim() : null,
-        achievedAt: normalizeMilestoneAchievedAt(
-          input.date,
-          input.precision as MilestonePrecision,
-          tzOffset,
-        ),
-        datePrecision: input.precision,
-        rev: 1,
-        createdAt: at,
-        updatedAt: at,
-        deletedAt: null,
-      };
+        const branches = (await branchRepository.listByOwner(LOCAL_OWNER_ID)).filter(
+          (branch) => branch.deletedAt === null,
+        );
 
-      await milestoneRepository.create(row);
-      await writeEvent(tx, 'milestone.create', id, { milestoneId: id, branchId }, deps);
+        let branchId: string | null = null;
+        if (input.branchId) {
+          const preferred = branches.find((branch) => branch.id === input.branchId);
+          if (!preferred) return fail('domain.not_found', { field: 'branchId' });
+          if (milestoneTargetReason(preferred) !== null) {
+            return fail('domain.readonly_branch', { field: 'branchId' });
+          }
+          branchId = preferred.id;
+        } else {
+          branchId = defaultMilestoneBranchId(branches, null);
+        }
+        if (branchId === null) {
+          return fail('domain.not_found', { field: 'branchId' });
+        }
+        const target = branches.find((branch) => branch.id === branchId);
+        if (!target) return fail('domain.not_found', { field: 'branchId' });
 
-      return ok({ milestone: row, branchId });
-    });
+        const id = deps.ids.ulid(at);
+        const row: Milestone = {
+          id,
+          ownerId: LOCAL_OWNER_ID,
+          branchId,
+          title: input.title.trim(),
+          note: input.note?.trim() ? input.note.trim() : null,
+          achievedAt: normalizeMilestoneAchievedAt(
+            input.date,
+            input.precision as MilestonePrecision,
+            tzOffset,
+          ),
+          datePrecision: input.precision,
+          rev: 1,
+          createdAt: at,
+          updatedAt: at,
+          deletedAt: null,
+        };
+
+        await milestoneRepository.create(row);
+        await writeEvent(tx, 'milestone.create', id, { milestoneId: id, branchId }, deps);
+
+        return ok({ milestone: row, branchId });
+      },
+    );
+    // 徽章发放失败不回滚主操作。
+    if (result.ok) await grantBadge(deps);
+    return result;
   } catch (cause) {
     return fail('storage.write_failed', { retriable: true, cause });
   }

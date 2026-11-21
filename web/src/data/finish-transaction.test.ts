@@ -103,7 +103,10 @@ describe('finishBranch（R12 / OP-04 / OP-05）', () => {
       commitRow({ id: 'c-voided', branchId: child.id, at: AT - 1_000, voidedAt: AT - 500 }),
       commitRow({ id: 'p-own', branchId: parent.id, at: AT - 10_000 }),
     ]);
-    const eventsBefore = await db.events.count();
+    // 徽章是独立事务，不计入收尾事件条数的断言。
+    const eventsBefore = (await db.events.toArray()).filter(
+      (event) => event.action !== 'badge.grant',
+    ).length;
 
     const result = await finishBranch({ branchId: child.id, archived: true }, deps);
     expect(result.ok).toBe(true);
@@ -158,7 +161,10 @@ describe('finishBranch（R12 / OP-04 / OP-05）', () => {
       archived: true,
       movedTaskCount: 2,
     });
-    expect(await db.events.count()).toBe(eventsBefore + 1);
+    const nonBadgeEvents = (await db.events.toArray()).filter(
+      (event) => event.action !== 'badge.grant',
+    );
+    expect(nonBadgeEvents).toHaveLength(eventsBefore + 1);
   });
 
   it('选择留在树上时不写 archivedAt，仍为已合并', async () => {

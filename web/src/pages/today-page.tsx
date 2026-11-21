@@ -19,6 +19,7 @@ import { CompletionReceipt } from '@/components/today/completion-receipt';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { readonlyReasonKey } from '@/components/today/readonly';
 import { TaskRow } from '@/components/today/task-row';
+import { BadgeToast } from '@/components/today/badge-toast';
 import { WeekReviewCard } from '@/components/today/week-review-card';
 import styles from './today-page.module.css';
 
@@ -329,6 +330,7 @@ export function TodayPage() {
       ) : null}
 
       {data.status === 'ready' ? <WeekReviewCard /> : null}
+      {data.status === 'ready' ? <BadgeToast /> : null}
 
       {cancelTarget ? (
         <ConfirmDialog

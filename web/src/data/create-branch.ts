@@ -7,6 +7,7 @@ import { assessCreateQuota } from '@/core/rules/branch-quota';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
+import { grantBadge } from './grant-badge';
 import { branchRepository } from './repositories';
 import type { Branch } from './types';
 
@@ -34,7 +35,7 @@ export async function createBranch(
   }
 
   try {
-    return await db.transaction('rw', [db.branches, db.events], async (tx) => {
+    const result = await db.transaction('rw', [db.branches, db.events], async (tx) => {
       const all = await branchRepository.listByOwner(LOCAL_OWNER_ID);
       const live = all.filter((branch) => branch.deletedAt === null);
       const parent = live.find((branch) => branch.id === input.parentId);
@@ -100,6 +101,9 @@ export async function createBranch(
 
       return ok(row);
     });
+    // 徽章发放失败不回滚主操作。
+    if (result.ok) await grantBadge(deps);
+    return result;
   } catch (cause) {
     return fail('storage.write_failed', { retriable: true, cause });
   }
