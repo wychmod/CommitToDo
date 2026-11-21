@@ -15,7 +15,7 @@ import {
   settingsRepository,
   taskRepository,
 } from './repositories';
-import type { Branch, Commit, EventRecord, Task } from './types';
+import type { Branch, Commit, EventRecord, Milestone, Task } from './types';
 
 /**
  * 读路径统一走 `useLiveQuery`（TECH-ARCHITECTURE.md §2.6 / §5.4）。
@@ -61,6 +61,135 @@ export function useBranch(branchId: string | undefined) {
     () => (branchId ? branchRepository.getById(branchId) : undefined),
     [branchId],
   );
+}
+
+export interface BranchHeaderView {
+  status: 'loading' | 'ready' | 'error';
+  branch: Branch | null;
+  /** 未删除的全部分支，供面包屑、只读判定与子分支区使用。 */
+  branches: Branch[];
+  retry: () => void;
+}
+
+/**
+ * P03 页头（M04 OP-01/OP-07）。
+ *
+ * 页头独立于下方区块读取：区块还在加载时，路径、名称与状态可以先显示，
+ * 不让整页骨架顶开页头。
+ */
+export function useBranchHeader(
+  branchId: string | undefined,
+  ownerId = LOCAL_OWNER_ID,
+): BranchHeaderView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      const [branch, branches] = await Promise.all([
+        branchId ? branchRepository.getById(branchId) : Promise.resolve(undefined),
+        branchRepository.listByOwner(ownerId),
+      ]);
+      return { ok: true as const, branch: branch ?? null, branches };
+    } catch {
+      return { ok: false as const, branch: null, branches: [] as Branch[] };
+    }
+  }, [branchId, ownerId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) {
+    return { status: 'loading', branch: null, branches: [], retry };
+  }
+  if (!result.ok) {
+    return { status: 'error', branch: null, branches: [], retry };
+  }
+  return { status: 'ready', branch: result.branch, branches: result.branches, retry };
+}
+
+export interface BranchTasksView {
+  status: 'loading' | 'ready' | 'error';
+  tasks: Task[];
+  retry: () => void;
+}
+
+/** P03 待办区：只读本分支自己的待办（含已完成与已取消，供进度重算）。 */
+export function useBranchTasks(branchId: string | undefined): BranchTasksView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      return {
+        ok: true as const,
+        rows: branchId ? await taskRepository.listByBranch(branchId) : [],
+      };
+    } catch {
+      return { ok: false as const, rows: [] as Task[] };
+    }
+  }, [branchId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) return { status: 'loading', tasks: [], retry };
+  if (!result.ok) return { status: 'error', tasks: [], retry };
+  return { status: 'ready', tasks: result.rows, retry };
+}
+
+export interface BranchCommitsView {
+  status: 'loading' | 'ready' | 'error';
+  commits: Commit[];
+  retry: () => void;
+}
+
+/** P03 提交流：本分支全部提交，分页与排序由 `core/rules/commit-feed` 处理。 */
+export function useBranchCommits(branchId: string | undefined): BranchCommitsView {
+  const [attempt, setAttempt] = useState(0);
+  const [cache, setCache] = useState<Commit[]>([]);
+  const result = useLiveQuery(async () => {
+    try {
+      return {
+        ok: true as const,
+        rows: branchId ? await commitRepository.listByBranch(branchId) : [],
+      };
+    } catch {
+      return { ok: false as const, rows: [] as Commit[] };
+    }
+  }, [branchId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  useEffect(() => {
+    setCache([]);
+  }, [branchId]);
+
+  useEffect(() => {
+    if (result?.ok) setCache(result.rows);
+  }, [result]);
+
+  if (result === undefined) return { status: 'loading', commits: [], retry };
+  // 读取失败时保留上一批已加载的提交，页头与其余区块不受影响。
+  if (!result.ok) return { status: 'error', commits: cache, retry };
+  return { status: 'ready', commits: result.rows, retry };
+}
+
+export interface BranchMilestonesView {
+  status: 'loading' | 'ready' | 'error';
+  milestones: Milestone[];
+  retry: () => void;
+}
+
+/** P03 里程碑行：本分支的里程碑，渲染精度由 `core/rules/milestone-date` 决定。 */
+export function useBranchMilestones(branchId: string | undefined): BranchMilestonesView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      return {
+        ok: true as const,
+        rows: branchId ? await milestoneRepository.listByBranch(branchId) : [],
+      };
+    } catch {
+      return { ok: false as const, rows: [] as Milestone[] };
+    }
+  }, [branchId, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (result === undefined) return { status: 'loading', milestones: [], retry };
+  if (!result.ok) return { status: 'error', milestones: [], retry };
+  return { status: 'ready', milestones: result.rows, retry };
 }
 
 export function useOpenTasks(ownerId = LOCAL_OWNER_ID) {

@@ -12,6 +12,11 @@ const COPY: Record<PlaceholderOverlay, { title: MessageKey; body: MessageKey }> 
   confirm: { title: 'overlay.confirm.title', body: 'overlay.confirm.body' },
   onboarding: { title: 'overlay.onboarding.title', body: 'overlay.onboarding.body' },
   'undo-receipt': { title: 'overlay.undo-receipt.title', body: 'overlay.undo-receipt.body' },
+  'milestone-detail': {
+    title: 'overlay.milestone-detail.title',
+    body: 'overlay.milestone-detail.body',
+  },
+  'milestone-new': { title: 'overlay.milestone-new.title', body: 'overlay.milestone-new.body' },
 };
 
 /**

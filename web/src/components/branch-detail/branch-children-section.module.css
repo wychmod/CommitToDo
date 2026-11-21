@@ -1,0 +1,123 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s2);
+  margin: 0;
+  font-size: var(--type-subsection);
+}
+
+.count {
+  color: var(--subtle);
+  font-size: var(--type-label);
+  font-weight: 400;
+}
+
+.add {
+  min-height: var(--s8);
+  padding: 0 var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.add:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.add:disabled {
+  color: var(--disabled);
+  cursor: not-allowed;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item[data-status='dropped'] .name,
+.item[data-status='merged'] .name {
+  color: var(--muted);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.link:hover {
+  border-color: var(--line);
+  background: var(--panel);
+}
+
+.dot {
+  flex: none;
+  width: var(--tree-identity);
+  height: var(--tree-identity);
+  border-radius: 50%;
+  background: var(--neutral);
+}
+
+.name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status,
+.archived {
+  flex: none;
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.archived {
+  padding: 0 var(--s1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+
+.progress {
+  flex: none;
+  color: var(--subtle);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--s4);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-panel);
+  color: var(--subtle);
+  font-size: var(--type-secondary);
+  text-align: center;
+}

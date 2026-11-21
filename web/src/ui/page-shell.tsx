@@ -3,7 +3,9 @@ import { t, type MessageKey } from '@/i18n';
 import styles from './page-shell.module.css';
 
 interface PageShellProps {
-  titleKey: MessageKey;
+  titleKey?: MessageKey;
+  /** 需要动态标题（如分支名）时替代 `titleKey`。 */
+  title?: ReactNode;
   bodyKey?: MessageKey;
   action?: ReactNode;
   /** 二级页的返回控件，放在页头之上。 */
@@ -12,13 +14,13 @@ interface PageShellProps {
 }
 
 /** 所有占位页共用的外壳：页头 + 内容区，不承载业务。 */
-export function PageShell({ titleKey, bodyKey, action, back, children }: PageShellProps) {
+export function PageShell({ titleKey, title, bodyKey, action, back, children }: PageShellProps) {
   return (
     <section className={styles.page}>
       {back}
       <header className={styles.head}>
         <div>
-          <h1>{t(titleKey)}</h1>
+          {title ?? (titleKey ? <h1>{t(titleKey)}</h1> : null)}
           {bodyKey ? <p>{t(bodyKey)}</p> : null}
         </div>
         {action}

@@ -18,15 +18,16 @@ const DATE_HINT = /(下周|周[一二三四五六日天]|\d{1,2}\s*[月日号])/
  */
 export function QuickAddPanel() {
   const closeOverlay = useShellStore((state) => state.closeOverlay);
+  const overlayBranchId = useShellStore((state) => state.overlayBranchId);
   const rawBranches = useBranches();
   const branches = useMemo(() => rawBranches ?? [], [rawBranches]);
   const todayDate = today(systemClock);
 
   const [text, setText] = useState('');
   const [due, setDue] = useState('');
-  const [branchId, setBranchId] = useState('');
+  const [branchId, setBranchId] = useState(overlayBranchId ?? '');
   const [dateTouched, setDateTouched] = useState(false);
-  const [branchTouched, setBranchTouched] = useState(false);
+  const [branchTouched, setBranchTouched] = useState(overlayBranchId !== null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +52,8 @@ export function QuickAddPanel() {
     if (!branchTouched) setBranchId(matched?.id ?? '');
   }, [matched?.id, branchTouched]);
 
-  const effectiveBranch = branchId || matched?.id || root?.id || '';
+  const chosen = byId.get(branchId);
+  const effectiveBranch = chosen?.id ?? matched?.id ?? root?.id ?? '';
   const selectedBranch = byId.get(effectiveBranch);
   const effectiveBranchTrail = selectedBranch ? branchTrail(selectedBranch, byId) : '';
   const branchUnrecognized = parsed.branchQuery !== null && matched === null;
