@@ -310,6 +310,10 @@ export function HistoryPage() {
         >
           {t('history.addMilestone')}
         </button>
+
+        <Link className={styles.addMilestone} to={`/history/${todayDate.slice(0, 4)}`}>
+          {t('history.year')}
+        </Link>
       </div>
 
       {direct.temporary && !focusMilestone ? (

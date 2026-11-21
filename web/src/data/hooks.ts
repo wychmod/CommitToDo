@@ -23,6 +23,9 @@ import { onboardingDataFrom, type OnboardingData } from '@/core/rules/onboarding
 import { SAMPLE_OWNER_ID } from '@/core/rules/sample-tree';
 import { normalizeTheme } from '@/core/rules/theme-preference';
 import { resolveTreeDensity } from '@/core/rules/tree-density';
+import { buildYearDistribution, type YearDistribution } from '@/core/rules/year-distribution';
+import { computeYearMetrics, type YearMetrics } from '@/core/rules/year-metrics';
+import { yearBoundsFor } from '@/core/rules/year-param';
 import { db, LOCAL_OWNER_ID } from './db';
 import { DEFAULT_SETTINGS, type SettingsFields } from './settings-defaults';
 import {
@@ -33,6 +36,7 @@ import {
   milestoneRepository,
   settingsRepository,
   taskRepository,
+  yearReviewRepository,
 } from './repositories';
 import type { Badge, Branch, Commit, EventRecord, Milestone, Task } from './types';
 
@@ -1088,4 +1092,93 @@ export function useWeekReview(): WeekReviewView {
   if (result === undefined) return { status: 'loading', stats: null, question: null, retry };
   if (!result.ok) return { status: 'error', stats: null, question: null, retry };
   return { status: 'ready', stats: result.stats, question: result.question, retry };
+}
+
+export interface YearReviewDataView {
+  status: 'loading' | 'ready' | 'error';
+  branches: Branch[];
+  commits: Commit[];
+  earliestYear: number;
+  note: string;
+  metrics: YearMetrics;
+  distribution: YearDistribution;
+  retry: () => void;
+}
+
+const EMPTY_YEAR_METRICS: YearMetrics = {
+  commits: 0,
+  activeLevelOneBranches: 0,
+  opened: 0,
+  finished: 0,
+};
+
+/**
+ * P05 年轮读状态（V1-02 OP-02–OP-04 / OP-07）。
+ *
+ * 一次读分支、提交与该年的年度总结，四项指标与分布全部现算；
+ * 读取失败返回 `error` 且不保留上一次的数字，页面改用骨架与重试。
+ */
+export function useYearReviewData(
+  year: number,
+  todayDate: string,
+  ownerId = LOCAL_OWNER_ID,
+): YearReviewDataView {
+  const [attempt, setAttempt] = useState(0);
+  const result = useLiveQuery(async () => {
+    try {
+      const [branches, commits, review] = await Promise.all([
+        branchRepository.listByOwner(ownerId),
+        commitRepository.listByOwner(ownerId),
+        yearReviewRepository.getByOwnerYear(ownerId, year),
+      ]);
+      return { ok: true as const, branches, commits, note: review?.note ?? '' };
+    } catch {
+      return {
+        ok: false as const,
+        branches: [] as Branch[],
+        commits: [] as Commit[],
+        note: '',
+      };
+    }
+  }, [ownerId, year, attempt]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  const tzOffsetMinutes = currentTzOffset(systemClock.now());
+
+  const derived = useMemo(() => {
+    const branches = result?.ok ? result.branches : [];
+    const commits = result?.ok ? result.commits : [];
+    const bounds = yearBoundsFor({
+      commits,
+      branches,
+      todayDate,
+      tzOffsetMinutes,
+    });
+    return {
+      earliestYear: bounds.earliestYear,
+      metrics: computeYearMetrics({ year, commits, branches, tzOffsetMinutes }),
+      distribution: buildYearDistribution({ year, commits, branches, todayDate }),
+    };
+  }, [result, year, todayDate, tzOffsetMinutes]);
+
+  const base = {
+    branches: result?.ok ? result.branches : [],
+    commits: result?.ok ? result.commits : [],
+    earliestYear: derived.earliestYear,
+    note: result?.ok ? result.note : '',
+    metrics: derived.metrics,
+    distribution: derived.distribution,
+    retry,
+  };
+
+  if (result === undefined) return { status: 'loading', ...base };
+  if (!result.ok) {
+    return {
+      status: 'error',
+      ...base,
+      metrics: EMPTY_YEAR_METRICS,
+      retry,
+    };
+  }
+  return { status: 'ready', ...base };
 }

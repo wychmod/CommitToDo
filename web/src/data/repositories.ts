@@ -1,6 +1,15 @@
 import { db } from './db';
 import { assertInTransaction } from './transaction';
-import type { Badge, Branch, Commit, EventRecord, Milestone, Settings, Task } from './types';
+import type {
+  Badge,
+  Branch,
+  Commit,
+  EventRecord,
+  Milestone,
+  Settings,
+  Task,
+  YearReview,
+} from './types';
 
 /**
  * 仓储层（TECH-ARCHITECTURE.md §5.6 / §5.7）。
@@ -67,6 +76,18 @@ export interface SettingsRepository {
 export interface EventRepository {
   listRecent(ownerId: string, limit: number): Promise<EventRecord[]>;
   listByEntity(entityId: string): Promise<EventRecord[]>;
+}
+
+export interface YearReviewRepository {
+  getByOwnerYear(ownerId: string, year: number): Promise<YearReview | undefined>;
+  listByOwner(ownerId: string): Promise<YearReview[]>;
+  create(row: YearReview): Promise<string>;
+  update(
+    id: string,
+    patch: Partial<Omit<YearReview, 'id' | 'ownerId'>>,
+    rev: number,
+  ): Promise<number>;
+  remove(id: string): Promise<void>;
 }
 
 export const branchRepository: BranchRepository = {
@@ -161,5 +182,23 @@ export const eventRepository: EventRepository = {
   listByEntity: async (entityId) => {
     const rows = await db.events.where('entityId').equals(entityId).toArray();
     return rows.sort((a, b) => a.at - b.at);
+  },
+};
+
+export const yearReviewRepository: YearReviewRepository = {
+  getByOwnerYear: (ownerId, year) =>
+    db.yearReviews.where('[ownerId+year]').equals([ownerId, year]).first(),
+  listByOwner: (ownerId) => db.yearReviews.where('ownerId').equals(ownerId).toArray(),
+  create: (row) => {
+    assertInTransaction();
+    return db.yearReviews.add(row);
+  },
+  update: (id, patch, rev) => {
+    assertInTransaction();
+    return db.yearReviews.update(id, { ...patch, rev: rev + 1 });
+  },
+  remove: (id) => {
+    assertInTransaction();
+    return db.yearReviews.delete(id);
   },
 };

@@ -124,6 +124,17 @@ export interface Settings {
   updatedAt: number;
 }
 
+/** 年度总结（PRD V1-02 §5）：每用户每年一行，只存用户手写的一句。 */
+export interface YearReview {
+  id: string;
+  ownerId: OwnerId;
+  year: number;
+  note: string;
+  rev: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface EventRecord {
   id: string;
   ownerId: OwnerId;
