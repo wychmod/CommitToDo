@@ -150,7 +150,7 @@ export const fail: (code: ErrorCode, options?: Partial<AppError>) => Result<neve
 
 - 失败回弹（如勾选完成失败）由页面把本地乐观状态回滚，再展示 `errorKey`；不弹 toast 堆叠。
 - 密码错误与账号不存在必须映射同一码 `auth.invalid_credentials`（PRD V2-01）。
-- `CloudBaseConfigError`：**当前代码与文档均无此类**（已检索）。若 V1 引入 CloudBase 配置缺失错误，归 `data/cloud/` 层，码为 `cloud.not_configured`，不进 `core`；本轮不预建。
+- `CloudBaseConfigError`：**当前没有这个类**。MVP 已保留 `@cloudbase/js-sdk@^3.11.1`，但只在 `src/data/cloud/` 内按需初始化；`client.ts` 在缺少 `VITE_CLOUDBASE_ENV_ID` 时抛 `new Error('cloud.not_configured')`。若 V1 需要结构化错误，把类归 `data/cloud/`，码沿用 `cloud.not_configured`，不进 `core`；本轮不预建。
 
 ## 4. events 写入约定
 
@@ -262,7 +262,7 @@ this.version(2)
 | 4 | 月精度里程碑归一化 | **已定：`month` 精度存「当月 1 日 00:00 本地时间转 UTC」**，见 §2.2；R6 与 TECH §5.3 同步。实现时补 `core/rules/milestone-date.test.ts` |
 | 5 | PRD 测试文件名与用例文件名 | 不冲突：测试文件按 PRD 保留原名，断言对象指向对应用例即可 |
 | 6 | PRD 未提 760 断点 | 以实现层断点补入本文，不新增人工验收 |
-| 7 | `CloudBaseConfigError` | 代码与 PRD 均无此符号，不预建；V1 如引入，按 §3.2 归 `data/cloud/`，码 `cloud.not_configured` |
+| 7 | `CloudBaseConfigError` | 无此类；`client.ts` 以 `new Error('cloud.not_configured')` 抛出。不预建，V1 如引入按 §3.2 归 `data/cloud/`，码 `cloud.not_configured` |
 | 8 | `events.action` 字面值 | **已定：PRD 侧已统一为 `entity.verb`，本侧按 2026-11-21 决定收敛为 27 个**：补 `branch.update`；移除 `branch.pin` / `branch.unpin` / `branch.delete` / `milestone.delete`；`sync.conflict` 的 `entityType = 'sync'`，分支历史用 `payload.branchId` 过滤；收尾+归档只写 `branch.finish`（`payload.archived`）；模板不写事件 |
 | 9 | 仍待 PRD 同步的分歧 | ①V2-02 §5 表仍写 `entityType='branch'` + `action='sync.conflict'`，与本侧「`entityType='sync'`」不一致；②V2-03 §7 仍把模板事件列为待技术线确认，本侧已定不写。两处均列出、不改 PRD |
 
