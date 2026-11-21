@@ -109,7 +109,7 @@
 | 表 | 字段 | 用途 |
 | --- | --- | --- |
 | `branches` | `_id`、`parentId`、`path`、`depth`、`title`、`goal`、`color`、`status`、`order`、`pinnedAt`、`archivedAt`、`taskTotal`、`taskDone`、`commitCount`、`ownLastCommitAt`、`createdAt`、`updatedAt`、`deletedAt` | 树渲染、校验、额度、路径 |
-| `events` | `entityType='branch'`、`action`、`payload`、`at` | 新建、改名、移动留痕（删除空分支除外，见 R13）；移动整棵子树只写一条，`payload.movedCount` 记受影响节点数 |
+| `events` | `entityType='branch'`、`action='branch.create'` / `'branch.rename'` / `'branch.move'`、`payload`、`at` | 新建、改名、移动留痕（删除空分支除外，见 R13）；移动整棵子树只写一条，`payload.movedCount` 记受影响节点数 |
 
 规则：
 

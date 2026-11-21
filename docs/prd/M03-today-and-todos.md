@@ -122,7 +122,7 @@
 | `tasks` | `_id`、`branchId`、`title`、`note`、`dueDate`、`plannedDate`、`status`、`order`、`completedAt`、`completedCommitId`、`cancelledAt`、`createdAt`、`updatedAt`、`deletedAt` | 今天三组、详情、全部待办、历史 |
 | `commits` | `_id`、`branchId`、`sourceBranchId`、`taskId`、`date`、`at`、`summary`、`voidedAt` | 完成回执、最近提交、分支提交流 |
 | `branches` | `taskTotal`、`taskDone`、`commitCount`、`ownLastCommitAt` | 行内进度、页脚额度、停滞判定（M06 消费） |
-| `events` | `entityType='task'`、`action`、`payload`、`at` | 待办历史 |
+| `events` | `entityType='task'` / `'commit'`、`action='task.create'` / `'task.update'` / `'task.complete'` / `'task.cancel'` / `'task.plan'` / `'commit.update'`、`payload`、`at` | 待办历史；改归属用 `task.update`，`payload` 带前后 `branchId`；完成后「补一句」修改提交文案用 `commit.update`，与 M05 同一字面值 |
 
 规则：
 

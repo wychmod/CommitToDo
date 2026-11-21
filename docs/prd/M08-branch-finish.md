@@ -114,7 +114,7 @@
 | `tasks` | `branchId`、`status`、`completedCommitId` | 未完成待办移入父分支 |
 | `commits` | `branchId`、`sourceBranchId`、`voidedAt` | 提交并入父分支 |
 | `milestones` | `branchId` | 留在原分支，父历程按来源显示 |
-| `events` | `entityType='branch'`、`action='finish'` | 收尾留痕；删除空分支不写 |
+| `events` | `entityType='branch'`、`action='branch.finish'` | 收尾留痕，`payload.archived` 标记是否同时归档（不另写 `branch.archive`）；删除空分支不写 |
 
 规则：
 

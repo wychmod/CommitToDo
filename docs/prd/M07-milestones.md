@@ -100,7 +100,7 @@
 | --- | --- | --- |
 | `milestones` | `_id`、`branchId`、`title`、`note`、`achievedAt`、`datePrecision`、`createdAt`、`updatedAt` | 创建、详情、树上定位 |
 | `branches` | `_id`、`parentId`、`path`、`status`、`archivedAt` | 分支选择与路径展示 |
-| `events` | `entityType='milestone'`、`action='create'`、`payload`、`at` | 创建留痕、徽章触发依据 |
+| `events` | `entityType='milestone'`、`action='milestone.create'`、`payload`、`at` | 创建留痕、徽章触发依据 |
 
 规则：
 

@@ -110,7 +110,7 @@
 | `tasks` | `_id`、`branchId`、`title`、`status`、`dueDate`、`plannedDate`、`order`、`createdAt` | 批量导入生成待办 |
 | `branches` | `_id`、`path`、`status`、`archivedAt`、`taskTotal`、`taskDone` | 目标分支校验与四计数 |
 | `milestones` | `_id`、`branchId`、`title`、`note`、`achievedAt`、`datePrecision` | 回填生成里程碑 |
-| `events` | `entityType='task'` / `'milestone'`、`action='create'`、`payload`、`at` | 导入与回填留痕 |
+| `events` | `entityType='task'` / `'milestone'`、`action='task.create'` / `'milestone.create'`、`payload`、`at` | 导入与回填留痕 |
 
 规则：
 

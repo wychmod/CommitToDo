@@ -101,7 +101,7 @@
 | `commits` | `_id`、`branchId`、`sourceBranchId`、`taskId`、`date`、`at`、`summary`、`voidedAt`、`updatedAt` | 详情、编辑、撤销、前后节点 |
 | `tasks` | `status`、`completedAt`、`completedCommitId`、`dueDate`、`branchId` | 撤销后恢复待办 |
 | `branches` | `taskDone`、`commitCount`、`ownLastCommitAt` | 撤销后计数回退 |
-| `events` | `entityType='commit'`、`action`、`payload`、`at` | 修改文案、撤销完成留痕 |
+| `events` | `entityType='commit'` / `'task'`、`action='commit.update'` / `'commit.void'` / `'task.update'`、`payload`、`at` | 修改文案用 `commit.update`，撤销完成用 `commit.void`；撤销时待办改归属用 `task.update`，与 M03 同一字面值 |
 
 规则：
 
