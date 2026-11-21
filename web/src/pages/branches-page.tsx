@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Annotation } from '@/components/annotation';
 import { ArchivedBranches } from '@/components/branches/archived-branches';
 import { BranchDeletePanel } from '@/components/branch-detail/branch-delete-panel';
 import { BranchFinishPanel } from '@/components/branch-detail/branch-finish-panel';
@@ -9,7 +8,7 @@ import {
   type BranchLifecycleMode,
 } from '@/components/branch-detail/branch-lifecycle-panel';
 import { BranchPanel, type BranchPanelState } from '@/components/branches/branch-panel';
-import { BranchTree } from '@/components/branches/branch-tree';
+import { BranchTree, type BranchTreeView } from '@/components/branches/branch-tree';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { BRANCH_TREE_LIMIT, countActiveBranches } from '@/core/rules/branch-quota';
 import { visibleDefaultTree } from '@/core/rules/branch-visibility';
@@ -17,14 +16,24 @@ import { withdrawTemplate } from '@/data/apply-template';
 import { useBranchesView, useTemplateState } from '@/data/hooks';
 import { reorderBranches, setBranchPinned } from '@/data/reorder';
 import { resumeBranch } from '@/data/resume-branch';
-import type { Branch } from '@/data/types';
+import type { Branch, BranchStatus } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useBranchesStore } from '@/stores/branches.store';
 import { EmptyState } from '@/ui/empty-state';
+import { BranchIcon, ChevronDownIcon, ListIcon } from '@/ui/icons';
 import { PageShell } from '@/ui/page-shell';
 import styles from './pages.module.css';
 
 const SKELETON_LEVELS = [0, 1, 2, 1, 2];
+
+type StatusFilter = BranchStatus | 'all';
+
+const STATUS_FILTERS: ReadonlyArray<{ value: StatusFilter; labelKey: MessageKey }> = [
+  { value: 'all', labelKey: 'branches.filter.all' },
+  { value: 'active', labelKey: 'branches.status.active' },
+  { value: 'merged', labelKey: 'branches.status.merged' },
+  { value: 'dropped', labelKey: 'branches.status.dropped' },
+];
 
 type Overlay =
   | { mode: 'finish' | 'delete'; branch: Branch }
@@ -72,6 +81,10 @@ export function BranchesPage() {
   const template = useTemplateState();
   const expandMany = useBranchesStore((state) => state.expandMany);
   const savedScroll = useRef(0);
+  const [viewMode, setViewMode] = useState<BranchTreeView>('grouped');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
 
   const archivedView = searchParams.get('view') === 'archived';
   const live = view.branches.filter((branch) => branch.deletedAt === null);
@@ -79,6 +92,23 @@ export function BranchesPage() {
   const treeBranches = visibleDefaultTree(live);
   const root = live.find((branch) => branch.depth === 0);
   const used = countActiveBranches(live);
+  const totals = {
+    active: treeBranches.filter((branch) => branch.status === 'active').length,
+    merged: treeBranches.filter((branch) => branch.status === 'merged').length,
+    dropped: treeBranches.filter((branch) => branch.status === 'dropped').length,
+  };
+  const filterLabel = t(
+    STATUS_FILTERS.find((option) => option.value === statusFilter)?.labelKey ?? 'branches.filter.all',
+  );
+
+  useEffect(() => {
+    if (!filterOpen) return;
+    const close = (event: MouseEvent) => {
+      if (!filterRef.current?.contains(event.target as Node)) setFilterOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [filterOpen]);
 
   const closePanel = useCallback(() => setPanel(null), []);
   const handleFocusHandled = useCallback(() => setFocusId(null), []);
@@ -235,14 +265,15 @@ export function BranchesPage() {
 
   const action = root ? (
     <span className={styles.headerActions}>
-      {archivedView ? null : (
+      {archivedView ? (
+        <button type="button" className={styles.action} onClick={() => switchView(false)}>
+          {t('branches.archived.back')}
+        </button>
+      ) : (
         <button type="button" className={styles.action} onClick={openCreate}>
           {t('page.branches.action')}
         </button>
       )}
-      <button type="button" className={styles.action} onClick={() => switchView(!archivedView)}>
-        {archivedView ? t('branches.archived.back') : t('branches.archived.action')}
-      </button>
     </span>
   ) : undefined;
 
@@ -257,12 +288,92 @@ export function BranchesPage() {
   return (
     <PageShell
       titleKey="page.branches.title"
-      bodyKey={archivedView ? 'page.branches.archivedBody' : 'page.branches.body'}
+      bodyKey={archivedView ? 'page.branches.archivedBody' : undefined}
       action={ready ? action : undefined}
     >
-      <div className={styles.notice}>
-        <Annotation concept="branch" textKey="annotation.branch" />
-      </div>
+      {ready && !archivedView ? (
+        <div className={styles.tools}>
+          <div className={styles.viewSwitch} role="group" aria-label={t('branches.view.label')}>
+            <button
+              type="button"
+              className={styles.viewButton}
+              aria-pressed={viewMode === 'grouped'}
+              onClick={() => setViewMode('grouped')}
+            >
+              <BranchIcon size={16} />
+              <span>{t('branches.view.grouped')}</span>
+            </button>
+            <button
+              type="button"
+              className={styles.viewButton}
+              aria-pressed={viewMode === 'list'}
+              onClick={() => setViewMode('list')}
+            >
+              <ListIcon size={16} />
+              <span>{t('branches.view.list')}</span>
+            </button>
+          </div>
+
+          <div className={styles.filterWrap} ref={filterRef}>
+            <button
+              type="button"
+              className={styles.filterButton}
+              aria-haspopup="listbox"
+              aria-expanded={filterOpen}
+              onClick={() => setFilterOpen((open) => !open)}
+            >
+              <span>{filterLabel}</span>
+              <ChevronDownIcon size={16} />
+            </button>
+            {filterOpen ? (
+              <div className={styles.filterMenu} role="listbox" aria-label={t('branches.filter.label')}>
+                {STATUS_FILTERS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="option"
+                    aria-selected={statusFilter === option.value}
+                    className={styles.filterOption}
+                    onClick={() => {
+                      setStatusFilter(option.value);
+                      setFilterOpen(false);
+                    }}
+                  >
+                    {t(option.labelKey)}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={false}
+                  className={styles.filterOption}
+                  onClick={() => {
+                    setFilterOpen(false);
+                    switchView(true);
+                  }}
+                >
+                  {t('branches.filter.archived')}
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          <div className={styles.totals} aria-label={t('branches.totalsLabel')}>
+            <span className={styles.total} data-status="active">
+              <span className={styles.totalDot} aria-hidden="true" />
+              {totals.active} {t('branches.status.active')}
+            </span>
+            <span className={styles.total} data-status="merged">
+              <span className={styles.totalDot} aria-hidden="true" />
+              {totals.merged} {t('branches.status.merged')}
+            </span>
+            <span className={styles.total} data-status="dropped">
+              <span className={styles.totalDot} aria-hidden="true" />
+              {totals.dropped} {t('branches.status.dropped')}
+            </span>
+          </div>
+        </div>
+      ) : null}
 
       {!archivedView && template.rootId && !templateBarHidden ? (
         <section className={styles.templateBar} aria-live="polite">
@@ -331,6 +442,8 @@ export function BranchesPage() {
         <>
           <BranchTree
             branches={treeBranches}
+            viewMode={viewMode}
+            statusFilter={statusFilter}
             focusId={focusId}
             onFocusHandled={handleFocusHandled}
             onCreateChild={openCreateChild}

@@ -7,7 +7,7 @@
   position: relative;
   display: grid;
   grid-template-columns:
-    var(--s6) var(--tree-identity) var(--s4) minmax(0, 1fr) auto auto
+    var(--s6) var(--tree-identity) var(--s4) minmax(0, 1fr) auto auto auto
     var(--s6);
   align-items: center;
   gap: var(--s2);
@@ -208,6 +208,134 @@
   white-space: nowrap;
 }
 
+.metaDate {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  white-space: nowrap;
+}
+
+.dateLabel {
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+.dateValue {
+  color: var(--text);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.familyNode {
+  list-style: none;
+}
+
+.family {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+}
+
+.familyHead {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--s6) auto minmax(0, 1fr) auto auto auto var(--s6);
+  align-items: center;
+  gap: var(--s3);
+  min-height: var(--s10);
+  padding: 0 var(--s3) 0 var(--s2);
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  background: var(--inset);
+}
+
+.familyHead:only-child {
+  border-radius: var(--radius-panel);
+}
+
+.familyPin,
+.familyPinPlaceholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--s4);
+  height: var(--s4);
+}
+
+.familyPin {
+  color: var(--accent);
+}
+
+.familyHead[draggable='true'] {
+  cursor: grab;
+}
+
+.familyHead[data-dragging='true'] {
+  opacity: 0.5;
+}
+
+.familyIcon {
+  display: grid;
+  place-items: center;
+  width: var(--s8);
+  height: var(--s8);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, currentColor 12%, var(--panel));
+  color: var(--muted);
+}
+
+.familyIcon[data-color='coral'] {
+  color: var(--coral-1);
+}
+
+.familyIcon[data-color='sky'] {
+  color: var(--sky-1);
+}
+
+.familyIcon[data-color='honey'] {
+  color: var(--honey-1);
+}
+
+.familyIcon[data-color='mint'] {
+  color: var(--mint-1);
+}
+
+.familyIcon[data-color='iris'] {
+  color: var(--iris-1);
+}
+
+.familyIcon[data-color='rose'] {
+  color: var(--rose-1);
+}
+
+.familyIcon[data-color='teal'] {
+  color: var(--teal-1);
+}
+
+.familyTitle {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.familyName {
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--type-body);
+  font-weight: 600;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.familyName:hover {
+  color: var(--accent);
+}
+
+.caption {
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
 .menuAnchor {
   position: relative;
   display: flex;
@@ -285,7 +413,19 @@
       var(--s6);
   }
 
-  .progress {
+  .progress,
+  .metaDate {
+    display: none;
+  }
+
+  .familyHead {
+    grid-template-columns: var(--s6) auto minmax(0, 1fr) auto var(--s6);
+    gap: var(--s2);
+    padding-right: var(--s2);
+  }
+
+  .familyPin,
+  .familyPinPlaceholder {
     display: none;
   }
 }

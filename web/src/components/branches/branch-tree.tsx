@@ -6,15 +6,20 @@ import { assessCreateQuota } from '@/core/rules/branch-quota';
 import { reorderIds, type DragPosition } from '@/core/rules/drag-order';
 import { finishEntryReason } from '@/core/rules/finish-precheck';
 import { canPinBranch, sortSiblingBranches } from '@/core/rules/order-branches';
-import type { Branch } from '@/data/types';
+import type { Branch, BranchStatus } from '@/data/types';
 import { t } from '@/i18n';
+import { BranchIcon } from '@/ui/icons';
 import { isExpandedByDefault, useBranchesStore } from '@/stores/branches.store';
 import { useIsCompact } from '@/ui/use-compact';
 import { BranchRow, type BranchBlockReason } from './branch-row';
 import styles from './branch-tree.module.css';
 
+export type BranchTreeView = 'grouped' | 'list';
+
 interface BranchTreeProps {
   branches: readonly Branch[];
+  viewMode: BranchTreeView;
+  statusFilter: BranchStatus | 'all';
   focusId: string | null;
   onFocusHandled: () => void;
   onCreateChild: (parent: Branch) => void;
@@ -43,6 +48,26 @@ function buildChildrenMap(branches: readonly Branch[]): Map<string, Branch[]> {
   return map;
 }
 
+/** 保留命中分支及其祖先，保证树结构不断裂。 */
+function filterByStatus(
+  branches: readonly Branch[],
+  filter: BranchStatus | 'all',
+): readonly Branch[] {
+  if (filter === 'all') return branches;
+  const byId = new Map(branches.map((branch) => [branch.id, branch]));
+  const keep = new Set<string>();
+  for (const branch of branches) {
+    if (branch.status !== filter) continue;
+    keep.add(branch.id);
+    let parentId = branch.parentId;
+    while (parentId) {
+      keep.add(parentId);
+      parentId = byId.get(parentId)?.parentId ?? null;
+    }
+  }
+  return branches.filter((branch) => keep.has(branch.id));
+}
+
 function readonlyReason(branch: Branch): BranchBlockReason | null {
   return branch.archivedAt !== null || branch.status !== 'active' ? 'readonly' : null;
 }
@@ -65,6 +90,8 @@ function lifecycleReason(reason: string | null): BranchBlockReason | null {
  */
 export function BranchTree({
   branches,
+  viewMode,
+  statusFilter,
   focusId,
   onFocusHandled,
   onCreateChild,
@@ -94,6 +121,18 @@ export function BranchTree({
     .sort((a, b) => a.createdAt - b.createdAt)[0];
 
   if (!root) return null;
+
+  const visibleBranches = filterByStatus(branches, statusFilter);
+  const visibleChildrenOf = buildChildrenMap(visibleBranches);
+  const families = visibleChildrenOf.get(root.id) ?? [];
+  const listRows: Branch[] = [];
+  const collectRows = (parentId: string) => {
+    for (const child of visibleChildrenOf.get(parentId) ?? []) {
+      listRows.push(child);
+      collectRows(child.id);
+    }
+  };
+  collectRows(root.id);
 
   const canAcceptDrop = (branch: Branch): boolean =>
     dragEnabled &&
@@ -174,8 +213,12 @@ export function BranchTree({
     return 'readonly';
   };
 
-  const renderNode = (branch: Branch) => {
-    const children = childrenOf.get(branch.id) ?? [];
+  const renderNode = (
+    branch: Branch,
+    variant: 'row' | 'family' = 'row',
+    withChildren = true,
+  ) => {
+    const children = visibleChildrenOf.get(branch.id) ?? [];
     const expanded = expandedMap[branch.id] ?? isExpandedByDefault(branch.depth);
     const moveReason = readonlyReason(branch);
     const pinned = branch.pinnedAt !== null;
@@ -197,7 +240,9 @@ export function BranchTree({
       <BranchRow
         key={branch.id}
         branch={branch}
-        hasChildren={children.length > 0}
+        variant={variant}
+        childCount={children.length}
+        hasChildren={withChildren && children.length > 0}
         expanded={expanded}
         focusId={focusId}
         createReason={createReasonFor(branch)}
@@ -234,16 +279,38 @@ export function BranchTree({
         onResume={onResume}
         onArchive={onArchive}
       >
-        {children.length > 0 && expanded ? (
-          <ul className={styles.group}>{children.map(renderNode)}</ul>
+        {withChildren && children.length > 0 && expanded ? (
+          <ul className={styles.group}>{children.map((child) => renderNode(child))}</ul>
         ) : null}
       </BranchRow>
     );
   };
 
+  const firstLevelCount = (childrenOf.get(root.id) ?? []).length;
+  const emptyFiltered = statusFilter !== 'all' && listRows.length === 0;
+
   return (
-    <ul className={styles.tree} aria-label={t('branches.treeLabel')}>
-      {renderNode(root)}
-    </ul>
+    <div className={styles.treeWrap}>
+      <div className={styles.rootBar}>
+        <span className={styles.rootIcon} aria-hidden="true">
+          <BranchIcon size={16} />
+        </span>
+        <h2 className={styles.rootTitle}>{root.title}</h2>
+        <span className={styles.rootMeta}>
+          {t('branches.status.active')} · {firstLevelCount} {t('branches.firstLevelSuffix')}
+        </span>
+      </div>
+      {emptyFiltered ? (
+        <p className={styles.empty}>{t('branches.filter.empty')}</p>
+      ) : viewMode === 'list' ? (
+        <ul className={styles.flat} aria-label={t('branches.treeLabel')}>
+          {listRows.map((branch) => renderNode(branch, 'row', false))}
+        </ul>
+      ) : (
+        <ul className={styles.families} aria-label={t('branches.treeLabel')}>
+          {families.map((family) => renderNode(family, 'family'))}
+        </ul>
+      )}
+    </div>
   );
 }

@@ -1,8 +1,69 @@
-.tree,
+.treeWrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.rootBar {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) var(--s2) var(--s3);
+}
+
+.rootIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--s8);
+  height: var(--s8);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.rootTitle {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-heading-small);
+  font-weight: 600;
+}
+
+.rootMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-left: var(--s3);
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.rootMeta::before {
+  width: var(--s1);
+  height: var(--s1);
+  border-radius: 50%;
+  background: var(--success);
+  content: '';
+}
+
+.families,
+.flat,
 .group {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.families {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.flat {
+  padding: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
 }
 
 .group {
@@ -11,9 +72,28 @@
   border-left: var(--tree-connector) solid var(--line);
 }
 
+.families .group {
+  margin-left: var(--s8);
+  padding: var(--s2) 0 var(--s2) var(--s4);
+  border-left: 1px solid var(--line);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--s6) 0;
+  color: var(--subtle);
+  font-size: var(--type-secondary);
+  text-align: center;
+}
+
 @media (max-width: 760px) {
   .group {
     margin-left: var(--s5);
+    padding-left: var(--s3);
+  }
+
+  .families .group {
+    margin-left: var(--s6);
     padding-left: var(--s3);
   }
 }
