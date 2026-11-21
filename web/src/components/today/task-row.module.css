@@ -1,6 +1,7 @@
 /* P01 / S01 单条待办：勾选、名称、元信息、行尾菜单。 */
 
 .row {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
@@ -9,6 +10,30 @@
   padding: var(--s3) var(--s4);
   border-top: 1px solid var(--line);
   background: var(--panel);
+}
+
+.row[data-dragging='true'] {
+  opacity: 0.45;
+}
+
+.row[data-drop='before']::before,
+.row[data-drop='after']::after {
+  position: absolute;
+  right: var(--s2);
+  left: var(--s2);
+  height: 2px;
+  border-radius: var(--radius-marker);
+  background: var(--accent);
+  content: '';
+  pointer-events: none;
+}
+
+.row[data-drop='before']::before {
+  top: calc(-1 * var(--s1));
+}
+
+.row[data-drop='after']::after {
+  bottom: calc(-1 * var(--s1));
 }
 
 .row:first-child {
@@ -202,6 +227,15 @@
 
 .menuItem:hover {
   background: var(--inset);
+}
+
+.menuItem:disabled {
+  color: var(--disabled);
+  cursor: not-allowed;
+}
+
+.menuItem:disabled:hover {
+  background: transparent;
 }
 
 .menuItem:focus-visible {

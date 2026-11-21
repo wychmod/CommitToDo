@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import type { Branch, BranchStatus } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
-import { ChevronDownIcon, ChevronRightIcon, MoreIcon } from '@/ui/icons';
+import { ChevronDownIcon, ChevronRightIcon, MoreIcon, PinIcon } from '@/ui/icons';
 import styles from './branch-row.module.css';
 
 /** 菜单项不可用的原因；`later` 表示功能在后续版本提供。 */
@@ -17,6 +17,9 @@ export type BranchBlockReason =
   | 'active-children'
   | 'ancestor-readonly'
   | 'restore-full'
+  | 'pinned'
+  | 'order-first'
+  | 'order-last'
   | 'later';
 
 const REASON_KEYS: Record<BranchBlockReason, MessageKey> = {
@@ -29,6 +32,9 @@ const REASON_KEYS: Record<BranchBlockReason, MessageKey> = {
   'active-children': 'branches.reason.activeChildren',
   'ancestor-readonly': 'branches.reason.ancestorReadonly',
   'restore-full': 'branches.reason.restoreFull',
+  pinned: 'branches.reason.pinned',
+  'order-first': 'branches.reason.orderFirst',
+  'order-last': 'branches.reason.orderLast',
   later: 'branches.reason.later',
 };
 
@@ -51,6 +57,22 @@ interface BranchRowProps {
   pauseReason: BranchBlockReason | null;
   resumeReason: BranchBlockReason | null;
   archiveReason: BranchBlockReason | null;
+  pinned: boolean;
+  pinReason: BranchBlockReason | null;
+  moveUpReason: BranchBlockReason | null;
+  moveDownReason: BranchBlockReason | null;
+  onTogglePinned: (branch: Branch) => void;
+  onMoveUp: (branch: Branch) => void;
+  onMoveDown: (branch: Branch) => void;
+  /** 桌面拖拽（V1-08 OP-03）；窄屏与根分支不参与。 */
+  dragEnabled: boolean;
+  dragging: boolean;
+  dropPosition: 'before' | 'after' | null;
+  canAcceptDrop: boolean;
+  onDragStartBranch: (branch: Branch) => void;
+  onDragOverBranch: (branch: Branch, position: 'before' | 'after') => void;
+  onDropOnBranch: (branch: Branch) => void;
+  onDragEndBranch: () => void;
   onToggle: (branchId: string, expanded: boolean) => void;
   onFocusHandled: () => void;
   onCreateChild: (branch: Branch) => void;
@@ -90,6 +112,21 @@ export function BranchRow({
   pauseReason,
   resumeReason,
   archiveReason,
+  pinned,
+  pinReason,
+  moveUpReason,
+  moveDownReason,
+  onTogglePinned,
+  onMoveUp,
+  onMoveDown,
+  dragEnabled,
+  dragging,
+  dropPosition,
+  canAcceptDrop,
+  onDragStartBranch,
+  onDragOverBranch,
+  onDropOnBranch,
+  onDragEndBranch,
   onToggle,
   onFocusHandled,
   onCreateChild,
@@ -165,6 +202,24 @@ export function BranchRow({
   if (branch.depth > 0) {
     items.push(
       {
+        key: 'pin',
+        labelKey: pinned ? 'branches.unpin' : 'branches.pin',
+        reason: pinReason,
+        run: () => onTogglePinned(branch),
+      },
+      {
+        key: 'move-up',
+        labelKey: 'branches.moveUp',
+        reason: moveUpReason,
+        run: () => onMoveUp(branch),
+      },
+      {
+        key: 'move-down',
+        labelKey: 'branches.moveDown',
+        reason: moveDownReason,
+        run: () => onMoveDown(branch),
+      },
+      {
         key: 'move',
         labelKey: 'branches.move',
         reason: moveReason,
@@ -220,10 +275,40 @@ export function BranchRow({
 
   const dotColor = branch.depth === 0 ? 'neutral' : normalizeBranchColor(branch.color);
   const dotShade = branchShadeForDepth(branch.depth);
+  const draggable = dragEnabled && branch.depth > 0 && !pinned;
 
   return (
     <li className={styles.node}>
-      <div className={styles.row} data-status={branch.status}>
+      <div
+        className={styles.row}
+        data-status={branch.status}
+        data-dragging={dragging || undefined}
+        data-drop={dropPosition ?? undefined}
+        draggable={draggable}
+        onDragStart={(event) => {
+          if (!draggable) return;
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', branch.id);
+          onDragStartBranch(branch);
+        }}
+        onDragOver={(event) => {
+          if (!draggable || !canAcceptDrop) {
+            if (dragging) event.dataTransfer.dropEffect = 'none';
+            return;
+          }
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'move';
+          const rect = event.currentTarget.getBoundingClientRect();
+          const position = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+          onDragOverBranch(branch, position);
+        }}
+        onDrop={(event) => {
+          if (!draggable || !canAcceptDrop) return;
+          event.preventDefault();
+          onDropOnBranch(branch);
+        }}
+        onDragEnd={() => onDragEndBranch()}
+      >
         {hasChildren ? (
           <button
             type="button"
@@ -243,6 +328,18 @@ export function BranchRow({
           data-shade={dotShade}
           aria-hidden="true"
         />
+        {pinned ? (
+          <span
+            className={styles.pin}
+            role="img"
+            aria-label={t('branches.pinned')}
+            title={t('branches.pinned')}
+          >
+            <PinIcon size={16} />
+          </span>
+        ) : (
+          <span className={styles.pinPlaceholder} aria-hidden="true" />
+        )}
         <Link
           ref={linkRef}
           className={styles.name}

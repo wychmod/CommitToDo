@@ -13,6 +13,7 @@ import { BranchTree } from '@/components/branches/branch-tree';
 import { BRANCH_TREE_LIMIT, countActiveBranches } from '@/core/rules/branch-quota';
 import { visibleDefaultTree } from '@/core/rules/branch-visibility';
 import { useBranchesView } from '@/data/hooks';
+import { reorderBranches, setBranchPinned } from '@/data/reorder';
 import { resumeBranch } from '@/data/resume-branch';
 import type { Branch } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
@@ -195,6 +196,22 @@ export function BranchesPage() {
     [focusBranch],
   );
 
+  const handleReorder = useCallback(async (parentId: string, orderedIds: string[]) => {
+    setActionError(null);
+    const result = await reorderBranches({ parentId, orderedIds });
+    if (!result.ok) setActionError('branches.order.failed');
+  }, []);
+
+  const handleTogglePinned = useCallback(async (branch: Branch) => {
+    setActionError(null);
+    const result = await setBranchPinned({
+      branchId: branch.id,
+      pinned: branch.pinnedAt === null,
+    });
+    if (result.ok) setFocusId(branch.id);
+    else setActionError('branches.pin.failed');
+  }, []);
+
   const action = root ? (
     <span className={styles.headerActions}>
       {archivedView ? null : (
@@ -267,6 +284,8 @@ export function BranchesPage() {
             onPause={openPause}
             onResume={handleResume}
             onArchive={openArchive}
+            onReorder={handleReorder}
+            onTogglePinned={handleTogglePinned}
           />
           {treeBranches.length <= 1 ? (
             <EmptyState messageKey="branches.empty" action={action} />

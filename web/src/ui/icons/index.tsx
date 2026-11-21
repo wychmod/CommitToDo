@@ -58,5 +58,15 @@ export function MoreIcon(props: SvgIconProps) {
   );
 }
 
+/** 分支置顶标记。 */
+export function PinIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M9 4h6l-1 5 3 3H7l3-3-1-5Z" />
+      <path d="M12 12v7" />
+    </SvgIcon>
+  );
+}
+
 export { SvgIcon };
 export type { IconSize, SvgIconProps } from './svg-icon';

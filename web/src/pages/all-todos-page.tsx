@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { systemClock, today } from '@/core/clock';
 import { isBranchAccepting } from '@/core/rules/branch-state';
 import { branchTrail } from '@/core/rules/quick-add';
-import { groupAllTodoTasks } from '@/core/rules/today-groups';
+import { groupAllTodoTasks, sortByManualOrder } from '@/core/rules/today-groups';
 import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
 import { useAllTodosData } from '@/data/hooks';
@@ -11,6 +11,7 @@ import { planTask } from '@/data/plan-task';
 import type { Branch, Task } from '@/data/types';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
+import { useTodayStore } from '@/stores/today.store';
 import { EmptyState } from '@/ui/empty-state';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
@@ -47,6 +48,7 @@ function isInDefaultTree(branchId: string, byId: Map<string, Branch>): boolean {
 export function AllTodosPage() {
   const data = useAllTodosData();
   const openTaskDetail = useShellStore((state) => state.openTaskDetail);
+  const manualGroups = useTodayStore((state) => state.manualGroups);
   const todayDate = today(systemClock);
   const [filters, setFilters] = useState<Filters>({ root: false, dropped: false, archived: false });
   const [pageError, setPageError] = useState<string | null>(null);
@@ -73,10 +75,14 @@ export function AllTodosPage() {
     });
   }, [anyFilter, byId, data.tasks, filters, root?.id]);
 
-  const groups = useMemo(
-    () => groupAllTodoTasks(visibleTasks, todayDate),
-    [visibleTasks, todayDate],
-  );
+  const groups = useMemo(() => {
+    const base = groupAllTodoTasks(visibleTasks, todayDate);
+    return {
+      ...base,
+      overdue: manualGroups.overdue ? sortByManualOrder(base.overdue) : base.overdue,
+      noDue: manualGroups.noDue ? sortByManualOrder(base.noDue) : base.noDue,
+    };
+  }, [visibleTasks, todayDate, manualGroups]);
   const total = groups.overdue.length + groups.upcoming.length + groups.noDue.length;
 
   const plan = async (task: Task, plannedDate: string | null) => {

@@ -13,8 +13,11 @@ export interface GroupableTask {
   plannedDate: string | null;
   status: 'open' | 'done' | 'cancelled';
   createdAt: number;
+  order?: number | null;
   deletedAt?: number | null;
 }
+
+export type TodayGroupKey = 'overdue' | 'today' | 'noDue';
 
 export interface GroupableBranch {
   id: string;
@@ -48,6 +51,30 @@ const byDueThenCreated = (a: GroupableTask, b: GroupableTask): number => {
 
 const byCreated = (a: GroupableTask, b: GroupableTask): number =>
   a.createdAt - b.createdAt || a.id.localeCompare(b.id);
+
+/** 一条打开待办在今天页的归属组；未来到期返回 null（V1-08 拖拽校验用）。 */
+export function todayGroupKey(task: GroupableTask, todayDate: string): TodayGroupKey | null {
+  if (task.status !== 'open' || task.deletedAt) return null;
+  if (task.plannedDate === todayDate) return 'today';
+  if (task.dueDate === null) return 'noDue';
+  if (task.dueDate === todayDate) return 'today';
+  if (task.dueDate < todayDate) return 'overdue';
+  return null;
+}
+
+/** 手动排序后的组内顺序：`order` 升序；未设置 `order` 的按 M03 默认排在最后。 */
+export function sortByManualOrder<T extends GroupableTask>(rows: readonly T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const hasA = a.order !== null && a.order !== undefined;
+    const hasB = b.order !== null && b.order !== undefined;
+    if (hasA && hasB) {
+      return a.order! - b.order! || a.createdAt - b.createdAt || a.id.localeCompare(b.id);
+    }
+    if (hasA) return -1;
+    if (hasB) return 1;
+    return byDueThenCreated(a, b);
+  });
+}
 
 /**
  * 待办是否被所在分支挡在今天之外。

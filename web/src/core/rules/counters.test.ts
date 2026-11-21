@@ -386,3 +386,23 @@ describe('批量导入后的四计数（V1-07 / R7）', () => {
     });
   });
 });
+
+describe('拖拽排序与置顶后的四计数（V1-08 / R7）', () => {
+  it('只改 order 不改任务与提交口径', () => {
+    const tasks = [task({ status: 'open' }), task({ status: 'done' }), task({ status: 'open' })];
+    const commits = [commit({ at: 1_000 }), commit({ at: 2_000, voidedAt: 2_100 })];
+    const before = recountBranch('product-design', tasks, commits);
+    const reordered = tasks.map((row, index) => ({ ...row, order: 10 - index }));
+    expect(recountBranch('product-design', reordered, commits)).toEqual(before);
+  });
+
+  it('置顶分支不产生新的任务或提交', () => {
+    const tasks = [task({ status: 'open' })];
+    expect(recountBranch('product-design', tasks, [])).toEqual({
+      taskTotal: 1,
+      taskDone: 0,
+      commitCount: 0,
+      ownLastCommitAt: null,
+    });
+  });
+});

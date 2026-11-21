@@ -1,13 +1,15 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { localClockTime, localDate, systemClock, today } from '@/core/clock';
 import { branchTrail } from '@/core/rules/quick-add';
 import { deriveOnboardingStep, needsOnboarding } from '@/core/rules/onboarding-state';
-import { groupTodayTasks } from '@/core/rules/today-groups';
+import { reorderIds, type DragPosition } from '@/core/rules/drag-order';
+import { groupTodayTasks, sortByManualOrder, type TodayGroupKey } from '@/core/rules/today-groups';
 import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
 import { useOnboardingData, useTodayData, useStallReminders } from '@/data/hooks';
 import { planTask } from '@/data/plan-task';
+import { reorderTasks } from '@/data/reorder';
 import { updateCommit } from '@/data/update-commit';
 import type { Commit, Task } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
@@ -18,6 +20,7 @@ import { useTodayStore } from '@/stores/today.store';
 import { EmptyState } from '@/ui/empty-state';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
+import { useIsCompact } from '@/ui/use-compact';
 import { CompletionReceipt } from '@/components/today/completion-receipt';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { OnboardingCard } from '@/components/onboarding/onboarding-card';
@@ -48,6 +51,8 @@ export function TodayPage() {
   const openCommitDetail = useShellStore((state) => state.openCommitDetail);
   const listCollapsed = useTodayStore((state) => state.listCollapsed);
   const toggleListCollapsed = useTodayStore((state) => state.toggleListCollapsed);
+  const manualGroups = useTodayStore((state) => state.manualGroups);
+  const markManualGroup = useTodayStore((state) => state.markManualGroup);
   const onboarding = useOnboardingData();
   const onboardingSkipped = useOnboardingStore((state) => state.skipped);
   const onboardingFinished = useOnboardingStore((state) => state.finished);
@@ -65,18 +70,33 @@ export function TodayPage() {
     !backfillPromptSeen;
   const todayDate = today(systemClock);
   const stalls = useStallReminders(todayDate);
+  const compact = useIsCompact();
 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [failedId, setFailedId] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<ReceiptState | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Task | null>(null);
+  const [dragging, setDragging] = useState<{ id: string; group: TodayGroupKey } | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ id: string; position: DragPosition } | null>(null);
+  const [dragRejected, setDragRejected] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const groups = useMemo(
-    () => groupTodayTasks(data.tasks, data.branches, todayDate),
-    [data.tasks, data.branches, todayDate],
-  );
+  useEffect(() => {
+    if (!dragRejected) return;
+    const timer = window.setTimeout(() => setDragRejected(false), 2400);
+    return () => window.clearTimeout(timer);
+  }, [dragRejected]);
+
+  const groups = useMemo(() => {
+    const base = groupTodayTasks(data.tasks, data.branches, todayDate);
+    return {
+      ...base,
+      overdue: manualGroups.overdue ? sortByManualOrder(base.overdue) : base.overdue,
+      today: manualGroups.today ? sortByManualOrder(base.today) : base.today,
+      noDue: manualGroups.noDue ? sortByManualOrder(base.noDue) : base.noDue,
+    };
+  }, [data.tasks, data.branches, todayDate, manualGroups]);
   const byId = useMemo(
     () => new Map(data.branches.map((branch) => [branch.id, branch])),
     [data.branches],
@@ -136,8 +156,69 @@ export function TodayPage() {
 
   const trailing = (task: Task): MessageKey | null => readonlyReasonKey(byId.get(task.branchId));
 
-  const renderRow = (task: Task) => {
+  const rowsOf = (groupKey: TodayGroupKey): Task[] => {
+    if (groupKey === 'overdue') return groups.overdue;
+    if (groupKey === 'today') return groups.today;
+    return groups.noDue;
+  };
+
+  const commitOrder = async (groupKey: TodayGroupKey, orderedIds: string[]) => {
+    const result = await reorderTasks({ groupKey, orderedIds, todayDate });
+    if (result.ok) markManualGroup(groupKey);
+    else setPageError(t('today.order.failed'));
+  };
+
+  const moveTask = async (groupKey: TodayGroupKey, task: Task, delta: number) => {
+    const rows = rowsOf(groupKey);
+    const index = rows.findIndex((row) => row.id === task.id);
+    const next = index + delta;
+    if (index < 0 || next < 0 || next >= rows.length) return;
+    const ids = rows.map((row) => row.id);
+    [ids[index], ids[next]] = [ids[next]!, ids[index]!];
+    await commitOrder(groupKey, ids);
+  };
+
+  const handleDragOver = (groupKey: TodayGroupKey, task: Task, position: DragPosition) => {
+    if (!dragging) return;
+    if (dragging.group !== groupKey) {
+      setDragRejected(true);
+      setDropTarget(null);
+      return;
+    }
+    setDragRejected(false);
+    setDropTarget({ id: task.id, position });
+  };
+
+  const handleDrop = async (groupKey: TodayGroupKey, targetId: string) => {
+    const source = dragging;
+    const target = dropTarget;
+    setDragging(null);
+    setDropTarget(null);
+    if (!source) return;
+    if (source.group !== groupKey || !target) {
+      setDragRejected(true);
+      return;
+    }
+
+    const result = reorderIds(
+      rowsOf(groupKey).map((row) => row.id),
+      source.id,
+      targetId,
+      target.position,
+      { group: groupKey },
+      { group: groupKey },
+    );
+    if (!result.ok) {
+      setDragRejected(true);
+      return;
+    }
+    if (!result.changed) return;
+    await commitOrder(groupKey, result.ids);
+  };
+
+  const renderRow = (task: Task, groupKey: TodayGroupKey, rows: Task[]) => {
     const branch = byId.get(task.branchId);
+    const index = rows.findIndex((row) => row.id === task.id);
     return (
       <TaskRow
         key={task.id}
@@ -153,6 +234,24 @@ export function TodayPage() {
         onPlan={(row) => plan(row, todayDate)}
         onUnplan={(row) => plan(row, null)}
         onCancel={setCancelTarget}
+        canMoveUp={index > 0}
+        canMoveDown={index >= 0 && index < rows.length - 1}
+        onMoveUp={() => moveTask(groupKey, task, -1)}
+        onMoveDown={() => moveTask(groupKey, task, 1)}
+        dragEnabled={!compact && rows.length > 1}
+        dragging={dragging?.id === task.id}
+        dropPosition={dropTarget?.id === task.id ? dropTarget.position : null}
+        onDragStartTask={() => {
+          setDragging({ id: task.id, group: groupKey });
+          setDropTarget(null);
+          setDragRejected(false);
+        }}
+        onDragOverTask={(target, position) => handleDragOver(groupKey, target, position)}
+        onDropOnTask={(target) => handleDrop(groupKey, target.id)}
+        onDragEndTask={() => {
+          setDragging(null);
+          setDropTarget(null);
+        }}
       />
     );
   };
@@ -233,6 +332,12 @@ export function TodayPage() {
               </p>
             ) : null}
 
+            {dragRejected ? (
+              <p className={styles.inlineError} role="alert">
+                {t('today.order.crossGroup')}
+              </p>
+            ) : null}
+
             {listCollapsed ? (
               <section className={styles.group}>
                 <div className={styles.groupHead}>
@@ -245,7 +350,17 @@ export function TodayPage() {
                     {t('today.list.expand')}
                   </button>
                 </div>
-                <ul className={styles.list}>{renderRow(flattened[0])}</ul>
+                <ul className={styles.list}>
+                  {renderRow(
+                    flattened[0]!,
+                    groups.overdue.length > 0
+                      ? 'overdue'
+                      : groups.today.length > 0
+                        ? 'today'
+                        : 'noDue',
+                    flattened.slice(0, 1),
+                  )}
+                </ul>
               </section>
             ) : (
               <>
@@ -258,7 +373,9 @@ export function TodayPage() {
                         {t('today.group.countSuffix')}
                       </span>
                     </summary>
-                    <ul className={styles.list}>{groups.overdue.map((task) => renderRow(task))}</ul>
+                    <ul className={styles.list}>
+                      {groups.overdue.map((task) => renderRow(task, 'overdue', groups.overdue))}
+                    </ul>
                   </details>
                 ) : null}
 
@@ -271,7 +388,9 @@ export function TodayPage() {
                         {t('today.group.countSuffix')}
                       </span>
                     </div>
-                    <ul className={styles.list}>{groups.today.map((task) => renderRow(task))}</ul>
+                    <ul className={styles.list}>
+                      {groups.today.map((task) => renderRow(task, 'today', groups.today))}
+                    </ul>
                   </section>
                 ) : null}
 
@@ -284,7 +403,9 @@ export function TodayPage() {
                         {t('today.group.countSuffix')}
                       </span>
                     </summary>
-                    <ul className={styles.list}>{groups.noDue.map((task) => renderRow(task))}</ul>
+                    <ul className={styles.list}>
+                      {groups.noDue.map((task) => renderRow(task, 'noDue', groups.noDue))}
+                    </ul>
                   </details>
                 ) : null}
 

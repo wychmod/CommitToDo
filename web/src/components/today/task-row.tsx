@@ -21,6 +21,19 @@ interface TaskRowProps {
   onPlan: (task: Task) => void;
   onUnplan: (task: Task) => void;
   onCancel: (task: Task) => void;
+  /** 键盘 / 窄屏菜单里的组内移动（V1-08 C-05）。 */
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
+  onMoveUp?: (task: Task) => void;
+  onMoveDown?: (task: Task) => void;
+  /** 桌面拖拽（V1-08 OP-01）；只读行与窄屏不提供。 */
+  dragEnabled?: boolean;
+  dragging?: boolean;
+  dropPosition?: 'before' | 'after' | null;
+  onDragStartTask?: (task: Task) => void;
+  onDragOverTask?: (task: Task, position: 'before' | 'after') => void;
+  onDropOnTask?: (task: Task) => void;
+  onDragEndTask?: () => void;
 }
 
 function dueLabel(task: Task, todayDate: string): string {
@@ -49,6 +62,17 @@ export function TaskRow({
   onPlan,
   onUnplan,
   onCancel,
+  canMoveUp = false,
+  canMoveDown = false,
+  onMoveUp,
+  onMoveDown,
+  dragEnabled = true,
+  dragging = false,
+  dropPosition = null,
+  onDragStartTask,
+  onDragOverTask,
+  onDropOnTask,
+  onDragEndTask,
 }: TaskRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -81,10 +105,34 @@ export function TaskRow({
     closeMenu();
   };
 
+  const draggable = dragEnabled && readonlyReason === null && onDragStartTask !== undefined;
+
   return (
     <li
       className={styles.row}
       data-overdue={task.dueDate && task.dueDate < todayDate ? 'true' : undefined}
+      data-dragging={dragging || undefined}
+      data-drop={dropPosition ?? undefined}
+      draggable={draggable}
+      onDragStart={(event) => {
+        if (!draggable) return;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', task.id);
+        onDragStartTask?.(task);
+      }}
+      onDragOver={(event) => {
+        if (!draggable) return;
+        event.preventDefault();
+        const rect = event.currentTarget.getBoundingClientRect();
+        const position = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+        onDragOverTask?.(task, position);
+      }}
+      onDrop={(event) => {
+        if (!draggable) return;
+        event.preventDefault();
+        onDropOnTask?.(task);
+      }}
+      onDragEnd={() => onDragEndTask?.()}
     >
       <button
         ref={checkRef}
@@ -155,6 +203,30 @@ export function TaskRow({
                 {task.plannedDate === todayDate
                   ? t('today.task.unplan')
                   : t('today.task.planToday')}
+              </button>
+              <button
+                type="button"
+                className={styles.menuItem}
+                role="menuitem"
+                disabled={!canMoveUp}
+                onClick={() => {
+                  action();
+                  onMoveUp?.(task);
+                }}
+              >
+                {t('today.task.moveUp')}
+              </button>
+              <button
+                type="button"
+                className={styles.menuItem}
+                role="menuitem"
+                disabled={!canMoveDown}
+                onClick={() => {
+                  action();
+                  onMoveDown?.(task);
+                }}
+              >
+                {t('today.task.moveDown')}
               </button>
               <button
                 type="button"

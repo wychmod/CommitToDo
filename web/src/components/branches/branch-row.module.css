@@ -4,13 +4,43 @@
 }
 
 .row {
+  position: relative;
   display: grid;
-  grid-template-columns: var(--s6) var(--tree-identity) minmax(0, 1fr) auto auto var(--s6);
+  grid-template-columns:
+    var(--s6) var(--tree-identity) var(--s4) minmax(0, 1fr) auto auto
+    var(--s6);
   align-items: center;
   gap: var(--s2);
   min-height: var(--tree-row-height);
   padding: 0 var(--s1);
   border-radius: var(--radius-control);
+}
+
+.row[draggable='true'] {
+  cursor: grab;
+}
+
+.row[data-dragging='true'] {
+  opacity: 0.5;
+}
+
+.row[data-drop='before']::before,
+.row[data-drop='after']::after {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: var(--tree-selected-rail);
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  content: '';
+}
+
+.row[data-drop='before']::before {
+  top: 0;
+}
+
+.row[data-drop='after']::after {
+  bottom: 0;
 }
 
 .row:hover {
@@ -45,6 +75,19 @@
   height: var(--tree-identity);
   border-radius: 50%;
   background: var(--neutral);
+}
+
+.pin,
+.pinPlaceholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--s4);
+  height: var(--s4);
+}
+
+.pin {
+  color: var(--accent);
 }
 
 .dot[data-color='coral'][data-shade='1'] {
@@ -237,7 +280,9 @@
 
 @media (max-width: 760px) {
   .row {
-    grid-template-columns: var(--s6) var(--tree-identity) minmax(0, 1fr) auto var(--s6);
+    grid-template-columns:
+      var(--s6) var(--tree-identity) var(--s4) minmax(0, 1fr) auto
+      var(--s6);
   }
 
   .progress {

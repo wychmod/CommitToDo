@@ -155,6 +155,10 @@ export function BranchHeader({ branch, branches, readonlyReason }: BranchHeaderP
   const color = branch.depth === 0 ? 'neutral' : normalizeBranchColor(branch.color);
   const shade = branchShadeForDepth(branch.depth);
   const status = `${statusText(branch, byId)}${
+    branch.pinnedAt !== null
+      ? `${t('today.header.separator')}${t('branchDetail.status.pinned')}`
+      : ''
+  }${
     branch.archivedAt !== null
       ? `${t('today.header.separator')}${t('branchDetail.status.archived')}`
       : ''
