@@ -3,11 +3,14 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { OverlayHost } from '@/components/overlays/overlay-host';
 import { navSectionFor, type NavSection } from '@/core/rules/nav-selection';
 import { isBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
+import { reportAnonymousStats } from '@/data/anonymous-stats';
 import { runDailyAutoBackup } from '@/data/daily-auto-backup';
 import { ensureRootBranch } from '@/data/ensure-root-branch';
 import { grantBadge } from '@/data/grant-badge';
 import { useStorageReady } from '@/data/hooks';
+import { useSyncRunner } from '@/data/sync-hooks';
 import { t, type MessageKey } from '@/i18n';
+import { useAuthStore } from '@/stores/auth.store';
 import { SEARCH_TRIGGER_ID } from '@/stores/search.store';
 import { useShellStore } from '@/stores/shell.store';
 import { EmptyState } from '@/ui/empty-state';
@@ -37,6 +40,10 @@ export function AppShell() {
   const { status, retry } = useStorageReady();
   const section = navSectionFor(location.pathname);
   const scrollKey = scrollKeyFor(location.pathname, location.search);
+  const principalId = useAuthStore((state) => state.principalId);
+
+  // 登录后在线自动补推 outbox（V2-02 OP-02/OP-07），失败按退避重试。
+  useSyncRunner(principalId);
 
   // 首次进入工作区时确保根分支「我」存在（M02 OP-01）；用例本身幂等，重复调用安全。
   // 随后写当日自动快照（V1-06 OP-01），失败不阻断进入；再补查漏发的徽章（M11 OP-03），
@@ -49,6 +56,12 @@ export function AppShell() {
       if (!skipBackfill) void grantBadge();
     });
   }, [status]);
+
+  useEffect(() => {
+    if (status !== 'ready' || !principalId) return;
+    // 次日首次进入工作区上报前一日计数；失败静默，不影响任何操作（V2-02 OP-08）。
+    void reportAnonymousStats(principalId);
+  }, [status, principalId]);
 
   useEffect(() => {
     const save = () => {

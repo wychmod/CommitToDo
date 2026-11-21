@@ -1,17 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import type { AnnotationMode } from '@/core/rules/annotation-visibility';
+import { resolveSyncStatus } from '@/core/rules/sync-backoff';
 import type { Theme } from '@/core/rules/theme-preference';
 import type { TreeDensity } from '@/core/rules/tree-density';
+import { getLastReportedDate, isStatsEnabled, setStatsEnabled } from '@/data/anonymous-stats';
 import { signOut } from '@/data/cloud/auth';
 import { useSettingsState } from '@/data/hooks';
+import { runSync } from '@/data/sync';
+import { useMigration, useSyncSnapshot } from '@/data/sync-hooks';
 import { updateSettings, type SettingsPatch } from '@/data/update-settings';
 import { t, type MessageKey } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
 import styles from './settings-page.module.css';
+
+const COLLECTION_KEYS: Record<string, MessageKey> = {
+  branches: 'sync.collection.branches',
+  tasks: 'sync.collection.tasks',
+  commits: 'sync.collection.commits',
+  milestones: 'sync.collection.milestones',
+  badges: 'sync.collection.badges',
+  events: 'sync.collection.events',
+  settings: 'sync.collection.settings',
+};
+
+const MIGRATION_NOTICE_KEY = 'committodo.migration.notice';
+
+function formatTime(at: number | null): string {
+  return at === null ? t('sync.lastSync.never') : new Date(at).toLocaleString('zh-CN');
+}
 
 interface Preferences {
   theme: Theme;
@@ -251,7 +271,7 @@ export function SettingsPage() {
             </h2>
             <p className={styles.hint}>{t('settings.sync.hint')}</p>
             {principalId ? (
-              <p className={styles.hint}>{t('settings.sync.pending')}</p>
+              <SyncPanel principalId={principalId} />
             ) : (
               <div className={styles.actions}>
                 <Link
@@ -308,5 +328,163 @@ export function SettingsPage() {
         />
       ) : null}
     </PageShell>
+  );
+}
+
+/** 同步分区（PRD V2-02 §4.1 / O08 入口），未登录时由外层显示 O07 提示。 */
+function SyncPanel({ principalId }: { principalId: string }) {
+  const { pending, conflicts, attempts, devices, online, lastSyncAt } = useSyncSnapshot();
+  const { progress, error, running, start } = useMigration(principalId);
+  const [syncing, setSyncing] = useState(false);
+  const [statsOn, setStatsOn] = useState(isStatsEnabled);
+  const [lastReported, setLastReported] = useState(getLastReportedDate);
+  const [showNotice, setShowNotice] = useState(false);
+  const attempted = useRef(false);
+
+  useEffect(() => {
+    setStatsOn(isStatsEnabled());
+    setLastReported(getLastReportedDate());
+  }, [principalId]);
+
+  useEffect(() => {
+    if (!progress) return;
+    if (progress.completed >= progress.total) {
+      try {
+        if (window.localStorage.getItem(MIGRATION_NOTICE_KEY) !== 'shown') {
+          window.localStorage.setItem(MIGRATION_NOTICE_KEY, 'shown');
+          setShowNotice(true);
+        }
+      } catch {
+        setShowNotice(true);
+      }
+      return;
+    }
+    if (attempted.current || running || error) return;
+    attempted.current = true;
+    void start();
+  }, [progress, running, error, start]);
+
+  const status = resolveSyncStatus({ online, syncing, pending, attempts });
+  const liveDevices = devices.filter((device) => device.removedAt === null);
+
+  const syncNow = async () => {
+    if (!online || syncing) return;
+    setSyncing(true);
+    await runSync(principalId);
+    setSyncing(false);
+  };
+
+  const toggleStats = (next: boolean) => {
+    setStatsEnabled(next);
+    setStatsOn(next);
+    setLastReported(getLastReportedDate());
+  };
+
+  return (
+    <div className={styles.syncPanel}>
+      <div className={styles.syncStatus}>
+        <div className={styles.syncLine}>
+          <span className={`${styles.badge} ${styles[status]}`}>
+            {t(`sync.status.${status}` as MessageKey)}
+          </span>
+          <span className={styles.syncValue}>
+            {t('sync.pending.label')} {pending} {t('sync.unit.item')}
+          </span>
+        </div>
+        <span className={styles.hint}>
+          {t('sync.lastSync.label')} · {formatTime(lastSyncAt)}
+        </span>
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.entryButton}
+            disabled={!online || syncing}
+            onClick={() => void syncNow()}
+          >
+            {t('sync.action.syncNow')}
+          </button>
+          {status === 'failed' ? (
+            <button type="button" className={styles.entryButton} onClick={() => void syncNow()}>
+              {t('sync.action.retry')}
+            </button>
+          ) : null}
+        </div>
+        {!online ? <p className={styles.hint}>{t('sync.offline.hint')}</p> : null}
+        {status === 'failed' ? <p className={styles.hint}>{t('sync.failed.hint')}</p> : null}
+      </div>
+
+      <div className={styles.syncRow}>
+        <div className={styles.syncLine}>
+          <span className={styles.syncTerm}>{t('sync.devices.title')}</span>
+          <span className={styles.syncValue}>
+            {liveDevices.length} {t('sync.unit.device')}
+          </span>
+        </div>
+        <Link className={styles.entry} to="/settings/sync/devices">
+          {t('sync.devices.detail')}
+        </Link>
+      </div>
+
+      <div className={styles.syncRow}>
+        <div className={styles.syncLine}>
+          <span className={styles.syncTerm}>{t('sync.conflicts.title')}</span>
+          <span className={styles.syncValue}>
+            {conflicts} {t('sync.unit.conflict')}
+          </span>
+        </div>
+        <Link className={styles.entry} to="/settings/sync/conflicts">
+          {t('sync.conflicts.detail')}
+        </Link>
+      </div>
+
+      {showNotice ? <p className={styles.notice}>{t('sync.migration.done')}</p> : null}
+
+      {progress && progress.completed < progress.total ? (
+        <div className={styles.migration}>
+          <span className={styles.syncValue}>
+            {t('sync.migration.progress')} {progress.completed}/{progress.total}{' '}
+            {t('sync.migration.collections')}
+          </span>
+          {progress.collection ? (
+            <span className={styles.hint}>
+              {t('sync.migration.current')} ·{' '}
+              {t(COLLECTION_KEYS[progress.collection] ?? 'sync.collection.branches')}
+            </span>
+          ) : null}
+          <span className={styles.hint}>
+            {t('sync.migration.pushed')} {progress.pushed} {t('sync.unit.item')}
+          </span>
+          {error ? <span className={styles.errorText}>{t('sync.migration.failed')}</span> : null}
+          {error ? (
+            <button
+              type="button"
+              className={styles.entryButton}
+              onClick={() => {
+                attempted.current = true;
+                void start();
+              }}
+            >
+              {t('sync.migration.continue')}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className={styles.stats}>
+        <label className={styles.switchRow}>
+          <input
+            type="checkbox"
+            checked={statsOn}
+            onChange={(event) => toggleStats(event.target.checked)}
+          />
+          <span>{t('sync.stats.title')}</span>
+          <span className={styles.hint}>{statsOn ? t('sync.stats.on') : t('sync.stats.off')}</span>
+        </label>
+        <p className={styles.hint}>{t('sync.stats.description')}</p>
+        <p className={styles.hint}>
+          {t('sync.stats.lastReported')} · {lastReported ?? t('sync.stats.never')}
+        </p>
+      </div>
+    </div>
   );
 }

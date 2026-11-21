@@ -194,3 +194,127 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+
+.syncPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.syncStatus {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.syncLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s3);
+}
+
+.syncTerm {
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.syncValue {
+  color: var(--text);
+  font-size: var(--type-secondary);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s6);
+  padding: 0 var(--s2);
+  border-radius: var(--radius-control);
+  font-size: var(--type-label);
+}
+
+.synced {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.syncing {
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.offline {
+  background: var(--panel);
+  color: var(--subtle);
+}
+
+.failed {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.syncRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.notice {
+  margin: 0;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--type-secondary);
+}
+
+.migration {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.errorText {
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: var(--s9);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.switchRow input {
+  width: var(--s5);
+  height: var(--s5);
+  accent-color: var(--accent);
+}

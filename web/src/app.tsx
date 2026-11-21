@@ -14,6 +14,8 @@ import { RecoverPage } from '@/pages/recover-page';
 import { SamplePage } from '@/pages/sample-page';
 import { SettingsPage } from '@/pages/settings-page';
 import { SignupPage } from '@/pages/signup-page';
+import { SyncConflictsPage } from '@/pages/sync-conflicts-page';
+import { SyncDevicesPage } from '@/pages/sync-devices-page';
 import { TodayPage } from '@/pages/today-page';
 import { YearPage } from '@/pages/year-page';
 
@@ -39,6 +41,8 @@ export default function App() {
           <Route path="me" element={<MePage />} />
           <Route path="me/badges" element={<BadgeWallPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings/sync/devices" element={<SyncDevicesPage />} />
+          <Route path="settings/sync/conflicts" element={<SyncConflictsPage />} />
           <Route path="data" element={<DataPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
