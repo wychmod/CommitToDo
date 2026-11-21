@@ -1,0 +1,56 @@
+.token {
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--md-glyph, var(--accent)) 33%, var(--line));
+  border-radius: 50%;
+  color: var(--md-glyph, var(--accent));
+  background: var(--md-recess, var(--accent-soft));
+}
+
+.small {
+  width: var(--s8);
+  height: var(--s8);
+}
+
+.medium {
+  width: 52px;
+  height: 52px;
+}
+
+.large {
+  width: 74px;
+  height: 74px;
+}
+
+.token[data-tone='sky'] {
+  --md-glyph: var(--sky-1);
+  --md-recess: var(--sky-bg);
+}
+
+.token[data-tone='coral'] {
+  --md-glyph: var(--coral-1);
+  --md-recess: var(--coral-bg);
+}
+
+.token[data-tone='iris'] {
+  --md-glyph: var(--iris-1);
+  --md-recess: var(--iris-bg);
+}
+
+.token[data-tone='honey'] {
+  --md-glyph: var(--honey-1);
+  --md-recess: var(--honey-bg);
+}
+
+.token[data-tone='mint'] {
+  --md-glyph: var(--mint-1);
+  --md-recess: var(--mint-bg);
+}
+
+@media (max-width: 390px) {
+  .medium {
+    width: 38px;
+    height: 38px;
+  }
+}

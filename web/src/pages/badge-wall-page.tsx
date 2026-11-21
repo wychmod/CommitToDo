@@ -5,14 +5,11 @@ import {
   BADGE_CATEGORY_ORDER,
   visibleBadgeTotal,
   type BadgeCategory,
+  type BadgeWallGroup,
   type BadgeWallItem,
 } from '@/core/rules/badge-catalog';
-import {
-  badgeConditionKey,
-  badgeHref,
-  badgeNameKey,
-  badgeSourceKey,
-} from '@/components/badges/badge-presentation';
+import { badgeHref, badgeNameKey, badgeSourceKey } from '@/components/badges/badge-presentation';
+import { BadgeToken } from '@/components/badges/badge-token';
 import { useBadgeRows, type BadgeListViewRow } from '@/data/hooks';
 import { t, type MessageKey } from '@/i18n';
 import { LoadingShell } from '@/ui/loading-shell';
@@ -24,8 +21,19 @@ interface DetailRow {
   value: string;
 }
 
+type EarnedItem = BadgeWallItem & { earned: { id: string; grantedAt: number } };
+
 function categoryKey(category: BadgeCategory): MessageKey {
   return `badge.category.${category}` as MessageKey;
+}
+
+/** 徽章日期按画稿显示为「MM.DD」。 */
+function formatBadgeDate(at: number): string {
+  return localDate(at).slice(5).replace('-', '.');
+}
+
+function hasEarned(item: BadgeWallItem): item is EarnedItem {
+  return item.earned !== null;
 }
 
 function formatMonthBreakdown(value: unknown): string | null {
@@ -103,49 +111,76 @@ function snapshotRows(snapshot: Record<string, unknown>): DetailRow[] {
   return rows;
 }
 
-function EarnedCard({
-  item,
-  row,
-  onOpen,
-}: {
-  item: BadgeWallItem;
-  row: BadgeListViewRow | undefined;
-  onOpen: (id: string) => void;
-}) {
-  if (!item.earned) return null;
+/** 「已获得」最近区的一枚，点击打开详情。 */
+function RecentBadge({ item, onOpen }: { item: EarnedItem; onOpen: (id: string) => void }) {
   return (
     <li>
-      <button type="button" className={styles.cardButton} onClick={() => onOpen(item.earned!.id)}>
-        <span className={styles.cardHead}>
-          <span className={styles.cardName}>{t(badgeNameKey(item.catalogId))}</span>
-          <span className={styles.cardDate}>{localDate(item.earned.grantedAt)}</span>
+      <button type="button" className={styles.recentBadge} onClick={() => onOpen(item.earned.id)}>
+        <BadgeToken catalogId={item.catalogId} size="sm" />
+        <span className={styles.recentCopy}>
+          <strong className={styles.recentName}>{t(badgeNameKey(item.catalogId))}</strong>
+          <span className={styles.recentSource}>{t(badgeSourceKey(item.catalogId))}</span>
+          <time className={styles.recentDate} dateTime={localDate(item.earned.grantedAt)}>
+            {formatBadgeDate(item.earned.grantedAt)}
+          </time>
         </span>
-        <span className={styles.cardSource}>{t(badgeSourceKey(item.catalogId))}</span>
-        {row?.state === 'revoked' || row?.state === 'missing' ? (
-          <span className={styles.cardState}>
-            {t(row.state === 'revoked' ? 'badge.revoked' : 'badge.missing')}
-          </span>
-        ) : null}
       </button>
     </li>
   );
 }
 
-function UnearnedCard({ item }: { item: BadgeWallItem }) {
+/** 分类面板里的一枚瓦片：已获得带图形，未获得用空槽。 */
+function WallTile({ item, onOpen }: { item: BadgeWallItem; onOpen: (id: string) => void }) {
+  const name = t(badgeNameKey(item.catalogId));
+  const earned = item.earned;
+
+  if (earned) {
+    return (
+      <li>
+        <button type="button" className={styles.tile} onClick={() => onOpen(earned.id)}>
+          <BadgeToken catalogId={item.catalogId} size="sm" />
+          <strong className={styles.tileName}>{name}</strong>
+          <time className={styles.tileMeta} dateTime={localDate(earned.grantedAt)}>
+            {formatBadgeDate(earned.grantedAt)}
+          </time>
+        </button>
+      </li>
+    );
+  }
+
   return (
-    <li className={styles.unearned}>
-      <span className={styles.cardHead}>
-        <span className={styles.cardName}>{t(badgeNameKey(item.catalogId))}</span>
-        {item.remaining !== null ? (
-          <span className={styles.remaining}>
-            {t('badge.wall.remaining')} {item.remaining}
-          </span>
-        ) : (
-          <span className={styles.dot} aria-hidden="true" />
-        )}
+    <li className={styles.locked}>
+      <span className={styles.lockedDot} aria-hidden="true" />
+      <strong className={styles.tileName}>{name}</strong>
+      <span className={styles.tileMeta}>
+        {item.remaining !== null
+          ? `${t('badge.wall.remaining')} ${item.remaining}`
+          : t('badge.wall.locked')}
       </span>
-      <span className={styles.cardSource}>{t(badgeConditionKey(item.catalogId))}</span>
     </li>
+  );
+}
+
+function CategoryPanel({ group, onOpen }: { group: BadgeWallGroup; onOpen: (id: string) => void }) {
+  const headingId = `wall-${group.category}`;
+  const total = group.category === 'easter' ? group.earnedCount : group.total;
+
+  return (
+    <section className={styles.panel} aria-labelledby={headingId}>
+      <header className={styles.panelHead}>
+        <h2 id={headingId} className={styles.panelTitle}>
+          {t(categoryKey(group.category))}
+        </h2>
+        <span className={styles.caption}>
+          {group.earnedCount} / {total}
+        </span>
+      </header>
+      <ul className={styles.grid}>
+        {group.items.map((item) => (
+          <WallTile key={item.catalogId} item={item} onOpen={onOpen} />
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -171,12 +206,15 @@ function BadgeDetail({ row, onClose }: { row: BadgeListViewRow; onClose: () => v
         onClick={(event) => event.stopPropagation()}
       >
         <header className={styles.dialogHead}>
-          <div>
-            <h2 className={styles.dialogTitle}>{t(badgeNameKey(row.badge.catalogId))}</h2>
-            <p className={styles.dialogCategory}>
-              {t(categoryKey(row.badge.category))} · {t('badge.grantedAt')}{' '}
-              {localDate(row.badge.grantedAt)}
-            </p>
+          <div className={styles.dialogFeature}>
+            <BadgeToken catalogId={row.badge.catalogId} size="lg" />
+            <div>
+              <h2 className={styles.dialogTitle}>{t(badgeNameKey(row.badge.catalogId))}</h2>
+              <p className={styles.dialogCategory}>
+                {t(categoryKey(row.badge.category))} · {t('badge.grantedAt')}{' '}
+                {localDate(row.badge.grantedAt)}
+              </p>
+            </div>
           </div>
           <button type="button" className={styles.dialogClose} onClick={onClose}>
             {t('badge.detail.close')}
@@ -227,36 +265,53 @@ function BadgeDetail({ row, onClose }: { row: BadgeListViewRow; onClose: () => v
 /**
  * S06 徽章墙（PRD V1-05 OP-01 / OP-06 / §4.2–§4.3）。
  *
- * 页头显示「已获得 N / 16」；分类内已获得按授予时间倒序、未获得按目录顺序；
- * 未获得在达成度 ≥50% 时显示「还差 N」，否则灰点与条件一句话。
+ * 画稿结构：左上返回、页头右侧总数 chip；正文先「已获得 · 按获得时间排列」，
+ * 再按结构／时间／里程碑各一张分类面板，每面板已获得瓦片在前、未获得在后。
  * 彩蛋分类在拿到第一枚前不出现，总数也只计入已拿到的彩蛋（V2-03 §4.2）。
  */
 export function BadgeWallPage() {
   const view = useBadgeRows();
-  const [category, setCategory] = useState<BadgeCategory>('structure');
   const [openId, setOpenId] = useState<string | null>(null);
 
   const easterEarned =
     view.wall.groups.find((entry) => entry.category === 'easter')?.earnedCount ?? 0;
   const visibleTotal = visibleBadgeTotal(view.wall);
   const categories = BADGE_CATEGORY_ORDER.filter((entry) => entry !== 'easter' || easterEarned > 0);
-  const group = view.wall.groups.find((entry) => entry.category === category);
+  const groups = categories
+    .map((category) => view.wall.groups.find((group) => group.category === category))
+    .filter((group): group is BadgeWallGroup => group !== undefined);
+
+  const recent = view.wall.groups
+    .flatMap((group) => group.items)
+    .filter(hasEarned)
+    .sort(
+      (left, right) =>
+        right.earned.grantedAt - left.earned.grantedAt ||
+        left.catalogId.localeCompare(right.catalogId),
+    );
+
   const openRow = openId ? view.rows.find((row) => row.badge.id === openId) : undefined;
 
   const close = (): void => setOpenId(null);
 
   return (
-    <PageShell titleKey="badge.wall.title" bodyKey="page.me.badges">
-      <div className={styles.wall}>
-        <div className={styles.headerRow}>
-          <p className={styles.count}>
+    <PageShell
+      titleKey="badge.wall.title"
+      bodyKey="badge.wall.body"
+      back={
+        <Link className={styles.back} to="/me">
+          {t('badge.wall.back')}
+        </Link>
+      }
+      action={
+        view.status === 'ready' ? (
+          <span className={styles.chip}>
             {t('badge.wall.headerPrefix')} {view.wall.earnedCount} / {visibleTotal}
-          </p>
-          <Link className={styles.back} to="/me">
-            {t('nav.back')}
-          </Link>
-        </div>
-
+          </span>
+        ) : null
+      }
+    >
+      <div className={styles.wall}>
         {view.status === 'error' ? (
           <div className={styles.error} role="alert">
             <span>{t('badge.wall.loadFailed')}</span>
@@ -277,37 +332,27 @@ export function BadgeWallPage() {
           </div>
         ) : null}
 
-        <div className={styles.tabs} role="tablist" aria-label={t('badge.wall.title')}>
-          {categories.map((entry) => (
-            <button
-              key={entry}
-              type="button"
-              role="tab"
-              aria-selected={entry === category}
-              className={entry === category ? styles.tabActive : styles.tab}
-              onClick={() => setCategory(entry)}
-            >
-              {t(categoryKey(entry))}
-            </button>
-          ))}
-        </div>
-
-        {view.status === 'ready' && group ? (
-          <ul className={styles.grid}>
-            {group.items.map((item) =>
-              item.earned ? (
-                <EarnedCard
-                  key={item.catalogId}
-                  item={item}
-                  row={view.rows.find((row) => row.badge.id === item.earned?.id)}
-                  onOpen={setOpenId}
-                />
-              ) : (
-                <UnearnedCard key={item.catalogId} item={item} />
-              ),
-            )}
-          </ul>
+        {view.status === 'ready' && recent.length > 0 ? (
+          <section className={styles.panel} aria-labelledby="wall-recent">
+            <header className={styles.panelHead}>
+              <h2 id="wall-recent" className={styles.panelTitle}>
+                {t('badge.wall.recent')}
+              </h2>
+              <span className={styles.caption}>{t('badge.wall.recentOrder')}</span>
+            </header>
+            <ul className={styles.recentGrid}>
+              {recent.map((item) => (
+                <RecentBadge key={item.catalogId} item={item} onOpen={setOpenId} />
+              ))}
+            </ul>
+          </section>
         ) : null}
+
+        {view.status === 'ready'
+          ? groups.map((group) => (
+              <CategoryPanel key={group.category} group={group} onOpen={setOpenId} />
+            ))
+          : null}
       </div>
 
       {openRow ? <BadgeDetail row={openRow} onClose={close} /> : null}
