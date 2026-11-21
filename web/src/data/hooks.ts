@@ -7,6 +7,13 @@ import { assessDelete, type DeleteGuard } from '@/core/rules/delete-guard';
 import { assessFinish, type FinishPrecheck } from '@/core/rules/finish-precheck';
 import { planFinishMigration, type FinishPlan } from '@/core/rules/finish-plan';
 import { stallReminders } from '@/core/rules/stagnation';
+import { pickWeekQuestion, type WeekQuestion } from '@/core/rules/week-question';
+import {
+  assessWeekReview,
+  collectWeekCommits,
+  isWeekReviewDay,
+  type WeekReviewStats,
+} from '@/core/rules/week-review';
 import { normalizeTheme } from '@/core/rules/theme-preference';
 import { resolveTreeDensity } from '@/core/rules/tree-density';
 import { db, LOCAL_OWNER_ID } from './db';
@@ -698,7 +705,6 @@ export interface BranchDeleteView {
   guard: DeleteGuard | null;
   retry: () => void;
 }
-
 /**
  * 删除空分支前的整棵子树检查（M08 OP-06）。
  *
@@ -733,4 +739,46 @@ export function useBranchDeleteGuard(branchId: string | undefined): BranchDelete
   if (result === undefined) return { status: 'loading', guard: null, retry };
   if (!result.ok) return { status: 'error', guard: null, retry };
   return { status: 'ready', guard: result.guard, retry };
+}
+
+export interface WeekReviewView {
+  status: 'loading' | 'ready' | 'error';
+  stats: WeekReviewStats | null;
+  question: WeekQuestion | null;
+  retry: () => void;
+}
+
+/**
+ * 周回顾（M09 OP-01–OP-05）。
+ *
+ * 只在当地周六/周日晚间查询；全部现算、不落库。非周末直接返回不可见，
+ * 不渲染骨架也不占位。读取失败保留卡片标题，由面板给出重试。
+ */
+export function useWeekReview(): WeekReviewView {
+  const [attempt, setAttempt] = useState(0);
+  const todayDate = today(systemClock);
+  const weekend = isWeekReviewDay(todayDate);
+
+  const result = useLiveQuery(async () => {
+    try {
+      if (!weekend) return { ok: true as const, stats: null, question: null };
+      const [commits, branches] = await Promise.all([
+        commitRepository.listByOwner(LOCAL_OWNER_ID),
+        branchRepository.listByOwner(LOCAL_OWNER_ID),
+      ]);
+      const stats = assessWeekReview({ todayDate, commits, branches });
+      const question = stats.visible
+        ? pickWeekQuestion({ commits: collectWeekCommits(commits, todayDate), branches })
+        : null;
+      return { ok: true as const, stats, question };
+    } catch {
+      return { ok: false as const, stats: null, question: null };
+    }
+  }, [attempt, todayDate, weekend]);
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  if (!weekend) return { status: 'ready', stats: null, question: null, retry };
+  if (result === undefined) return { status: 'loading', stats: null, question: null, retry };
+  if (!result.ok) return { status: 'error', stats: null, question: null, retry };
+  return { status: 'ready', stats: result.stats, question: result.question, retry };
 }

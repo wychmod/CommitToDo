@@ -1,0 +1,135 @@
+/* S01-week-review：今天页底部的只读回顾卡。 */
+
+.card {
+  margin-top: var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+  width: 100%;
+  padding: var(--s3) var(--s4);
+  border: 0;
+  background: var(--inset);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.title {
+  flex: none;
+  font-size: var(--type-secondary);
+  font-weight: 600;
+}
+
+.collapsed,
+.hint {
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.skeleton {
+  display: block;
+  width: 14rem;
+  max-width: 60%;
+  height: var(--s2);
+  border-radius: var(--radius-control);
+  background: var(--line);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4);
+  border-top: 1px solid var(--line);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s2);
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.fact dt {
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.fact dd {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-heading-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.question {
+  margin: 0;
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line);
+  color: var(--text);
+  font-size: var(--type-body);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
+.retry {
+  align-self: flex-start;
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.retry:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 390px) {
+  .head {
+    flex-direction: column;
+    gap: var(--s1);
+    padding: var(--s3);
+  }
+
+  .panel {
+    padding: var(--s3);
+  }
+
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

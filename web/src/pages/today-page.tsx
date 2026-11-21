@@ -19,6 +19,7 @@ import { CompletionReceipt } from '@/components/today/completion-receipt';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { readonlyReasonKey } from '@/components/today/readonly';
 import { TaskRow } from '@/components/today/task-row';
+import { WeekReviewCard } from '@/components/today/week-review-card';
 import styles from './today-page.module.css';
 
 interface ReceiptState {
@@ -326,6 +327,8 @@ export function TodayPage() {
           </aside>
         </div>
       ) : null}
+
+      {data.status === 'ready' ? <WeekReviewCard /> : null}
 
       {cancelTarget ? (
         <ConfirmDialog
