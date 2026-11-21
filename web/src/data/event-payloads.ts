@@ -5,7 +5,7 @@
  * 新增动作时先在这里加一条，再在用例里调用 `writeEvent`。
  */
 export type EventPayloads = {
-  'task.create': { taskId: string; branchId: string };
+  'task.create': { taskId: string; branchId: string; source?: 'bulk' };
   'task.complete': { taskId: string; commitId: string; branchId: string };
   'task.cancel': { taskId: string; branchId: string };
   'task.reopen': { taskId: string; branchId: string; voidedCommitId: string | null };
@@ -36,7 +36,7 @@ export type EventPayloads = {
   'branch.archive': { branchId: string; subtreeCount: number };
   'branch.unarchive': { branchId: string; subtreeCount: number };
 
-  'milestone.create': { milestoneId: string; branchId: string };
+  'milestone.create': { milestoneId: string; branchId: string; source?: 'backfill' };
 
   'badge.grant': { badgeId: string; catalogId: string; periodKey: string };
 

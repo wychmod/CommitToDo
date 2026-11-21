@@ -77,6 +77,7 @@ export function HistoryPage() {
   const setBranchId = useHistoryFilterStore((state) => state.setBranchId);
   const expanded = useHistoryExpandedStore((state) => state.expanded);
   const toggleExpanded = useHistoryExpandedStore((state) => state.toggleExpanded);
+  const openOverlay = useShellStore((state) => state.openOverlay);
   const openCommitDetail = useShellStore((state) => state.openCommitDetail);
   const openMilestoneDetail = useShellStore((state) => state.openMilestoneDetail);
   const openMilestoneNew = useShellStore((state) => state.openMilestoneNew);
@@ -340,9 +341,18 @@ export function HistoryPage() {
         <EmptyState
           messageKey="page.history.empty"
           action={
-            <Link className={styles.action} to="/today">
-              {t('page.history.action')}
-            </Link>
+            <div className={styles.emptyActions}>
+              <button
+                type="button"
+                className={styles.backfill}
+                onClick={() => openOverlay('backfill')}
+              >
+                {t('page.history.backfill')}
+              </button>
+              <Link className={styles.secondaryLink} to="/today">
+                {t('page.history.action')}
+              </Link>
+            </div>
           }
         />
       ) : view.status !== 'error' && !hasVisibleEvents ? (

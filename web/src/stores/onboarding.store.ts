@@ -18,23 +18,31 @@ import {
 interface OnboardingStoreState extends OnboardingState {
   branchId: string | null;
   taskId: string | null;
+  /** 回填引导卡是否已经出现过（关闭或进入回填后不再自动出现）。 */
+  backfillPromptSeen: boolean;
   markStarted: () => void;
   recordBranch: (branchId: string) => void;
   recordTask: (taskId: string) => void;
   skip: () => void;
   finish: () => void;
+  dismissBackfillPrompt: () => void;
   reopen: () => void;
   reset: () => void;
 }
 
 export const ONBOARDING_STORAGE_KEY = 'onboarding.state';
 
-const BASE: OnboardingState & { branchId: string | null; taskId: string | null } = {
+const BASE: OnboardingState & {
+  branchId: string | null;
+  taskId: string | null;
+  backfillPromptSeen: boolean;
+} = {
   started: false,
   skipped: false,
   finished: false,
   branchId: null,
   taskId: null,
+  backfillPromptSeen: false,
 };
 
 export const useOnboardingStore = create<OnboardingStoreState>()(
@@ -46,8 +54,21 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       recordTask: (taskId) => set((state) => ({ ...startOnboarding(state), taskId })),
       skip: () => set((state) => ({ ...skipOnboarding(state) })),
       finish: () => set((state) => ({ ...finishOnboarding(state) })),
-      reopen: () => set(() => ({ ...reopenOnboarding(), branchId: null, taskId: null })),
-      reset: () => set(() => ({ ...resetOnboarding(), branchId: null, taskId: null })),
+      dismissBackfillPrompt: () => set({ backfillPromptSeen: true }),
+      reopen: () =>
+        set(() => ({
+          ...reopenOnboarding(),
+          branchId: null,
+          taskId: null,
+          backfillPromptSeen: false,
+        })),
+      reset: () =>
+        set(() => ({
+          ...resetOnboarding(),
+          branchId: null,
+          taskId: null,
+          backfillPromptSeen: false,
+        })),
     }),
     {
       name: ONBOARDING_STORAGE_KEY,
@@ -59,6 +80,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
         finished: state.finished,
         branchId: state.branchId,
         taskId: state.taskId,
+        backfillPromptSeen: state.backfillPromptSeen,
       }),
     },
   ),

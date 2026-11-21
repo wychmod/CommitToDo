@@ -15,7 +15,8 @@ export type ShellOverlay =
   | 'onboarding'
   | 'undo-receipt'
   | 'milestone-detail'
-  | 'milestone-new';
+  | 'milestone-new'
+  | 'backfill';
 
 interface ShellState {
   overlay: ShellOverlay | null;

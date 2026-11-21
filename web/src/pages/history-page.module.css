@@ -134,3 +134,48 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.backfill {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s8);
+  padding: 0 var(--s4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--panel);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.backfill:hover {
+  filter: brightness(1.08);
+}
+
+.backfill:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.secondaryLink {
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  text-decoration: underline;
+}
+
+.secondaryLink:hover {
+  color: var(--accent);
+}
+
+.secondaryLink:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}

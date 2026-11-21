@@ -303,6 +303,79 @@ section.group > .groupHead {
   font-variant-numeric: tabular-nums;
 }
 
+.backfillCard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-top: var(--s5);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--inset);
+}
+
+.backfillCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.backfillTitle {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-secondary);
+  font-weight: 600;
+}
+
+.backfillBody {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  line-height: 1.5;
+}
+
+.backfillActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.backfillGo {
+  min-height: var(--s8);
+  padding: 0 var(--s4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--panel);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.backfillGo:hover {
+  filter: brightness(1.08);
+}
+
+.backfillGo:focus-visible,
+.backfillLater:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.backfillLater {
+  padding: var(--s1) var(--s2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 @media (min-width: 760px) {
   .layout {
     grid-template-columns: minmax(0, 1fr) 18rem;

@@ -78,6 +78,122 @@
   outline-offset: 1px;
 }
 
+.modes {
+  display: flex;
+  gap: var(--s1);
+  padding: var(--s1);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+}
+
+.mode {
+  flex: 1;
+  padding: var(--s2) var(--s3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.mode[data-active='true'] {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.mode:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.textarea {
+  width: 100%;
+  min-height: calc(var(--s10) * 2);
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--type-body);
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.summary {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.bulkList {
+  display: flex;
+  flex-direction: column;
+  max-height: 18rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  list-style: none;
+}
+
+.bulkItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  border-top: 1px solid var(--line);
+}
+
+.bulkItem:first-child {
+  border-top: 0;
+}
+
+.bulkTitle {
+  min-width: 0;
+  color: var(--text);
+  font-size: var(--type-secondary);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.bulkRemove {
+  flex: none;
+  padding: var(--s1) var(--s2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-label);
+  cursor: pointer;
+}
+
+.bulkRemove:hover {
+  color: var(--danger);
+}
+
+.bulkRemove:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .hint {
   margin: 0;
   color: var(--subtle);

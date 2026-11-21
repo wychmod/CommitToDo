@@ -3,6 +3,7 @@ import { useShellStore, type ShellOverlay } from '@/stores/shell.store';
 import { CommitDetailPanel } from '@/components/commit-detail/commit-detail-panel';
 import { MilestoneDetailPanel } from '@/components/milestone/milestone-detail-panel';
 import { MilestoneNewPanel } from '@/components/milestone/milestone-new-panel';
+import { BackfillPanel } from '@/components/milestone/backfill-panel';
 import { QuickAddPanel } from '@/components/today/quick-add-panel';
 import { SearchPanel } from '@/components/search/search-panel';
 import { TaskDetailPanel } from '@/components/today/task-detail-panel';
@@ -10,7 +11,13 @@ import styles from './overlay-host.module.css';
 
 type PlaceholderOverlay = Exclude<
   ShellOverlay,
-  'quick-add' | 'task-detail' | 'commit-detail' | 'milestone-detail' | 'milestone-new' | 'search'
+  | 'quick-add'
+  | 'task-detail'
+  | 'commit-detail'
+  | 'milestone-detail'
+  | 'milestone-new'
+  | 'backfill'
+  | 'search'
 >;
 
 const COPY: Record<PlaceholderOverlay, { title: MessageKey; body: MessageKey }> = {
@@ -34,6 +41,7 @@ export function OverlayHost() {
   if (overlay === 'commit-detail') return <CommitDetailPanel />;
   if (overlay === 'milestone-detail') return <MilestoneDetailPanel />;
   if (overlay === 'milestone-new') return <MilestoneNewPanel />;
+  if (overlay === 'backfill') return <BackfillPanel />;
 
   const copy = COPY[overlay];
 

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { localClockTime, localDate, systemClock, today } from '@/core/clock';
 import { branchTrail } from '@/core/rules/quick-add';
-import { needsOnboarding } from '@/core/rules/onboarding-state';
+import { deriveOnboardingStep, needsOnboarding } from '@/core/rules/onboarding-state';
 import { groupTodayTasks } from '@/core/rules/today-groups';
 import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
@@ -50,9 +50,19 @@ export function TodayPage() {
   const toggleListCollapsed = useTodayStore((state) => state.toggleListCollapsed);
   const onboarding = useOnboardingData();
   const onboardingSkipped = useOnboardingStore((state) => state.skipped);
+  const onboardingFinished = useOnboardingStore((state) => state.finished);
+  const backfillPromptSeen = useOnboardingStore((state) => state.backfillPromptSeen);
+  const dismissBackfillPrompt = useOnboardingStore((state) => state.dismissBackfillPrompt);
   const reopenOnboarding = useOnboardingStore((state) => state.reopen);
   const canReopen =
     onboarding.status === 'ready' && onboardingSkipped && needsOnboarding(onboarding.data);
+  const showBackfillGuide =
+    onboarding.status === 'ready' &&
+    onboardingFinished &&
+    !onboardingSkipped &&
+    deriveOnboardingStep(onboarding.data) === 'done' &&
+    onboarding.data.milestoneCount === 0 &&
+    !backfillPromptSeen;
   const todayDate = today(systemClock);
   const stalls = useStallReminders(todayDate);
 
@@ -354,6 +364,32 @@ export function TodayPage() {
       {data.status === 'ready' ? <WeekReviewCard /> : null}
       {data.status === 'ready' && monthOpen ? <MonthReviewPanel /> : null}
       {data.status === 'ready' ? <BadgeToast /> : null}
+
+      {data.status === 'ready' && showBackfillGuide ? (
+        <section className={styles.backfillCard} aria-labelledby="backfill-guide-title">
+          <div className={styles.backfillCopy}>
+            <h2 id="backfill-guide-title" className={styles.backfillTitle}>
+              {t('backfill.guide.title')}
+            </h2>
+            <p className={styles.backfillBody}>{t('backfill.guide.body')}</p>
+          </div>
+          <div className={styles.backfillActions}>
+            <button
+              type="button"
+              className={styles.backfillGo}
+              onClick={() => {
+                dismissBackfillPrompt();
+                openOverlay('backfill');
+              }}
+            >
+              {t('backfill.guide.action')}
+            </button>
+            <button type="button" className={styles.backfillLater} onClick={dismissBackfillPrompt}>
+              {t('backfill.guide.later')}
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       {cancelTarget ? (
         <ConfirmDialog

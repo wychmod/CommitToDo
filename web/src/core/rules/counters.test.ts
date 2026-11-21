@@ -357,3 +357,32 @@ describe('生命周期动作不改四计数（V1-01 / R7）', () => {
     expect(counts).toMatchObject({ taskTotal: 1, taskDone: 1, commitCount: 1 });
   });
 });
+
+describe('批量导入后的四计数（V1-07 / R7）', () => {
+  it('导入 N 条 open 待办后 taskTotal 增加 N，其余不变', () => {
+    const imported = Array.from({ length: 5 }, () => task({ status: 'open' }));
+    expect(recountBranch('product-design', imported, [])).toEqual({
+      taskTotal: 5,
+      taskDone: 0,
+      commitCount: 0,
+      ownLastCommitAt: null,
+    });
+  });
+
+  it('同一分支连续两次导入按累计条数重算', () => {
+    const first = [task({ status: 'open' }), task({ status: 'open' })];
+    const second = [...first, task({ status: 'open' })];
+    expect(recountBranch('product-design', first, []).taskTotal).toBe(2);
+    expect(recountBranch('product-design', second, []).taskTotal).toBe(3);
+  });
+
+  it('空批次不改变既有计数', () => {
+    const existing = [task({ status: 'done' })];
+    expect(recountBranch('product-design', existing, [commit({ at: 1_000 })])).toEqual({
+      taskTotal: 1,
+      taskDone: 1,
+      commitCount: 1,
+      ownLastCommitAt: 1_000,
+    });
+  });
+});
