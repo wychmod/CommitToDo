@@ -49,6 +49,19 @@ function isVisible(branch: StallBranch): boolean {
   return branch.archivedAt === null && branch.droppedAt === null;
 }
 
+/** 归档只写选中行，后代靠祖先不可见退出停滞计算。 */
+function hasArchivedAncestor(branch: StallBranch, branches: readonly StallBranch[]): boolean {
+  const byId = new Map(branches.map((row) => [row.id, row]));
+  let current = branch.parentId ? byId.get(branch.parentId) : undefined;
+  let guard = 0;
+  while (current && guard < 32) {
+    if (current.archivedAt !== null) return true;
+    current = current.parentId ? byId.get(current.parentId) : undefined;
+    guard += 1;
+  }
+  return false;
+}
+
 function isValidCommit(commit: StallCommit): boolean {
   return commit.voidedAt === null && (commit.deletedAt ?? null) === null;
 }
@@ -111,7 +124,9 @@ export function assessStall(
     toDate: null,
   };
 
-  if (branch.archivedAt !== null) return { ...base, kind: 'archived' };
+  if (branch.archivedAt !== null || hasArchivedAncestor(branch, branches)) {
+    return { ...base, kind: 'archived' };
+  }
 
   const latest = latestVisibleCommit(branch.id, branches, commits);
   const lastDate = latest?.date ?? null;

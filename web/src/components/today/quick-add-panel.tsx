@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { systemClock, today } from '@/core/clock';
 import { isBranchAccepting } from '@/core/rules/branch-state';
+import { visibleDefaultTree } from '@/core/rules/branch-visibility';
 import { branchTrail, parseQuickAdd, resolveBranchQuery } from '@/core/rules/quick-add';
 import { useBranches } from '@/data/hooks';
 import { createTask } from '@/data/create-task';
@@ -33,8 +34,8 @@ export function QuickAddPanel() {
 
   const accepting = useMemo(
     () =>
-      branches
-        .filter((branch) => branch.deletedAt === null && isBranchAccepting(branch))
+      visibleDefaultTree(branches)
+        .filter(isBranchAccepting)
         .sort((a, b) => a.depth - b.depth || a.order - b.order),
     [branches],
   );

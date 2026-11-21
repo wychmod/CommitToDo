@@ -24,6 +24,11 @@
   cursor: pointer;
 }
 
+.headerActions {
+  display: inline-flex;
+  gap: var(--s2);
+}
+
 .notice {
   margin-bottom: var(--s4);
 }

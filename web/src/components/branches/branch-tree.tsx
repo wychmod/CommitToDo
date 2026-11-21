@@ -1,3 +1,4 @@
+import { assessArchive, assessPause, assessResume } from '@/core/rules/branch-lifecycle';
 import { canCreateChild } from '@/core/rules/branch-hierarchy';
 import { collectSubtree } from '@/core/rules/branch-path';
 import { assessCreateQuota } from '@/core/rules/branch-quota';
@@ -17,6 +18,9 @@ interface BranchTreeProps {
   onMove: (branch: Branch) => void;
   onFinish: (branch: Branch) => void;
   onDelete: (branch: Branch) => void;
+  onPause: (branch: Branch) => void;
+  onResume: (branch: Branch) => void;
+  onArchive: (branch: Branch) => void;
 }
 
 function buildChildrenMap(branches: readonly Branch[]): Map<string, Branch[]> {
@@ -37,6 +41,16 @@ function readonlyReason(branch: Branch): BranchBlockReason | null {
   return branch.archivedAt !== null || branch.status !== 'active' ? 'readonly' : null;
 }
 
+/** 把生命周期不可用原因收敛成菜单可展示的三种。 */
+function lifecycleReason(reason: string | null): BranchBlockReason | null {
+  if (reason === null) return null;
+  if (reason === 'active-descendants') return 'active-children';
+  if (reason === 'ancestor-archived' || reason === 'ancestor-merged') {
+    return 'ancestor-readonly';
+  }
+  return 'readonly';
+}
+
 /**
  * 分支树（D-01 / OP-07）。
  *
@@ -52,10 +66,14 @@ export function BranchTree({
   onMove,
   onFinish,
   onDelete,
+  onPause,
+  onResume,
+  onArchive,
 }: BranchTreeProps) {
   const expandedMap = useBranchesStore((state) => state.expanded);
   const setExpanded = useBranchesStore((state) => state.setExpanded);
   const childrenOf = buildChildrenMap(branches);
+  const byId = new Map(branches.map((branch) => [branch.id, branch]));
   const root = branches
     .filter((branch) => branch.depth === 0)
     .sort((a, b) => a.createdAt - b.createdAt)[0];
@@ -101,6 +119,9 @@ export function BranchTree({
         moveReason={moveReason}
         finishReason={finishReasonFor(branch)}
         deleteReason={readonlyReason(branch)}
+        pauseReason={lifecycleReason(assessPause(branch, byId).reason)}
+        resumeReason={lifecycleReason(assessResume(branch, byId).reason)}
+        archiveReason={lifecycleReason(assessArchive(branch, byId).reason)}
         onToggle={setExpanded}
         onFocusHandled={onFocusHandled}
         onCreateChild={onCreateChild}
@@ -108,6 +129,9 @@ export function BranchTree({
         onMove={onMove}
         onFinish={onFinish}
         onDelete={onDelete}
+        onPause={onPause}
+        onResume={onResume}
+        onArchive={onArchive}
       >
         {children.length > 0 && expanded ? (
           <ul className={styles.group}>{children.map(renderNode)}</ul>

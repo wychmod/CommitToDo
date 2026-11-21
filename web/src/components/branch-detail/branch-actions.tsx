@@ -13,11 +13,24 @@ interface BranchActionsProps {
   /** `null` 表示可打开删除确认；根分支不展示删除项。 */
   showDelete: boolean;
   deleteReason: MessageKey | null;
+  showPause: boolean;
+  pauseReason: MessageKey | null;
+  showResume: boolean;
+  resumeReason: MessageKey | null;
+  showArchive: boolean;
+  archiveReason: MessageKey | null;
+  /** 已归档分支只保留取消归档，不展示结构动作。 */
+  showUnarchive: boolean;
+  unarchiveReason: MessageKey | null;
   onOpenCreate: () => void;
   onOpenRename: () => void;
   onOpenMove: () => void;
   onOpenFinish: () => void;
   onOpenDelete: () => void;
+  onOpenPause: () => void;
+  onOpenResume: () => void;
+  onOpenArchive: () => void;
+  onOpenUnarchive: () => void;
 }
 
 interface MenuItem {
@@ -28,10 +41,10 @@ interface MenuItem {
 }
 
 /**
- * 分支详情页头的「更多」菜单（M04 §4.1 / M08 OP-01、OP-06、OP-08）。
+ * 分支详情页头的「更多」菜单（M04 §4.1 / M08 / V1-01）。
  *
- * 收尾是首项，删除空分支是末项；根分支不展示这两项。
- * 不可用项保留并写明原因，不用隐藏代替说明。
+ * 收尾在最前，删除空分支随后，放下 / 重新开始 / 归档追加在它们之后。
+ * 已归档分支只保留取消归档；不可用项保留并写明原因。
  */
 export function BranchActions({
   createReason,
@@ -40,11 +53,23 @@ export function BranchActions({
   finishReason,
   showDelete,
   deleteReason,
+  showPause,
+  pauseReason,
+  showResume,
+  resumeReason,
+  showArchive,
+  archiveReason,
+  showUnarchive,
+  unarchiveReason,
   onOpenCreate,
   onOpenRename,
   onOpenMove,
   onOpenFinish,
   onOpenDelete,
+  onOpenPause,
+  onOpenResume,
+  onOpenArchive,
+  onOpenUnarchive,
 }: BranchActionsProps) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -77,41 +102,74 @@ export function BranchActions({
   };
 
   const items: MenuItem[] = [];
-  if (showFinish) {
+  if (showUnarchive) {
     items.push({
-      key: 'finish',
-      labelKey: 'branches.finish',
-      reason: finishReason,
-      run: onOpenFinish,
+      key: 'unarchive',
+      labelKey: 'branches.unarchive',
+      reason: unarchiveReason,
+      run: onOpenUnarchive,
     });
-  }
-  items.push(
-    {
-      key: 'create',
-      labelKey: 'branches.newChild',
-      reason: createReason,
-      run: onOpenCreate,
-    },
-    {
-      key: 'rename',
-      labelKey: 'branches.rename',
-      reason: readonly ? 'branches.reason.readonly' : null,
-      run: onOpenRename,
-    },
-    {
-      key: 'move',
-      labelKey: 'branches.move',
-      reason: readonly ? 'branches.reason.readonly' : null,
-      run: onOpenMove,
-    },
-  );
-  if (showDelete) {
-    items.push({
-      key: 'delete',
-      labelKey: 'branches.delete',
-      reason: deleteReason,
-      run: onOpenDelete,
-    });
+  } else {
+    if (showFinish) {
+      items.push({
+        key: 'finish',
+        labelKey: 'branches.finish',
+        reason: finishReason,
+        run: onOpenFinish,
+      });
+    }
+    items.push(
+      {
+        key: 'create',
+        labelKey: 'branches.newChild',
+        reason: createReason,
+        run: onOpenCreate,
+      },
+      {
+        key: 'rename',
+        labelKey: 'branches.rename',
+        reason: readonly ? 'branches.reason.readonly' : null,
+        run: onOpenRename,
+      },
+      {
+        key: 'move',
+        labelKey: 'branches.move',
+        reason: readonly ? 'branches.reason.readonly' : null,
+        run: onOpenMove,
+      },
+    );
+    if (showDelete) {
+      items.push({
+        key: 'delete',
+        labelKey: 'branches.delete',
+        reason: deleteReason,
+        run: onOpenDelete,
+      });
+    }
+    if (showPause) {
+      items.push({
+        key: 'pause',
+        labelKey: 'branches.pause',
+        reason: pauseReason,
+        run: onOpenPause,
+      });
+    }
+    if (showResume) {
+      items.push({
+        key: 'resume',
+        labelKey: 'branches.resume',
+        reason: resumeReason,
+        run: onOpenResume,
+      });
+    }
+    if (showArchive) {
+      items.push({
+        key: 'archive',
+        labelKey: 'branches.archive',
+        reason: archiveReason,
+        run: onOpenArchive,
+      });
+    }
   }
 
   return (

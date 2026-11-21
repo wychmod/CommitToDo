@@ -249,3 +249,37 @@ describe('里程碑不计入四计数（M07 / R7）', () => {
     ]);
   });
 });
+
+describe('生命周期动作不改四计数（V1-01 / R7）', () => {
+  it('同一组待办与提交在 active / dropped / merged / archived 下输出一致', () => {
+    const tasks = [task({ status: 'open' }), task({ status: 'done' })];
+    const commits = [commit({ at: 1_000 })];
+
+    // 生命周期状态不是 recountBranch 的输入：放下不减少 taskTotal，
+    // 归档也不重算统计；这里固化「恢复与导出重算不受状态影响」的契约。
+    expect(recountBranch('product-design', tasks, commits)).toEqual({
+      taskTotal: 2,
+      taskDone: 1,
+      commitCount: 1,
+      ownLastCommitAt: 1_000,
+    });
+  });
+
+  it('已放下分支仍有未完成待办时 taskTotal 不减少', () => {
+    const counts = recountBranch(
+      'product-design',
+      [task({ status: 'open' }), task({ status: 'open' })],
+      [],
+    );
+    expect(counts.taskTotal).toBe(2);
+  });
+
+  it('已合并后再归档、且持有已撤销提交时不改变计数口径', () => {
+    const counts = recountBranch(
+      'product-design',
+      [task({ status: 'done' })],
+      [commit({ at: 1_000 }), commit({ at: 2_000, voidedAt: 2_100 })],
+    );
+    expect(counts).toMatchObject({ taskTotal: 1, taskDone: 1, commitCount: 1 });
+  });
+});

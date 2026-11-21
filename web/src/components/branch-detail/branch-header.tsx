@@ -124,9 +124,13 @@ function statusText(branch: Branch, byId: ReadonlyMap<string, Branch>): string {
     return t('branches.status.merged');
   }
   if (branch.status === 'dropped') {
-    return branch.dropReason
-      ? `${t('branches.status.dropped')}${t('today.header.separator')}${branch.dropReason}`
-      : t('branches.status.dropped');
+    const date = branch.droppedAt
+      ? formatMilestoneDate(branch.droppedAt, 'day', currentTzOffset(branch.droppedAt))
+      : null;
+    const parts = [t('branches.status.dropped')];
+    if (date) parts.push(date);
+    if (branch.dropReason) parts.push(`${t('branchDetail.lastDropPrefix')}${branch.dropReason}`);
+    return parts.join(t('today.header.separator'));
   }
   return t('branches.status.active');
 }

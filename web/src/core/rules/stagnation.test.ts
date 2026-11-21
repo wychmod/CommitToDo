@@ -162,6 +162,17 @@ describe('停滞判定（R4 / M06 §4.2）', () => {
     expect(assess(archived, [archived], [commit({ date: '2026-01-01' })]).kind).toBe('archived');
   });
 
+  it('归档子树内的后代随祖先退出停滞', () => {
+    const parent = branch({ id: 'work', archivedAt: localMs(2026, 11, 1) });
+    const child = branch({ id: 'design', parentId: 'work' });
+    const info = assess(
+      child,
+      [parent, child],
+      [commit({ branchId: 'design', at: localMs(2026, 9, 1), date: '2026-09-01' })],
+    );
+    expect(info.kind).toBe('archived');
+  });
+
   it('已合并分支不再参与停滞', () => {
     const merged = branch({ status: 'merged' });
     expect(assess(merged, [merged], [commit({ date: '2026-01-01' })]).kind).toBe('none');

@@ -14,6 +14,9 @@ export type BranchBlockReason =
   | 'tree-full'
   | 'finish-parent'
   | 'finish-children'
+  | 'active-children'
+  | 'ancestor-readonly'
+  | 'restore-full'
   | 'later';
 
 const REASON_KEYS: Record<BranchBlockReason, MessageKey> = {
@@ -23,6 +26,9 @@ const REASON_KEYS: Record<BranchBlockReason, MessageKey> = {
   'tree-full': 'branches.reason.treeFull',
   'finish-parent': 'branches.reason.finishParent',
   'finish-children': 'branches.reason.finishChildren',
+  'active-children': 'branches.reason.activeChildren',
+  'ancestor-readonly': 'branches.reason.ancestorReadonly',
+  'restore-full': 'branches.reason.restoreFull',
   later: 'branches.reason.later',
 };
 
@@ -42,6 +48,9 @@ interface BranchRowProps {
   moveReason: BranchBlockReason | null;
   finishReason: BranchBlockReason | null;
   deleteReason: BranchBlockReason | null;
+  pauseReason: BranchBlockReason | null;
+  resumeReason: BranchBlockReason | null;
+  archiveReason: BranchBlockReason | null;
   onToggle: (branchId: string, expanded: boolean) => void;
   onFocusHandled: () => void;
   onCreateChild: (branch: Branch) => void;
@@ -49,6 +58,9 @@ interface BranchRowProps {
   onMove: (branch: Branch) => void;
   onFinish: (branch: Branch) => void;
   onDelete: (branch: Branch) => void;
+  onPause: (branch: Branch) => void;
+  onResume: (branch: Branch) => void;
+  onArchive: (branch: Branch) => void;
   children?: ReactNode;
 }
 
@@ -75,6 +87,9 @@ export function BranchRow({
   moveReason,
   finishReason,
   deleteReason,
+  pauseReason,
+  resumeReason,
+  archiveReason,
   onToggle,
   onFocusHandled,
   onCreateChild,
@@ -82,6 +97,9 @@ export function BranchRow({
   onMove,
   onFinish,
   onDelete,
+  onPause,
+  onResume,
+  onArchive,
   children,
 }: BranchRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -165,6 +183,33 @@ export function BranchRow({
         run: () => onDelete(branch),
       },
     );
+    // V1-01：生命周期动作追加在收尾、删除之后。
+    if (branch.archivedAt === null) {
+      if (branch.status === 'active') {
+        items.push({
+          key: 'pause',
+          labelKey: 'branches.pause',
+          reason: pauseReason,
+          run: () => onPause(branch),
+        });
+      }
+      if (branch.status === 'dropped') {
+        items.push({
+          key: 'resume',
+          labelKey: 'branches.resume',
+          reason: resumeReason,
+          run: () => onResume(branch),
+        });
+      }
+      if (branch.status !== 'active') {
+        items.push({
+          key: 'archive',
+          labelKey: 'branches.archive',
+          reason: archiveReason,
+          run: () => onArchive(branch),
+        });
+      }
+    }
   }
 
   const choose = (item: MenuItem) => {

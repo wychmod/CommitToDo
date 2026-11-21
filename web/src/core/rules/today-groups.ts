@@ -50,23 +50,25 @@ const byCreated = (a: GroupableTask, b: GroupableTask): number =>
   a.createdAt - b.createdAt || a.id.localeCompare(b.id);
 
 /**
- * 待办是否被所在分支（含祖先）挡在今天之外。
+ * 待办是否被所在分支挡在今天之外。
  *
- * R8 只认软删、归档与 `dropped`；`merged` 分支的未完成待办在收尾时
- * 已由 M08 处理，这里不额外排除，保持规则表口径单一。
+ * R8 只认软删、归档与「待办自己的分支」为 `dropped`；
+ * 父分支放下不连带子分支：进行中的后代待办照常出现在今天（V1-01）。
  */
 function isOutsideDefaultTree(task: GroupableTask, byId: Map<string, GroupableBranch>): boolean {
-  let current = byId.get(task.branchId);
+  const own = byId.get(task.branchId);
+  // 分支行不存在时无法判定归属，按不可见处理，避免孤儿待办混进今天。
+  if (!own) return true;
+  if (own.status === 'dropped') return true;
+
+  let current: GroupableBranch | undefined = own;
   let guard = 0;
   while (current && guard < 8) {
-    if (current.deletedAt || current.archivedAt !== null || current.status === 'dropped') {
-      return true;
-    }
+    if (current.deletedAt || current.archivedAt !== null) return true;
     current = current.parentId ? byId.get(current.parentId) : undefined;
     guard += 1;
   }
-  // 分支行不存在时无法判定归属，按不可见处理，避免孤儿待办混进今天。
-  return !byId.has(task.branchId);
+  return false;
 }
 
 /**

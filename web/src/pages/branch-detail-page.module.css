@@ -4,6 +4,16 @@
   gap: var(--s6);
 }
 
+.actionError {
+  margin: 0;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-control);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: var(--type-secondary);
+}
+
 .progress {
   display: flex;
   flex-direction: column;

@@ -1,9 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { systemClock, today } from '@/core/clock';
+import {
+  assessArchive,
+  assessPause,
+  assessResume,
+  assessUnarchive,
+  type ArchiveBlockReason,
+  type LifecycleAssessment,
+  type PauseBlockReason,
+  type ResumeBlockReason,
+  type UnarchiveBlockReason,
+} from '@/core/rules/branch-lifecycle';
 import { canCreateChild } from '@/core/rules/branch-hierarchy';
 import { collectSubtree } from '@/core/rules/branch-path';
-import { assessCreateQuota } from '@/core/rules/branch-quota';
+import { assessCreateQuota, assessRestoreQuota } from '@/core/rules/branch-quota';
 import { computeBranchProgress, type BranchProgress } from '@/core/rules/branch-progress';
 import { branchTreeReadonlyReason } from '@/core/rules/branch-readonly';
 import { finishEntryReason } from '@/core/rules/finish-precheck';
@@ -14,6 +25,7 @@ import {
   useBranchMilestones,
   useBranchTasks,
 } from '@/data/hooks';
+import { resumeBranch } from '@/data/resume-branch';
 import type { Branch } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
@@ -27,6 +39,10 @@ import { BranchCommitsSection } from '@/components/branch-detail/branch-commits-
 import { BranchDeletePanel } from '@/components/branch-detail/branch-delete-panel';
 import { BranchFinishPanel } from '@/components/branch-detail/branch-finish-panel';
 import { BranchHeader } from '@/components/branch-detail/branch-header';
+import {
+  BranchLifecyclePanel,
+  type BranchLifecycleMode,
+} from '@/components/branch-detail/branch-lifecycle-panel';
 import { BranchMilestonesSection } from '@/components/branch-detail/branch-milestones-section';
 import { BranchTasksSection } from '@/components/branch-detail/branch-tasks-section';
 import styles from './branch-detail-page.module.css';
@@ -63,7 +79,35 @@ function finishReasonKey(
   return 'branches.reason.readonly';
 }
 
-type Overlay = 'finish' | 'delete' | null;
+type Overlay = 'finish' | 'delete' | BranchLifecycleMode | null;
+
+/** 生命周期菜单的不可用原因，文案与 P02 保持一致。 */
+function pauseReasonKey(assessment: LifecycleAssessment<PauseBlockReason>): MessageKey | null {
+  return assessment.allowed ? null : 'branches.reason.readonly';
+}
+
+function resumeReasonKey(assessment: LifecycleAssessment<ResumeBlockReason>): MessageKey | null {
+  if (assessment.reason === 'ancestor-archived' || assessment.reason === 'ancestor-merged') {
+    return 'branches.reason.ancestorReadonly';
+  }
+  return assessment.reason === null ? null : 'branches.reason.readonly';
+}
+
+function archiveReasonKey(assessment: LifecycleAssessment<ArchiveBlockReason>): MessageKey | null {
+  if (assessment.reason === 'active-descendants') return 'branches.reason.activeChildren';
+  return assessment.reason === null ? null : 'branches.reason.readonly';
+}
+
+function unarchiveReasonKey(
+  assessment: LifecycleAssessment<UnarchiveBlockReason>,
+  quotaAllowed: boolean,
+): MessageKey | null {
+  if (assessment.reason === 'ancestor-archived') {
+    return 'branchDetail.lifecycle.ancestorArchived';
+  }
+  if (assessment.reason !== null) return 'branches.reason.readonly';
+  return quotaAllowed ? null : 'branches.reason.restoreFull';
+}
 
 /**
  * P03 分支详情（PRD M04）。
@@ -84,6 +128,7 @@ export function BranchDetailPage() {
   const setMilestoneFocus = useShellStore((state) => state.setMilestoneFocus);
   const [panel, setPanel] = useState<BranchPanelState | null>(null);
   const [overlay, setOverlay] = useState<Overlay>(null);
+  const [actionError, setActionError] = useState<MessageKey | null>(null);
 
   // 保存里程碑后只短暂高亮，不长期驻留（M07 OP-07）。
   useEffect(() => {
@@ -154,6 +199,26 @@ export function BranchDetailPage() {
         };
   const backTarget = branch.parentId ? `/branches/${branch.parentId}` : '/branches';
 
+  const archived = branch.archivedAt !== null;
+  const pauseAssessment = assessPause(branch, byId);
+  const resumeAssessment = assessResume(branch, byId);
+  const archiveAssessment = assessArchive(branch, byId);
+  const unarchiveAssessment = archived ? assessUnarchive(branch, byId) : null;
+  const parentBranch = branch.parentId ? byId.get(branch.parentId) : undefined;
+  const restoreQuota =
+    archived && parentBranch
+      ? assessRestoreQuota(parentBranch.id, parentBranch.depth, header.branches)
+      : null;
+  const showPause = branch.depth > 0 && !archived && branch.status === 'active';
+  const showResume = branch.depth > 0 && !archived && branch.status === 'dropped';
+  const showArchive = branch.depth > 0 && !archived && branch.status !== 'active';
+
+  const handleResume = async () => {
+    setActionError(null);
+    const result = await resumeBranch({ branchId: branch.id });
+    if (!result.ok) setActionError('branches.lifecycle.resumeFailed');
+  };
+
   return (
     <PageShell
       back={<BackButton fallbackTo={backTarget} />}
@@ -168,15 +233,36 @@ export function BranchDetailPage() {
           finishReason={finishReason}
           showDelete={canFinish}
           deleteReason={readonlyReason !== null ? 'branches.reason.readonly' : null}
+          showPause={showPause}
+          pauseReason={pauseReasonKey(pauseAssessment)}
+          showResume={showResume}
+          resumeReason={resumeReasonKey(resumeAssessment)}
+          showArchive={showArchive}
+          archiveReason={archiveReasonKey(archiveAssessment)}
+          showUnarchive={archived}
+          unarchiveReason={
+            unarchiveAssessment
+              ? unarchiveReasonKey(unarchiveAssessment, restoreQuota?.allowed ?? false)
+              : null
+          }
           onOpenCreate={() => setPanel({ mode: 'create', parent: branch })}
           onOpenRename={() => setPanel({ mode: 'rename', branch })}
           onOpenMove={() => setPanel({ mode: 'move', branch })}
           onOpenFinish={() => setOverlay('finish')}
           onOpenDelete={() => setOverlay('delete')}
+          onOpenPause={() => setOverlay('pause')}
+          onOpenResume={() => void handleResume()}
+          onOpenArchive={() => setOverlay('archive')}
+          onOpenUnarchive={() => setOverlay('unarchive')}
         />
       }
     >
       <div className={styles.stack}>
+        {actionError ? (
+          <p className={styles.actionError} role="alert">
+            {t(actionError)}
+          </p>
+        ) : null}
         <div className={styles.progress} aria-label={t('branchDetail.progress.label')}>
           <div className={styles.progressHead}>
             <span className={styles.progressLabel}>{t('branchDetail.progress.label')}</span>
@@ -258,6 +344,19 @@ export function BranchDetailPage() {
           onDeleted={(parentId) => {
             setOverlay(null);
             navigate(parentId ? `/branches/${parentId}` : '/branches', { replace: true });
+          }}
+        />
+      ) : null}
+
+      {overlay === 'pause' || overlay === 'archive' || overlay === 'unarchive' ? (
+        <BranchLifecyclePanel
+          mode={overlay}
+          branch={branch}
+          branches={header.branches}
+          onClose={() => setOverlay(null)}
+          onDone={() => {
+            setOverlay(null);
+            setActionError(null);
           }}
         />
       ) : null}
