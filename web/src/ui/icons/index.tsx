@@ -102,6 +102,16 @@ export function BranchIcon(props: SvgIconProps) {
   );
 }
 
+/** 新建。 */
+export function PlusIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </SvgIcon>
+  );
+}
+
 /** 扁平列表视图。 */
 export function ListIcon(props: SvgIconProps) {
   return (

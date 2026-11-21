@@ -71,6 +71,89 @@
   align-items: start;
 }
 
+.headSummary {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.quickAdd {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) var(--s2) var(--s2) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+}
+
+.quickField {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.quickIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--s6);
+  height: var(--s6);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.quickInput {
+  width: 100%;
+  min-width: 0;
+  padding: var(--s2) 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--type-body);
+}
+
+.quickInput::placeholder {
+  color: var(--subtle);
+}
+
+.quickInput:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.quickButton {
+  flex: none;
+  height: var(--control-height);
+  padding: 0 var(--s4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--type-secondary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quickButton:disabled {
+  border-color: var(--line);
+  background: var(--inset);
+  color: var(--subtle);
+  cursor: not-allowed;
+}
+
+.quickButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .main {
   display: flex;
   flex-direction: column;
@@ -123,7 +206,7 @@ section.group > .groupHead {
 .groupTitle {
   margin: 0;
   color: var(--text);
-  font-size: var(--type-secondary);
+  font-size: var(--type-body-large);
   font-weight: 600;
 }
 
@@ -178,11 +261,92 @@ section.group > .groupHead {
 .rail {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
+}
+
+.railCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
   padding: var(--s4);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
+}
+
+.receiptHead {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.receiptCheck {
+  display: grid;
+  place-items: center;
+  width: var(--s6);
+  height: var(--s6);
+  border-radius: 50%;
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.receiptState {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s2);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  font-weight: 600;
+}
+
+.receiptTime {
+  color: var(--subtle);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.receiptBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.receiptTitle {
+  color: var(--text);
+  font-size: var(--type-body);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.receiptBody:hover .receiptTitle {
+  color: var(--accent);
+}
+
+.receiptBody:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.receiptMeta {
+  color: var(--subtle);
+  font-size: var(--type-label);
+}
+
+.receiptLink {
+  align-self: flex-start;
+  color: var(--accent);
+  font-size: var(--type-secondary);
+  text-decoration: none;
+}
+
+.receiptLink:hover {
+  text-decoration: underline;
 }
 
 .railTitle {
@@ -378,7 +542,7 @@ section.group > .groupHead {
 
 @media (min-width: 760px) {
   .layout {
-    grid-template-columns: minmax(0, 1fr) 18rem;
+    grid-template-columns: minmax(0, 2.28fr) minmax(290px, 1fr);
   }
 }
 

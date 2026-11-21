@@ -1,23 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { localClockTime, localDate, systemClock, today } from '@/core/clock';
-import { branchTrail } from '@/core/rules/quick-add';
+import { isBranchAccepting } from '@/core/rules/branch-state';
+import { visibleDefaultTree } from '@/core/rules/branch-visibility';
+import { branchTrail, parseQuickAdd, resolveBranchQuery } from '@/core/rules/quick-add';
 import { deriveOnboardingStep, needsOnboarding } from '@/core/rules/onboarding-state';
 import { reorderIds, type DragPosition } from '@/core/rules/drag-order';
 import { groupTodayTasks, sortByManualOrder, type TodayGroupKey } from '@/core/rules/today-groups';
 import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
+import { createTask } from '@/data/create-task';
 import { useOnboardingData, useTodayData, useStallReminders } from '@/data/hooks';
 import { planTask } from '@/data/plan-task';
 import { reorderTasks } from '@/data/reorder';
 import { updateCommit } from '@/data/update-commit';
-import type { Commit, Task } from '@/data/types';
+import type { Branch, Commit, Task } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useOnboardingStore } from '@/stores/onboarding.store';
 import { useReviewStore } from '@/stores/review.store';
 import { useShellStore } from '@/stores/shell.store';
 import { useTodayStore } from '@/stores/today.store';
 import { EmptyState } from '@/ui/empty-state';
+import { CheckIcon, PlusIcon } from '@/ui/icons';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
 import { useIsCompact } from '@/ui/use-compact';
@@ -36,6 +40,8 @@ interface ReceiptState {
   taskTitle: string;
   commit: Commit;
 }
+
+const EMPTY_BRANCHES: readonly Branch[] = [];
 
 /**
  * P01 今天（PRD M03）。
@@ -80,7 +86,43 @@ export function TodayPage() {
   const [dragging, setDragging] = useState<{ id: string; group: TodayGroupKey } | null>(null);
   const [dropTarget, setDropTarget] = useState<{ id: string; position: DragPosition } | null>(null);
   const [dragRejected, setDragRejected] = useState(false);
+  const [quickText, setQuickText] = useState('');
+  const [quickBusy, setQuickBusy] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+
+  const branches = data.status === 'ready' ? data.branches : EMPTY_BRANCHES;
+
+  const accepting = useMemo(
+    () =>
+      visibleDefaultTree(branches)
+        .filter(isBranchAccepting)
+        .sort((a, b) => a.depth - b.depth || a.order - b.order),
+    [branches],
+  );
+
+  const submitQuick = async () => {
+    const parsed = parseQuickAdd(quickText, todayDate);
+    if (!parsed.title.trim() || quickBusy) return;
+    const matched = parsed.branchQuery ? resolveBranchQuery(accepting, parsed.branchQuery) : null;
+    const branchId = matched?.id ?? accepting.find((branch) => branch.depth === 0)?.id;
+    if (!branchId) {
+      setPageError(t('today.quickAdd.failed'));
+      return;
+    }
+    setQuickBusy(true);
+    const result = await createTask({
+      title: parsed.title,
+      branchId,
+      dueDate: parsed.dueDate ?? null,
+    });
+    setQuickBusy(false);
+    if (result.ok) {
+      setQuickText('');
+      setPageError(null);
+    } else {
+      setPageError(t('today.quickAdd.failed'));
+    }
+  };
 
   useEffect(() => {
     if (!dragRejected) return;
@@ -104,6 +146,7 @@ export function TodayPage() {
 
   const total = groups.overdue.length + groups.today.length + groups.noDue.length;
   const flattened = [...groups.overdue, ...groups.today, ...groups.noDue];
+  const latestCommit = data.status === 'ready' ? (data.commits[0] ?? null) : null;
 
   const focusNext = () => {
     requestAnimationFrame(() => {
@@ -261,10 +304,15 @@ export function TodayPage() {
       titleKey="page.today.title"
       bodyKey="page.today.body"
       action={
-        total > 0 ? (
-          <button type="button" className={styles.action} onClick={() => openOverlay('quick-add')}>
-            {t('page.today.action')}
-          </button>
+        data.status === 'ready' && total > 0 ? (
+          <p className={styles.headSummary}>
+            {groups.dueCount}
+            {t('today.header.dueSuffix')}
+            {t('today.header.separator')}
+            {t('today.header.noDuePrefix')}
+            {groups.noDueCount}
+            {t('today.header.noDueSuffix')}
+          </p>
         ) : undefined
       }
     >
@@ -281,6 +329,37 @@ export function TodayPage() {
 
       {data.status === 'ready' ? <ReviewReminder /> : null}
       {data.status === 'ready' ? <OnboardingCard /> : null}
+
+      {data.status === 'ready' ? (
+        <form
+          className={styles.quickAdd}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submitQuick();
+          }}
+        >
+          <label className={styles.quickField}>
+            <span className={styles.quickIcon} aria-hidden="true">
+              <PlusIcon size={16} />
+            </span>
+            <input
+              className={styles.quickInput}
+              value={quickText}
+              onChange={(event) => setQuickText(event.target.value)}
+              placeholder={t('today.quickAdd.placeholder')}
+              aria-label={t('today.quickAdd.label')}
+              disabled={quickBusy}
+            />
+          </label>
+          <button
+            type="submit"
+            className={styles.quickButton}
+            disabled={quickBusy || quickText.trim().length === 0}
+          >
+            {t('today.quickAdd.submit')}
+          </button>
+        </form>
+      ) : null}
 
       {data.status === 'ready' && total === 0 ? (
         <EmptyState
@@ -307,15 +386,6 @@ export function TodayPage() {
       {data.status === 'ready' && total > 0 ? (
         <div className={styles.layout}>
           <div className={styles.main} ref={listRef}>
-            <p className={styles.summary}>
-              {groups.dueCount}
-              {t('today.header.dueSuffix')}
-              {t('today.header.separator')}
-              {t('today.header.noDuePrefix')}
-              {groups.noDueCount}
-              {t('today.header.noDueSuffix')}
-            </p>
-
             {receipt ? (
               <CompletionReceipt
                 key={receipt.commit.id}
@@ -426,9 +496,73 @@ export function TodayPage() {
             </Link>
           </div>
 
-          <aside className={styles.rail} aria-label={t('today.recent.title')}>
+          <aside className={styles.rail} aria-label={t('today.rail.label')}>
+            <section className={styles.railCard} aria-label={t('today.receipt.latest')}>
+              {latestCommit ? (
+                <>
+                  <div className={styles.receiptHead}>
+                    <span className={styles.receiptCheck} aria-hidden="true">
+                      <CheckIcon size={16} />
+                    </span>
+                    <span className={styles.receiptState}>
+                      {t('today.receipt.latest')}
+                      <span className={styles.receiptTime}>
+                        {localDate(latestCommit.at).slice(5)} {localClockTime(latestCommit.at)}
+                      </span>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.receiptBody}
+                    onClick={() => openCommitDetail(latestCommit.id)}
+                  >
+                    <span className={styles.receiptTitle}>{latestCommit.summary}</span>
+                    <span className={styles.receiptMeta}>
+                      {byId.get(latestCommit.branchId)
+                        ? branchTrail(byId.get(latestCommit.branchId)!, byId)
+                        : latestCommit.branchId}
+                    </span>
+                  </button>
+                  <Link className={styles.receiptLink} to="/history">
+                    {t('today.receipt.view')}
+                  </Link>
+                </>
+              ) : (
+                <p className={styles.railEmpty}>{t('today.receipt.empty')}</p>
+              )}
+            </section>
+
+            <section className={styles.railCard} aria-label={t('today.recent.title')}>
+              <h2 className={styles.railTitle}>{t('today.recent.title')}</h2>
+              {data.commits.length === 0 ? (
+                <p className={styles.railEmpty}>{t('today.recent.empty')}</p>
+              ) : (
+                <ul className={styles.commitList}>
+                  {data.commits.map((commit) => {
+                    const branch = byId.get(commit.branchId);
+                    return (
+                      <li key={commit.id}>
+                        <button
+                          type="button"
+                          className={styles.commit}
+                          onClick={() => openCommitDetail(commit.id)}
+                        >
+                          <span className={styles.commitSummary}>{commit.summary}</span>
+                          <span className={styles.commitMeta}>
+                            {branch ? branchTrail(branch, byId) : commit.branchId}
+                            {t('today.recent.separator')}
+                            {localDate(commit.at).slice(5)} {localClockTime(commit.at)}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+
             {stalls.length > 0 ? (
-              <section className={styles.stallBlock} aria-label={t('today.stall.title')}>
+              <section className={styles.railCard} aria-label={t('today.stall.title')}>
                 <h2 className={styles.railTitle}>{t('today.stall.title')}</h2>
                 <ul className={styles.stallList}>
                   {stalls.map((item) => (
@@ -452,37 +586,12 @@ export function TodayPage() {
               </section>
             ) : null}
 
-            <h2 className={styles.railTitle}>{t('today.recent.title')}</h2>
-            {data.commits.length === 0 ? (
-              <p className={styles.railEmpty}>{t('today.recent.empty')}</p>
-            ) : (
-              <ul className={styles.commitList}>
-                {data.commits.map((commit) => {
-                  const branch = byId.get(commit.branchId);
-                  return (
-                    <li key={commit.id}>
-                      <button
-                        type="button"
-                        className={styles.commit}
-                        onClick={() => openCommitDetail(commit.id)}
-                      >
-                        <span className={styles.commitSummary}>{commit.summary}</span>
-                        <span className={styles.commitMeta}>
-                          {branch ? branchTrail(branch, byId) : commit.branchId}
-                          {t('today.recent.separator')}
-                          {localDate(commit.at).slice(5)} {localClockTime(commit.at)}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+            <WeekReviewCard />
           </aside>
         </div>
       ) : null}
 
-      {data.status === 'ready' ? <WeekReviewCard /> : null}
+      {data.status === 'ready' && total === 0 ? <WeekReviewCard /> : null}
       {data.status === 'ready' && monthOpen ? <MonthReviewPanel /> : null}
       {data.status === 'ready' ? <BadgeToast /> : null}
 

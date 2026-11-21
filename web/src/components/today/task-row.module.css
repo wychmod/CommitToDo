@@ -4,10 +4,10 @@
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
+  align-items: center;
   gap: var(--s3);
-  min-height: var(--tree-row-height);
-  padding: var(--s3) var(--s4);
+  min-height: var(--tree-list-default);
+  padding: var(--s2) var(--s4);
   border-top: 1px solid var(--line);
   background: var(--panel);
 }
@@ -46,7 +46,6 @@
   justify-content: center;
   width: var(--s6);
   height: var(--s6);
-  margin-top: var(--s1);
   padding: 0;
   border: 0;
   background: transparent;
@@ -80,20 +79,20 @@
 
 .main {
   display: flex;
-  flex-direction: column;
-  gap: var(--s1);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
   min-width: 0;
 }
 
 .title {
-  align-self: flex-start;
   max-width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--text);
   font-size: var(--type-body);
-  line-height: 1.45;
+  line-height: 1.4;
   text-align: left;
   cursor: pointer;
   overflow-wrap: anywhere;
@@ -111,7 +110,7 @@
 
 .meta {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--s2);
   color: var(--muted);
@@ -136,7 +135,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 14em;
+  max-width: 10em;
 }
 
 .due {
@@ -178,8 +177,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--s7);
-  height: var(--s7);
+  width: var(--s6);
+  height: var(--s6);
   padding: 0;
   border: 0;
   border-radius: var(--radius-control);
@@ -244,16 +243,20 @@
 }
 
 .menuPlaceholder {
-  width: var(--s7);
+  width: var(--s6);
 }
 
 @media (max-width: 390px) {
   .row {
-    padding: var(--s3);
+    padding: var(--s2) var(--s3);
+    gap: var(--s2);
+  }
+
+  .main {
     gap: var(--s2);
   }
 
   .branchName {
-    max-width: 8em;
+    max-width: 6em;
   }
 }
