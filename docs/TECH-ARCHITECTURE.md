@@ -1,6 +1,6 @@
 # 技术架构方案（2026-11-20）
 
-**状态**: 0.19 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9，代码结构契约（用例、clock/ids、错误、events、升级、断点、命名）见 §2.10、§5.9 与 [代码结构契约](./CODE-STRUCTURE.md)。
+**状态**: 0.20 待评审。本文约定选型与工程边界。视觉设计与页面规格见 [设计交接](./DESIGN.md)，样式工程化见 §2.5，状态/图标/文案/测试见 §2.6–§2.9，代码结构契约（用例、clock/ids、错误、events、升级、断点、命名）见 §2.10、§5.9 与 [代码结构契约](./CODE-STRUCTURE.md)。
 **本版依据**: 数据模型以 `design/images/` 的页面画稿为准（逐页核对结论见 §5.3–§5.3.3 与 [页面数据核对](./PAGE-DATA-CROSSCHECK.md)），不以文字规格反推。
 **约束来源**: [`FRAMEWORK.md`](./FRAMEWORK.md) §4.10（数据与备份）、§4.12（账号与多端）、§7（版本切分）、§8（决策）；[`PRODUCT-STRATEGY.md`](./PRODUCT-STRATEGY.md) §6（硬约束）。
 **本版前提**: 框架 = Vite + React（已定稿）；部署 = 腾讯云 CloudBase 静态托管（已定）；**MVP 数据权威在本机（Dexie 4），无账号、无后端**；**V1 只增加云函数与对象存储（异地备份、匿名计数），仍不带账号**；**V2 才引入云开发身份与云数据库，做一次性迁移**；不做端到端加密。
@@ -219,7 +219,7 @@ CSS Modules 由 Vite 原生支持、零配置；令牌本身就是变量，不�
 
 - CSS 自定义属性不能用在 `@media` 条件里，因此媒体查询内允许直接写这三个数值，且只允许这三个；这是「禁止硬编码尺寸」的唯一例外，其他尺寸仍必须走令牌。
 - 统一移动优先：用 `@media (max-width: 760px)` 做降级，不混写 `min-width`，避免断点交叉。
-- 三个值是否进 `design/design-tokens.json`（`breakpoint.mobile/compact/wide`）**待设计线拍板**；定前以本表为准，不新造 `--bp-*` 变量。
+- 三个值**暂不进 `design/design-tokens.json`**（2026-11-21 定）：保持 390 / 760 / 1440 直接写在媒体查询里，`design/` 下任何文件都不改、不新造 `--bp-*` 变量；是否入令牌由设计线后续决定。
 - PRD 只承诺 390 / 1440 两个验收视口；760 是实现层断点，不新增人工验收项。
 
 ---
@@ -431,6 +431,7 @@ V2 的函数内部只做四件事：确认 `openid`、校验入参与 `rev`、�
 - **枚举值**（写死，不放配置）：`branches.status` = `active` / `merged` / `dropped`；`branches.color` = `coral` / `sky` / `honey` / `mint` / `iris` / `rose` / `teal`（画稿 7 个预设，子分支默认继承父色）；`tasks.status` = `open` / `done` / `cancelled`；`milestones.datePrecision` = `day` / `month`；`settings.theme` = `light` / `dark`；`settings.treeDensity` = `compact` / `comfortable`；`settings.annotations` = `off` / `once` / `always`；`backups.kind` = `auto` / `manual` / `pre-restore` / `remote`。
 - **提交时间到分钟**：画稿在提交行、回执与详情里都显示 `16:42`，因此 `commits` 除业务日期 `date`（`YYYY-MM-DD`，用于按天分桶与时间树定位）外，另存 `at`（UTC 毫秒）作为真实时刻；列表按 `at` 倒序，时间树按 `date` 归列。
 - **时区口径（M05）**：「哪一天」按**操作当时的本地时区**计算——`date` 写当时的业务日，`at` 写同一时刻的 UTC 毫秒。由 `at` 可反推任意时区的时刻，故**不新增时区字段**，`commits` 现有 `date` + `at` 已足够；跨时区旅行造成的同日/跨日差异以操作当时为准，不做事后重算。仅 `events` 审计行保留写入时的 `tzOffset`，业务表不带。
+- **月精度里程碑归一（R6）**：`milestones.datePrecision = 'month'` 时，`achievedAt` 存「**当月 1 日 00:00 本地时间**再转 UTC 毫秒」，即 `Date.UTC(y, m, 1) - tzOffsetMinutes * 60000`；写入与判定都走 `core/clock.ts` 的偏移函数，不手算。`day` 精度保留用户选定的当日 00:00 本地时间转 UTC，不做额外归一。
 - **里程碑备注只在详情消费**：时间树下方的里程碑行只用「日期 + 标题」，详情弹层才有备注；字段仍要落库，否则详情无内容可显示。
 - **本版按画稿删除的字段**：`tasks.priority`（无优先级展示与操作）、`users.prefs`（偏好唯一真源是 `settings`）、`settings.fontScale`（外观只有主题与树密度，无字号控件）、`commits.isBackfill`（无补记入口，提交只能由完成待办产生）。`id` 即内部标识，画稿不展示短 hash，不新增 `hash` 字段。
 
@@ -511,7 +512,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | R3 | 有效提交 | `voidedAt == null`。所有统计（页头计数、周/月/年回顾、`commitCount`、停滞判定）都只用有效提交 | P01、P04、P05、S01、P05 分享图 |
 | R4 | 停滞判定 | 仅 `status=active` 且非归档分支；`ownLastCommitAt` 距今 > 30 天即为停滞，天数 = 今天 − `ownLastCommitAt`；无提交历史的分支不计。今天页最多列 5 条 | P01「阅读 37 天」、P04 虚线、S01 周回顾、S06 帮助 |
 | R5 | 短 hash | 不展示。提交详情只显示「2026 年 11 月 20 日 16:42」，内部 `_id` 不外露，不新增 `hash` 字段 | O03 提交详情 |
-| R6 | `datePrecision` 展示 | `day` → `11 月 16 日`；`month` → `2026 年 11 月`，时间树里对齐到该月列 | P03、P04 里程碑行、S04 新建（过去的里程碑可只填年月） |
+| R6 | `datePrecision` 展示 | `day` → `11 月 16 日`；`month` → `2026 年 11 月`，时间树里对齐到该月列。存储归一：`month` 的 `achievedAt` = 当月 1 日 00:00 本地时间转 UTC 毫秒（§5.3） | P03、P04 里程碑行、S04 新建（过去的里程碑可只填年月） |
 | R7 | 四计数重算 | `taskTotal` = 本分支未删且 `status != cancelled` 的待办数；`taskDone` = `status == done`；`commitCount` = 有效提交数；`ownLastCommitAt` = 有效提交 `at` 最大值。恢复、导入、迁移后全量重算 | 分组树 `4/9`、分支详情进度条 |
 | R8 | 今天三组 | 有截止：`dueDate <= today` 或 `plannedDate = today`。**分组优先级：`plannedDate = today` 的一律进今天组**——即使 `dueDate < today` 也不计入逾期，这是「显式安排到今天」的唯一表达；逾期组 = `dueDate < today` **且** `plannedDate !== today`（只靠时间判定）。无截止组取 `dueDate == null`（IndexedDB 不索引 `null`，用 `[ownerId+status]` 全取后过滤）。父分支 `dropped` 或归档的待办不进今天 | P01 页头「5 条有截止日期 · 另有 2 条无截止日期」与三组条数 |
 | R9 | 周回顾 | 自然周（周一至周日）；「有效提交」同 R3；「活跃的一级分支」= 本周有有效提交的一级分支；「停滞分支」同 R4 并显示天数；周末打开显示「已统计至 11 月 21 日」 | S01 周回顾 8 / 2 / 1 |
@@ -791,7 +792,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 图标 | 自绘内联 SVG，不引图标库；尺寸 16/18/20/24、描边 1.5、颜色取 `currentColor`（§2.7） | 2026-11-21 |
 | 文案 | 单文件 key 化，只 `zh-CN`；不引 i18n 运行时库（§2.8） | 2026-11-21 |
 | 测试 | Vitest 5，只测纯逻辑与 §5.3.3 规则，不写组件快照（§2.9） | 2026-11-21 |
-| 代码结构 | 用例层与事务边界、clock/ids 注入、错误 `Result`、events 写入、Dexie 升级、断点、组件命名七项定稿（§5.9、§2.10，细则见 `CODE-STRUCTURE.md`） | 2026-11-21 |
+| 代码结构 | 用例层与事务边界、clock/ids 注入、错误 `Result`、events 写入、Dexie 升级、断点、组件命名七项定稿（§5.9、§2.10，细则见 `CODE-STRUCTURE.md`）；四项待拍板已定：`events.entityType`、`events.tzOffset` 补入类型、月精度按当月 1 日 00:00 本地转 UTC、断点暂不进设计令牌 | 2026-11-21 |
 
 ### 10.2 已定：不做端到端加密（含异地备份）
 
@@ -849,3 +850,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 0.17 | 2026-11-21 | **测试范围扩到 Dexie 事务**：引入 `fake-indexeddb@6.2.8`（devDependency），Vitest 拆成 `unit`（`src/**`，排除 `src/data/`）与 `db`（`src/data/**`，仅此处 `setupFiles` 加载 `fake-indexeddb/auto`）两个项目，纯函数用例不付 IndexedDB 开销。§2.9 范围改为「纯函数 + R 规则 + Dexie 事务一致性」，新增事务用例约定（每例 `db.delete()` 隔离、就地工厂、断言库内实际值）与覆盖要求（多表写入规则必须补同事务/回滚用例）。落地 `src/data/transactions.test.ts`：完成待办时提交与四计数同事务写入、失败整体回滚 |
 | 0.18 | 2026-11-21 | **按代码修正主键与时区口径**：`settings` 主键由 `_id = 'app'` 改为 `id = 'app'`，并明确本地 7 张表物理主键统一为 `id`（`web/src/data/db.ts`），`_id` 只是 V2 云端主键名；删除「业务日期同时记录 `tzOffset`」的旧表述，补 **M05 时区口径**——日期按操作当时本地时区计算，`commits.date` + `at` 足够，**不新增字段**，仅 `events` 保留审计用 `tzOffset` |
 | 0.19 | 2026-11-21 | **补齐代码结构契约**：新增 §2.10 响应式断点（390 / 760 / 1440，媒体查询内允许写这三个数值，是否进设计令牌待设计线拍板）与 §5.9 七项契约（用例与事务、clock/ids、错误模型、events、Dexie 升级、断点、命名），细则独立为 [`CODE-STRUCTURE.md`](./CODE-STRUCTURE.md)。**修正两处与代码不一致的旧表述**：§5.4「事务在仓储内部闭合」改为「用例是唯一开 `db.transaction` 的地方」；§5.7 的 `src/domain` / `src/application` / `src/data/local` 路径改为实际的 `src/core` / `src/data`（`repositories.ts`、`cloud/`）。§5.5 第 3 条同步 M05 口径。§10.1 补「代码结构」一行。待拍板项（`events.entity` vs `entityType`、`events.tzOffset`、月精度归一化、断点令牌）记在 `CODE-STRUCTURE.md` §8，不改表、不改 PRD |
+| 0.20 | 2026-11-21 | **四项待拍板落定**：①`events` 字段统一 `entityType`，代码 `EventRecord` / `writeEvent` 随文档改（未建索引，不 bump schema）；②`events.tzOffset` 补进 `EventRecord`，由 `WriteDeps.tzOffset(at)` 写入；③月精度里程碑 `achievedAt` 按「当月 1 日 00:00 本地时间转 UTC」归一，写入 §5.3 与 R6；④断点暂不进 `design/design-tokens.json`，`design/` 下文件不动，保持 390 / 760 / 1440 写在媒体查询内。`CODE-STRUCTURE.md` §2.2 / §4 / §6 / §8 同步；`docs/prd/` 未改（`events.action` 字面值由 PRD 线统一） |

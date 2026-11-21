@@ -1,6 +1,6 @@
 # 代码结构契约
 
-**状态**：2026-11-21 定稿（对应 TECH-ARCHITECTURE 0.19）。本文回答七件"开发照做即可"的事：用例层与事务边界、clock/ids 注入、错误模型、events 写入、Dexie 升级、响应式断点、组件与 CSS Modules 命名。与 PRD 的 205 个 OP、`web/src/core/**` 与 `web/src/data/**` 两类测试路径保持相容。
+**状态**：2026-11-21 定稿（对应 TECH-ARCHITECTURE 0.20）。本文回答七件"开发照做即可"的事：用例层与事务边界、clock/ids 注入、错误模型、events 写入、Dexie 升级、响应式断点、组件与 CSS Modules 命名。与 PRD 的 205 个 OP、`web/src/core/**` 与 `web/src/data/**` 两类测试路径保持相容。
 
 依据：`docs/TECH-ARCHITECTURE.md`、`docs/prd/`（25 份，§6.1 的 Harness 模板）、`web/src` 现有骨架。冲突项集中在 §8，不改 PRD、不改已定表结构。
 
@@ -90,7 +90,7 @@ export interface IdSource {
 export const systemIds: IdSource;
 ```
 
-- `src/data/deps.ts` 定义 `WriteDeps = { clock: Clock; ids: IdSource }` 与 `defaultWriteDeps = { clock: systemClock, ids: systemIds }`；用例第二参数默认取它，测试传固定时钟与固定 ID。
+- `src/data/deps.ts` 定义 `WriteDeps = { clock: Clock; ids: IdSource; tzOffset(epochMs): number }` 与 `defaultWriteDeps`（`systemClock` + `systemIds` + `currentTzOffset`）；用例第二参数默认取它，测试传固定时钟、固定 ID 与固定偏移。
 - 领域代码禁止直接 `Date.now()` / `new Date()` / `crypto.randomUUID()`；只在 `core/clock.ts`、`core/ids.ts` 内部出现。
 - `new Date()` 只允许出现在展示层做本地化格式化，且不得参与业务判定。
 
@@ -100,7 +100,8 @@ export const systemIds: IdSource;
 - R8 今天分组：`today(clock, offset)` 产出唯一"今天"字符串，逾期 / 今天 / 无截止三组比较同一个值；调用方不得各自 `new Date()`。
 - V1-06 每日快照：以 `today(clock, offset)` 作自然日键，配合 `settings.lastAutoBackupAt` 判定当日是否已写，不新增字段、不用 `localStorage`。
 - 偏移方向写死：**东正西负**（UTC+8 → `480`），`currentTzOffset = -new Date(epoch).getTimezoneOffset()`。
-- 测试注入方式：`completeTask(input, { clock: fixedClock(Date.UTC(2026, 10, 20, 8, 42)), ids: systemIds })`；不引 sinon/fake-timers。`fixedClock` 只在本测试文件内联定义，不建共享 fixture。
+- 月精度里程碑（R6）归一：`datePrecision = 'month'` 的 `achievedAt` 存「当月 1 日 00:00 **本地时间**再转 UTC 毫秒」，即 `Date.UTC(y, m, 1) - offset*60000`；判定与写入都用 `core/clock.ts` 的偏移函数，不手算。日精度保留用户选定的当日 00:00 本地时间转 UTC，不做额外归一。
+- 测试注入方式：`completeTask(input, { clock: fixedClock(Date.UTC(2026, 10, 20, 8, 42)), ids: systemIds, tzOffset: () => 480 })`；不引 sinon/fake-timers。`fixedClock` 只在本测试文件内联定义，不建共享 fixture。
 
 ## 3. 错误模型
 
@@ -177,8 +178,7 @@ export type EventPayloads = {
 export type EventAction = keyof EventPayloads;
 ```
 
-- 写入统一走 `writeEvent(tx, action, entityId, payload, deps?)`（`src/data/events.ts`），在事务内 `tx.table('events').add`：`entity` 由 action 前缀推导，`at` 取注入时钟，`id` 用 `ids.ulid(at)`。
-- `events.tzOffset` 目前只在 TECH §5.3 声明、代码类型没有，写入先不带该字段，按 §8 #2 待拍板；拍板后再补，不在本次骨架里擅自加。
+- 写入统一走 `writeEvent(tx, action, entityId, payload, deps?)`（`src/data/events.ts`），在事务内 `tx.table('events').add`：`entityType` 由 action 前缀推导，`at` 取注入时钟，`id` 用 `ids.ulid(at)`，`tzOffset` 取 `deps.tzOffset(at)`（审计字段，与 TECH §5.3 一致）。
 - `events` 行只增不改；审计失败不得静默吞掉——事件写失败必须让事务整体回滚（PRD M05/M08 的回滚用例）。
 
 ## 5. Dexie schema 升级与迁移
@@ -207,7 +207,7 @@ this.version(2)
 
 - CSS 自定义属性不能用于 `@media` 条件，因此媒体查询内**允许**写这三个数值，且只允许这三个；这是"禁止硬编码尺寸"的唯一例外，其他尺寸仍必须走令牌。
 - 统一写法：移动优先，`@media (max-width: 760px)` 做降级；不用 `min-width` 混写，避免断点交叉。
-- 是否把三个值加入 `design/design-tokens.json`（`breakpoint.mobile/compact/wide`）**待设计线拍板**；在落地前以本文表格为准，CSS Modules 直接写字面量，不新造 `--bp-*` 变量。
+- 三个值**不进 `design/design-tokens.json`**（已定）：`design/` 下任何文件都不改，也不新造 `--bp-*` 变量；是否入令牌由设计线后续决定，落地时只改本文与媒体查询。
 - PRD 只承诺 390 / 1440 两个验收视口；760 是实现层断点，不新增人工验收项。
 
 ## 7. 组件与 CSS Modules 命名
@@ -233,16 +233,18 @@ this.version(2)
 
 ## 8. 冲突与待拍板
 
-| # | 事项 | 现状 | 处理 |
-| --- | --- | --- | --- |
-| 1 | `events` 字段名 | 代码 `EventRecord.entity`；TECH §5.3 写 `entityType` | **待拍板**。建议统一为 `entityType`；改的是字段名不涉及索引，但按约定不擅自动表 |
-| 2 | `events.tzOffset` | TECH §5.3 有；`web/src/data/types.ts` 无 | **待拍板**。M05 结论要求审计行保留偏移；补字段不 bump schema，但属字段变更，等确认 |
-| 3 | 断点是否进设计令牌 | `design/design-tokens.json` 无断点 | **待设计线拍板**；未定前媒体查询用本文三个数值 |
-| 4 | 月精度里程碑归一化 | PRD README 未决问题 6：当月 1 日 00:00 未写入 TECH 0.18 | **待拍板**（R6 展示口径已定，存储归一化待补） |
-| 5 | PRD 测试文件名与用例文件名 | PRD 用 `undo-transaction.test.ts`、`finish-transaction.test.ts`；本文用例叫 `undo-commit.ts`、`finish-branch.ts` | 不冲突：测试文件按 PRD 保留原名，断言对象指向对应用例即可 |
-| 6 | PRD 未提 760 断点 | PRD §6 只写 390 / 1440 | 以实现层断点补入本文，不新增人工验收 |
-| 7 | `CloudBaseConfigError` | 代码与 PRD 均无此符号 | 不预建；V1 如引入，按 §3.2 归 `data/cloud/`，码 `cloud.not_configured` |
-| 8 | `events.action` 字面值 | V1-01 写 `branch.pause` / `branch.resume` / `branch.archive`；M07 写 `'create'`、M08 写 `'finish'`（无前缀）；M02/M04 只写 "action" | **以本文 `entity.verb` 为准**；PRD 的 `'create'` / `'finish'` 落到库时写 `milestone.create` / `branch.finish`。属 PRD 内部口径不一致，列出不改 PRD |
+下列四项已于 2026-11-21 拍板并落地，保留记录备查；仅 #4 的月精度归一需随实现补单测，#8 已移交 PRD 线统一。
+
+| # | 事项 | 结论 |
+| --- | --- | --- |
+| 1 | `events` 字段名 | **已定：统一 `entityType`**。代码 `EventRecord` 与 `writeEvent` 已改，TECH §5.3 与 PRD 口径一致；`entityType` 未建索引，不 bump schema |
+| 2 | `events.tzOffset` | **已定：补进类型**。`EventRecord.tzOffset`（东正西负，分钟）由 `WriteDeps.tzOffset(at)` 写入；不建索引，不 bump schema |
+| 3 | 断点是否进设计令牌 | **已定：暂不进 `design/design-tokens.json`**。保持 390 / 760 / 1440 直接写在媒体查询里，`design/` 下文件不动；是否入令牌由设计线后续定 |
+| 4 | 月精度里程碑归一化 | **已定：`month` 精度存「当月 1 日 00:00 本地时间转 UTC」**，见 §2.2；R6 与 TECH §5.3 同步。实现时补 `core/rules/milestone-date.test.ts` |
+| 5 | PRD 测试文件名与用例文件名 | 不冲突：测试文件按 PRD 保留原名，断言对象指向对应用例即可 |
+| 6 | PRD 未提 760 断点 | 以实现层断点补入本文，不新增人工验收 |
+| 7 | `CloudBaseConfigError` | 代码与 PRD 均无此符号，不预建；V1 如引入，按 §3.2 归 `data/cloud/`，码 `cloud.not_configured` |
+| 8 | `events.action` 字面值 | 以本文 `entity.verb` 为准；PRD 内 `'create'` / `'finish'` 等不一致已移交 PRD 线统一，本文不改 PRD |
 
 ## 9. 与验证命令的对应
 
