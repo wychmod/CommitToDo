@@ -122,10 +122,12 @@ export interface Settings {
 export interface EventRecord {
   id: string;
   ownerId: OwnerId;
-  entity: 'branch' | 'task' | 'commit' | 'milestone' | 'badge' | 'settings';
+  entityType: 'branch' | 'task' | 'commit' | 'milestone' | 'badge' | 'settings';
   entityId: string;
   action: string;
   payload: Record<string, unknown>;
   at: number;
+  /** 写入时的本地时区偏移（东正西负，分钟），审计用；业务表不带。 */
+  tzOffset: number;
   deviceId: string | null;
 }

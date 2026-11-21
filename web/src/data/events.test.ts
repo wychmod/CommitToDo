@@ -16,7 +16,11 @@ beforeEach(async () => {
 describe('writeEvent', () => {
   it('在事务内写入一条事件，entity 由 action 前缀推导', async () => {
     const at = Date.UTC(2026, 10, 20, 8, 42);
-    const deps = { clock: { now: () => at }, ids: { ulid: (now: number) => `ulid-${now}` } };
+    const deps = {
+      clock: { now: () => at },
+      ids: { ulid: (now: number) => `ulid-${now}` },
+      tzOffset: () => 480,
+    };
 
     await db.transaction('rw', [db.events], async (tx) => {
       await writeEvent(
@@ -32,7 +36,7 @@ describe('writeEvent', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({
       id: `ulid-${at}`,
-      entity: 'branch',
+      entityType: 'branch',
       entityId: 'branch-1',
       action: 'branch.finish',
       payload: {
@@ -42,6 +46,7 @@ describe('writeEvent', () => {
         movedTaskCount: 2,
       },
       at,
+      tzOffset: 480,
     });
   });
 

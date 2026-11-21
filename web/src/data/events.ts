@@ -36,12 +36,13 @@ export async function writeEvent<A extends EventAction>(
   const row: EventRecord = {
     id,
     ownerId: LOCAL_OWNER_ID,
-    entity: entityOf(action),
+    entityType: entityOf(action),
     entityId,
     action,
     // EventRecord.payload 是 Record<string, unknown>，具体形状由 EventPayloads 约束。
     payload: payload as Record<string, unknown>,
     at,
+    tzOffset: deps.tzOffset(at),
     deviceId: null,
   };
   await tx.table<EventRecord, string>('events').add(row);
