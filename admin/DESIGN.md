@@ -526,7 +526,7 @@ ADMIN_EMAIL_VERIFICATION_MODE="enforce"
 
 M18 步骤顺序固定为：`注册` → `建分支` → `完成待办` → `首次提交` → `首次同步`。同一步骤只计一次；用户在某步之前没有完成前序步骤也算触达后续步骤（漏斗图如实展示，不强制路径唯一），另给一列「严格路径转化」用于对比。
 
-**实现（2026-11-23）**：`admin-api` 的 `buildFunnel` 按上述口径计算，返回 `funnel = { status, cohortSource, cohort, windowDays, steps[{key,label,users,rate}], strictUsers, strictRate }`；`usage = { status, counts[{event,label,value,implemented}], missing, note }`。当前 `review.open` 只有事件类型与校验、Web 端尚无调用点，因此该计数返回 `null` 并列入 `missing`，不按 0 计；`ops_events` 表缺失 → 两项 `not_ready`，表存在但窗口内无事件 → M17 为 0、M18 为 `insufficient`。
+**实现（2026-11-23）**：`admin-api` 的 `buildFunnel` 按上述口径计算，返回 `funnel = { status, cohortSource, cohort, windowDays, steps[{key,label,users,rate}], strictUsers, strictRate }`；`usage = { status, counts[{event,label,value,implemented}], missing, note }`。`missing` 由 `USAGE_EVENT_LABELS` 的 `implemented` 标记派生；Web 端已补齐 `review.open`（`fa18009`：周回顾展开、月回顾打开、进年轮页分别以 `week`/`month`/`year` 上报），因此 8 类事件全部按真实事件计数，`missing` 为空。`ops_events` 表缺失 → 两项 `not_ready`，表存在但窗口内无事件 → M17 为 0、M18 为 `insufficient`。
 
 #### 5.6.5 共同规则
 
@@ -822,7 +822,7 @@ tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
 
 ## 12. Web 端埋点清单（已由 Web 线落地）
 
-> 2026-11-23 核对：下列事件除 `review.open` 外均已在 `web/src` 有调用点；`ops-event` 云函数已部署，事件写入 `ops_events` 并维护 `user_first_seen`。管理站不修改 `web/src/**`。
+> 2026-11-23 核对：下列 8 类事件均已在 `web/src` 有调用点（`review.open` 由 `fa18009` 补齐）；`ops-event` 云函数已部署，事件写入 `ops_events` 并维护 `user_first_seen`。管理站不修改 `web/src/**`。
 
 | 文件 | 改动 | 事件 |
 |---|---|---|
@@ -835,7 +835,7 @@ tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
 | `web/src/data/create-branch.ts` | 新建分支成功后上报 | `branch.create`（`depth`） |
 | `web/src/data/create-milestone.ts` | 新建里程碑成功后上报 | `milestone.create`（`precision`） |
 | `web/src/data/grant-badge.ts` | 授予徽章成功后上报 | `badge.grant`（`catalogId`） |
-| 周/月/年回顾页 | **尚缺**：打开回顾时调用 `trackOpsEvent('review.open', { kind })` | `review.open` |
+| 周/月/年回顾页 | 已落地（`fa18009`）：周回顾展开 / 月回顾打开 / 进年轮页分别上报 | `review.open`（`kind = week` / `month` / `year`） |
 
 补充约束：
 

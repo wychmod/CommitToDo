@@ -178,7 +178,7 @@ const USAGE_EVENT_LABELS = [
   ['commit.create', '创建提交', true],
   ['milestone.create', '新建里程碑', true],
   ['badge.grant', '授予徽章', true],
-  ['review.open', '打开回顾', false],
+  ['review.open', '打开回顾', true],
   ['sync.push', '同步推送', true],
   ['backup.upload', '异地备份', true],
 ];
