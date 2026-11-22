@@ -684,11 +684,12 @@ await app.callFunction({
 |---|---|
 | 前端工程 | `admin/`（独立 `package.json` 与 lockfile） |
 | 构建命令 | `cd admin && npm ci && npm run build` |
-| 构建产物 | `admin/dist/`（`index.html` + `assets/*`） |
+| 构建产物 | `admin/dist/`（`index.html` + `assets/*` + 各路由的 `index.html` 副本） |
 | 生产 `base` | `/admin-console/` |
 | 静态托管目标 | 环境 `committodo-d6gmapg0j6397889f` 的 `/admin-console` 子路径 |
-| 部署命令 | `npx @cloudbase/cli hosting deploy dist /admin-console -e committodo-d6gmapg0j6397889f` |
-| 当前状态 | **未执行**；等用户确认后再发布，不覆盖 web 根目录 |
+| 访问域名 | `https://committodo-d6gmapg0j6397889f-1259162353.tcloudbaseapp.com/admin-console/` |
+| 部署命令 | `npx @cloudbase/cli hosting deploy ./dist /admin-console -e committodo-d6gmapg0j6397889f --verify` |
+| 当前状态 | 2026-11-22 已发布；只写 `/admin-console`，未改 web 根目录与既有对象 |
 
 ### 10.2 环境变量清单
 
@@ -730,10 +731,10 @@ tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
 
 ### 10.5 更新流程
 
-1. 前端：`cd admin && npm ci && npm run build`；确认 `dist/index.html` 引用 `/admin-console/assets/...`。
+1. 前端：`cd admin && npm ci && npm run build`；`vite.config.ts` 的 `spaRouteFallbacks` 会为 `/tables`、`/audit` 和 18 个 `/tables/<collection>` 各复制一份 `index.html`。确认 `dist/index.html` 引用 `/admin-console/assets/...` 且含 `noindex,nofollow`。
 2. 云函数：改动后按 §10.3 重新 `fn deploy`；改环境变量用 `tcb fn env` 或控制台。
-3. 静态托管：经用户确认后执行 §10.1 的 `hosting deploy`，只写 `/admin-console`，不动 web 根路径与既有 bucket 对象。
-4. 发布后回归：`whoami` → `tables.list` → `metrics.overview` → 浏览器打开 `/admin-console/` 确认资源 200。
+3. 静态托管：执行 §10.1 的 `hosting deploy`，只写 `/admin-console`，不动 web 根路径与既有 bucket 对象。
+4. 发布后回归：`whoami` → `tables.list` → `metrics.overview` → 浏览器打开 `/admin-console/` 与任一深链接，确认 HTML 与资源均 200。
 
 ---
 
@@ -771,6 +772,19 @@ tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
 - 现状：无法用匿名 key 验证（匿名登录未开启）。
 - 需要确认：所有业务集合应为「仅云函数可读写」，客户端 Web SDK 直接 `collection().get()` 应被拒绝。
 - 这条已列为待办，需到控制台「数据库 → 安全规则」逐集合确认；管理站代码无法替代该配置。
+
+### 11.4 静态托管与深链接回退（2026-11-22）
+
+| 项 | 结论 |
+|---|---|
+| 环境支持的配置方式 | CloudBase CLI 没有设置错误文档 / rewrite 的命令；`hosting detail` 显示 `errorDocument` 为空。桶级静态网站配置可设 `IndexDocument` 与 `RoutingRules`，但路由规则是**重定向**（3xx），且错误文档是**整桶生效** |
+| 为什么不设整桶错误文档 | 同桶根目录是 Web 客户端；把错误文档指向 `admin-console/index.html` 会让 Web 的 404 返回管理站 HTML，影响另一条产品线 |
+| 为什么不设前缀重定向 | 前缀 + 404 的规则会把 `/admin-console/tables/branches` 302 到 `/admin-console/index.html`，URL 与目标路由丢失，不满足“深链接返回 200 并落在原页面” |
+| 采用方案 | 保留 `BrowserRouter`；构建时由 `vite.config.ts` 的 `spaRouteFallbacks` 为已注册路由生成 `index.html` 副本，利用桶已有 `AutoAddressing`（`/dir` 自动寻址 `dir/index.html`）实现无重定向回退 |
+| 覆盖路由 | `/`、`/tables`、`/audit`、`/tables/<18 个集合>`；行详情与编辑是抽屉，不占路由。新增路由必须同步更新 `ADMIN_COLLECTIONS` 或路由列表，否则该深链接返回 404 |
+| 部署结果 | `tcb hosting list /admin-console` 共 23 个对象；`hosting deploy --verify` 的上传成功但校验阶段因 CDN 尚未生效报“缺失”，属假阴性，已用实际 HTTP 复核 |
+| HTTP 复核 | `/admin-console/`、`/admin-console`、`/admin-console/tables`、`/admin-console/tables/branches`、`/admin-console/tables/ops_events`、`/admin-console/audit` 均 `200 text/html`；JS/CSS 资源 `200`；深链接返回的 HTML 含 `noindex,nofollow`、标题“CommitToDo 管理站”、资源前缀 `/admin-console/assets/` |
+| 接口 fail-closed | 部署前 `admin-api` 未配置 `ADMIN_EMAILS`；`tables.list`、`metrics.overview`、`tables.rows`、`audit.list`、`tables.update` 无身份调用均返回 `admin_unauthenticated` 401 |
 
 ---
 
