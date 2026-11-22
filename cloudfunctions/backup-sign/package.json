@@ -1,10 +1,10 @@
 {
-  "name": "backup.sign",
+  "name": "backup-sign",
   "version": "1.0.0",
   "private": true,
   "description": "V1-06 异地备份：整包上传、下载地址与删除",
   "main": "index.js",
   "dependencies": {
-    "@cloudbase/node-sdk": "^3.1.0"
+    "@cloudbase/node-sdk": "^4.2.1"
   }
 }

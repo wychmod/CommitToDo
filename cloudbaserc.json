@@ -3,9 +3,9 @@
   "functionRoot": "./cloudfunctions",
   "functions": [
     {
-      "name": "backup.sign",
+      "name": "backup-sign",
       "timeout": 20,
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs20.19",
       "handler": "index.main",
       "installDependency": true
     },

@@ -66,7 +66,7 @@ export async function pushOutbox(ops: readonly OutboxOp[]): Promise<Result<PushR
     results?: PushOpResult[];
     devices?: RawDevice[];
     serverTime?: number;
-  }>('sync.push', { ops });
+  }>('sync-push', { ops });
   if (!result.ok) return result;
 
   const serverTime = result.value.serverTime ?? Date.now();
@@ -82,14 +82,14 @@ export async function pushMigrationPage(
   collection: string,
   rows: ReadonlyArray<Record<string, unknown>>,
 ): Promise<Result<{ pushed: number }>> {
-  const result = await callFunction<{ pushed?: number }>('migrate.push', { collection, rows });
+  const result = await callFunction<{ pushed?: number }>('migrate-push', { collection, rows });
   if (!result.ok) return result;
   return ok({ pushed: result.value.pushed ?? rows.length });
 }
 
 /** 匿名计数：只收白名单字段，服务端按「事件名 + 日期」幂等累加。 */
 export async function sendAnonymousCount(payload: AnonymousStatsPayload): Promise<Result<null>> {
-  const result = await callFunction<null>('counter.inc', {
+  const result = await callFunction<null>('counter-inc', {
     event: 'workspace.daily',
     date: payload.localDate,
     payload,
@@ -99,7 +99,7 @@ export async function sendAnonymousCount(payload: AnonymousStatsPayload): Promis
 
 /** 设备明细与最近同步时间由服务端维护；读失败时界面只显示本机。 */
 export async function fetchDevices(): Promise<Result<Device[]>> {
-  const result = await callFunction<{ devices?: RawDevice[] }>('sync.devices', {});
+  const result = await callFunction<{ devices?: RawDevice[] }>('sync-devices', {});
   if (!result.ok) return result;
   const now = Date.now();
   return ok((result.value.devices ?? []).map((raw) => toDevice(raw, now)));

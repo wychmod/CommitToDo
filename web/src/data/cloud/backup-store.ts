@@ -8,7 +8,7 @@ import { fail, ok, type Result } from '@/core/errors';
  * 保留本机数据并避免生成空记录。
  */
 
-const FUNCTION_NAME = 'backup.sign';
+const FUNCTION_NAME = 'backup-sign';
 
 interface CallResult {
   remoteKey?: unknown;
