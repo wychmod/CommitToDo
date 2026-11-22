@@ -419,7 +419,7 @@ ADMIN_EMAIL_VERIFICATION_MODE="enforce"
 | M17 | 功能使用 | 搜索、回顾、模板、徽章等使用次数 | 对应事件 | 按事件名与日分桶 |
 | M18 | 使用漏斗 | 注册 → 建分支 → 完成待办 → 首次提交 → 首次同步 | `account.signup`、`branch.create`、`task.complete`、`commit.create`、`sync.push` | 同一 `userId` 在窗口内是否触达各步，输出各步人数与转化率 |
 
-第一阶段看板优先展示：**M1–M8、M10–M15**；M9、M16–M18 作为后续补充。
+看板已聚合 M1–M8、M10–M18；M9（同步耗时）仍缺服务端字段，见 §12。总览新增「功能使用」与「使用漏斗」两卡承载 M17/M18，其余指标按原有 KPI、趋势、留存与底部卡片展示。
 
 ### 5.3 事件字段
 
@@ -525,6 +525,8 @@ ADMIN_EMAIL_VERIFICATION_MODE="enforce"
 | M18 使用漏斗 | 各步 cohort 内去重 `userId` 数 | cohort = `account.signup` 落在 `[from, to]` 的去重 `userId`；无注册事件时回退 `user_first_seen.firstSeenDate` | 每个用户观察窗 `[注册本地日, min(today, 注册本地日+30)]` | `account.signup`、`branch.create`、`task.complete`、`commit.create`、`sync.push`、`userId`、`localDate` | 事件表缺失 → `not_ready`；cohort=0 → `insufficient`；每步输出人数与「该步人数 / cohort」转化率 |
 
 M18 步骤顺序固定为：`注册` → `建分支` → `完成待办` → `首次提交` → `首次同步`。同一步骤只计一次；用户在某步之前没有完成前序步骤也算触达后续步骤（漏斗图如实展示，不强制路径唯一），另给一列「严格路径转化」用于对比。
+
+**实现（2026-11-23）**：`admin-api` 的 `buildFunnel` 按上述口径计算，返回 `funnel = { status, cohortSource, cohort, windowDays, steps[{key,label,users,rate}], strictUsers, strictRate }`；`usage = { status, counts[{event,label,value,implemented}], missing, note }`。当前 `review.open` 只有事件类型与校验、Web 端尚无调用点，因此该计数返回 `null` 并列入 `missing`，不按 0 计；`ops_events` 表缺失 → 两项 `not_ready`，表存在但窗口内无事件 → M17 为 0、M18 为 `insufficient`。
 
 #### 5.6.5 共同规则
 
@@ -642,7 +644,7 @@ await app.callFunction({
 |---|---|---|---|---|
 | D1 | 是否区分只读管理员与可写管理员 | A. 单一 `ADMIN_EMAILS`；B. 再加 `ADMIN_WRITE_EMAILS` | **A** | 白名单内即管理员；写接口仍受字段白名单与审计约束 |
 | D2 | 编辑是否二次确认 | A. 弹窗确认；B. 必须输入行 ID；C. 不确认 | **A（抽屉内确认层）** | 确认层逐字段列旧值/新值；不要求手输 ID，避免无谓摩擦 |
-| D3 | 指标先上哪些 | A. M1–M12；B. 再加 M13–M18 漏斗 | **A** | `metrics.overview` 覆盖 M1–M12；M13–M18 无事件来源，保持未接入，不造假 |
+| D3 | 指标先上哪些 | A. M1–M12；B. 再加 M13–M18 漏斗 | **B** | `metrics.overview` 已覆盖 M1–M8、M10–M18；M17/M18 只读 `ops_events`，表缺失→未接入，无事件→0/样本不足，不估算；M9 仍缺字段 |
 | D4 | 留存主口径 | A. 精确日；B. 任意回访；C. 两者都展示 | **A（精确日 D1/D7/D30）** | 队列按 `firstSeenDate` 精确日；C 需额外口径与图位 |
 | D5 | 原始事件保留多久 | A. 90 天；B. 180 天；C. 400 天 | **C（400 天）** | `ops-retention` 已按 400 天清理 |
 | D6 | 未登录/匿名事件是否统计 | A. 只统计登录账号；B. 同时统计匿名安装 | **A（账号口径）** | 日活/周活/月活/留存只认 `userId`；设备数用 `visitorId` 兜底，仅作设备维度 |
@@ -813,17 +815,19 @@ tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
 | 静态托管发布 | `tcb hosting deploy ./dist /admin-console` | 23 个文件全部上传成功，未写 web 根目录 |
 | 深链接 | curl `/admin-console/`、`/admin-console/tables/branches`、`/admin-console/audit` | 全部 `200` |
 | `--verify` 行为 | 带 `--verify` 的同一命令 | 上传成功但校验报 `missing=...`；属 CDN 同步假阴性，去掉 `--verify` 后以真实 HTTP 复核为准 |
+| M17/M18 聚合 | `node --check index.js` + admin build | 通过；`metrics.overview` 新增 `usage` / `funnel` 两块，前端新增两卡 |
+| M17/M18 视觉 | 1440/390/空态截图 | 实测见 `PIXEL-AUDIT.md` §3.6；`funnelGrid` 1440 为 1296×310.4，390 为 350×740.9 |
 
 ---
 
-## 12. Web 端埋点改动清单（只报告，未修改 `web/src/**`）
+## 12. Web 端埋点清单（已由 Web 线落地）
 
-> 等用户确认没有其他线在改这些文件后再实施。
+> 2026-11-23 核对：下列事件除 `review.open` 外均已在 `web/src` 有调用点；`ops-event` 云函数已部署，事件写入 `ops_events` 并维护 `user_first_seen`。管理站不修改 `web/src/**`。
 
 | 文件 | 改动 | 事件 |
 |---|---|---|
-| `web/src/data/cloud/ops-events.ts`（新增） | 事件队列 + `callFunction('ops-event')`；自动补 `localDate`（`core/clock` 的 `today()`）、`tzOffset`（`-new Date().getTimezoneOffset()`）、`eventId`（ULID/UUID）；失败静默、不重试阻塞主流程 | 通用 |
-| `web/src/components/layout/app-shell.tsx` | 每个本地日首次进入工作区上报一次（localStorage 记已上报日期） | `app.open` |
+| `web/src/data/ops-events.ts` | 事件队列、批量上报、每日去重；自动补 `localDate`、`tzOffset`、`eventId`；失败静默 | 通用 |
+| `web/src/data/ops-events.ts` | 每个本地日首次进入工作区上报一次 | `app.open` |
 | `web/src/data/cloud/auth.ts` | 注册成功后上报 | `account.signup`（`method`） |
 | `web/src/data/sync.ts` | `pushOutbox` 结束后按结果上报 | `sync.push`（`ops`、`result`、`errorCode`） |
 | `web/src/data/upload-remote-backup.ts` | 备份上传结束后上报 | `backup.upload`（`result`、`bytes`、`errorCode`） |
@@ -831,7 +835,12 @@ tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
 | `web/src/data/create-branch.ts` | 新建分支成功后上报 | `branch.create`（`depth`） |
 | `web/src/data/create-milestone.ts` | 新建里程碑成功后上报 | `milestone.create`（`precision`） |
 | `web/src/data/grant-badge.ts` | 授予徽章成功后上报 | `badge.grant`（`catalogId`） |
-| 周/月/年回顾页 | 打开回顾时上报 | `review.open`（`kind`） |
+| 周/月/年回顾页 | **尚缺**：打开回顾时调用 `trackOpsEvent('review.open', { kind })` | `review.open` |
+
+补充约束：
+
+- 事件只在用户开启「匿名统计」后上报；关闭时 `ops_events` 不会有新行，M17/M18 显示 0 或样本不足，属预期，不用估算补。
+- M9（同步耗时）仍缺服务端字段：需要在 `sync.push` 事件里补 `durationMs`（或服务端记录耗时），否则 M9 保持未接入。
 
 - 所有上报都在业务成功后异步发出，不改变原有用例的返回值和事务边界。
 - 不上报标题、备注、邮箱、分支名等自由文本；`eventId` 由客户端生成，重试复用同一个。
