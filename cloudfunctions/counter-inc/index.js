@@ -85,24 +85,25 @@ exports.main = async (event) => {
 
   try {
     const id = `${name}:${date}`;
-    let value = 0;
+    // 原子自增，避免并发上报时互相覆盖；文档只定义 `_id` 与 `value`，不额外落字段。
+    const command = db.command;
+    let updated = null;
     try {
-      const existing = await db.collection('counters').doc(id).get();
-      const row = (existing.data && existing.data[0]) || null;
-      value = row && Number.isFinite(Number(row.value)) ? Number(row.value) : 0;
+      updated = await db
+        .collection('counters')
+        .doc(id)
+        .update({ value: command.inc(1) });
     } catch (error) {
-      if (!isEmptyCollectionError(error)) throw error;
+      if (!/DOCUMENT_NOT_EXIST|not exist/i.test(String((error && error.message) || ''))) {
+        throw error;
+      }
     }
-    await db
-      .collection('counters')
-      .doc(id)
-      .set({
-        event: name,
-        date,
-        value: value + 1,
-        updatedAt: Date.now()
-      });
-    return { ok: true, value: value + 1 };
+    if (!updated || !updated.updated) {
+      await db.collection('counters').doc(id).set({ value: 1 });
+    }
+    const current = await db.collection('counters').doc(id).get();
+    const row = (current.data && current.data[0]) || null;
+    return { ok: true, value: row && Number(row.value) ? Number(row.value) : 1 };
   } catch (error) {
     const normalized = collectionMissing(error);
     return {

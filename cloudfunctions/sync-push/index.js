@@ -105,21 +105,27 @@ async function writeApplied(ownerId, op, result, serverTime, deviceId) {
   }
 }
 
+/** 设备元数据缺失不影响业务数据补推，只影响设备页的最近同步时间。 */
 async function touchDevice(ownerId, device, serverTime) {
   const id = String((device && device.id) || '');
   if (!id) return;
-  const existing = await getRow('devices', id);
-  await db
-    .collection('devices')
-    .doc(id)
-    .set({
-      ownerId,
-      label: String(device.label || (existing && existing.label) || ''),
-      platform: String(device.platform || (existing && existing.platform) || ''),
-      lastSyncAt: serverTime,
-      createdAt: (existing && existing.createdAt) || serverTime,
-      removedAt: (existing && existing.removedAt) || null
-    });
+  try {
+    const existing = await getRow('devices', id);
+    await db
+      .collection('devices')
+      .doc(id)
+      .set({
+        ownerId,
+        label: String(device.label || (existing && existing.label) || ''),
+        platform: String(device.platform || (existing && existing.platform) || ''),
+        lastSyncAt: serverTime,
+        createdAt: (existing && existing.createdAt) || serverTime,
+        removedAt: (existing && existing.removedAt) || null
+      });
+  } catch (error) {
+    if (isEmptyCollectionError(error)) return;
+    throw error;
+  }
 }
 
 async function listDevices(ownerId) {
