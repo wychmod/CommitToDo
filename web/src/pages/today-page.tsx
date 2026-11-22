@@ -58,7 +58,7 @@ const WEEKDAY_KEYS = [
 /** 画稿页头：2026 年 11 月 20 日 · 周五。 */
 function dateLabelOf(date: string): string {
   const [year, month, day] = date.split('-').map(Number);
-  return `${year}${t('milestone.date.yearSuffix')}${month}${t('milestone.date.monthSuffix')}${day}${t('milestone.date.daySuffix')}${t('today.date.separator')}${t(WEEKDAY_KEYS[weekDayOf(date) - 1]!)}`;
+  return `${year}${t('milestone.date.yearSuffix')} ${month}${t('milestone.date.monthSuffix')} ${day}${t('milestone.date.daySuffix')}${t('today.date.separator')}${t(WEEKDAY_KEYS[weekDayOf(date) - 1]!)}`;
 }
 
 /** 右栏的短日期：11 月 20 日。 */
@@ -345,11 +345,7 @@ export function TodayPage() {
             disabled={quickBusy}
           />
         </label>
-        <button
-          type="submit"
-          className={styles.quickButton}
-          disabled={quickBusy || quickText.trim().length === 0}
-        >
+        <button type="submit" className={styles.quickButton} disabled={quickBusy}>
           {t('today.quickAdd.submit')}
         </button>
       </form>
