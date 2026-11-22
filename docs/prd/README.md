@@ -63,10 +63,10 @@ PRD 不重新设计视觉、不改表结构、不引入新的技术选型。文�
 
 | 编号 | 文件 | 名称 | 覆盖功能点 | 页面 / 视图 | 前置 |
 | --- | --- | --- | --- | --- | --- |
-| V2-01 | [V2-01-account-auth.md](V2-01-account-auth.md) | 账号与登录 | L-02 | P09、P10、P11；S11-recover-sent、S11-recover-reset、O07-sync-entry | 全部 MVP/V1 页面可用 |
+| V2-01 | [V2-01-account-auth.md](V2-01-account-auth.md) | 账号与登录 | L-02 | [最新 Web 认证 UI 参考](../web-auth/DESIGN.md) · P09、P10、P11、S11、O07 与账号设置 | 全部 MVP/V1 页面可用 |
 | V2-02 | [V2-02-sync.md](V2-02-sync.md) | 多设备同步与匿名统计 | L-03、J-08、J-07 | O08-sync-devices、O08-sync-conflict | V2-01、CloudBase 后端 |
 | V2-03 | [V2-03-help-easter-eggs-templates.md](V2-03-help-easter-eggs-templates.md) | 帮助、彩蛋徽章与分支模板 | I-03、H-06、B-03 | S06-help | V1-05、M02 |
-| V2-04 | [V2-04-second-client.md](V2-04-second-client.md) | 第二端只读 | L-04 | 无画稿，端未定 | V2-02 |
+| V2-04 | [V2-04-second-client.md](V2-04-second-client.md) | 微信小程序只读 | L-04 | [首次打开、今天、分支、历程](../miniprogram/DESIGN.md) | V2-01、V2-02 |
 
 ## 4. 依赖与交付顺序
 
@@ -93,7 +93,7 @@ M12 引导 = M03 + M05 + M06 + M02
 
 **V1 顺序**：V1-01（生命周期）→ V1-02（年轮）→ V1-03（回顾与分享）→ V1-04（搜索）→ V1-05（徽章完整）→ V1-06（备份）→ V1-07（录入）→ V1-08（排序）。V1-06 与 V1-04 可提前并行。
 
-**V2 顺序**：V2-01（身份）→ V2-02（同步与匿名统计）→ V2-03（帮助与内容）→ V2-04（第二端）。V2-03 不依赖 V2-02，可与 V2-01 并行。
+**V2 顺序**：V2-01（身份）→ V2-02（同步与匿名统计）→ V2-03（帮助与内容）→ V2-04（微信小程序只读）。V2-03 不依赖 V2-02，可与 V2-01 并行。共享云函数目录在 Web 首次交付云函数时建立，按现有范围随 V1-06 异地备份落地。小程序在 V2 接入同一套 CloudBase 后端。见 [技术架构](../TECH-ARCHITECTURE.md)。
 
 ## 5. 页面与视图覆盖核对
 
@@ -126,7 +126,7 @@ M12 引导 = M03 + M05 + M06 + M02
 
 - **五种状态**：每份 PRD 的界面章节固定回答「空 / 加载 / 错误 / 只读 / 无权限或未登录」。MVP 与 V1 无账号，「未登录」一栏写「不适用，功能不得要求登录」（L-01）；V2 相关 PRD 必须写真实拦截与返回路径。
 - **桌面 1440 px、窄屏 390 px**：明细与编辑在桌面用侧栏、窄屏用全屏面板，保留关闭入口；分组树在窄屏保留层级与行尾操作；历程在窄屏改纵向时间线。
-- **数据**：MVP 只使用 `branches`、`tasks`、`commits`、`milestones`、`badges`、`settings`、`events` 七张表；V1 增加 `backups`、`year_reviews`、`counters`；V2 增加 `users`、`devices`、`outbox`、`conflicts`、`migration_state`。PRD 只引用，不改结构。
+- **数据**：MVP 使用 `branches`、`tasks`、`commits`、`milestones`、`badges`、`settings`、`events` 七张表。V1 增加 `backups`、`year_reviews`。V2 增加 `users`、`devices`、`outbox`、`conflicts`、`migration_state`，匿名统计随 V2 启用云端 `counters`。表结构以 [技术架构](../TECH-ARCHITECTURE.md) 为准。
 - **派生数据一律现算**：周/月/年统计、停滞天数、徽章差距、四计数校验都不落库；唯一例外是 `branches` 上四个计数（R7），由写入事务维护，导入/恢复后全量重算。
 - **规则引用**：完成 R1、撤销 R2、有效提交 R3、停滞 R4、短 hash R5、日期精度 R6、四计数 R7、今天三组 R8、周回顾 R9、月回顾 R10、年轮 R11、收尾 R12、删除 R13、归档 R14、放下 R15、额度 R16、备份 R17、徽章 R18、主题 R19。
 - **视觉与动效**：PRD 只写「用哪个既有组件/状态」，不写颜色值与缓动数值；需要时链接到 `UI-VISUAL.md`、`UI-MOTION.md` 与 `design-tokens.json`。
@@ -188,7 +188,7 @@ M12 引导 = M03 + M05 + M06 + M02
 
 1. V2 登录渠道（手机号 / 微信 / 邮箱 OTP）与找回方式；邮箱前端粗校验已定，真实有效性交服务端。
 2. V2 同步冲突的展示与解决动作，`conflicts` 字段如何映射到「分支历史留痕」。
-3. 第二端选型（小程序 / 桌面）与只读范围。
+3. 微信小程序的离线读取与缓存范围，见 [V2-04](V2-04-second-client.md) §7。
 4. 周分享图**视觉待办**：缺 4:5 视觉稿，卡住 V1-03 的 G-04；不阻塞周回顾数据、年度分享图与月回顾。
 5. E-04 补记按 0.12 不实现；若恢复需先改表结构与页面规范。K-04 字号调节已定不做，不再列为待恢复项。
 6. 里程碑只填年月时的存储归一化（当月 1 日或月首本地零点）尚未写入 0.12。

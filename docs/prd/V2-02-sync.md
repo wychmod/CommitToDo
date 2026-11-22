@@ -146,7 +146,7 @@ A、B 同时修改同一条待办标题 → A 先提交成功 → B 的写入被
 | `devices` | `_id`（设备 ID）、`ownerId`、`label`、`platform`、`lastSyncAt`、`createdAt`、`removedAt` | 设备列表与最近同步 |
 | `migration_state` | `_id`（集合名）、`lastId`、`pushed`、`done`、`updatedAt` | 首次迁移断点续传 |
 | `counters` | `_id`（事件名 + 日期）、`value` | 匿名统计计数器，只由云函数写 |
-| `users` | `_id`（= `openid`）、`ownerId` | 同步主体，由 V2-01 提供 |
+| `users` | `_id`（= `principalId`） | 同步主体由 V2-01 提供。两端登录身份按 [账号归属规则](../TECH-ARCHITECTURE.md#63-权限模型v2-起) 解析到同一账号，业务记录用对应的 `ownerId` 归属 |
 | `events` | `entityType='sync'`、`action='sync.conflict'`、`payload`（含 `branchId`）、`at` | 分支冲突留痕；`entityType` 由 action 前缀推导为 `sync`，分支历史按 `payload.branchId` 反查 |
 
 规则：
