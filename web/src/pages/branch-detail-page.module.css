@@ -59,7 +59,7 @@
   display: block;
   height: var(--s1);
   border-radius: var(--radius-marker);
-  background: var(--inset);
+  background: var(--neutral-bg);
   overflow: hidden;
 }
 

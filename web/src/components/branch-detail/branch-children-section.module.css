@@ -1,7 +1,10 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  overflow: hidden;
 }
 
 .head {
@@ -9,6 +12,9 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--s2);
+  min-height: var(--s9);
+  padding: var(--s2) var(--s4);
+  border-bottom: 1px solid var(--line);
 }
 
 .title {
@@ -49,9 +55,8 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--s1);
   margin: 0;
-  padding: 0;
+  padding: var(--s1) var(--s2);
   list-style: none;
 }
 
@@ -73,7 +78,7 @@
 
 .link:hover {
   border-color: var(--line);
-  background: var(--panel);
+  background: var(--inset);
 }
 
 .dot {
@@ -113,7 +118,7 @@
 }
 
 .empty {
-  margin: 0;
+  margin: var(--s3) var(--s4);
   padding: var(--s4);
   border: 1px dashed var(--line);
   border-radius: var(--radius-panel);
