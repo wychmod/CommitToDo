@@ -5,7 +5,7 @@ import { LedgerIcon } from '@/components/icons';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorPanel } from '@/components/error-panel';
 import { TableSkeleton } from '@/components/skeleton';
-import { Chip, StatusLabel } from '@/components/status-chip';
+import { Chip } from '@/components/status-chip';
 import { copy } from '@/i18n';
 
 interface PageError {
@@ -105,11 +105,6 @@ export function AuditPage() {
 
       {!loading && !error ? (
         <div className="admin-panel">
-          <div className="admin-panel__head">
-            <span className="admin-panel__title">{copy.audit.cardTitle}</span>
-            <StatusLabel tone="ready">{copy.audit.ready}</StatusLabel>
-          </div>
-
           {!rows.length ? (
             <EmptyState
               icon={<LedgerIcon />}

@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { BrandMark } from '@/components/brand';
 import { PublicHeader } from '@/components/public-header';
 import { useSession } from '@/session/session-context';
 import { copy } from '@/i18n';
@@ -28,33 +27,9 @@ export function LoginPage() {
       <PublicHeader showUsage />
       <main className="admin-login">
         <div className="admin-login__layout">
-          <section className="admin-login__brand">
-            <span className="admin-login__mark">
-              <BrandMark size={56} />
-            </span>
-            <h1 className="admin-login__wordmark">{copy.app.wordmark}</h1>
-            <p className="admin-login__suffix">{copy.app.wordmarkSuffix}</p>
-            <p className="admin-login__caption">{copy.login.brandCaption}</p>
-
-            <div className="admin-login__diagram" aria-hidden="true">
-              <svg viewBox="0 0 280 120">
-                <path className="admin-login__track admin-login__track--coral" d="M18 28h118c22 0 34 10 44 24" />
-                <path className="admin-login__track admin-login__track--honey" d="M18 60h156" />
-                <path className="admin-login__track admin-login__track--sky" d="M18 92h118c22 0 34-10 44-24" />
-                <circle className="admin-login__track-dot admin-login__track-dot--coral" cx="18" cy="28" r="3.2" />
-                <circle className="admin-login__track-dot admin-login__track-dot--honey" cx="18" cy="60" r="3.2" />
-                <circle className="admin-login__track-dot admin-login__track-dot--sky" cx="18" cy="92" r="3.2" />
-                <rect className="admin-login__node" x="188" y="42" width="44" height="36" rx="9" />
-                <path className="admin-login__shield" d="M210 52l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10v-5z" />
-                <path className="admin-login__check" d="M206.5 60.5l2.8 2.8 5-5.4" />
-              </svg>
-              <span className="admin-login__diagram-label">{copy.login.accessLabel}</span>
-            </div>
-          </section>
-
           <form className="admin-login__card" onSubmit={handleSubmit}>
             <header className="admin-login__card-head">
-              <h2>{copy.login.title}</h2>
+              <h1>{copy.login.title}</h1>
               <p>{copy.login.description}</p>
             </header>
 
@@ -75,6 +50,7 @@ export function LoginPage() {
                 type="email"
                 name="email"
                 autoComplete="username"
+                placeholder={copy.login.emailPlaceholder}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
@@ -105,6 +81,41 @@ export function LoginPage() {
               {submitting ? copy.login.submitting : copy.login.submit}
             </button>
           </form>
+
+          <section className="admin-login__brand">
+            <header className="admin-login__brand-head">
+              <span className="admin-login__note" aria-hidden="true">
+                <svg className="admin-icon" viewBox="0 0 24 24">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                </svg>
+              </span>
+              <h2 className="admin-login__brand-title">{copy.login.accessLabel}</h2>
+            </header>
+
+            <div className="admin-login__diagram" aria-hidden="true">
+              <svg viewBox="0 0 280 120">
+                <path className="admin-login__track admin-login__track--coral" d="M18 28h118c22 0 34 10 44 24" />
+                <path className="admin-login__track admin-login__track--honey" d="M18 60h156" />
+                <path className="admin-login__track admin-login__track--sky" d="M18 92h118c22 0 34-10 44-24" />
+                <circle className="admin-login__track-dot admin-login__track-dot--coral" cx="18" cy="28" r="3.2" />
+                <circle className="admin-login__track-dot admin-login__track-dot--honey" cx="18" cy="60" r="3.2" />
+                <circle className="admin-login__track-dot admin-login__track-dot--sky" cx="18" cy="92" r="3.2" />
+                <rect className="admin-login__node" x="188" y="42" width="44" height="36" rx="9" />
+                <path className="admin-login__shield" d="M210 52l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10v-5z" />
+                <path className="admin-login__check" d="M206.5 60.5l2.8 2.8 5-5.4" />
+              </svg>
+            </div>
+
+            <div className="admin-login__receipt">
+              <span className="admin-login__receipt-title">
+                <svg className="admin-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                </svg>
+                {copy.login.receiptTitle}
+              </span>
+              <span className="admin-login__receipt-body">{copy.login.receiptBody}</span>
+            </div>
+          </section>
         </div>
         <p className="admin-login__footer">{copy.login.footer}</p>
       </main>

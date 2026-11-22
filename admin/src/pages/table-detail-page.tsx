@@ -6,6 +6,7 @@ import {
   isApiError,
   type TableRowsData,
 } from '@/lib/admin-api';
+import { fixtureState } from '@/lib/fixture';
 import { formatValue } from '@/lib/format';
 import { ArrowLeftIcon, ChevronRightIcon, CloseIcon, DatabaseIcon, SearchBranchIcon } from '@/components/icons';
 import { EmptyState } from '@/components/empty-state';
@@ -23,6 +24,7 @@ const PREFERRED_KEYS = [
   'date',
   'at',
   'status',
+  'rev',
   'createdAt',
   'updatedAt',
   'branchId',
@@ -131,6 +133,18 @@ export function TableDetailPage() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [selected]);
 
+  // 仅像素核对：`?fixture=ready&drawer=1` 自动打开首行抽屉，生产环境不生效。
+  useEffect(() => {
+    if (
+      !selected &&
+      rows.length > 0 &&
+      fixtureState() &&
+      new URLSearchParams(window.location.search).get('drawer') === '1'
+    ) {
+      setSelected(rows[0]);
+    }
+  }, [rows, selected]);
+
   const columns = useMemo(() => buildColumns(rows), [rows]);
   const missing = error?.code === 'admin_collection_missing';
   const label = tableLabels[collection] || collection;
@@ -161,31 +175,33 @@ export function TableDetailPage() {
             <h1>
               {copy.tableDetail.title} <code className="admin-browser-title__id">{collection}</code>
             </h1>
+            <span className="admin-browser-title__label">{label}</span>
             <Chip>{copy.tableDetail.readChip}</Chip>
           </div>
         </div>
-        <form
-          className="admin-filter"
-          onSubmit={(event) => {
-            event.preventDefault();
-            handleFilter(ownerId.trim());
-          }}
-        >
-          <label className="admin-filter__field">
-            <span className="admin-filter__label">{copy.tableDetail.ownerFilter}</span>
-            <input
-              className="admin-input"
-              name="ownerId"
-              value={ownerId}
-              onChange={(event) => setOwnerId(event.target.value)}
-              placeholder={copy.tableDetail.ownerPlaceholder}
-            />
-          </label>
-          <button type="submit" className="admin-btn admin-btn--primary">
-            {copy.tableDetail.filter}
-          </button>
-        </form>
       </header>
+
+      <form
+        className="admin-filter"
+        onSubmit={(event) => {
+          event.preventDefault();
+          handleFilter(ownerId.trim());
+        }}
+      >
+        <label className="admin-filter__field">
+          <span className="admin-filter__label">{copy.tableDetail.ownerFilter}</span>
+          <input
+            className="admin-input"
+            name="ownerId"
+            value={ownerId}
+            onChange={(event) => setOwnerId(event.target.value)}
+            placeholder={copy.tableDetail.ownerPlaceholder}
+          />
+        </label>
+        <button type="submit" className="admin-btn admin-btn--primary">
+          {copy.tableDetail.filter}
+        </button>
+      </form>
 
       {loading ? <TableSkeleton rows={7} /> : null}
 
@@ -214,11 +230,6 @@ export function TableDetailPage() {
 
       {!loading && !error ? (
         <div className="admin-panel">
-          <div className="admin-panel__head">
-            <span className="admin-panel__title">{label}</span>
-            <StatusLabel tone="ready">{copy.tables.ready}</StatusLabel>
-          </div>
-
           {!rows.length ? (
             appliedOwnerId ? (
               <EmptyState
@@ -375,8 +386,6 @@ export function TableDetailPage() {
                 <h3>{copy.tableDetail.raw}</h3>
                 <pre>{JSON.stringify(selected, null, 2)}</pre>
               </section>
-
-              <p className="admin-drawer__note">{copy.tableDetail.editClosed}</p>
             </div>
           </aside>
         </div>

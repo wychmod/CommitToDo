@@ -1,4 +1,5 @@
 import { AdminConfigError, adminFunctionName, getCloudBaseApp } from './cloudbase';
+import { fixtureResponse } from './fixture';
 
 export type AdminErrorCode =
   | 'admin_unauthenticated'
@@ -119,6 +120,20 @@ export async function callAdminApi<T>(
   action: string,
   params: Record<string, unknown> = {},
 ): Promise<T> {
+  const fixture = fixtureResponse<T>(action, params);
+  if (fixture) {
+    if (fixture.kind === 'error') {
+      throw new AdminApiError(
+        fixture.code as AdminErrorCode,
+        fixture.message,
+        fixture.status,
+        false,
+        'fixture-request',
+      );
+    }
+    return fixture.data;
+  }
+
   let app;
   try {
     app = getCloudBaseApp();

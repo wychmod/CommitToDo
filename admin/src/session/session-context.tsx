@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { AdminConfigError, getCloudBaseApp } from '@/lib/cloudbase';
 import { AdminApiError, callAdminApi, errorMessage, type WhoAmI } from '@/lib/admin-api';
+import { fixtureEmail, fixtureState, fixtureWhoAmI } from '@/lib/fixture';
 import { copy } from '@/i18n';
 
 export type GateState =
@@ -53,6 +54,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [requestId, setRequestId] = useState('');
 
   const check = useCallback(async () => {
+    const fixture = fixtureState();
+    if (fixture) {
+      setWhoami(fixture === 'ready' ? fixtureWhoAmI() : null);
+      setEmail(fixtureEmail());
+      setError('');
+      setRequestId('');
+      setState(fixture);
+      return;
+    }
     setState('loading');
     setError('');
     setRequestId('');

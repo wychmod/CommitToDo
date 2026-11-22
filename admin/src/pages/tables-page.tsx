@@ -115,7 +115,6 @@ export function TablesPage() {
                   <th>{copy.tables.collection}</th>
                   <th>{copy.tables.permission}</th>
                   <th>{copy.tables.state}</th>
-                  <th className="admin-cell--num">{copy.tables.rows}</th>
                   <th aria-hidden="true" />
                 </tr>
               </thead>
@@ -142,7 +141,6 @@ export function TablesPage() {
                       <td>
                         <StatusLabel tone={status.tone}>{status.label}</StatusLabel>
                       </td>
-                      <td className="admin-cell--num admin-faint">—</td>
                       <td className="admin-cell--action">
                         <Link className="admin-row-link" to={`/tables/${encodeURIComponent(table.name)}`}>
                           {copy.tables.browse}
@@ -178,7 +176,6 @@ export function TablesPage() {
                   <span className="admin-list-card__meta">
                     <code className="admin-mono">{table.name}</code>
                     <Chip>{copy.tables.read}</Chip>
-                    <span className="admin-faint">—</span>
                   </span>
                 </Link>
               );

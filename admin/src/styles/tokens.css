@@ -49,6 +49,7 @@
   --admin-radius-sm: 6px;
   --admin-radius-md: 8px;
   --admin-radius-lg: 10px;
+  --admin-radius-xl: 12px;
   --admin-radius-pill: 999px;
 
   /* spacing */
@@ -72,8 +73,10 @@
   --admin-control-h: 40px;
   --admin-touch-h: 44px;
   --admin-card-w: 506px;
-  --admin-login-card-w: 380px;
-  --admin-drawer-w: 480px;
+  --admin-card-h: 355px;
+  --admin-login-card-w: 340px;
+  --admin-drawer-w: 460px;
+  --admin-drawer-pad: 28px;
   --admin-icon-block: 40px;
   --admin-mark-size: 28px;
   --admin-access-offset: 160px;
