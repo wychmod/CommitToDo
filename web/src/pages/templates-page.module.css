@@ -53,6 +53,29 @@
   font-size: var(--type-secondary);
 }
 
+.cardTree {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+  margin-top: var(--s1);
+  font-size: var(--type-chart);
+}
+
+.cardPrimary {
+  color: var(--text);
+}
+
+.cardBranch {
+  color: var(--muted);
+}
+
+.cardBranch::before {
+  content: '·';
+  margin-right: var(--s2);
+  color: var(--line-strong);
+}
+
 .preview {
   display: flex;
   flex-direction: column;
@@ -113,8 +136,19 @@
 }
 
 .task {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
   color: var(--muted);
   font-size: var(--type-secondary);
+}
+
+.noDue {
+  flex: none;
+  color: var(--muted);
+  font-size: var(--type-chart);
+  white-space: nowrap;
 }
 
 .applyBar {

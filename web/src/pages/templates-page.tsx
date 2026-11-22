@@ -83,6 +83,14 @@ export function TemplatesPage() {
               >
                 <span className={styles.cardName}>{t(TEMPLATE_COPY[entry.id].name)}</span>
                 <span className={styles.cardBody}>{t(TEMPLATE_COPY[entry.id].body)}</span>
+                <span className={styles.cardTree}>
+                  <span className={styles.cardPrimary}>{entry.primary}</span>
+                  {entry.secondaries.map((title) => (
+                    <span key={title} className={styles.cardBranch}>
+                      {title}
+                    </span>
+                  ))}
+                </span>
               </button>
             </li>
           ))}
@@ -106,7 +114,8 @@ export function TemplatesPage() {
                     .filter((task) => task.branch === group.kind)
                     .map((task) => (
                       <li key={task.title} className={styles.task}>
-                        {task.title}
+                        <span>{task.title}</span>
+                        <span className={styles.noDue}>{t('template.noDue')}</span>
                       </li>
                     ))}
                 </ul>

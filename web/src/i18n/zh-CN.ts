@@ -962,6 +962,7 @@ export const zhCN = {
   'template.title': '从模板开始',
   'template.body': '选一套模板，先生成一棵可以改的小树。',
   'template.preview': '模板预览',
+  'template.noDue': '无截止日期',
   'template.branchCount': '3 条分支',
   'template.taskCount': '4 条待办',
   'template.apply': '使用这个模板',
