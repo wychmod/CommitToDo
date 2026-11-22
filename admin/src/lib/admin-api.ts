@@ -154,6 +154,38 @@ export interface CommitsBlock {
   points: { date: string; value: number }[];
 }
 
+export interface UsageCount {
+  event: string;
+  label: string;
+  value: number | null;
+  implemented?: boolean;
+}
+
+export interface UsageBlock {
+  status: MetricStatus;
+  counts: UsageCount[];
+  missing?: string[];
+  note: string;
+}
+
+export interface FunnelStep {
+  key: string;
+  label: string;
+  users: number;
+  rate: number | null;
+}
+
+export interface FunnelBlock {
+  status: MetricStatus;
+  cohortSource: 'account.signup' | 'user_first_seen' | null;
+  cohort: number;
+  windowDays: number;
+  steps: FunnelStep[];
+  strictUsers: number | null;
+  strictRate: number | null;
+  note: string;
+}
+
 export interface MetricsOverviewData {
   range: { from: string; to: string; timezone: string; tzOffset: number };
   availability: { opsEvents: boolean; userFirstSeen: boolean; commits?: boolean };
@@ -163,6 +195,8 @@ export interface MetricsOverviewData {
   sync: SyncBlock;
   backup: BackupBlock;
   commits: CommitsBlock;
+  usage: UsageBlock;
+  funnel: FunnelBlock;
   notes: string[];
   sample?: boolean;
 }

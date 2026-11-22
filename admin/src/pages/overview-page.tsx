@@ -23,9 +23,11 @@ import {
 import {
   BackupPanel,
   CommitsPanel,
+  FunnelPanel,
   RetentionPanel,
   SyncPanel,
   TrendPanel,
+  UsagePanel,
 } from '@/components/overview-charts';
 import { copy } from '@/i18n';
 
@@ -213,6 +215,11 @@ export function OverviewPage() {
             <SyncPanel sync={data.sync} />
             <BackupPanel backup={data.backup} />
             <CommitsPanel commits={data.commits} />
+          </div>
+
+          <div className="admin-funnel-grid">
+            <UsagePanel usage={data.usage} />
+            <FunnelPanel funnel={data.funnel} />
           </div>
         </>
       ) : null}

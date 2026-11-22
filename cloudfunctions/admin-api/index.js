@@ -168,6 +168,168 @@ const METRIC_DEFS = [
   { key: 'newBranches', label: '新增分支', source: 'branches', note: '按 createdAt 本地日分桶' },
 ];
 
+/**
+ * M17 / M18 的事件口径（DESIGN §5.6.4）。
+ * 只读 ops_events；不拿业务表估算，缺失时明确返回 not_ready。
+ */
+const USAGE_EVENT_LABELS = [
+  ['branch.create', '建分支', true],
+  ['task.complete', '完成待办', true],
+  ['commit.create', '创建提交', true],
+  ['milestone.create', '新建里程碑', true],
+  ['badge.grant', '授予徽章', true],
+  ['review.open', '打开回顾', false],
+  ['sync.push', '同步推送', true],
+  ['backup.upload', '异地备份', true],
+];
+
+/** Web 端尚未调用这些事件；M17 对应项保持未接入，不按 0 计算。 */
+const USAGE_EVENTS_MISSING = USAGE_EVENT_LABELS.filter((item) => !item[2]).map((item) => item[0]);
+
+const FUNNEL_STEPS = [
+  { key: 'signup', label: '注册', event: 'account.signup' },
+  { key: 'branch', label: '建分支', event: 'branch.create' },
+  { key: 'task', label: '完成待办', event: 'task.complete' },
+  { key: 'commit', label: '首次提交', event: 'commit.create' },
+  { key: 'sync', label: '首次同步', event: 'sync.push' },
+];
+
+/** 漏斗观察窗：注册当日起 30 天，且不晚于今天。 */
+const FUNNEL_WINDOW_DAYS = 30;
+
+function percentOf(part, whole) {
+  if (!whole) return null;
+  return Number(((part / whole) * 100).toFixed(1));
+}
+
+function emptyFunnel(status, note) {
+  return {
+    status,
+    cohortSource: null,
+    cohort: 0,
+    windowDays: FUNNEL_WINDOW_DAYS,
+    steps: FUNNEL_STEPS.map((step) => ({
+      key: step.key,
+      label: step.label,
+      users: 0,
+      rate: null,
+    })),
+    strictUsers: null,
+    strictRate: null,
+    note: note || '',
+  };
+}
+
+function emptyUsage(status, note) {
+  return {
+    status,
+    counts: USAGE_EVENT_LABELS.map(([event, label, implemented]) => ({
+      event,
+      label,
+      value: null,
+      implemented,
+    })),
+    missing: USAGE_EVENTS_MISSING.slice(),
+    note: note || '',
+  };
+}
+
+/**
+ * M18：cohort 内去重用户数。
+ * - cohort 优先取 [from,to] 的 account.signup 去重 userId；
+ *   没有注册事件时回退 user_first_seen.firstSeenDate（DESIGN §5.6.4）。
+ * - 每步只计一次；观察窗 [注册日, min(today, 注册日+30)]。
+ * - 严格路径：各步首次发生日按 注册→建分支→完成待办→首次提交→首次同步 非递减。
+ */
+async function buildFunnel({ from, to, today, eventsReady, cohortRows }) {
+  if (!eventsReady) {
+    return emptyFunnel('not_ready', 'ops_events 尚未创建，漏斗无法计算');
+  }
+
+  const cohort = new Map();
+  let cohortSource = 'account.signup';
+  const signupRows = await loadEvents('account.signup', from, to);
+  for (const row of signupRows) {
+    if (!row.userId || !row.localDate) continue;
+    const previous = cohort.get(row.userId);
+    if (!previous || row.localDate < previous) cohort.set(row.userId, row.localDate);
+  }
+  if (cohort.size === 0) {
+    cohortSource = 'user_first_seen';
+    for (const row of cohortRows) {
+      const userId = row.userId || row._id;
+      if (userId && row.firstSeenDate) cohort.set(userId, row.firstSeenDate);
+    }
+  }
+  if (cohort.size === 0) {
+    return emptyFunnel('insufficient', '窗口内没有注册样本');
+  }
+
+  const windowEnd = addDays(to, FUNNEL_WINDOW_DAYS) < today ? addDays(to, FUNNEL_WINDOW_DAYS) : today;
+  const stepEvents = FUNNEL_STEPS.slice(1).map((step) => step.event);
+  const rows = await fetchPage(
+    'ops_events',
+    {
+      event: _.in(stepEvents),
+      localDate: _.and([_.gte(from), _.lte(windowEnd)]),
+    },
+    MAX_EVENT_ROWS,
+  );
+
+  const firstByUser = new Map();
+  for (const row of rows) {
+    if (!row.userId || !row.localDate) continue;
+    const signupDate = cohort.get(row.userId);
+    if (!signupDate) continue;
+    const limit = addDays(signupDate, FUNNEL_WINDOW_DAYS);
+    const end = limit < today ? limit : today;
+    if (row.localDate < signupDate || row.localDate > end) continue;
+    if (!firstByUser.has(row.userId)) firstByUser.set(row.userId, new Map());
+    const steps = firstByUser.get(row.userId);
+    const previous = steps.get(row.event);
+    if (!previous || row.localDate < previous) steps.set(row.event, row.localDate);
+  }
+
+  const stepUsers = FUNNEL_STEPS.map((step, index) => {
+    if (index === 0) return cohort.size;
+    let users = 0;
+    for (const steps of firstByUser.values()) {
+      if (steps.has(step.event)) users += 1;
+    }
+    return users;
+  });
+
+  let strictUsers = 0;
+  for (const steps of firstByUser.values()) {
+    const dates = stepEvents.map((event) => steps.get(event));
+    if (dates.some((date) => !date)) continue;
+    let ordered = true;
+    for (let index = 1; index < dates.length; index += 1) {
+      if (dates[index] < dates[index - 1]) {
+        ordered = false;
+        break;
+      }
+    }
+    if (ordered) strictUsers += 1;
+  }
+
+  return {
+    status: 'ready',
+    cohortSource,
+    cohort: cohort.size,
+    windowDays: FUNNEL_WINDOW_DAYS,
+    steps: FUNNEL_STEPS.map((step, index) => ({
+      key: step.key,
+      label: step.label,
+      users: stepUsers[index],
+      rate: percentOf(stepUsers[index], cohort.size),
+    })),
+    strictUsers,
+    strictRate: percentOf(strictUsers, cohort.size),
+    note: '',
+  };
+}
+
 // ---------------------------------------------------------------------------
 // 通用工具
 // ---------------------------------------------------------------------------
@@ -949,6 +1111,55 @@ async function handleMetricsOverview({ event, requestId }) {
     backup = { status: 'ready', success, failure };
   }
 
+  // M17 功能使用：只数 ops_events；表存在但无行按口径返回 0，不伪造。
+  let usage = emptyUsage(eventsReady ? 'ready' : 'not_ready', eventsReady ? '' : '事件表未创建');
+  if (eventsReady) {
+    try {
+      const usageRows = await fetchPage(
+        'ops_events',
+        {
+          event: _.in(USAGE_EVENT_LABELS.map(([event]) => event)),
+          localDate: _.and([_.gte(from), _.lte(to)]),
+        },
+        MAX_EVENT_ROWS,
+      );
+      const counts = new Map();
+      for (const row of usageRows) counts.set(row.event, (counts.get(row.event) || 0) + 1);
+      usage = {
+        status: 'ready',
+        counts: USAGE_EVENT_LABELS.map(([event, label, implemented]) => ({
+          event,
+          label,
+          value: implemented ? counts.get(event) || 0 : null,
+          implemented,
+        })),
+        missing: USAGE_EVENTS_MISSING.slice(),
+        note: USAGE_EVENTS_MISSING.length
+          ? `Web 端尚未上报：${USAGE_EVENTS_MISSING.join('、')}`
+          : usageRows.length
+            ? ''
+            : '窗口内没有事件；需用户登录并开启匿名统计后才会补报',
+      };
+    } catch (error) {
+      usage = emptyUsage(
+        'not_ready',
+        isMissingIndex(error) ? 'ops_events 缺少 event+localDate 索引' : '事件查询失败',
+      );
+    }
+  }
+
+  // M18 使用漏斗：事件表缺失 → not_ready；无 cohort → insufficient。
+  let funnel;
+  try {
+    funnel = await buildFunnel({ from, to, today, eventsReady, cohortRows });
+  } catch (error) {
+    funnel = emptyFunnel(
+      'not_ready',
+      isMissingIndex(error) ? 'ops_events 缺少 event+localDate 索引' : '漏斗查询失败',
+    );
+    notes.push(`漏斗计算失败：${String(error && error.message ? error.message : error)}`);
+  }
+
   return ok(
     {
       range: { from, to, timezone: 'Asia/Shanghai', tzOffset },
@@ -963,6 +1174,8 @@ async function handleMetricsOverview({ event, requestId }) {
       sync,
       backup,
       commits: commitsBlock,
+      usage,
+      funnel,
       notes,
     },
     requestId,

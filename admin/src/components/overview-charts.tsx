@@ -2,9 +2,11 @@ import type { ReactNode } from 'react';
 import type {
   BackupBlock,
   CommitsBlock,
+  FunnelBlock,
   OverviewPoint,
   RetentionBlock,
   SyncBlock,
+  UsageBlock,
 } from '@/lib/admin-api';
 import { ArchiveIcon, CheckIcon, SyncIcon } from '@/components/icons';
 import { copy } from '@/i18n';
@@ -296,6 +298,87 @@ export function CommitsPanel({ commits }: { commits: CommitsBlock }) {
         </div>
       </div>
       {ready ? null : <p className="admin-ops-card__meta">{copy.overview.notReadyHint}</p>}
+    </article>
+  );
+}
+
+export function UsagePanel({ usage }: { usage: UsageBlock }) {
+  const ready = usage.status === 'ready';
+  return (
+    <article className="admin-chart-card admin-funnel-card">
+      <header className="admin-chart-card__head">
+        <div className="admin-chart-card__titles">
+          <h2>{copy.overview.usageTitle}</h2>
+        </div>
+        <span className="admin-chart-card__meta">{copy.overview.usageMeta}</span>
+      </header>
+      {ready ? (
+        <>
+          <ul className="admin-usage-grid">
+            {usage.counts.map((item) => (
+              <li className="admin-usage-item" key={item.event}>
+                <span className="admin-usage-item__label">{item.label}</span>
+                <strong className="admin-usage-item__value">{numberText(item.value)}</strong>
+              </li>
+            ))}
+          </ul>
+          {usage.note ? <p className="admin-chart-empty">{usage.note}</p> : null}
+        </>
+      ) : (
+        <p className="admin-chart-empty">{copy.overview.notReadyHint}</p>
+      )}
+    </article>
+  );
+}
+
+export function FunnelPanel({ funnel }: { funnel: FunnelBlock }) {
+  const ready = funnel.status === 'ready';
+  const source =
+    funnel.cohortSource === 'user_first_seen'
+      ? copy.overview.funnelSourceFirstSeen
+      : copy.overview.funnelSourceEvents;
+  return (
+    <article className="admin-chart-card admin-funnel-card">
+      <header className="admin-chart-card__head">
+        <div className="admin-chart-card__titles">
+          <h2>{copy.overview.funnelTitle}</h2>
+        </div>
+        {ready ? (
+          <span className="admin-chart-card__meta">
+            {copy.overview.funnelMeta
+              .replace('{days}', String(funnel.windowDays))
+              .replace('{source}', source)}
+          </span>
+        ) : null}
+      </header>
+      {ready ? (
+        <>
+          <ul className="admin-funnel">
+            {funnel.steps.map((step) => (
+              <li className="admin-funnel__row" key={step.key}>
+                <span className="admin-funnel__label">{step.label}</span>
+                <span className="admin-funnel__bar" aria-hidden="true">
+                  <i style={{ width: `${Math.max(step.rate ?? 0, 0)}%` }} />
+                </span>
+                <span className="admin-funnel__value">{numberText(step.users)}</span>
+                <span className="admin-funnel__rate">
+                  {step.rate == null ? '—' : `${step.rate.toFixed(1)}%`}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="admin-funnel__foot">
+            {copy.overview.funnelStrict} {numberText(funnel.strictUsers)} ·{' '}
+            {funnel.strictRate == null ? '—' : `${funnel.strictRate.toFixed(1)}%`}
+          </p>
+        </>
+      ) : (
+        <p className="admin-chart-empty">
+          {funnel.status === 'insufficient'
+            ? copy.overview.funnelInsufficient
+            : copy.overview.notReadyHint}
+        </p>
+      )}
     </article>
   );
 }
