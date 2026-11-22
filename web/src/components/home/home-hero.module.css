@@ -13,60 +13,65 @@
 .headerInner {
   display: flex;
   align-items: center;
-  gap: var(--s8);
-  max-width: var(--layout-content-max);
-  height: var(--layout-topbar);
-  margin: 0 auto;
-  padding: 0 var(--s6);
+  gap: calc(var(--s7) + 2px);
+  height: var(--layout-marketing-header);
+  padding: 0 var(--layout-marketing-gutter);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
-  color: var(--text);
-  font-size: var(--type-body);
-  font-weight: 700;
+  gap: var(--s3);
+  color: var(--marketing-ink);
+  font-size: var(--type-section);
+  font-weight: 750;
+  letter-spacing: -0.045em;
   text-decoration: none;
 }
 
 .brandMark {
   display: grid;
+  flex: none;
   place-items: center;
-  width: var(--s6);
-  height: var(--s6);
-  border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: var(--type-label);
+  width: var(--home-brand-mark);
+  height: var(--home-brand-mark);
+  transform: rotate(-8deg);
+  border: var(--stroke-brand-mark) solid currentColor;
+  border-radius: var(--s1);
+  font-family: Georgia, serif;
+  font-size: var(--type-heading-small);
+  font-weight: 700;
+  line-height: 1;
 }
 
 .nav {
   display: flex;
   gap: var(--s6);
-  margin-left: var(--s5);
 }
 
 .nav a {
-  color: var(--muted);
-  font-size: var(--type-secondary);
+  color: var(--marketing-muted);
+  font-size: var(--type-body-large);
+  font-weight: 500;
   text-decoration: none;
 }
 
 .nav a:hover {
-  color: var(--text);
+  color: var(--marketing-ink);
 }
 
 .headerAction {
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
+  min-height: var(--home-header-cta-height);
   margin-left: auto;
-  padding: var(--s2) var(--s4);
+  padding: 0 var(--s4);
   border-radius: var(--radius-control);
-  background: var(--accent);
+  background: var(--marketing-accent);
   color: var(--accent-ink);
-  font-size: var(--type-secondary);
+  font-size: var(--type-body-compact);
+  font-weight: 650;
   text-decoration: none;
 }
 
@@ -497,6 +502,23 @@
     height: calc(var(--layout-topbar) - var(--s2));
     gap: var(--s3);
     padding: 0 var(--s4);
+  }
+
+  .brand {
+    gap: var(--s2);
+    font-size: var(--type-body-large);
+  }
+
+  .brandMark {
+    width: var(--s6);
+    height: var(--s6);
+    font-size: var(--type-body-large);
+  }
+
+  .headerAction {
+    min-height: var(--s7);
+    padding: 0 var(--s3);
+    font-size: var(--type-secondary);
   }
 
   .nav {

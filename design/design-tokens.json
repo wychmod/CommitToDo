@@ -34,7 +34,10 @@
       "home-band": "#F1F6FB",
       "home-band-strong": "#E8F1FA",
       "home-cta-band": "#FAF7F0",
-      "home-note": "#F9E9B3"
+      "home-note": "#F9E9B3",
+      "marketing-ink": "#111111",
+      "marketing-muted": "#4F4F4F",
+      "marketing-accent": "#1167B5"
     },
     "dark": {
       "page": "#192230",
@@ -69,7 +72,10 @@
       "home-band": "#1E2A39",
       "home-band-strong": "#1B2838",
       "home-cta-band": "#222B36",
-      "home-note": "#4B3F22"
+      "home-note": "#4B3F22",
+      "marketing-ink": "#F2F2F2",
+      "marketing-muted": "#B5C1D1",
+      "marketing-accent": "#80ACE8"
     }
   },
   "branches": {
@@ -211,7 +217,9 @@
     "layout": {
       "sidebar": 232,
       "topbar": 64,
-      "contentMax": 1120
+      "contentMax": 1120,
+      "marketingHeader": 78,
+      "marketingGutter": 56
     },
     "type": {
       "heading": 40,
@@ -292,7 +300,9 @@
       "timelineHeight": 300,
       "timelineMinWidth": 560,
       "sceneNode": 10,
-      "footerTop": 56
+      "footerTop": 56,
+      "brandMark": 30,
+      "headerCtaHeight": 42
     },
     "auth": {
       "formWidth": 380,

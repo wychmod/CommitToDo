@@ -20,6 +20,8 @@
   --layout-sidebar: 232px;
   --layout-topbar: 64px;
   --layout-content-max: 1120px;
+  --layout-marketing-header: 78px;
+  --layout-marketing-gutter: 56px;
   --type-heading: 40px;
   --type-heading-mobile: 32px;
   --type-section: 24px;
@@ -85,6 +87,8 @@
   --home-timeline-min-width: 560px;
   --home-scene-node: 10px;
   --home-footer-top: 56px;
+  --home-brand-mark: 30px;
+  --home-header-cta-height: 42px;
   --auth-form-width: 380px;
   --auth-art-width: 680px;
   --auth-min-height: 640px;
@@ -137,6 +141,9 @@
   --home-band-strong: #E8F1FA;
   --home-cta-band: #FAF7F0;
   --home-note: #F9E9B3;
+  --marketing-ink: #111111;
+  --marketing-muted: #4F4F4F;
+  --marketing-accent: #1167B5;
   --coral-1: #A84427;
   --coral-2: #B95639;
   --coral-3: #BA6248;
@@ -201,6 +208,9 @@
   --home-band-strong: #1B2838;
   --home-cta-band: #222B36;
   --home-note: #4B3F22;
+  --marketing-ink: #F2F2F2;
+  --marketing-muted: #B5C1D1;
+  --marketing-accent: #80ACE8;
   --coral-1: #FF946D;
   --coral-2: #F7AF98;
   --coral-3: #FFCDBB;
