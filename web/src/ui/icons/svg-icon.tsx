@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react';
 
-export type IconSize = 13 | 14 | 15 | 16 | 17 | 18 | 20 | 24;
+export type IconSize = 12 | 13 | 14 | 15 | 16 | 17 | 18 | 20 | 24;
 
 export interface SvgIconProps extends Omit<SVGProps<SVGSVGElement>, 'width' | 'height'> {
   /** 画稿用到的尺寸档位，默认 18。 */
@@ -10,7 +10,7 @@ export interface SvgIconProps extends Omit<SVGProps<SVGSVGElement>, 'width' | 'h
 /**
  * 自绘图标的统一外壳（TECH-ARCHITECTURE.md §2.7）。
  *
- * - 尺寸只有画稿用到的 13 / 14 / 15 / 16 / 18 / 20 / 24，默认 18；
+ * - 尺寸只有画稿用到的 12 / 13 / 14 / 15 / 16 / 18 / 20 / 24，默认 18；
  * - 描边固定 1.5，圆头圆角；
  * - 颜色一律 currentColor，由外层用令牌变量（如 `var(--text-muted)`）设定；
  * - 图标组件内不写颜色、不写宽高像素，也不引图标库。

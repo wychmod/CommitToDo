@@ -35,7 +35,7 @@ const RANGE_LABEL_KEY: Record<TimeRangeKind, MessageKey> = {
 };
 
 const TREE_ICON = (
-  <SvgIcon size={18}>
+  <SvgIcon size={12}>
     <path d="M12 4v4.5M12 8.5H6.5v5M12 8.5h5.5v5" />
     <circle cx="12" cy="3.5" r="1.4" />
     <circle cx="6.5" cy="15" r="1.4" />
@@ -44,7 +44,7 @@ const TREE_ICON = (
 );
 
 const MILESTONE_ICON = (
-  <SvgIcon size={18}>
+  <SvgIcon size={12}>
     <path d="m12 3 7 7-7 7-7-7Z" />
   </SvgIcon>
 );

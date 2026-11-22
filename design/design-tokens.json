@@ -259,6 +259,9 @@
         4
       ]
     },
+    "stroke": {
+      "brandMark": 1.7
+    },
     "duration": {
       "micro": 120,
       "standard": 200,

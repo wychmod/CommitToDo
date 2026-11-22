@@ -38,7 +38,7 @@
   width: calc(var(--s4) + var(--s2));
   height: calc(var(--s4) + var(--s2));
   transform: rotate(-8deg);
-  border: calc(var(--s1) / 2) solid currentColor;
+  border: var(--stroke-brand-mark) solid currentColor;
   border-radius: var(--s1);
   font-family: Georgia, serif;
   font-size: var(--type-body-large);

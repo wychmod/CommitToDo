@@ -15,7 +15,7 @@
   gap: var(--s4);
   width: min(100%, 30rem);
   height: 100%;
-  padding: var(--s6);
+  padding: calc(var(--s6) - 1px) var(--s6) var(--s6);
   overflow-y: auto;
   background: var(--panel);
   border-left: 1px solid var(--line);
@@ -83,6 +83,10 @@
   color: var(--text);
   font-size: var(--type-body);
   font-family: inherit;
+}
+
+.input {
+  line-height: calc(var(--type-body) + 7px);
 }
 
 .textarea {

@@ -1,7 +1,7 @@
 .wall {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--s2) + 1px);
+  gap: calc(var(--s2) + 2px);
   margin-top: calc(var(--s3) * -1 + 3px);
 }
 
