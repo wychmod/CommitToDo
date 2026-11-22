@@ -49,6 +49,7 @@ interface Option<T extends string> {
 
 interface OptionGroupProps<T extends string> {
   legendKey: MessageKey;
+  descriptionKey: MessageKey;
   name: string;
   value: T;
   options: ReadonlyArray<Option<T>>;
@@ -57,6 +58,7 @@ interface OptionGroupProps<T extends string> {
 
 function OptionGroup<T extends string>({
   legendKey,
+  descriptionKey,
   name,
   value,
   options,
@@ -65,8 +67,11 @@ function OptionGroup<T extends string>({
   const labelId = useId();
   return (
     <div className={styles.group} role="group" aria-labelledby={labelId}>
-      <span id={labelId} className={styles.legend}>
-        {t(legendKey)}
+      <span className={styles.rowText}>
+        <span id={labelId} className={styles.legend}>
+          {t(legendKey)}
+        </span>
+        <small className={styles.rowHint}>{t(descriptionKey)}</small>
       </span>
       <div className={styles.options}>
         {options.map((option) => (
@@ -218,6 +223,7 @@ export function SettingsPage() {
               </h2>
               <OptionGroup
                 legendKey="settings.theme"
+                descriptionKey="settings.theme.hint"
                 name="theme"
                 value={draft.theme}
                 options={THEME_OPTIONS}
@@ -225,6 +231,7 @@ export function SettingsPage() {
               />
               <OptionGroup
                 legendKey="settings.density"
+                descriptionKey="settings.density.hint"
                 name="density"
                 value={draft.treeDensity}
                 options={DENSITY_OPTIONS}
@@ -271,6 +278,7 @@ export function SettingsPage() {
               <p className={styles.hint}>{t('settings.annotations.hint')}</p>
               <OptionGroup
                 legendKey="settings.annotations.mode"
+                descriptionKey="settings.annotations.modeHint"
                 name="annotations"
                 value={draft.annotations}
                 options={ANNOTATION_OPTIONS}
@@ -288,6 +296,7 @@ export function SettingsPage() {
               <p className={styles.hint}>{t('settings.reminders.hint')}</p>
               <OptionGroup
                 legendKey="settings.reminders.mode"
+                descriptionKey="settings.reminders.modeHint"
                 name="reminders"
                 value={draft.reminderEnabled ? 'on' : 'off'}
                 options={REMINDER_OPTIONS}

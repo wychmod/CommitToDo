@@ -243,10 +243,22 @@
   border-top: 1px solid var(--line);
 }
 
+.rowText {
+  display: grid;
+  gap: calc(var(--s1) - 1px);
+  min-width: 0;
+}
+
 .legend {
   padding: 0;
   color: var(--text);
   font-size: calc(var(--type-secondary) + 1px);
+}
+
+.rowHint {
+  color: var(--muted);
+  font-size: var(--type-label);
+  line-height: 1.5;
 }
 
 .options {
