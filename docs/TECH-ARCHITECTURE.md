@@ -543,6 +543,53 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 - **冲突时以显式安排为准**：`dueDate` 与 `plannedDate` 同一天不特殊处理（仍算今天组）；只有 `dueDate < today && plannedDate = today` 这一种情况被例外改写，其余分桶不变。
 - **历史留痕**：多次「安排到今天」不落额外字段；需要审计时写 `events`（`action = task.plan`，`payload` 带前后值），与 R8 之外的字段无关。
 
+### 5.3.4 云端落地状态（2026-11-22 实测）
+
+**业务数据实际存放在环境的文档型数据库，不在 PG。** 环境 `committodo-d6gmapg0j6397889f` 是 PostgreSQL 版，但 PG 与文档库是两个独立后端：`db.collection()` / `<collection>.where()` 读写文档库，PG 的 `information_schema` 里不会出现对应表（同日用探针集合实测：写入后 PG 无新表）。现行四个云函数（`workspace-read`、`sync-push`、`migrate-push`、`counter-inc`）全部使用文档 API，`backup-sign` 只碰对象存储，因此集合按 §5.3 建在文档库；PG 的 `public` 只保留腾讯云拨测表，业务表为零。
+
+#### 集合与索引（已建，18 个）
+
+清单的机器副本在 `work/schema-applied.md`（与备份导出同在非入库目录）。实际索引如下，**与 §5.3 表格的差异**见本节末。
+
+| 集合 | 索引 |
+|---|---|
+| `users` | `email`、`wxOpenId`、`wxOpenIds` |
+| `branches` | `[ownerId+parentId]`、`[ownerId+status]`、`[ownerId+archivedAt]`、`path`、`[ownerId+updatedAt]`、`[ownerId+createdAt]` |
+| `tasks` | `[ownerId+branchId+status]`、`[ownerId+status+dueDate]`、`[ownerId+status+plannedDate]`、`[ownerId+completedAt]`、`[ownerId+createdAt]` |
+| `commits` | `[ownerId+date]`、`[ownerId+branchId+date]`、`[ownerId+branchId+at]` |
+| `milestones` | `[ownerId+achievedAt]`、`[ownerId+branchId]` |
+| `badges` | `[ownerId+grantedAt]`、`[ownerId+category]`、`[ownerId+catalogId+periodKey]`（唯一） |
+| `settings` | `ownerId`（单行 `_id='app'`，实际按 `_id` 取） |
+| `backups` | `[ownerId+createdAt]`、`[ownerId+kind+createdAt]` |
+| `year_reviews` | `[ownerId+year]`（唯一） |
+| `events` | `[ownerId+at]`、`[entityId+at]` |
+| `outbox` | `createdAt`、`ownerId`；`_id` = `opId`，同时充当服务端幂等日志 |
+| `conflicts` | `at`、`[entityId+at]` |
+| `devices` | `[ownerId+lastSyncAt]` |
+| `migration_state` | 无（`_id` = 集合名） |
+| `counters` | `[event+date]`（`_id` = 事件名 + 日期） |
+| `ops_events` | `localDate`、`[event+localDate]`、`[userId+localDate]`、`[visitorId+localDate]`、`at` |
+| `user_first_seen` | `firstSeenDate`、`lastSeenDate`、`signupAt` |
+| `admin_audit_log` | `at`、`[collection+docId+at]`、`[actorEmail+at]` |
+
+- 后三个集合（`ops_events`、`user_first_seen`、`admin_audit_log`）为管理站新增，字段、白名单与保留期以 [管理站移交单](../admin/docs/CLOUD-SCHEMA-REQUEST.md) 为准；与 §5.3 无字段冲突。`ops_events` 不建 TTL 索引（`at` 是数字毫秒，Mongo TTL 只能作用于 Date），400 天保留由定时任务清理。
+- 写入方：`users` 由账号线写、`workspace-read` 读；`branches` / `tasks` / `commits` / `milestones` / `badges` / `settings` / `year_reviews` / `events` / `conflicts` 由 `sync-push` 写；`outbox` 由 `sync-push` 兼作幂等日志；`devices` 由 `sync-devices` 写；`migration_state` 由 `migrate-push` 写；`counters` 由 `counter-inc` 写；`backups` 的远端元数据由 `backup-sign` 写；`ops_events` / `user_first_seen` 由待建的 `ops-event` 写；`admin_audit_log` 由已部署的 `admin-api` 与业务写入同事务写。
+- **与 §5.3 表格的差异（均为代码实际查询需要，不改字段）**：① `users` 增 `wxOpenId` / `wxOpenIds` 索引，供 `workspace-read` 解析微信绑定；② `branches` / `tasks` 增 `[ownerId+createdAt]`，供列表按 `createdAt` 排序；③ `settings` 用 `ownerId` 单字段索引代替「—」；④ `outbox` 增 `ownerId` 索引；⑤ 管理站文档 §4 的跨账号可选索引未加（按其约定退回逐页扫描）。
+
+#### 运行与生命周期事实
+
+| 项 | 实测结果 |
+|---|---|
+| 备份 | `tcb db nosql backup time` 返回 7 个每日恢复点（2026-11-16 ~ 2026-11-22）与连续可回档区间 `2026-11-14 05:44:29 ~ 2026-11-22 12:36:33`，可 `backup restore` 回滚 |
+| 到期 | 环境个人版，`ExpireTime = 2026-12-06 23:59:59`，`IsAutoRenew = true`；文档库与 PG、云函数、存储同属该环境，未续费即被隔离并最终删除 |
+| 配额 | `EnvDeductionMode = credits`、`EnableOverrun = true`；文档库读写与存储计入个人版资源点，未单独计费 |
+| 安全规则 | 客户端不直读直写（§4.4），全部经云函数以管理员身份访问；集合级安全规则需在控制台确认「仅管理端可写、客户端不可读」，CLI 无设置入口 |
+| 遗留清理 | 已删除 2026-07 自建的 `auth-gateway`、`auth-risk-evaluator`、`security-notification-worker`（含 `every-1min` 触发器）与 `public` 下 9 张认证表；托管 `auth` schema、`storage`、`cloudbase_migrations` 与拨测表未动。删除前的结构与数据、函数源码在 `work/dumps/`（不入库） |
+
+#### 迁回 PG 关系表的代价
+
+若将来要求业务数据落 PG，受影响面：**云函数** `workspace-read`、`sync-push`、`sync-devices`、`migrate-push`、`counter-inc`、`backup-sign` 的元数据写入，以及 `ops-event`（待建）、`admin-api`，全部要从 `db.collection()` 换成 `app.rdb()` / SQL；**Web 侧** `web/src/data/cloud/**` 的云调用适配与 outbox 重放；**数据侧** 18 个集合转 18 张表、补主键 / 唯一约束 / RLS、存量搬运；**测试侧** 需补云端契约用例。这也是本次不在 PG 建同名表的理由：两套结构会形成两个真源。
+
 ### 5.4 MVP 读写链路
 
 ```
