@@ -43,8 +43,9 @@ export function RecoverPage() {
   const [params] = useSearchParams();
 
   const token = readResetToken(params);
+  // 邮件链接只要带回一次性凭据就直接进第三步；`step=reset` 作为没有凭据时的显式入口。
   const [phase, setPhase] = useState<RecoverPhase>(
-    params.get('step') === 'reset' ? 'reset' : 'email',
+    token.length > 0 || params.get('step') === 'reset' ? 'reset' : 'email',
   );
   const [email, setEmail] = useState(() => params.get('email') ?? readLastEmail());
   const [password, setPassword] = useState('');

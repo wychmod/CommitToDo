@@ -15,6 +15,8 @@ export function resolveAuthNext(raw: string | null | undefined): string {
   if (!value.startsWith('/')) return AUTH_FALLBACK_PATH;
   // `//evil.example` 会被浏览器当成协议相对地址，直接拒绝。
   if (value.startsWith('//')) return AUTH_FALLBACK_PATH;
+  // 部分浏览器把 `/\evil.example` 归一成 `//evil.example`，同样按站外处理。
+  if (value.startsWith('/\\')) return AUTH_FALLBACK_PATH;
 
   const path = (value.split(/[?#]/)[0] ?? '').toLowerCase();
   if (path === '/auth' || path.startsWith('/auth/')) return AUTH_FALLBACK_PATH;

@@ -10,9 +10,15 @@ describe('resolveAuthNext', () => {
 
   it('拒绝站外与协议相对地址', () => {
     expect(resolveAuthNext('//evil.example/today')).toBe(AUTH_FALLBACK_PATH);
+    expect(resolveAuthNext('/\\evil.example/today')).toBe(AUTH_FALLBACK_PATH);
     expect(resolveAuthNext('https://evil.example')).toBe(AUTH_FALLBACK_PATH);
     expect(resolveAuthNext('javascript:alert(1)')).toBe(AUTH_FALLBACK_PATH);
     expect(resolveAuthNext('JavaScript:alert(1)')).toBe(AUTH_FALLBACK_PATH);
+  });
+
+  it('只有 fragment 或查询时回退', () => {
+    expect(resolveAuthNext('#sync')).toBe(AUTH_FALLBACK_PATH);
+    expect(resolveAuthNext('?next=/today')).toBe(AUTH_FALLBACK_PATH);
   });
 
   it('拒绝登录相关路径，避免登录自循环', () => {
