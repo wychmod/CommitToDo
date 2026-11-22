@@ -314,7 +314,7 @@ async function fetchPage(collection, query, max) {
 // 鉴权
 // ---------------------------------------------------------------------------
 
-async function resolveCaller(eventInfo) {
+async function resolveCaller() {
   const auth = app.auth();
   let uid = '';
   try {
@@ -323,9 +323,7 @@ async function resolveCaller(eventInfo) {
   } catch (_) {
     uid = '';
   }
-  if (!uid && eventInfo && eventInfo.userInfo && eventInfo.userInfo.uid) {
-    uid = eventInfo.userInfo.uid;
-  }
+  // 只信任平台注入的调用身份；请求体里的 userInfo 一律忽略，避免伪造 uid。
   if (!uid) return { code: 'admin_unauthenticated' };
 
   let userInfo = null;
@@ -345,8 +343,8 @@ async function resolveCaller(eventInfo) {
   return { uid, userInfo };
 }
 
-async function authorize(eventInfo) {
-  const caller = await resolveCaller(eventInfo);
+async function authorize() {
+  const caller = await resolveCaller();
   if (caller.code === 'admin_unauthenticated') {
     return { error: fail('admin_unauthenticated', '未登录或登录已失效', 401, false) };
   }
@@ -414,7 +412,7 @@ async function authorize(eventInfo) {
  */
 function requireAdmin(handler) {
   return async (event, context, requestId) => {
-    const auth = await authorize(event);
+    const auth = await authorize();
     if (auth.error) {
       auth.error.requestId = requestId;
       return auth.error;

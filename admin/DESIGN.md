@@ -161,6 +161,7 @@ ADMIN_EMAIL_VERIFICATION_MODE="enforce"
 - 邮箱：`app.auth().getEndUserInfo(uid)` 返回的 `email`。
 - 验证状态：优先读返回中的 `emailVerified` / `email_verified`；字段缺失时按 `ADMIN_EMAIL_VERIFICATION_MODE` 处理。
 - **不接受**请求参数里的 `email`、`userId` 作为鉴权依据；这些只用于展示或筛选，且会在服务端重新校验。
+- **不接受**请求体里的 `userInfo.uid`。身份只取平台注入的调用上下文，防止客户端伪造 uid 冒充白名单账号。
 
 ### 3.4 错误码（三种情况必须分开）
 
@@ -742,6 +743,7 @@ tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
 |---|---|---|
 | 部署 `admin-api`（未配置 `ADMIN_EMAILS`） | `tcb fn deploy admin-api` | `create` 成功 |
 | 未登录调用 | `tcb fn invoke admin-api` + `{"action":"whoami"}` | `{"ok":false,"code":"admin_unauthenticated","status":401}`，requestId `fc4e2be0-d761-4c3a-935c-9bce6b2d5797` |
+| 伪造 `userInfo.uid` 调用 | `{"action":"whoami","userInfo":{"uid":"forged-uid"}}` | 仍返回 `admin_unauthenticated` 401，requestId `3a785456-0cb0-47fa-9419-0e09ae7ad882` |
 | 空白名单 / 归一化 / 未验证 / 无身份（本地校验同一份函数代码） | 注入假身份调用 `main()` | `empty-whitelist → admin_forbidden 403`；`whitelisted-normalized → ok`；`not-whitelisted → admin_forbidden 403`；`verified-false → admin_email_unverified 403`；`verified-unknown-enforce → admin_email_unverified 403`；`trust-login → ok`；`no-uid → admin_unauthenticated 401` |
 | 部署 `ops-event` | `tcb fn deploy ops-event` | `create` 成功 |
 | 未知事件 | 真实调用 | `ops_invalid_event`：`未知事件：fake.event（第 1 条）` |
