@@ -12,6 +12,8 @@ interface PageShellProps {
   back?: ReactNode;
   /** 我的/设置/数据等页在画稿里收窄到 1000px。 */
   narrow?: boolean;
+  /** 帮助等 850px 的窄栏页面。 */
+  compact?: boolean;
   children?: ReactNode;
 }
 
@@ -23,11 +25,18 @@ export function PageShell({
   action,
   back,
   narrow,
+  compact,
   children,
 }: PageShellProps) {
+  const pageClass = compact
+    ? `${styles.page} ${styles.pageCompact}`
+    : narrow
+      ? `${styles.page} ${styles.pageNarrow}`
+      : styles.page;
+
   return (
-    <section className={narrow ? `${styles.page} ${styles.pageNarrow}` : styles.page}>
-      {back}
+    <section className={pageClass}>
+      {back ? <div className={styles.back}>{back}</div> : null}
       <header className={styles.head}>
         <div>
           {title ?? (titleKey ? <h1>{t(titleKey)}</h1> : null)}

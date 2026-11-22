@@ -86,7 +86,6 @@
 .groups {
   display: flex;
   flex-direction: column;
-  gap: var(--s4);
 }
 
 .group {
@@ -96,12 +95,33 @@
   overflow: hidden;
 }
 
+.group + .group {
+  border-top: 0;
+  border-radius: 0;
+}
+
+.group + .group .groupHead {
+  border-top: 1px solid var(--line);
+}
+
+.group:first-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.group:last-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: var(--radius-panel);
+  border-bottom-right-radius: var(--radius-panel);
+}
+
 .groupHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--s3);
-  padding: var(--s2) var(--s4);
+  padding: calc(var(--s2) + 1px) var(--s4);
   background: var(--inset);
 }
 

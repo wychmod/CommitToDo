@@ -1,7 +1,8 @@
 .wall {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: calc(var(--s2) + 1px);
+  margin-top: calc(var(--s3) * -1 + 3px);
 }
 
 .back {
@@ -39,18 +40,19 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--s3);
-  padding: var(--s3) var(--s4) var(--s2);
+  padding: calc(var(--s3) - 1px) calc(var(--s3) + 2px) calc(var(--s2) + 1px);
 }
 
 .panelTitle {
   margin: 0;
-  font-size: var(--type-body);
+  font-size: var(--type-body-large);
+  line-height: 1.25;
   letter-spacing: -0.01em;
 }
 
 .caption {
   color: var(--muted);
-  font-size: var(--type-chart);
+  font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -60,17 +62,17 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--s2);
   margin: 0;
-  padding: 0 var(--s3) var(--s3);
+  padding: 0 calc(var(--s3) + 2px) calc(var(--s3) + 1px);
   list-style: none;
 }
 
 .recentBadge {
   display: flex;
   align-items: center;
-  gap: var(--s2);
+  gap: calc(var(--s2) - 1px);
   width: 100%;
   min-width: 0;
-  padding: var(--s2);
+  padding: calc(var(--s2) - 1px) var(--s2);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
   background: var(--surface);
@@ -78,6 +80,16 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+.recentBadge > span:first-child {
+  width: calc(var(--s8) - 6px);
+  height: calc(var(--s8) - 6px);
+}
+
+.recentBadge > span:first-child svg {
+  width: 18px;
+  height: 18px;
 }
 
 .recentBadge:hover {
@@ -97,7 +109,7 @@
 }
 
 .recentName {
-  font-size: var(--type-secondary);
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -110,7 +122,7 @@
 }
 
 .recentDate {
-  margin-top: var(--s1);
+  margin-top: 3px;
   color: var(--muted);
   font-size: var(--type-chart);
   font-variant-numeric: tabular-nums;
@@ -121,7 +133,7 @@
   grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: var(--s2);
   margin: 0;
-  padding: 0 var(--s3) var(--s3);
+  padding: 0 calc(var(--s3) + 2px) calc(var(--s2) + 2px);
   list-style: none;
 }
 
@@ -141,6 +153,17 @@
   color: var(--text);
   font: inherit;
   text-align: center;
+}
+
+.tile > span:first-child {
+  width: calc(var(--s8) - 2px);
+  height: calc(var(--s8) - 2px);
+  margin-bottom: 2px;
+}
+
+.tile > span:first-child svg {
+  width: 22px;
+  height: 22px;
 }
 
 .tile {

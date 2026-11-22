@@ -12,7 +12,7 @@
 .panel {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
   width: min(100%, 30rem);
   height: 100%;
   padding: var(--s6);
@@ -24,25 +24,33 @@
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--s3);
+  padding-bottom: calc(var(--s4) + 1px);
+  border-bottom: 1px solid var(--line);
 }
 
 .title {
   margin: 0;
   color: var(--text);
-  font-size: var(--type-heading-small);
-  font-weight: 600;
+  font-size: var(--type-section);
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .close {
-  padding: var(--s1) var(--s2);
-  border: 0;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--s7);
+  height: var(--s7);
+  padding: 0;
+  border: 1px solid var(--line);
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--muted);
-  font-size: var(--type-secondary);
+  font-size: var(--type-label);
   cursor: pointer;
 }
 
@@ -54,20 +62,22 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--s1);
+  gap: calc(var(--s2) - 1px);
   min-width: 0;
 }
 
 .label {
-  color: var(--muted);
-  font-size: var(--type-label);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  font-weight: 700;
 }
 
 .input,
 .textarea {
   width: 100%;
-  padding: var(--s2) var(--s3);
-  border: 1px solid var(--line);
+  min-height: calc(var(--s9) - 6px);
+  padding: calc(var(--s2) + 1px) calc(var(--s3) - 1px);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--text);
@@ -76,8 +86,9 @@
 }
 
 .textarea {
-  min-height: var(--s10);
-  resize: vertical;
+  min-height: calc(var(--s10) + var(--s7));
+  padding: calc(var(--s2) + 1px) calc(var(--s3) - 1px);
+  resize: none;
 }
 
 .input:focus-visible,
@@ -125,19 +136,29 @@
 }
 
 .actions {
+  position: sticky;
+  bottom: calc(var(--s6) * -1);
   display: flex;
   justify-content: flex-end;
   margin-top: auto;
-  padding-top: var(--s3);
+  padding: calc(var(--s4) - 2px) 0 var(--s3);
+  border-top: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .save {
-  padding: var(--s2) var(--s5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--s8);
+  padding: 0 var(--s4);
   border: 1px solid var(--accent);
   border-radius: var(--radius-control);
   background: var(--accent);
   color: var(--accent-ink);
-  font-size: var(--type-body);
+  font-size: var(--type-secondary);
+  font-weight: 650;
+  white-space: nowrap;
   cursor: pointer;
 }
 

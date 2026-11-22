@@ -59,6 +59,7 @@ const TOPICS: readonly HelpTopic[] = [
 export function HelpPage() {
   return (
     <PageShell
+      compact
       titleKey="page.help.title"
       bodyKey="page.help.body"
       back={

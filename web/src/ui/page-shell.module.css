@@ -1,7 +1,6 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--s6) + 2px);
   max-width: var(--layout-content-max);
   margin: 0 auto;
   padding: calc(var(--s7) + 1px) 0 calc(var(--s9) + 1px);
@@ -11,11 +10,22 @@
   max-width: 1000px;
 }
 
+.pageCompact {
+  max-width: 850px;
+  margin-inline: 0;
+}
+
+.back {
+  display: flex;
+  margin-bottom: calc(var(--s3) - 1px);
+}
+
 .head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--s6);
+  margin-bottom: calc(var(--s6) + 2px);
 }
 
 .head h1 {

@@ -26,10 +26,11 @@
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
+  gap: calc(var(--s2) + 1px);
   color: var(--text);
-  font-size: var(--type-body);
-  font-weight: 700;
+  font-size: calc(var(--type-heading-small) - 1px);
+  font-weight: 750;
+  letter-spacing: -0.045em;
   text-decoration: none;
 }
 
@@ -38,30 +39,30 @@
   place-items: center;
   width: var(--s6);
   height: var(--s6);
-  border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: var(--type-label);
+  transform: rotate(-8deg);
+  border: 1.5px solid currentColor;
+  border-radius: calc(var(--radius-marker) + 2px);
+  color: inherit;
+  font-family: Georgia, serif;
+  font-size: var(--type-body-large);
+  font-weight: 700;
+  line-height: 1;
 }
 
 .local {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
-  height: var(--control-height);
+  gap: calc(var(--s2) + 1px);
+  min-height: var(--s8);
   margin-left: auto;
-  padding: 0 var(--s3);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  color: var(--accent);
+  color: var(--muted);
   font-size: var(--type-secondary);
-  font-weight: 600;
+  font-weight: 640;
   text-decoration: none;
 }
 
 .local:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .local:focus-visible,
@@ -115,18 +116,17 @@
   flex-direction: column;
   align-items: flex-start;
   margin: 0;
-  font-size: var(--type-heading);
-  font-weight: 700;
-  line-height: 1.22;
-  letter-spacing: -0.03em;
+  font-size: clamp(calc(var(--s8) - 6px), 3.45vw, calc(var(--type-heading) + 14px));
+  font-weight: 760;
+  line-height: 1.16;
+  letter-spacing: -0.048em;
 }
 
 .artHighlight {
   display: inline-block;
-  margin: 0 var(--s1);
-  padding: var(--s1) var(--s3) calc(var(--s1) + var(--s1));
-  border-radius: var(--radius-control);
-  background: color-mix(in srgb, var(--panel) 72%, var(--accent-soft));
+  padding: 3px var(--s4) 7px;
+  border-radius: calc(var(--radius-control) + 5px);
+  background: color-mix(in srgb, var(--accent-soft) 76%, var(--sky-3));
   color: var(--accent);
 }
 

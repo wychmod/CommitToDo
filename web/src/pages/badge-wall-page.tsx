@@ -296,6 +296,7 @@ export function BadgeWallPage() {
 
   return (
     <PageShell
+      narrow
       titleKey="badge.wall.title"
       bodyKey="badge.wall.body"
       back={
