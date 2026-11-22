@@ -26,3 +26,9 @@ tsconfig.*.tsbuildinfo
 /CUsersAdministrator.SY-202401060959.codexskills/
 
 # 设计资产在 design/，画稿与令牌全部入库，不设图片忽略规则
+
+# 一次性审计产物与工具缓存，不入库
+/2026-11-21/
+/2026-11-22/
+/.qoder-credits/
+/.trae-html-share-packages/

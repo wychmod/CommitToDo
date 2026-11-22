@@ -38,11 +38,15 @@ Commit/
     └── archive/                #   归档（不得作为实现依据）
 ```
 
+Web 与微信小程序同仓库、独立构建发布。实现 Web 异地备份时先在根目录建立 `cloudfunctions/` 和 `cloudbaserc.json`，用于交付两端共享的 CloudBase 后端。微信小程序开工时建立独立 `miniprogram/`。目录与共享规则见 [技术架构](./docs/TECH-ARCHITECTURE.md#73-web-与微信小程序的仓库和后端边界)。
+
 ## 文档
 
 | 文档 | 内容 |
 |---|---|
 | [设计交接](./docs/DESIGN.md) | 确认的首页、全套画稿、页面设计、视觉规范、动效和组件 |
+| [Web 认证设计交接](./docs/web-auth/DESIGN.md) | 登录、注册、找回密码与账号设置的最新明暗稿和生成提示词 |
+| [微信小程序设计交接](./docs/miniprogram/DESIGN.md) | 已确认的四张浅色画稿与生成提示词 |
 | [功能框架](./docs/FRAMEWORK.md) | 单根分支树、5 个对象、4 个入口与版本切分 |
 | [`docs/PRODUCT-STRATEGY.md`](./docs/PRODUCT-STRATEGY.md) | 产品定位、命名决策、主用户、硬约束与风险 |
 | [技术架构](./docs/TECH-ARCHITECTURE.md) | 工程方案与数据、阶段边界 |

@@ -16,7 +16,9 @@ web/src/
   styles/      全局 reset、字体栈、令牌引入；组件样式用 CSS Modules
 ```
 
-根目录另有：`docs/`（架构、页面、PRD）、`design/`（令牌与画稿，只读）、`web/`（应用）。
+根目录的 `docs/` 存放架构、页面与 PRD，`design/` 存放令牌与画稿（只读），`web/` 是 Web 客户端。
+
+Web 首次交付云函数时，在仓库根目录建立 `cloudfunctions/` 与共享部署配置。`web/src/data/cloud/` 负责 Web 侧调用。微信小程序开工时建立独立的 `miniprogram/`，两端共用 CloudBase 后端。共享纯领域规则按需抽取，目录与职责见 [`docs/TECH-ARCHITECTURE.md` §7.3](docs/TECH-ARCHITECTURE.md#73-web-与微信小程序的仓库和后端边界)。
 
 ## 依赖方向（ESLint 强制，违规即失败）
 
