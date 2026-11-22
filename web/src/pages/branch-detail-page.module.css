@@ -74,17 +74,17 @@
 .sectionNav {
   display: flex;
   align-items: center;
-  gap: var(--s6);
+  gap: calc(var(--s6) + 2px);
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
 }
 
 .sectionNav a {
-  padding: var(--s1) var(--s1) var(--s2);
+  padding: calc(var(--s2) + 1px) 3px calc(var(--s2) + 2px);
   border-bottom: 2px solid transparent;
   color: var(--muted);
   font-size: var(--type-secondary);
-  font-weight: 600;
+  font-weight: 550;
   text-decoration: none;
   white-space: nowrap;
 }

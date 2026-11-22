@@ -45,20 +45,20 @@
 .viewSwitch {
   display: inline-flex;
   gap: var(--s1);
-  padding: var(--s1);
+  padding: calc(var(--s1) - 1px);
   border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: var(--panel);
+  border-radius: calc(var(--radius-panel) - 2px);
+  background: var(--inset);
 }
 
 .viewButton {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
-  height: var(--control-height);
-  padding: 0 var(--s3);
-  border: 0;
-  border-radius: var(--radius-control);
+  gap: 6px;
+  height: calc(var(--s7) - 2px);
+  padding: 0 calc(var(--s3) - 2px);
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-control) - 1px);
   background: transparent;
   color: var(--muted);
   font-size: var(--type-secondary);
@@ -67,8 +67,10 @@
 }
 
 .viewButton[aria-pressed='true'] {
-  background: var(--accent-soft);
+  border-color: var(--line);
+  background: var(--surface);
   color: var(--accent);
+  font-weight: 650;
 }
 
 .viewButton:focus-visible,
