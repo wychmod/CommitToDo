@@ -7,6 +7,10 @@
   padding: calc(var(--s7) + 1px) 0 calc(var(--s9) + 1px);
 }
 
+.pageNarrow {
+  max-width: 1000px;
+}
+
 .head {
   display: flex;
   align-items: flex-end;

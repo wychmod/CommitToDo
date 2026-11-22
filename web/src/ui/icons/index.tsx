@@ -187,6 +187,17 @@ export function ArchiveIcon(props: SvgIconProps) {
   );
 }
 
+/** 设置分区：外观与参数调节。 */
+export function TuneIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M4 8h6m4 0h6M4 16h10m4 0h2" />
+      <circle cx="12" cy="8" r="2" />
+      <circle cx="16" cy="16" r="2" />
+    </SvgIcon>
+  );
+}
+
 /** 设置分区：关于与帮助。 */
 export function HelpIcon(props: SvgIconProps) {
   return (

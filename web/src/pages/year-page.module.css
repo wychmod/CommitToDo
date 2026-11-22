@@ -3,30 +3,33 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--s6);
+  gap: var(--s5);
+  /* 画稿 year-page 的区块间距为 20，PageShell 默认页头间距 26。 */
+  margin-top: calc(var(--s5) - var(--s6) - 2px);
 }
 
 .headingWrap h1.heading {
-  margin: 0;
+  margin: calc(var(--s2) - 1px) 0 calc(var(--s1) + 1px);
   color: var(--text);
-  font-size: var(--type-heading);
-  font-weight: 700;
+  font-size: clamp(calc(var(--type-marketing) - 2px), 3.2vw, calc(var(--type-heading) + 5px));
+  font-weight: 760;
   line-height: 1.15;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.055em;
 }
 
 .heading span {
-  margin-left: var(--s2);
-  color: var(--muted);
-  font-size: var(--type-section);
-  font-weight: 600;
+  margin-left: 0.11em;
+  color: inherit;
+  font-size: 0.82em;
+  font-weight: inherit;
+  letter-spacing: -0.035em;
 }
 
 .crumb {
   display: flex;
   align-items: center;
   gap: var(--s2);
-  margin-bottom: var(--s1);
+  margin-bottom: 0;
   color: var(--muted);
   font-size: var(--type-label);
 }
@@ -50,45 +53,54 @@
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--s1);
-  padding: var(--s1);
+  gap: 0;
+  min-height: calc(var(--s7) + 6px);
   border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: var(--panel);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
 }
 
 .pickerButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--s7);
-  height: var(--s7);
+  width: calc(var(--s7) + var(--s1));
+  height: calc(var(--s7) + var(--s1));
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: 0;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
 }
 
+.pickerButton:first-child {
+  border-inline-end: 1px solid var(--line);
+}
+
+.pickerButton:last-child {
+  border-inline-start: 1px solid var(--line);
+}
+
 .pickerButton:hover:not(:disabled) {
-  background: var(--inset);
-  color: var(--text);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .pickerButton:disabled {
-  opacity: 0.35;
+  opacity: 0.44;
   cursor: not-allowed;
 }
 
 .pickerButton:focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 0;
+  outline-offset: -2px;
 }
 
 .pickerYear {
-  min-width: calc(var(--s7) + var(--s6));
+  padding: 0 calc(var(--s4) - 2px);
   color: var(--text);
   font-size: var(--type-secondary);
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
@@ -96,25 +108,43 @@
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--s3);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
 }
 
 .metric {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: var(--s1);
-  min-height: calc(var(--s10) + var(--s7));
-  padding: var(--s4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-  background: var(--panel);
+  gap: calc(var(--s1) - 1px);
+  min-height: calc(var(--s10) + var(--s6) + var(--s4));
+  padding: calc(var(--s4) - 1px) calc(var(--s5) - 1px) calc(var(--s4) - 2px);
+  border: 0;
+  background: transparent;
+}
+
+.metric + .metric {
+  border-inline-start: 1px solid var(--line);
+}
+
+.metric:first-child {
+  background: color-mix(in srgb, var(--accent-soft) 75%, var(--surface));
 }
 
 .metricValue {
   color: var(--text);
-  font-size: var(--type-section);
+  font-size: calc(var(--type-marketing) - 1px);
+  font-weight: 740;
+  line-height: 1.08;
+  letter-spacing: -0.055em;
   font-variant-numeric: tabular-nums;
+}
+
+.metric:first-child .metricValue {
+  color: var(--accent);
 }
 
 .metricLabel {
@@ -140,6 +170,7 @@
 
 .panel {
   overflow: hidden;
+  padding: calc(var(--s4) + 1px) var(--s5) calc(var(--s4) - 1px);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
@@ -151,30 +182,31 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--s3);
-  padding: var(--s4) var(--s5);
-  border-bottom: 1px solid var(--line);
+  margin-bottom: calc(var(--s3) + 2px);
 }
 
 .panelHeading h2 {
-  margin: 0;
+  margin: 0 0 calc(var(--s1) + 1px);
   color: var(--text);
   font-size: var(--type-heading-small);
   font-weight: 650;
-  line-height: 1.2;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
 }
 
 .panelHeading p {
-  margin: var(--s1) 0 0;
+  margin: 0;
   color: var(--muted);
-  font-size: var(--type-label);
+  font-size: var(--type-secondary);
+  line-height: 1.55;
 }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--s3);
-  padding-top: var(--s1);
+  gap: calc(var(--s3) + 2px);
+  padding-top: calc(var(--s1) - 1px);
   color: var(--muted);
   font-size: var(--type-label);
 }
@@ -182,38 +214,41 @@
 .legend span {
   display: inline-flex;
   align-items: center;
-  gap: var(--s1);
+  gap: calc(var(--s2) - 1px);
 }
 
 .legendDot {
   width: var(--s2);
   height: var(--s2);
-  border-radius: 50%;
+  border-radius: var(--radius-marker);
   background: var(--share-color, var(--neutral));
 }
 
 .chart {
-  display: flex;
-  gap: var(--s3);
-  padding: var(--s4) var(--s5) var(--s2);
+  display: grid;
+  grid-template-columns: calc(var(--s7) - 2px) minmax(0, 1fr);
+  padding-top: calc(var(--s1) + 1px);
 }
 
 .chartAxis {
   display: flex;
-  flex: none;
   flex-direction: column;
   justify-content: space-between;
-  height: calc(var(--s10) * 2.6);
-  color: var(--subtle);
+  height: calc(var(--s10) * 2 + var(--s7) + 2px);
+  padding-inline-end: var(--s2);
+  color: var(--muted);
   font-size: var(--type-chart);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
+.chartAxis span {
+  transform: translateY(-7px);
+}
+
 .chartPlot {
   position: relative;
-  flex: 1;
-  height: calc(var(--s10) * 2.6);
+  height: calc(var(--s10) * 2 + var(--s7) + 2px);
 }
 
 .chartGrid {
@@ -232,7 +267,7 @@
   position: relative;
   display: flex;
   align-items: flex-end;
-  gap: var(--s1);
+  gap: 0;
   height: 100%;
 }
 
@@ -258,9 +293,10 @@
 .monthCurrent::before {
   content: '';
   position: absolute;
-  inset: var(--s3) calc(var(--s1) * -1) 0;
+  inset: calc(var(--s2) * -1 + 2px) var(--s1) 0;
   z-index: 0;
-  border-radius: var(--radius-marker);
+  border-radius: calc(var(--radius-marker) + var(--s1)) calc(var(--radius-marker) + var(--s1))
+    var(--s1) var(--s1);
   background: var(--accent-soft);
 }
 
@@ -295,10 +331,10 @@
 .monthBar {
   display: flex;
   flex-direction: column-reverse;
-  width: 62%;
+  width: min(74%, calc(var(--s7) + 5px));
   min-height: var(--s2);
   overflow: hidden;
-  border-radius: var(--radius-marker);
+  border-radius: var(--s1) var(--s1) 0 0;
 }
 
 .monthSegment {
@@ -330,8 +366,8 @@
 }
 
 .monthLabel {
-  height: var(--s5);
-  padding-top: var(--s1);
+  height: calc(var(--s5) + var(--s1));
+  padding-top: calc(var(--s1) + 2px);
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   text-align: center;
@@ -340,38 +376,41 @@
 .chartFoot {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--s3);
-  padding: 0 var(--s5) var(--s3);
+  align-items: center;
+  gap: calc(var(--s3) + 2px);
+  margin-top: var(--s2);
+  padding-top: calc(var(--s3) - 3px);
+  border-top: 1px solid var(--line);
   color: var(--muted);
-  font-size: var(--type-label);
+  font-size: var(--type-chart);
 }
 
 .chartFootItem {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
+  gap: calc(var(--s1) + 2px);
 }
 
 .chartFootItem i {
-  width: var(--s2);
-  height: var(--s2);
+  width: calc(var(--s1) + 1px);
+  height: calc(var(--s1) + 1px);
   border-radius: 50%;
   background: var(--accent);
 }
 
 .bottom {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s5);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.06fr);
+  gap: var(--s4);
   align-items: stretch;
 }
 
 .distColumns {
   display: flex;
-  gap: var(--s4);
+  gap: calc(var(--s4) - 1px);
+  padding-top: calc(var(--s1) - 1px);
   color: var(--muted);
-  font-size: var(--type-label);
+  font-size: var(--type-chart);
   font-variant-numeric: tabular-nums;
 }
 
@@ -386,7 +425,7 @@
   grid-template-columns: var(--s2) minmax(0, 1fr);
   align-items: center;
   gap: var(--s3);
-  padding: var(--s3) var(--s5);
+  min-height: calc(var(--s7) + 3px);
   border-bottom: 1px solid var(--line);
   color: inherit;
   text-decoration: none;
@@ -403,7 +442,7 @@ a.branchRow:hover {
 .branchDot {
   width: var(--s2);
   height: var(--s2);
-  border-radius: 50%;
+  border-radius: var(--radius-marker);
   background: var(--share-color, var(--neutral));
 }
 
@@ -441,7 +480,7 @@ a.branchRow:hover {
 
 .quiet {
   margin: 0;
-  padding: var(--s5);
+  padding: var(--s2) 0 var(--s4);
   color: var(--muted);
   font-size: var(--type-secondary);
 }
@@ -450,7 +489,6 @@ a.branchRow:hover {
   display: flex;
   flex-direction: column;
   gap: var(--s4);
-  padding: var(--s4) var(--s5) var(--s5);
 }
 
 .note,
@@ -462,7 +500,9 @@ a.branchRow:hover {
   background: transparent;
   color: var(--text);
   font-size: var(--type-body);
-  line-height: 1.7;
+  font-weight: 570;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
   text-align: left;
   white-space: pre-wrap;
   cursor: text;
@@ -539,10 +579,10 @@ a.branchRow:hover {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--s8);
-  height: var(--s8);
+  width: calc(var(--s7) - 1px);
+  height: calc(var(--s7) - 1px);
   border: 1px solid var(--line);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-panel);
   background: var(--panel);
   color: var(--muted);
   cursor: pointer;
@@ -567,10 +607,10 @@ a.branchRow:hover {
   display: flex;
   flex-direction: column;
   gap: var(--s1);
-  padding: var(--s4);
+  padding: calc(var(--s3) - 2px) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
-  background: var(--inset);
+  background: color-mix(in srgb, var(--accent-soft) 62%, var(--surface));
 }
 
 .shareTitle {
@@ -579,36 +619,41 @@ a.branchRow:hover {
 }
 
 .shareBody {
-  margin: 0;
+  margin: calc(var(--s1) - 1px) 0 var(--s2);
   color: var(--muted);
-  font-size: var(--type-label);
-  line-height: 1.6;
+  font-size: var(--type-chart);
+  line-height: 1.55;
 }
 
 .shareHint {
-  margin: 0;
+  margin: 0 0 var(--s2);
   color: var(--muted);
-  font-size: var(--type-label);
+  font-size: var(--type-chart);
 }
 
 .shareButton {
   display: inline-flex;
   align-self: flex-start;
   align-items: center;
-  gap: var(--s2);
-  min-height: var(--s8);
-  margin-top: var(--s2);
-  padding: 0 var(--s4);
-  border: 1px solid var(--accent);
+  gap: calc(var(--s1) + 2px);
+  min-height: calc(var(--s7) - 2px);
+  padding: var(--s1) var(--s2);
+  border: 1px solid var(--line);
   border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: var(--type-secondary);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--type-chart);
   cursor: pointer;
 }
 
+.shareButton svg {
+  width: calc(var(--s3) + 1px);
+  height: calc(var(--s3) + 1px);
+}
+
 .shareButton:hover:not(:disabled) {
-  filter: brightness(1.08);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .shareButton:disabled {
@@ -701,32 +746,51 @@ a.branchRow:hover {
     font-size: var(--type-marketing);
   }
 
+  .picker {
+    align-self: flex-start;
+  }
+
   .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric:nth-child(3) {
+    border-inline-start: 0;
+  }
+
+  .metric:nth-child(n + 3) {
+    border-block-start: 1px solid var(--line);
   }
 
   .bottom {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .panelHead,
-  .summaryBody {
-    padding-inline: var(--s4);
+  .panel {
+    padding-inline: calc(var(--s4) - 2px);
   }
 
   .chart {
-    padding-inline: var(--s4);
+    grid-template-columns: calc(var(--s3) - 1px) minmax(0, 1fr);
   }
 
-  .chartFoot {
-    padding-inline: var(--s4);
-  }
-
-  .branchRow {
-    padding-inline: var(--s4);
+  .chartAxis,
+  .chartPlot {
+    height: calc(var(--s10) * 2 - 6px);
   }
 
   .legend {
     width: 100%;
+    gap: calc(var(--s2) - 1px);
+    font-size: calc(var(--type-chart) - 1px);
+  }
+
+  .legendDot {
+    width: calc(var(--s2) - 2px);
+    height: calc(var(--s2) - 2px);
+  }
+
+  .monthCurrent::before {
+    inset-inline: 2px;
   }
 }

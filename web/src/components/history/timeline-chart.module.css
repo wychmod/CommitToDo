@@ -51,7 +51,7 @@
   z-index: 2;
   flex: none;
   width: var(--timeline-label-width);
-  height: var(--timeline-axis);
+  height: calc(var(--s7) + 5px);
   border-right: 1px solid var(--line);
   background: var(--inset);
 }
@@ -59,7 +59,7 @@
 .axisTrack {
   position: relative;
   flex: none;
-  height: var(--timeline-axis);
+  height: calc(var(--s7) + 5px);
 }
 
 .tick {
@@ -96,7 +96,7 @@
 
 .laneRow {
   display: flex;
-  min-height: var(--timeline-lane);
+  min-height: var(--s9);
   border-bottom: 1px solid var(--line);
 }
 

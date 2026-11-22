@@ -204,6 +204,7 @@ export function DataPage() {
 
   return (
     <PageShell
+      narrow
       titleKey="page.data.title"
       bodyKey="page.data.body"
       back={<BackButton fallbackTo="/me" />}

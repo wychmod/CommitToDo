@@ -23,12 +23,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--s3);
-  padding: var(--s4) var(--s5) var(--s3);
+  padding: calc(var(--s4) + 2px) var(--s5) calc(var(--s4) - 2px);
 }
 
 .panelTitle {
   margin: 0;
-  font-size: var(--type-heading-small);
+  font-size: var(--type-body-large);
   letter-spacing: -0.01em;
 }
 
@@ -42,8 +42,8 @@
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--s2);
-  padding: var(--s2) var(--s3);
+  gap: calc(var(--s2) - 1px);
+  padding: calc(var(--s2) - 1px) calc(var(--s3) - 2px);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
   background: var(--panel);
@@ -76,7 +76,7 @@
 .badgeGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s2);
+  gap: calc(var(--s2) + 2px);
   margin: 0;
   padding: 0 var(--s5) var(--s5);
   list-style: none;
@@ -85,9 +85,9 @@
 .miniBadge {
   display: flex;
   align-items: center;
-  gap: var(--s3);
+  gap: calc(var(--s3) - 1px);
   min-width: 0;
-  padding: var(--s3);
+  padding: calc(var(--s3) + 1px) calc(var(--s3) - 1px);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
   background: var(--surface);
@@ -106,7 +106,7 @@
 }
 
 .miniName {
-  font-size: var(--type-secondary);
+  font-size: calc(var(--type-secondary) + 1px);
   font-weight: 600;
 }
 
@@ -129,8 +129,8 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--s7);
-  height: var(--s7);
+  width: calc(var(--s7) + 1px);
+  height: calc(var(--s7) + 1px);
   border-radius: var(--radius-control);
   background: var(--accent-soft);
   color: var(--accent);
@@ -139,9 +139,9 @@
 .backupStatus {
   display: flex;
   align-items: flex-start;
-  gap: var(--s2);
+  gap: calc(var(--s2) + 1px);
   margin: 0 var(--s5);
-  padding: var(--s2) var(--s3);
+  padding: calc(var(--s3) - 1px) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
   background: var(--inset);
@@ -184,15 +184,15 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--s2) var(--s3);
-  padding: var(--s3) var(--s5) var(--s5);
+  gap: calc(var(--s2) + 1px) calc(var(--s3) + 1px);
+  padding: calc(var(--s3) + 1px) var(--s5) calc(var(--s5) - 2px);
 }
 
 .primaryButton {
   display: inline-flex;
   align-items: center;
-  min-height: var(--s9);
-  padding: 0 var(--s4);
+  min-height: var(--s8);
+  padding: 0 calc(var(--s4) - 2px);
   border: 1px solid var(--accent);
   border-radius: var(--radius-control);
   background: var(--accent);
@@ -231,9 +231,9 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--s3);
+  gap: calc(var(--s3) - 2px);
   margin: 0 var(--s5);
-  padding: var(--s2) 0;
+  padding: calc(var(--s2) + 1px) 0;
   border-top: 1px solid var(--line);
   color: var(--text);
   text-decoration: none;

@@ -1,9 +1,8 @@
 .layout {
   display: grid;
   grid-template-columns: minmax(150px, 205px) minmax(0, 1fr);
-  gap: var(--s6);
+  gap: var(--s4);
   align-items: start;
-  max-width: var(--layout-content-max);
 }
 
 .nav {
@@ -11,8 +10,8 @@
   top: var(--s6);
   display: flex;
   flex-direction: column;
-  gap: var(--s1);
-  padding: var(--s2);
+  gap: calc(var(--s1) - 1px);
+  padding: calc(var(--s2) - 1px);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
@@ -21,12 +20,13 @@
 .navLink {
   display: flex;
   align-items: center;
-  gap: var(--s2);
+  gap: calc(var(--s2) + 1px);
   min-height: var(--s8);
-  padding: 0 var(--s3);
+  padding: calc(var(--s2) - 2px) calc(var(--s3) - 3px);
+  border: 1px solid transparent;
   border-radius: var(--radius-control);
   color: var(--muted);
-  font-size: var(--type-secondary);
+  font-size: var(--type-body);
   text-decoration: none;
 }
 
@@ -36,11 +36,22 @@
 }
 
 .navLink:hover {
-  background: var(--inset);
+  border-color: var(--line-strong);
   color: var(--text);
 }
 
 .navLink:hover svg {
+  color: var(--accent);
+}
+
+.navLink[aria-current='page'] {
+  border-color: var(--line);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 650;
+}
+
+.navLink[aria-current='page'] svg {
   color: var(--accent);
 }
 
@@ -52,7 +63,7 @@
 .stack {
   display: flex;
   flex-direction: column;
-  gap: var(--s7);
+  gap: var(--s4);
   min-width: 0;
 }
 
@@ -67,18 +78,19 @@
 }
 
 .panelSection {
-  padding: var(--s5);
+  padding: 0 0 calc(var(--s4) - 2px);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
 }
 
 .example {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s2);
-  margin-top: var(--s1);
-  padding: var(--s3);
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(100px, 0.85fr);
+  gap: calc(var(--s3) + 2px);
+  align-items: center;
+  margin: calc(var(--s2) - 2px) var(--s5) calc(var(--s5) - 2px);
+  padding: calc(var(--s3) - 2px) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
   background: var(--inset);
@@ -87,50 +99,52 @@
 .exampleHead {
   display: flex;
   align-items: center;
-  gap: var(--s3);
+  gap: calc(var(--s2) + 1px);
 }
 
 .exampleIcon {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--s8);
-  height: var(--s8);
+  width: calc(var(--s7) + 1px);
+  height: calc(var(--s7) + 1px);
   border-radius: var(--radius-control);
-  background: var(--panel);
+  background: var(--accent-soft);
   color: var(--accent);
 }
 
 .exampleText {
   display: grid;
-  gap: var(--s1);
+  gap: calc(var(--s1) - 1px);
   min-width: 0;
 }
 
 .exampleTitle {
   color: var(--text);
-  font-size: var(--type-secondary);
+  font-size: calc(var(--type-secondary) + 1px);
   font-weight: 600;
 }
 
 .treeFragment {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  gap: 1px;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: var(--panel);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--type-label);
 }
 
 .treeRow {
   display: flex;
   align-items: center;
-  gap: var(--s2);
-  min-height: var(--example-row);
-  padding: 0 var(--s3);
-  border-top: 1px solid var(--line);
+  gap: calc(var(--s1) + 1px);
+  min-height: calc(var(--s7) - 3px);
+  padding: 0 7px;
+  border-top: 0;
   color: var(--text);
-  font-size: var(--type-secondary);
+  font-size: var(--type-label);
 }
 
 .treeRow:first-child {
@@ -138,20 +152,22 @@
 }
 
 .treeRow:last-child {
-  padding-left: var(--s6);
+  margin-left: calc(var(--s3) - 2px);
+  border-radius: var(--radius-marker);
+  background: var(--accent-soft);
 }
 
 .treeDot {
   flex: none;
-  width: var(--tree-identity);
-  height: var(--tree-identity);
-  border-radius: 50%;
-  background: var(--accent);
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-marker);
+  background: var(--coral-1);
 }
 
 .treeDate {
   margin-left: auto;
-  color: var(--subtle);
+  color: var(--muted);
   font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
 }
@@ -166,56 +182,80 @@
 
 .aboutRow {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--s3);
+  gap: calc(var(--s2) + 2px);
+  min-height: calc(var(--s10) + 5px);
+  margin: 0 var(--s5);
+  padding: calc(var(--s2) + 1px) 0;
+  border-top: 1px solid var(--line);
 }
 
 .aboutText {
   display: grid;
   flex: 1;
-  gap: var(--s1);
+  gap: calc(var(--s1) - 1px);
   min-width: 0;
 }
 
 .aboutTitle {
   color: var(--text);
-  font-size: var(--type-secondary);
+  font-size: calc(var(--type-secondary) + 1px);
   font-weight: 600;
+}
+
+.aboutRow .entry {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: var(--type-secondary);
 }
 
 .heading {
   margin: 0;
+  padding: calc(var(--s4) + 2px) var(--s5) calc(var(--s3) - 1px);
   color: var(--text);
-  font-size: var(--type-heading-small);
+  font-size: var(--type-body-large);
+  letter-spacing: -0.01em;
 }
 
 .hint {
   margin: 0;
-  color: var(--subtle);
-  font-size: var(--type-secondary);
-}
-
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s2);
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.legend {
-  padding: 0;
   color: var(--muted);
   font-size: var(--type-label);
 }
 
-.options {
+.panelSection > .hint {
+  padding: 0 var(--s5) calc(var(--s3) - 1px);
+}
+
+.group {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--s2);
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--s2) + 2px);
+  min-height: calc(var(--s10) + 5px);
+  margin: 0 var(--s5);
+  padding: calc(var(--s2) + 1px) 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.legend {
+  padding: 0;
+  color: var(--text);
+  font-size: calc(var(--type-secondary) + 1px);
+}
+
+.options {
+  display: inline-flex;
+  flex: none;
+  gap: 0;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
 }
 
 .option {
@@ -234,19 +274,25 @@
 .optionText {
   display: inline-flex;
   align-items: center;
-  min-height: var(--s9);
-  padding: 0 var(--s4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: var(--panel);
+  min-height: calc(var(--s7) - 1px);
+  padding: 0 calc(var(--s3) - 3px);
+  border: 1px solid transparent;
+  border-radius: var(--s1);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-label);
+  white-space: nowrap;
+}
+
+.option:hover .optionText {
   color: var(--text);
-  font-size: var(--type-secondary);
 }
 
 .input:checked + .optionText {
-  border-color: var(--accent);
+  border-color: var(--line);
   background: var(--accent-soft);
   color: var(--accent);
+  font-weight: 650;
 }
 
 .input:focus-visible + .optionText {
@@ -613,12 +659,24 @@
   }
 
   .navLink {
-    min-height: var(--s8);
-    padding: 0 var(--s2);
+    min-height: calc(var(--s7) + 2px);
+    gap: calc(var(--s1) + 1px);
+    padding-inline: calc(var(--s2) - 2px);
   }
 
-  .panelSection {
-    padding: var(--s4);
+  .heading {
+    padding-inline: var(--s3);
+  }
+
+  .panelSection > .hint,
+  .group,
+  .aboutRow {
+    margin-inline: var(--s3);
+  }
+
+  .example {
+    grid-template-columns: minmax(105px, 1fr) minmax(112px, 0.86fr);
+    margin-inline: var(--s3);
   }
 
   .accountRow {

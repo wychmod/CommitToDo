@@ -10,13 +10,23 @@ interface PageShellProps {
   action?: ReactNode;
   /** 二级页的返回控件，放在页头之上。 */
   back?: ReactNode;
+  /** 我的/设置/数据等页在画稿里收窄到 1000px。 */
+  narrow?: boolean;
   children?: ReactNode;
 }
 
 /** 所有占位页共用的外壳：页头 + 内容区，不承载业务。 */
-export function PageShell({ titleKey, title, bodyKey, action, back, children }: PageShellProps) {
+export function PageShell({
+  titleKey,
+  title,
+  bodyKey,
+  action,
+  back,
+  narrow,
+  children,
+}: PageShellProps) {
   return (
-    <section className={styles.page}>
+    <section className={narrow ? `${styles.page} ${styles.pageNarrow}` : styles.page}>
       {back}
       <header className={styles.head}>
         <div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { consumeTakeoverNotice } from '@/components/auth/takeover-notice';
@@ -16,7 +16,7 @@ import { t, type MessageKey } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
-import { ArchiveIcon, BranchIcon, HelpIcon, SunIcon, UserIcon } from '@/ui/icons';
+import { ArchiveIcon, BranchIcon, HelpIcon, SunIcon, TuneIcon, UserIcon } from '@/ui/icons';
 import styles from './settings-page.module.css';
 
 const COLLECTION_KEYS: Record<string, MessageKey> = {
@@ -62,9 +62,12 @@ function OptionGroup<T extends string>({
   options,
   onChange,
 }: OptionGroupProps<T>) {
+  const labelId = useId();
   return (
-    <fieldset className={styles.group}>
-      <legend className={styles.legend}>{t(legendKey)}</legend>
+    <div className={styles.group} role="group" aria-labelledby={labelId}>
+      <span id={labelId} className={styles.legend}>
+        {t(legendKey)}
+      </span>
       <div className={styles.options}>
         {options.map((option) => (
           <label key={option.value} className={styles.option}>
@@ -80,7 +83,7 @@ function OptionGroup<T extends string>({
           </label>
         ))}
       </div>
-    </fieldset>
+    </div>
   );
 }
 
@@ -180,13 +183,13 @@ export function SettingsPage() {
   const syncNext = `${location.pathname}#sync`;
 
   return (
-    <PageShell titleKey="page.settings.title" bodyKey="page.settings.body">
+    <PageShell narrow titleKey="page.settings.title" bodyKey="page.settings.body">
       {!loaded ? (
         <LoadingShell />
       ) : (
         <div className={styles.layout}>
           <nav className={styles.nav} aria-label={t('settings.nav.label')}>
-            <a className={styles.navLink} href="#appearance">
+            <a className={styles.navLink} href="#appearance" aria-current="page">
               <SunIcon size={18} />
               {t('settings.appearance')}
             </a>
@@ -199,7 +202,7 @@ export function SettingsPage() {
               {t('settings.data')}
             </Link>
             <a className={styles.navLink} href="#about">
-              <HelpIcon size={18} />
+              <TuneIcon size={18} />
               {t('settings.about')}
             </a>
           </nav>

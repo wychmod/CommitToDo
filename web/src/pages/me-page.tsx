@@ -109,6 +109,7 @@ export function MePage() {
 
   return (
     <PageShell
+      narrow
       titleKey="page.me.title"
       bodyKey="page.me.body"
       action={
