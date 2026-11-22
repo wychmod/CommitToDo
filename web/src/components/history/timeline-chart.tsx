@@ -37,6 +37,9 @@ export interface TimelineConflictMarker extends TimelineConflict {
   deviceLabel: string;
 }
 
+/** 加载更早区间在图表顶部的四种可见状态。 */
+export type TimelineLoadEarlierState = 'none' | 'available' | 'loading' | 'error' | 'exhausted';
+
 interface TimelineChartProps {
   branches: readonly Branch[];
   commits: readonly Commit[];
@@ -49,8 +52,9 @@ interface TimelineChartProps {
   expanded: Record<string, boolean>;
   onToggle: (branchId: string) => void;
   highlight: TimelineHighlight | null;
-  canLoadEarlier: boolean;
+  earlierState: TimelineLoadEarlierState;
   onLoadEarlier: () => void;
+  onRetryLoadEarlier: () => void;
   onOpenCommit: (commitId: string) => void;
   onOpenMilestone: (milestoneId: string) => void;
 }
@@ -205,13 +209,15 @@ export function TimelineChart({
   expanded,
   onToggle,
   highlight,
-  canLoadEarlier,
+  earlierState,
   onLoadEarlier,
+  onRetryLoadEarlier,
   onOpenCommit,
   onOpenMilestone,
 }: TimelineChartProps) {
   const tz = currentTzOffset(systemClock.now());
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollArmed = useRef(true);
   const [viewportWidth, setViewportWidth] = useState(960);
   const [clusterOpen, setClusterOpen] = useState<{
     laneId: string;
@@ -352,8 +358,15 @@ export function TimelineChart({
 
   const handleScroll = (): void => {
     const element = scrollRef.current;
-    if (!element || !canLoadEarlier) return;
-    if (element.scrollLeft <= 8) onLoadEarlier();
+    if (!element) return;
+    // 离开左边界后重新武装，避免一次贴边连续触发多批加载。
+    if (element.scrollLeft > 8) {
+      scrollArmed.current = true;
+      return;
+    }
+    if (earlierState !== 'available' || !scrollArmed.current) return;
+    scrollArmed.current = false;
+    onLoadEarlier();
   };
 
   const laneStyle = (lane: Lane): CSSProperties => {
@@ -377,10 +390,33 @@ export function TimelineChart({
 
   return (
     <div className={styles.chart}>
-      {canLoadEarlier ? (
-        <button type="button" className={styles.loadEarlier} onClick={onLoadEarlier}>
-          {t('history.loadEarlier')}
-        </button>
+      {earlierState !== 'none' ? (
+        <div
+          className={styles.loadEarlierBar}
+          role={earlierState === 'error' ? 'alert' : undefined}
+        >
+          {earlierState === 'available' ? (
+            <button type="button" className={styles.loadEarlier} onClick={onLoadEarlier}>
+              {t('history.loadEarlier')}
+            </button>
+          ) : null}
+          {earlierState === 'loading' ? (
+            <span className={styles.loadEarlierState} role="status">
+              {t('history.loadEarlier.loading')}
+            </span>
+          ) : null}
+          {earlierState === 'error' ? (
+            <>
+              <span className={styles.loadEarlierState}>{t('history.loadEarlier.error')}</span>
+              <button type="button" className={styles.loadEarlier} onClick={onRetryLoadEarlier}>
+                {t('history.retry')}
+              </button>
+            </>
+          ) : null}
+          {earlierState === 'exhausted' ? (
+            <span className={styles.loadEarlierState}>{t('history.loadEarlier.exhausted')}</span>
+          ) : null}
+        </div>
       ) : null}
 
       <div className={styles.desktopOnly} ref={scrollRef} onScroll={handleScroll}>

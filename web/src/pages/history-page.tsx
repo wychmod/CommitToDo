@@ -1,11 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type CSSProperties,
+} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   TimelineChart,
   type TimelineConflictMarker,
   type TimelineHighlight,
+  type TimelineLoadEarlierState,
 } from '@/components/history/timeline-chart';
-import { addDays, currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
+import { currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
+import { nextEarlierWindow } from '@/core/rules/history-window';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import {
   filterBranchIds,
@@ -25,8 +35,6 @@ import { EmptyState } from '@/ui/empty-state';
 import { SvgIcon } from '@/ui/icons/svg-icon';
 import { PageShell } from '@/ui/page-shell';
 import styles from './history-page.module.css';
-
-const LOAD_STEP_DAYS = 90;
 
 const RANGE_LABEL_KEY: Record<TimeRangeKind, MessageKey> = {
   recent90: 'history.range.recent90',
@@ -153,9 +161,11 @@ export function HistoryPage() {
   const setMilestoneFocus = useShellStore((state) => state.setMilestoneFocus);
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const [extraStart, setExtraStart] = useState<string | null>(null);
+  const [loadedStart, setLoadedStart] = useState<string | null>(null);
+  const [pendingStart, setPendingStart] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [branchMenuOpen, setBranchMenuOpen] = useState(false);
-  const loadingEarlier = useRef(false);
   const branchMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -175,7 +185,9 @@ export function HistoryPage() {
   }, [branchMenuOpen]);
 
   useEffect(() => {
-    setExtraStart(null);
+    setLoadedStart(null);
+    setPendingStart(null);
+    setLoadFailed(false);
   }, [saved.range, saved.branchId]);
 
   const liveBranches = useMemo(
@@ -210,14 +222,15 @@ export function HistoryPage() {
 
   const baseRange = resolveTimeRange(saved.range, todayDate);
   const boundedStart =
-    extraStart !== null && (baseRange.start === null || extraStart < baseRange.start)
-      ? extraStart
+    loadedStart !== null && (baseRange.start === null || loadedStart < baseRange.start)
+      ? loadedStart
       : baseRange.start;
   const effectiveRange = { ...baseRange, start: boundedStart };
-  const canLoadEarlier =
-    saved.range !== 'all' &&
-    earliest !== null &&
-    (effectiveRange.start === null || effectiveRange.start > earliest);
+  const earlierWindow = useMemo(
+    () => nextEarlierWindow(saved.range, effectiveRange.start, earliest),
+    [saved.range, effectiveRange.start, earliest],
+  );
+  const canLoadEarlier = earlierWindow.status === 'load';
 
   const focusMilestone = useMemo(
     () =>
@@ -231,7 +244,7 @@ export function HistoryPage() {
   useEffect(() => {
     if (!focusMilestone) return;
     const anchor = milestoneAnchor(focusMilestone.achievedAt, focusMilestone.datePrecision, tz);
-    if (baseRange.start !== null && anchor < baseRange.start) setExtraStart(anchor);
+    if (baseRange.start !== null && anchor < baseRange.start) setLoadedStart(anchor);
   }, [focusMilestone, baseRange.start, tz]);
 
   useEffect(() => {
@@ -394,18 +407,42 @@ export function HistoryPage() {
     setBranchId(branchId);
   };
 
-  const handleLoadEarlier = useCallback(() => {
-    if (!canLoadEarlier || loadingEarlier.current) return;
-    loadingEarlier.current = true;
-    const current = effectiveRange.start ?? earliest;
-    if (current !== null && earliest !== null) {
-      const next = addDays(current, -LOAD_STEP_DAYS);
-      setExtraStart(next < earliest ? earliest : next);
+  // 加载更早区间：先记下目标起点，等数据可读后再整体替换区间，避免渲染半截时间线。
+  useEffect(() => {
+    if (pendingStart === null || view.status === 'loading') return;
+    if (view.status === 'error') {
+      setLoadFailed(true);
+      return;
     }
-    window.setTimeout(() => {
-      loadingEarlier.current = false;
-    }, 200);
-  }, [canLoadEarlier, effectiveRange.start, earliest]);
+    const next = pendingStart;
+    setPendingStart(null);
+    setLoadFailed(false);
+    startTransition(() => setLoadedStart(next));
+  }, [pendingStart, view.status, startTransition]);
+
+  const handleLoadEarlier = useCallback(() => {
+    if (isPending || pendingStart !== null) return;
+    const next = nextEarlierWindow(saved.range, effectiveRange.start, earliest);
+    if (next.status !== 'load') return;
+    setLoadFailed(false);
+    setPendingStart(next.start);
+  }, [isPending, pendingStart, saved.range, effectiveRange.start, earliest]);
+
+  const retryLoadEarlier = useCallback(() => {
+    setLoadFailed(false);
+    view.retry();
+  }, [view]);
+
+  const loadingEarlier = isPending || (pendingStart !== null && !loadFailed);
+  const earlierState: TimelineLoadEarlierState = loadFailed
+    ? 'error'
+    : loadingEarlier
+      ? 'loading'
+      : canLoadEarlier
+        ? 'available'
+        : loadedStart !== null
+          ? 'exhausted'
+          : 'none';
 
   const emptyAction =
     saved.branchId !== null ? (
@@ -552,8 +589,9 @@ export function HistoryPage() {
                   toggleExpanded(branchId, fallback);
                 }}
                 highlight={highlight}
-                canLoadEarlier={canLoadEarlier}
+                earlierState={earlierState}
                 onLoadEarlier={handleLoadEarlier}
+                onRetryLoadEarlier={retryLoadEarlier}
                 onOpenCommit={openCommitDetail}
                 onOpenMilestone={openMilestoneDetail}
               />
