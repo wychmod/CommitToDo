@@ -101,7 +101,7 @@ npx @cloudbase/cli hosting deploy dist /admin-console -e committodo-d6gmapg0j639
 
 - 若后续希望完全独立域名，可把 `admin/dist` 挂到单独静态站点或自定义域名；管理接口鉴权不依赖静态资源位置，静态 HTML 暴露不构成数据泄露。
 - `index.html` 带 `<meta name="robots" content="noindex,nofollow">`，且 web 侧不出现任何入口链接。
-- **当前状态**：静态托管发布尚未执行，`admin-console/` 路径下没有任何文件；等用户明确确认后再跑上面的 `hosting deploy`。
+- **当前状态**：2026-11-22 23 个文件已发布到 `/admin-console`；深链接与资源均实测 200（见 §11.4）。`--verify` 的 CDN 校验存在假阴性，发布以实际 HTTP 复核为准。
 
 ### 2.3 为什么不会破坏 `web` 的 lint / test / build
 
@@ -312,7 +312,7 @@ ADMIN_EMAIL_VERIFICATION_MODE="enforce"
 
 **禁止操作**：新增行、物理删除、批量改多行、修改归属、修改计数、修改生命周期状态。删除一律由业务侧软删；管理站第一阶段不提供删除。
 
-### 4.3 写入流程（第二阶段后半段开放）
+### 4.3 写入流程（已实现）
 
 ```
 1. 鉴权（每个 action 独立执行）
@@ -326,7 +326,10 @@ ADMIN_EMAIL_VERIFICATION_MODE="enforce"
 
 - 失败整体回滚；不出现「改了但没审计」。
 - 审计写入失败时业务写入必须回滚，返回 `admin_write_failed`。
-- 若数据库线确认当前 PG 环境不支持多集合事务，则改为「先写 pending 审计 → 业务写入 → 标记 applied」的补偿流程，并在上线前用一次真实写入验证；这一点列入待确认技术项。
+- 实现：`cloudfunctions/admin-api/index.js` 的 `handleTableUpdate` 优先使用 `db.runTransaction`（事务内「读行 → 校验 rev → update → 写 `admin_audit_log`」）；运行时不提供 `runTransaction` 时退化为「写 pending 审计 → 更新业务行 → 标记 applied」的补偿流程，三步任一步失败都返回 `admin_write_failed` 并记录待核对状态。
+- `reason` 必填（trim 后 1–200 字），缺失或超长返回 `admin_invalid_params`。
+- 冲突返回 `admin_conflict` 409，`details` 带 `{ expectedRev, currentRev }`，前端提示刷新后重试，不自动合并。
+- 只更新：不提供新增、物理删除、批量写；`patch` 与当前值完全相同时直接返回原行与 `noop: true`，不写审计。
 
 ### 4.4 审计记录
 
@@ -340,8 +343,10 @@ ADMIN_EMAIL_VERIFICATION_MODE="enforce"
 | `changedFields` | 改了哪些字段 |
 | `before` / `after` | 仅记录变更字段的旧值/新值；新增/删除类操作才记录整行 |
 | `revBefore` / `revAfter` | 并发校验依据 |
+| `reason` | 操作原因，来自请求且已 trim；必填 1–200 字 |
 | `at` / `requestId` / `clientIp` | 服务端时间、请求 ID、来源 IP |
 | `status` / `errorCode` | `applied` / `failed`；失败时带错误码 |
+| `schemaVersion` | 审计行结构版本，当前 `1` |
 
 脱敏：`passwordHash`、`token`、`secret`、`apiKey`、`authorization` 永不入库；`outbox.payload`、`backups.payload` 默认不返回、不审计正文。
 
@@ -574,15 +579,19 @@ app.callFunction({
 - 不允许前端传任意 `collection`；服务端只认注册表内的表。
 - 不允许前端传 `ownerId` 作为鉴权；`ownerId` 只作为筛选条件。
 
-### 6.4 写接口（第二阶段后段，按需开放）
+### 6.4 写接口（已实现）
 
 | action | 参数 | 返回 |
 |---|---|---|
-| `tables.update` | `{ collection, id, patch, expectedRev, reason? }` | `{ row, auditId }` |
+| `tables.update` | `{ collection, id, patch, expectedRev, reason, ownerId? }` | `{ row, auditId, noop? }` |
 
-- 第一阶段返回 `admin_not_implemented`，按钮禁用。
-- 开放前必须完成字段白名单、`expectedRev` 冲突校验、事务内审计、二次确认交互（待定项）。
+- 只允许 §4.2 的六张表与字段白名单；越界返回 `admin_field_not_allowed` 403，表只读返回 `admin_table_not_allowed` 403。
+- `reason` 必填（trim 后 1–200 字），缺失或超长 `admin_invalid_params` 400。
+- `expectedRev` 必须等于服务端当前 `rev`；不等返回 `admin_conflict` 409，`details = { expectedRev, currentRev }`。
+- `patch` 与当前值完全一致时不写数据库、不写审计，返回原行与 `noop: true`。
+- 成功：服务端把 `rev + 1`、`updatedAt` 置为服务端时间，并在同一事务写一条 `admin_audit_log`（`action = 'admin.update'`，`before` / `after` 仅含变更字段，含 `beforeAbsent` / `afterAbsent`）。
 - 不支持新增、物理删除、批量写。
+- 前端入口：表详情抽屉的「编辑」→ 抽屉内二次确认层 → 提交；确认层逐字段列出「旧值 → 新值」，冲突时就地提示刷新。
 
 ### 6.5 事件采集接口（`ops-event`）
 
@@ -625,23 +634,27 @@ await app.callFunction({
 
 ---
 
-## 7. 待定清单（需要你拍板）
+## 7. 待定清单与最小风险默认值
 
-| # | 问题 | 选项 | 影响 |
-|---|---|---|---|
-| D1 | 是否区分只读管理员与可写管理员 | A. 单一 `ADMIN_EMAILS`；B. 再加 `ADMIN_WRITE_EMAILS` | B 更符合最小权限，但配置与前端状态更多 |
-| D2 | 编辑是否二次确认 | A. 弹窗确认；B. 必须输入行 ID；C. 不确认 | B 最防误操作，C 最快但风险最高 |
-| D3 | 指标先上哪些 | A. 只上 M1–M8、M10–M15；B. 加 M16–M18 漏斗 | A 埋点少、先可用；B 需要更多事件 |
-| D4 | 留存主口径 | A. 精确日；B. 任意回访；C. 两者都展示 | C 信息最全，但图更复杂 |
-| D5 | 原始事件保留多久 | A. 90 天；B. 180 天；C. 400 天 | 影响存储成本与年度对比能力 |
-| D6 | 未登录/匿名事件是否统计 | A. 只统计登录账号；B. 同时统计匿名安装 | B 覆盖更全，但隐私与去重更复杂 |
-| D7 | 指标日界 | A. 统一 `Asia/Shanghai`；B. 按事件 `localDate` | B 更贴近用户本地体验；A 更易跨报表对齐 |
-| D8 | 生命周期字段是否允许直接编辑 | A. 只读，走业务动作；B. 管理站直接改 | B 方便救火，但会绕过 R1/R12/R14 等规则与事件 |
-| D9 | 审计保留多久、是否记录读取 | A. 只记写、长期保留；B. 记录敏感读取并设保留期 | B 合规性更强，但审计量更大 |
-| D10 | 管理站部署位置 | A. 同环境静态托管 `/admin-console/`；B. 独立域名/独立站点 | A 最快；B 隔离更彻底 |
-| D11 | 邮箱验证判定 | A. `enforce`，要求接口返回已验证；B. `trust-login`，依赖 CloudBase 登录强制验证 | A 更安全；需确认接口是否返回验证字段；B 需确认登录配置 |
-| D12 | 表浏览是否默认脱敏用户邮箱 | A. 脱敏为 `a***@example.com`；B. 完整显示 | A 降低泄露面；B 排障更快 |
-| D13 | 指标是否排除管理员账号 | A. 不排除；B. 通过 `EXCLUDED_USER_IDS` 排除 | B 避免内部使用污染留存，但多一份配置；A 口径最简单 |
+下列口径仍待最终拍板。为避免「因为待定整块不做」，当前实现一律先取**最小风险默认值**；后续拍板与此不同时，只改对应实现，不改变其余结构。
+
+| # | 问题 | 选项 | 当前默认（最小风险） | 说明 |
+|---|---|---|---|---|
+| D1 | 是否区分只读管理员与可写管理员 | A. 单一 `ADMIN_EMAILS`；B. 再加 `ADMIN_WRITE_EMAILS` | **A** | 白名单内即管理员；写接口仍受字段白名单与审计约束 |
+| D2 | 编辑是否二次确认 | A. 弹窗确认；B. 必须输入行 ID；C. 不确认 | **A（抽屉内确认层）** | 确认层逐字段列旧值/新值；不要求手输 ID，避免无谓摩擦 |
+| D3 | 指标先上哪些 | A. M1–M12；B. 再加 M13–M18 漏斗 | **A** | `metrics.overview` 覆盖 M1–M12；M13–M18 无事件来源，保持未接入，不造假 |
+| D4 | 留存主口径 | A. 精确日；B. 任意回访；C. 两者都展示 | **A（精确日 D1/D7/D30）** | 队列按 `firstSeenDate` 精确日；C 需额外口径与图位 |
+| D5 | 原始事件保留多久 | A. 90 天；B. 180 天；C. 400 天 | **C（400 天）** | `ops-retention` 已按 400 天清理 |
+| D6 | 未登录/匿名事件是否统计 | A. 只统计登录账号；B. 同时统计匿名安装 | **A（账号口径）** | 日活/周活/月活/留存只认 `userId`；设备数用 `visitorId` 兜底，仅作设备维度 |
+| D7 | 指标日界 | A. 统一 `Asia/Shanghai`；B. 按事件 `localDate` | **B（事件 `localDate`）** | 趋势与队列按客户端本地日；`tzOffset` 仅决定默认区间与「今天」 |
+| D8 | 生命周期字段是否允许直接编辑 | A. 只读，走业务动作；B. 管理站直接改 | **A** | `status`、完成/归档时间、计数、树结构全部只读 |
+| D9 | 审计保留多久、是否记录读取 | A. 只记写、长期保留；B. 记录读取并设保留期 | **A** | 只追加写审计，不记录读取；不设清理任务 |
+| D10 | 管理站部署位置 | A. 同环境 `/admin-console/`；B. 独立域名 | **A** | 已发布到同环境子路径，未影响 web 根目录 |
+| D11 | 邮箱验证判定 | A. `enforce`；B. `trust-login` | **A** | 环境变量 `ADMIN_EMAIL_VERIFICATION_MODE=enforce`；接口不返回验证字段时按未验证拒绝 |
+| D12 | 表浏览是否默认脱敏用户邮箱 | A. 脱敏；B. 完整显示 | **B（完整显示）** | 仅白名单管理员可见，排障优先；如需脱敏只改 `maskRow` |
+| D13 | 指标是否排除管理员账号 | A. 不排除；B. `EXCLUDED_USER_IDS` | **A** | 口径最简单；内部使用对指标的影响当前可接受 |
+
+**回退口径（最小风险）**：审计页只支持「单次回退到某条审计的旧值」——读取当前行，用该条审计的 `before` / `beforeAbsent` 反向覆盖变更字段，以当前 `rev` 作 `expectedRev` 重新走一次 `tables.update`，并写一条新的 `admin.update` 审计；不实现「回退到某个时间点」的多步重放，也不改历史审计。若当前字段值已与 `before` 相同，提示「无需回退」且不写审计。
 
 ---
 
@@ -673,6 +686,10 @@ await app.callFunction({
 6. `ops_events` 未创建 → 指标显示「未接入」，不显示假数据。
 7. `ops_events` 创建但无数据 → 指标显示空态或 `insufficient`，不报错。
 8. 无权限账号看不到任何业务行；通过云函数直接调用同样被拒绝。
+9. 总览：KPI 5 项；趋势双折线（本期/上期对比）；留存 3 个统计框 + cohort 表；同步成功率、备份成功/失败、有效提交三卡与画稿一致。
+10. 编辑：抽屉内改字段 → 确认层列出「旧值 → 新值」→ 提交后 `rev + 1`，审计列表出现一条 `admin.update`。
+11. 冲突：用过期 `expectedRev` 提交 → `admin_conflict`，确认层就地提示刷新，不写入。
+12. 回退：审计行点「回退」→ 确认层显示「当前值 → 恢复值」→ 提交后字段恢复，并新增一条审计；值已相同则提示「无需回退」。
 
 ---
 
@@ -688,8 +705,8 @@ await app.callFunction({
 | 生产 `base` | `/admin-console/` |
 | 静态托管目标 | 环境 `committodo-d6gmapg0j6397889f` 的 `/admin-console` 子路径 |
 | 访问域名 | `https://committodo-d6gmapg0j6397889f-1259162353.tcloudbaseapp.com/admin-console/` |
-| 部署命令 | `npx @cloudbase/cli hosting deploy ./dist /admin-console -e committodo-d6gmapg0j6397889f --verify` |
-| 当前状态 | 2026-11-22 已发布；只写 `/admin-console`，未改 web 根目录与既有对象 |
+| 部署命令 | `npx @cloudbase/cli hosting deploy ./dist /admin-console -e committodo-d6gmapg0j6397889f`（不要加 `--verify`，CDN 同步延迟会造成假阴性） |
+| 当前状态 | 2026-11-22 已发布 23 个文件；`/admin-console/`、`/admin-console/tables/branches`、`/admin-console/audit` 均实测 200；只写 `/admin-console`，未改 web 根目录与既有对象 |
 
 ### 10.2 环境变量清单
 
@@ -764,7 +781,7 @@ tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
 |---|---|---|
 | 真实只读链路：`tables.list` 列出 18 张真实表、`tables.row` 读行、`metrics.overview` 从 `not_ready` 变 `ready` | 云函数身份只能来自真实登录；本地没有白名单账号凭据 | 用户提供白名单账号的邮箱 + 测试密码（或临时密码），或用户在预览里自行登录后交接 |
 | 三个鉴权错误码端到端 | 同上 | 同上，另加一个非白名单账号 |
-| `tables.update` 单行改回与两条审计 | 同上；且按约定只读链路验通后再实现 | 同上 |
+| `tables.update` 单行真实改回与两条审计 | 同上；代码与 fixture 已打通 | 同上 |
 | 集合安全规则：客户端能否直读集合 | 该环境**未开启匿名登录**：`signInAnonymously` 真实返回 `login_type_disabled`（errorCode 4045） | 控制台开启匿名登录后复测，或用真实登录账号的 token 直读测试 |
 
 ### 11.3 集合安全规则（待办）
@@ -785,6 +802,17 @@ tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
 | 部署结果 | `tcb hosting list /admin-console` 共 23 个对象；`hosting deploy --verify` 的上传成功但校验阶段因 CDN 尚未生效报“缺失”，属假阴性，已用实际 HTTP 复核 |
 | HTTP 复核 | `/admin-console/`、`/admin-console`、`/admin-console/tables`、`/admin-console/tables/branches`、`/admin-console/tables/ops_events`、`/admin-console/audit` 均 `200 text/html`；JS/CSS 资源 `200`；深链接返回的 HTML 含 `noindex,nofollow`、标题“CommitToDo 管理站”、资源前缀 `/admin-console/assets/` |
 | 接口 fail-closed | 部署前 `admin-api` 未配置 `ADMIN_EMAILS`；`tables.list`、`metrics.overview`、`tables.rows`、`audit.list`、`tables.update` 无身份调用均返回 `admin_unauthenticated` 401 |
+
+### 11.5 本轮补全后的复验（2026-11-22）
+
+| 项 | 方式 | 结果 |
+|---|---|---|
+| `admin-api` 重新部署（指标聚合 + 上期对比 + `tables.update`） | `tcb fn deploy admin-api -e committodo-d6gmapg0j6397889f --force` | 部署成功，`node --check` 通过 |
+| 白名单 fail-closed | `tcb fn detail admin-api` | 环境变量只有 `ADMIN_EMAIL_VERIFICATION_MODE=enforce`，无 `ADMIN_EMAILS`；空名单即全拒 |
+| 无身份调用 | `tcb fn invoke admin-api --params '{"action":"whoami"}'` | `{"ok":false,"code":"admin_unauthenticated","status":401}` |
+| 静态托管发布 | `tcb hosting deploy ./dist /admin-console` | 23 个文件全部上传成功，未写 web 根目录 |
+| 深链接 | curl `/admin-console/`、`/admin-console/tables/branches`、`/admin-console/audit` | 全部 `200` |
+| `--verify` 行为 | 带 `--verify` 的同一命令 | 上传成功但校验报 `missing=...`；属 CDN 同步假阴性，去掉 `--verify` 后以真实 HTTP 复核为准 |
 
 ---
 
