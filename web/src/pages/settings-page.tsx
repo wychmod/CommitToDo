@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
+import { consumeTakeoverNotice } from '@/components/auth/takeover-notice';
 import type { AnnotationMode } from '@/core/rules/annotation-visibility';
 import { resolveSyncStatus } from '@/core/rules/sync-backoff';
 import type { Theme } from '@/core/rules/theme-preference';
@@ -108,11 +109,13 @@ const REMINDER_OPTIONS: ReadonlyArray<Option<'on' | 'off'>> = [
 export function SettingsPage() {
   const { loaded, settings } = useSettingsState();
   const location = useLocation();
+  const navigate = useNavigate();
   const principalId = useAuthStore((state) => state.principalId);
   const email = useAuthStore((state) => state.email);
   const clearSession = useAuthStore((state) => state.clearSession);
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [takeoverNotice, setTakeoverNotice] = useState(false);
   const [draft, setDraft] = useState<Preferences>({
     theme: settings.theme,
     treeDensity: settings.treeDensity,
@@ -164,7 +167,14 @@ export function SettingsPage() {
     clearSession();
     setSigningOut(false);
     setConfirmingSignOut(false);
+    navigate('/today', { replace: true });
   };
+
+  // 登录/注册把本机数据归属到账号后，在本页提示一次「登录后由同步接管」（V2-01 §8.1-12）。
+  useEffect(() => {
+    if (!principalId) return;
+    setTakeoverNotice(consumeTakeoverNotice());
+  }, [principalId]);
 
   const accountNext = `${location.pathname}#account`;
   const syncNext = `${location.pathname}#sync`;
@@ -334,6 +344,9 @@ export function SettingsPage() {
                   </div>
                 )}
               </div>
+              {principalId && takeoverNotice ? (
+                <p className={styles.notice}>{t('auth.takeover.notice')}</p>
+              ) : null}
             </section>
 
             <section id="sync" className={styles.section} aria-labelledby="settings-sync">

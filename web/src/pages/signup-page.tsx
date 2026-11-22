@@ -12,6 +12,7 @@ import {
 } from '@/components/auth/auth-form';
 import { authErrorMessage } from '@/components/auth/auth-error';
 import { readLastEmail, rememberEmail } from '@/components/auth/last-email';
+import { markTakeoverPending } from '@/components/auth/takeover-notice';
 import { resolveAuthNext } from '@/core/rules/auth-next';
 import { isValidEmail, normalizeEmail, passwordsMatch } from '@/core/rules/auth-form';
 import { assignOwnerTo } from '@/data/assign-owner';
@@ -85,6 +86,7 @@ export function SignupPage() {
       setFormError(t('auth.error.ownership'));
       return;
     }
+    if (assigned.value.moved > 0) markTakeoverPending();
 
     rememberEmail(result.value.email || normalized);
     setSession(result.value);

@@ -1477,4 +1477,6 @@ export const zhCN = {
   'badge.wall.recent': '已获得',
   'badge.wall.recentOrder': '按获得时间排列',
   'badge.wall.locked': '待获得',
+  // V2-01 账号与登录态：登录把本机数据归属到账号后的一次性提示（措辞取自 PRD §8.1-12，待与 V2-02 对齐）
+  'auth.takeover.notice': '登录后由同步接管',
 } as const;

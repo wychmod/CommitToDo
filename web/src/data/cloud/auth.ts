@@ -155,6 +155,25 @@ export async function readCloudSession(): Promise<AuthSession | null> {
   }
 }
 
+/** 云端会话的三种校验结果：`none` 只表示确定没有会话。 */
+export type CloudSessionState = 'active' | 'none' | 'unknown';
+
+/**
+ * 启动时校验一次云端会话（PRD V2-01 §5 会话失效）。
+ *
+ * 只有确定没有会话才返回 `none`；离线、云环境未配置等失败一律 `unknown`，
+ * 调用方应保留本机会话，避免把本机编辑降级成未登录。
+ */
+export async function verifyCloudSession(): Promise<CloudSessionState> {
+  try {
+    const auth = await getAuth();
+    const state = (await auth.getLoginState()) as { user?: unknown } | null;
+    return toSession(state?.user) ? 'active' : 'none';
+  } catch {
+    return 'unknown';
+  }
+}
+
 /** 退出云端会话；本机会话由调用方清除，这里失败不阻断界面。 */
 export async function signOut(): Promise<void> {
   try {

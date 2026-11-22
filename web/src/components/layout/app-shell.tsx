@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { OverlayHost } from '@/components/overlays/overlay-host';
 import { navSectionFor, type NavSection } from '@/core/rules/nav-selection';
 import { isBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
 import { reportAnonymousStats } from '@/data/anonymous-stats';
+import { verifyCloudSession } from '@/data/cloud/auth';
 import { runDailyAutoBackup } from '@/data/daily-auto-backup';
 import { ensureRootBranch } from '@/data/ensure-root-branch';
 import { grantBadge } from '@/data/grant-badge';
@@ -41,9 +42,25 @@ export function AppShell() {
   const section = navSectionFor(location.pathname);
   const scrollKey = scrollKeyFor(location.pathname, location.search);
   const principalId = useAuthStore((state) => state.principalId);
+  const clearSession = useAuthStore((state) => state.clearSession);
+  // 只在启动时校验一次：登录当下刚拿到的会话不重复校验，避免与 SDK 持久化竞态。
+  const bootPrincipalId = useRef(principalId);
 
   // 登录后在线自动补推 outbox（V2-02 OP-02/OP-07），失败按退避重试。
   useSyncRunner(principalId);
+
+  // 启动时异步校验云端会话（V2-01 §5）：确定失效才清本机会话，
+  // 离线或未配置云环境时保持本机态，不阻塞首屏。
+  useEffect(() => {
+    if (!bootPrincipalId.current) return;
+    let active = true;
+    void verifyCloudSession().then((state) => {
+      if (active && state === 'none') clearSession();
+    });
+    return () => {
+      active = false;
+    };
+  }, [clearSession]);
 
   // 首次进入工作区时确保根分支「我」存在（M02 OP-01）；用例本身幂等，重复调用安全。
   // 随后写当日自动快照（V1-06 OP-01），失败不阻断进入；再补查漏发的徽章（M11 OP-03），
