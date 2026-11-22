@@ -5,6 +5,7 @@ import type { YearBranchShare, YearMonthBucket } from '@/core/rules/year-distrib
 import { createLevelOneResolver, isYearCommit } from '@/core/rules/year-metrics';
 import { listSelectableYears, resolveYearParam } from '@/core/rules/year-param';
 import { useYearReviewData } from '@/data/hooks';
+import { trackOpsEvent } from '@/data/ops-events';
 import { saveYearReview } from '@/data/save-year-review';
 import { t } from '@/i18n';
 import { useHistoryFilterStore } from '@/stores/history.store';
@@ -212,6 +213,14 @@ export function YearPage() {
   const [savedHint, setSavedHint] = useState(false);
   const savingRef = useRef(false);
   const yearRef = useRef(requestedYear);
+  const reported = useRef(false);
+
+  // 进入年轮页即视为打开一次年度回顾；切换年份与重渲染不重复上报。
+  useEffect(() => {
+    if (reported.current) return;
+    reported.current = true;
+    trackOpsEvent('review.open', { kind: 'year' });
+  }, []);
 
   useEffect(() => {
     yearRef.current = requestedYear;

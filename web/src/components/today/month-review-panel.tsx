@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { systemClock, today } from '@/core/clock';
 import { shiftMonthKey, type MonthReview } from '@/core/rules/month-review';
 import { useMonthReview } from '@/data/hooks';
+import { trackOpsEvent } from '@/data/ops-events';
 import { t } from '@/i18n';
 import { useReviewStore } from '@/stores/review.store';
 import styles from './month-review-panel.module.css';
@@ -46,6 +47,14 @@ export function MonthReviewPanel() {
   const [monthKey, setMonthKey] = useState(defaultMonth);
   const view = useMonthReview(monthKey);
   const review = view.review;
+  const reported = useRef(false);
+
+  // 月回顾面板只在打开时挂载；翻月不重复上报。
+  useEffect(() => {
+    if (reported.current) return;
+    reported.current = true;
+    trackOpsEvent('review.open', { kind: 'month' });
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {

@@ -1,4 +1,6 @@
+import { useEffect, useRef } from 'react';
 import { useWeekReview } from '@/data/hooks';
+import { trackOpsEvent } from '@/data/ops-events';
 import { t } from '@/i18n';
 import { useReviewStore } from '@/stores/review.store';
 import styles from './week-review-card.module.css';
@@ -14,9 +16,17 @@ export function WeekReviewCard() {
   const expanded = useReviewStore((state) => state.expanded);
   const toggleExpanded = useReviewStore((state) => state.toggleExpanded);
   const openMonth = useReviewStore((state) => state.openMonth);
+  const reported = useRef(false);
   const summary = view.summary;
   const stats = view.stats;
   const question = view.question;
+
+  // 展开周回顾即视为进入一次回顾；重渲染与折叠再展开不重复上报。
+  useEffect(() => {
+    if (!expanded || reported.current) return;
+    reported.current = true;
+    trackOpsEvent('review.open', { kind: 'week' });
+  }, [expanded]);
 
   const sentence =
     question?.template === 'today.weekReview.question.topBranch'
