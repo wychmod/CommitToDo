@@ -244,6 +244,47 @@ export function ArchiveIcon(props: SvgIconProps) {
   );
 }
 
+/** 一级分支图标（珊瑚橙，工作）。 */
+export function BriefcaseIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="3" y="7" width="18" height="12" rx="2" />
+      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+      <path d="M3 12h18" />
+    </SvgIcon>
+  );
+}
+
+/** 一级分支图标（晴蓝，健康）。 */
+export function HeartIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z" />
+    </SvgIcon>
+  );
+}
+
+/** 一级分支图标（蜂蜜金，生活）。 */
+export function HomeIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="m4 11 8-7 8 7" />
+      <path d="M6 10v9h12v-9" />
+      <path d="M10 19v-5h4v5" />
+    </SvgIcon>
+  );
+}
+
+/** 已合并状态：两条线汇入一条。 */
+export function MergeIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M3 6h3l6 6h9" />
+      <path d="M3 18h3l6-6" />
+    </SvgIcon>
+  );
+}
+
 /** 设置分区：外观与参数调节。 */
 export function TuneIcon(props: SvgIconProps) {
   return (

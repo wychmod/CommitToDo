@@ -438,7 +438,9 @@ export const zhCN = {
   'page.branches.empty': '还没有分支。',
   'page.branches.action': '新建分支',
 
+  'branches.eyebrow': '个人工作区 / 分支',
   'branches.treeLabel': '分支树',
+  'branches.rootLabel': '根分支',
   'branches.toolsLabel': '分支视图与筛选',
   'branches.view.label': '视图',
   'branches.view.grouped': '分组树',

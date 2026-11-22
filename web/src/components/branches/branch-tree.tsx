@@ -213,11 +213,7 @@ export function BranchTree({
     return 'readonly';
   };
 
-  const renderNode = (
-    branch: Branch,
-    variant: 'row' | 'family' = 'row',
-    withChildren = true,
-  ) => {
+  const renderNode = (branch: Branch, variant: 'row' | 'family' = 'row', withChildren = true) => {
     const children = visibleChildrenOf.get(branch.id) ?? [];
     const expanded = expandedMap[branch.id] ?? isExpandedByDefault(branch.depth);
     const moveReason = readonlyReason(branch);
@@ -297,7 +293,7 @@ export function BranchTree({
         </span>
         <h2 className={styles.rootTitle}>{root.title}</h2>
         <span className={styles.rootMeta}>
-          {t('branches.status.active')} · {firstLevelCount} {t('branches.firstLevelSuffix')}
+          {t('branches.rootLabel')} · {firstLevelCount} {t('branches.firstLevelSuffix')}
         </span>
       </div>
       {emptyFiltered ? (

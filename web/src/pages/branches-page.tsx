@@ -20,7 +20,7 @@ import type { Branch, BranchStatus } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useBranchesStore } from '@/stores/branches.store';
 import { EmptyState } from '@/ui/empty-state';
-import { BranchIcon, ChevronDownIcon, ListIcon } from '@/ui/icons';
+import { BranchIcon, ChevronDownIcon, ListIcon, PlusIcon } from '@/ui/icons';
 import { PageShell } from '@/ui/page-shell';
 import styles from './pages.module.css';
 
@@ -98,7 +98,8 @@ export function BranchesPage() {
     dropped: treeBranches.filter((branch) => branch.status === 'dropped').length,
   };
   const filterLabel = t(
-    STATUS_FILTERS.find((option) => option.value === statusFilter)?.labelKey ?? 'branches.filter.all',
+    STATUS_FILTERS.find((option) => option.value === statusFilter)?.labelKey ??
+      'branches.filter.all',
   );
 
   useEffect(() => {
@@ -270,7 +271,12 @@ export function BranchesPage() {
           {t('branches.archived.back')}
         </button>
       ) : (
-        <button type="button" className={styles.action} onClick={openCreate}>
+        <button
+          type="button"
+          className={`${styles.action} ${styles.branchesAction}`}
+          onClick={openCreate}
+        >
+          <PlusIcon size={16} />
           {t('page.branches.action')}
         </button>
       )}
@@ -288,8 +294,10 @@ export function BranchesPage() {
   return (
     <PageShell
       titleKey="page.branches.title"
+      eyebrow={<span className={styles.branchesEyebrow}>{t('branches.eyebrow')}</span>}
       bodyKey={archivedView ? 'page.branches.archivedBody' : undefined}
       action={ready ? action : undefined}
+      headClassName={styles.branchesHead}
     >
       {ready && !archivedView ? (
         <div className={styles.tools}>
@@ -323,10 +331,14 @@ export function BranchesPage() {
               onClick={() => setFilterOpen((open) => !open)}
             >
               <span>{filterLabel}</span>
-              <ChevronDownIcon size={16} />
+              <ChevronDownIcon size={13} />
             </button>
             {filterOpen ? (
-              <div className={styles.filterMenu} role="listbox" aria-label={t('branches.filter.label')}>
+              <div
+                className={styles.filterMenu}
+                role="listbox"
+                aria-label={t('branches.filter.label')}
+              >
                 {STATUS_FILTERS.map((option) => (
                   <button
                     key={option.value}
@@ -361,15 +373,15 @@ export function BranchesPage() {
           <div className={styles.totals} aria-label={t('branches.totalsLabel')}>
             <span className={styles.total} data-status="active">
               <span className={styles.totalDot} aria-hidden="true" />
-              {totals.active} {t('branches.status.active')}
+              <strong>{totals.active}</strong> {t('branches.status.active')}
             </span>
             <span className={styles.total} data-status="merged">
               <span className={styles.totalDot} aria-hidden="true" />
-              {totals.merged} {t('branches.status.merged')}
+              <strong>{totals.merged}</strong> {t('branches.status.merged')}
             </span>
             <span className={styles.total} data-status="dropped">
               <span className={styles.totalDot} aria-hidden="true" />
-              {totals.dropped} {t('branches.status.dropped')}
+              <strong>{totals.dropped}</strong> {t('branches.status.dropped')}
             </span>
           </div>
         </div>

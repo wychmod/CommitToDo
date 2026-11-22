@@ -1,10 +1,29 @@
-import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { localDate } from '@/core/clock';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import type { Branch, BranchStatus } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
-import { BranchIcon, ChevronDownIcon, ChevronRightIcon, MoreIcon, PinIcon } from '@/ui/icons';
+import {
+  BranchIcon,
+  BriefcaseIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  HeartIcon,
+  HomeIcon,
+  MergeIcon,
+  MoreIcon,
+  PinIcon,
+  type IconSize,
+} from '@/ui/icons';
 import styles from './branch-row.module.css';
 
 /** 菜单项不可用的原因；`later` 表示功能在后续版本提供。 */
@@ -44,6 +63,14 @@ const STATUS_KEYS: Record<BranchStatus, MessageKey> = {
   merged: 'branches.status.merged',
   dropped: 'branches.status.dropped',
 };
+
+/** 画稿为珊瑚橙/晴蓝/蜂蜜金各配了一枚语义图标，其余色相沿用分支图标。 */
+function FamilyGlyph({ color, size }: { color: string; size: IconSize }) {
+  if (color === 'coral') return <BriefcaseIcon size={size} />;
+  if (color === 'sky') return <HeartIcon size={size} />;
+  if (color === 'honey') return <HomeIcon size={size} />;
+  return <BranchIcon size={size} />;
+}
 
 interface BranchRowProps {
   branch: Branch;
@@ -282,6 +309,11 @@ export function BranchRow({
 
   const dotColor = branch.depth === 0 ? 'neutral' : normalizeBranchColor(branch.color);
   const dotShade = branchShadeForDepth(branch.depth);
+  const toneStyle = {
+    '--row-tone': dotColor === 'neutral' ? 'var(--neutral)' : `var(--${dotColor}-${dotShade})`,
+  } as CSSProperties;
+  const progressPct =
+    branch.taskTotal > 0 ? Math.round((branch.taskDone / branch.taskTotal) * 100) : 0;
   const draggable = dragEnabled && branch.depth > 0 && !pinned;
   const isFamily = variant === 'family';
   const dateAt =
@@ -299,18 +331,27 @@ export function BranchRow({
   const dateText =
     dateAt === null ? t('branches.date.none') : localDate(dateAt).slice(5).replace('-', '.');
 
-  const toggle = hasChildren ? (
+  const expandLabel = t(expanded ? 'branches.collapse' : 'branches.expand');
+  const chevron = expanded ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />;
+  const marker = (
+    <span className={styles.dot} data-color={dotColor} data-shade={dotShade} aria-hidden="true" />
+  );
+  const disclosure = hasChildren ? (
     <button
       type="button"
-      className={styles.toggle}
+      className={styles.disclosure}
       aria-expanded={expanded}
-      aria-label={t(expanded ? 'branches.collapse' : 'branches.expand')}
+      aria-label={expandLabel}
+      data-collapsed={!expanded}
       onClick={() => onToggle(branch.id, !expanded)}
     >
-      {expanded ? <ChevronDownIcon size={16} /> : <ChevronRightIcon size={16} />}
+      {marker}
+      <span className={styles.disclosureChevron} aria-hidden="true">
+        {chevron}
+      </span>
     </button>
   ) : (
-    <span className={styles.togglePlaceholder} aria-hidden="true" />
+    marker
   );
 
   const menuAnchor = (
@@ -324,7 +365,7 @@ export function BranchRow({
         aria-label={t('branches.more')}
         onClick={() => setMenuOpen((open) => !open)}
       >
-        <MoreIcon size={18} />
+        <MoreIcon size={17} />
       </button>
       {menuOpen ? (
         <div ref={menuRef} className={styles.menu} role="menu" aria-label={t('branches.more')}>
@@ -354,6 +395,39 @@ export function BranchRow({
       <time className={styles.dateValue}>{dateText}</time>
     </span>
   );
+
+  const progress = (
+    <span className={styles.progress} aria-label={t('branches.progressLabel')}>
+      <span className={styles.progressTrack} aria-hidden="true">
+        <span className={styles.progressFill} style={{ width: `${progressPct}%` }} />
+      </span>
+      <span className={styles.progressValue}>
+        {branch.taskDone}/{branch.taskTotal}
+      </span>
+    </span>
+  );
+
+  const statusChip = (
+    <span className={styles.status} data-status={branch.status}>
+      {branch.status === 'merged' ? (
+        <MergeIcon size={13} />
+      ) : (
+        <i className={styles.statusDot} aria-hidden="true" />
+      )}
+      {t(STATUS_KEYS[branch.status])}
+    </span>
+  );
+
+  const pinMark = pinned ? (
+    <span
+      className={styles.pin}
+      role="img"
+      aria-label={t('branches.pinned')}
+      title={t('branches.pinned')}
+    >
+      <PinIcon size={14} />
+    </span>
+  ) : null;
 
   const dragProps = {
     'data-status': branch.status,
@@ -389,44 +463,47 @@ export function BranchRow({
     return (
       <li className={styles.familyNode} data-color={dotColor} data-shade={dotShade}>
         <section className={styles.family}>
-          <header className={styles.familyHead} {...dragProps}>
-            {toggle}
-            <span
-              className={styles.familyIcon}
-              data-color={dotColor}
-              data-shade={dotShade}
-              aria-hidden="true"
-            >
-              <BranchIcon size={18} />
-            </span>
+          <header className={styles.familyHead} style={toneStyle} {...dragProps}>
             <div className={styles.familyTitle}>
-              <Link
-                ref={linkRef}
-                className={styles.familyName}
-                to={`/branches/${branch.id}`}
-                title={branch.title}
-              >
-                {branch.title}
-              </Link>
-              <span className={styles.caption}>
-                {childCount} {t('branches.directChildrenSuffix')}
+              {hasChildren ? (
+                <button
+                  type="button"
+                  className={styles.familyIcon}
+                  aria-expanded={expanded}
+                  aria-label={expandLabel}
+                  data-collapsed={!expanded}
+                  onClick={() => onToggle(branch.id, !expanded)}
+                >
+                  <FamilyGlyph color={dotColor} size={18} />
+                  <span className={styles.familyChevron} aria-hidden="true">
+                    {chevron}
+                  </span>
+                </button>
+              ) : (
+                <span className={styles.familyIcon} aria-hidden="true">
+                  <FamilyGlyph color={dotColor} size={18} />
+                </span>
+              )}
+              <span className={styles.familyText}>
+                <Link
+                  ref={linkRef}
+                  className={styles.familyName}
+                  to={`/branches/${branch.id}`}
+                  title={branch.title}
+                >
+                  {branch.title}
+                </Link>
+                <span className={styles.caption}>
+                  {childCount} {t('branches.directChildrenSuffix')}
+                </span>
               </span>
             </div>
-            {pinned ? (
-              <span
-                className={styles.familyPin}
-                role="img"
-                aria-label={t('branches.pinned')}
-                title={t('branches.pinned')}
-              >
-                <PinIcon size={16} />
-              </span>
-            ) : (
-              <span className={styles.familyPinPlaceholder} aria-hidden="true" />
-            )}
-            {metaDate}
-            <span className={styles.status}>{t(STATUS_KEYS[branch.status])}</span>
-            {menuAnchor}
+            <div className={styles.familyMeta}>
+              {pinMark}
+              {metaDate}
+              {statusChip}
+              {menuAnchor}
+            </div>
           </header>
           {children}
         </section>
@@ -436,39 +513,29 @@ export function BranchRow({
 
   return (
     <li className={styles.node}>
-      <div className={styles.row} {...dragProps}>
-        {toggle}
-        <span
-          className={styles.dot}
-          data-color={dotColor}
-          data-shade={dotShade}
-          aria-hidden="true"
-        />
-        {pinned ? (
-          <span
-            className={styles.pin}
-            role="img"
-            aria-label={t('branches.pinned')}
-            title={t('branches.pinned')}
+      <div
+        className={styles.row}
+        style={toneStyle}
+        data-selected={focusId === branch.id ? true : undefined}
+        {...dragProps}
+      >
+        <span className={styles.nameCell}>
+          {pinMark}
+          {disclosure}
+          <Link
+            ref={linkRef}
+            className={styles.name}
+            to={`/branches/${branch.id}`}
+            title={branch.title}
           >
-            <PinIcon size={16} />
-          </span>
-        ) : (
-          <span className={styles.pinPlaceholder} aria-hidden="true" />
-        )}
-        <Link
-          ref={linkRef}
-          className={styles.name}
-          to={`/branches/${branch.id}`}
-          title={branch.title}
-        >
-          {branch.title}
-        </Link>
-        <span className={styles.progress} aria-label={t('branches.progressLabel')}>
-          {branch.taskDone}/{branch.taskTotal}
+            {branch.title}
+          </Link>
         </span>
-        {metaDate}
-        <span className={styles.status}>{t(STATUS_KEYS[branch.status])}</span>
+        <span className={styles.meta}>
+          {progress}
+          {metaDate}
+          {statusChip}
+        </span>
         {menuAnchor}
       </div>
       {children}
