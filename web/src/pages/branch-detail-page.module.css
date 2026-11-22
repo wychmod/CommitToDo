@@ -1,3 +1,43 @@
+.pageHead.pageHead {
+  align-items: flex-start;
+  margin-bottom: 19px;
+}
+
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s2);
+}
+
+.finishButton {
+  min-height: var(--s8);
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-secondary);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.finishButton:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.finishButton:disabled {
+  color: var(--disabled);
+  cursor: not-allowed;
+}
+
+.finishButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .stack {
   display: flex;
   flex-direction: column;
@@ -18,9 +58,9 @@
   display: grid;
   grid-template-columns: auto minmax(80px, 1fr) auto;
   align-items: center;
-  gap: var(--s3);
+  gap: calc(var(--s3) + 3px);
   min-height: var(--s9);
-  padding: var(--s1) var(--s3);
+  padding: calc(var(--s1) + 2px) 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
@@ -44,12 +84,12 @@
   justify-content: flex-end;
   color: var(--text);
   font-size: var(--type-secondary);
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .progressDone {
-  margin-left: var(--s1);
   color: var(--muted);
   font-size: var(--type-label);
   font-weight: 400;
@@ -59,7 +99,7 @@
   display: block;
   height: var(--s1);
   border-radius: var(--radius-marker);
-  background: var(--neutral-bg);
+  background: var(--inset);
   overflow: hidden;
 }
 
@@ -74,22 +114,27 @@
 .sectionNav {
   display: flex;
   align-items: center;
-  gap: calc(var(--s6) + 2px);
+  gap: 26px;
+  margin: var(--s3) 0 0;
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
 }
 
 .sectionNav a {
-  padding: calc(var(--s2) + 1px) 3px calc(var(--s2) + 2px);
+  padding: var(--s2) 2px calc(var(--s2) + 2px);
   border-bottom: 2px solid transparent;
   color: var(--muted);
   font-size: var(--type-secondary);
-  font-weight: 550;
   text-decoration: none;
   white-space: nowrap;
 }
 
 .sectionNav a:hover {
+  color: var(--text);
+}
+
+.sectionNav a[aria-current='location'] {
+  border-bottom-color: var(--accent);
   color: var(--text);
 }
 
@@ -157,9 +202,5 @@
 @media (max-width: 760px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .sectionNav {
-    gap: var(--s4);
   }
 }

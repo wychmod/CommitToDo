@@ -13,6 +13,7 @@ import {
   type UnarchiveBlockReason,
 } from '@/core/rules/branch-lifecycle';
 import { canCreateChild } from '@/core/rules/branch-hierarchy';
+import { normalizeBranchColor } from '@/core/rules/branch-color';
 import { collectSubtree } from '@/core/rules/branch-path';
 import { assessCreateQuota, assessRestoreQuota } from '@/core/rules/branch-quota';
 import { computeBranchProgress, type BranchProgress } from '@/core/rules/branch-progress';
@@ -130,6 +131,7 @@ export function BranchDetailPage() {
   const [panel, setPanel] = useState<BranchPanelState | null>(null);
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [actionError, setActionError] = useState<MessageKey | null>(null);
+  const [activeSection, setActiveSection] = useState('branch-tasks');
 
   // 保存里程碑后只短暂高亮，不长期驻留（M07 OP-07）。
   useEffect(() => {
@@ -198,9 +200,9 @@ export function BranchDetailPage() {
           ratio: branch.taskTotal === 0 ? 0 : branch.taskDone / branch.taskTotal,
           hasProgress: branch.taskTotal > 0,
         };
-  const backTarget = branch.parentId ? `/branches/${branch.parentId}` : '/branches';
-
   const archived = branch.archivedAt !== null;
+  const progressColor =
+    branch.depth === 0 ? 'var(--accent)' : `var(--${normalizeBranchColor(branch.color)}-1)`;
   const pauseAssessment = assessPause(branch, byId);
   const resumeAssessment = assessResume(branch, byId);
   const archiveAssessment = assessArchive(branch, byId);
@@ -222,40 +224,53 @@ export function BranchDetailPage() {
 
   return (
     <PageShell
-      back={<BackButton fallbackTo={backTarget} />}
       title={
         <BranchHeader branch={branch} branches={header.branches} readonlyReason={readonlyReason} />
       }
+      headClassName={styles.pageHead}
       action={
-        <BranchActions
-          createReason={createReason}
-          readonly={readonlyReason !== null}
-          showFinish={canFinish}
-          finishReason={finishReason}
-          showDelete={canFinish}
-          deleteReason={readonlyReason !== null ? 'branches.reason.readonly' : null}
-          showPause={showPause}
-          pauseReason={pauseReasonKey(pauseAssessment)}
-          showResume={showResume}
-          resumeReason={resumeReasonKey(resumeAssessment)}
-          showArchive={showArchive}
-          archiveReason={archiveReasonKey(archiveAssessment)}
-          showUnarchive={archived}
-          unarchiveReason={
-            unarchiveAssessment
-              ? unarchiveReasonKey(unarchiveAssessment, restoreQuota?.allowed ?? false)
-              : null
-          }
-          onOpenCreate={() => setPanel({ mode: 'create', parent: branch })}
-          onOpenRename={() => setPanel({ mode: 'rename', branch })}
-          onOpenMove={() => setPanel({ mode: 'move', branch })}
-          onOpenFinish={() => setOverlay('finish')}
-          onOpenDelete={() => setOverlay('delete')}
-          onOpenPause={() => setOverlay('pause')}
-          onOpenResume={() => void handleResume()}
-          onOpenArchive={() => setOverlay('archive')}
-          onOpenUnarchive={() => setOverlay('unarchive')}
-        />
+        <div className={styles.headActions}>
+          {canFinish ? (
+            <button
+              type="button"
+              className={styles.finishButton}
+              disabled={finishReason !== null}
+              title={finishReason ? t(finishReason) : undefined}
+              onClick={() => setOverlay('finish')}
+            >
+              {t('branchDetail.finish.title')}
+            </button>
+          ) : null}
+          <BranchActions
+            createReason={createReason}
+            readonly={readonlyReason !== null}
+            showFinish={false}
+            finishReason={finishReason}
+            showDelete={canFinish}
+            deleteReason={readonlyReason !== null ? 'branches.reason.readonly' : null}
+            showPause={showPause}
+            pauseReason={pauseReasonKey(pauseAssessment)}
+            showResume={showResume}
+            resumeReason={resumeReasonKey(resumeAssessment)}
+            showArchive={showArchive}
+            archiveReason={archiveReasonKey(archiveAssessment)}
+            showUnarchive={archived}
+            unarchiveReason={
+              unarchiveAssessment
+                ? unarchiveReasonKey(unarchiveAssessment, restoreQuota?.allowed ?? false)
+                : null
+            }
+            onOpenCreate={() => setPanel({ mode: 'create', parent: branch })}
+            onOpenRename={() => setPanel({ mode: 'rename', branch })}
+            onOpenMove={() => setPanel({ mode: 'move', branch })}
+            onOpenFinish={() => setOverlay('finish')}
+            onOpenDelete={() => setOverlay('delete')}
+            onOpenPause={() => setOverlay('pause')}
+            onOpenResume={() => void handleResume()}
+            onOpenArchive={() => setOverlay('archive')}
+            onOpenUnarchive={() => setOverlay('unarchive')}
+          />
+        </div>
       }
     >
       <div className={styles.stack}>
@@ -279,7 +294,10 @@ export function BranchDetailPage() {
             >
               <span
                 className={styles.progressBar}
-                style={{ width: `${Math.round(progress.ratio * 100)}%` }}
+                style={{
+                  width: `${Math.round(progress.ratio * 100)}%`,
+                  backgroundColor: progressColor,
+                }}
               />
             </div>
           ) : (
@@ -288,18 +306,35 @@ export function BranchDetailPage() {
           <strong className={styles.progressValue}>
             {progress.hasProgress ? (
               <>
-                {progress.done} / {progress.total}
-                <small className={styles.progressDone}>{t('branchDetail.progress.done')}</small>
+                {progress.done}
+                <small className={styles.progressDone}>
+                  {' / '}
+                  {progress.total}
+                  {t('branchDetail.progress.done')}
+                </small>
               </>
             ) : null}
           </strong>
         </section>
 
         <nav className={styles.sectionNav} aria-label={t('branchDetail.sectionNav.label')}>
-          <a href="#branch-tasks">{t('branchDetail.section.tasks')}</a>
-          <a href="#branch-commits">{t('branchDetail.section.commits')}</a>
-          <a href="#branch-children">{t('branchDetail.section.children')}</a>
-          <a href="#branch-milestones">{t('branchDetail.section.milestones')}</a>
+          {(
+            [
+              ['branch-tasks', 'branchDetail.section.tasks'],
+              ['branch-commits', 'branchDetail.section.commits'],
+              ['branch-children', 'branchDetail.section.children'],
+              ['branch-milestones', 'branchDetail.section.milestones'],
+            ] as const
+          ).map(([id, key]) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              aria-current={activeSection === id ? 'location' : undefined}
+              onClick={() => setActiveSection(id)}
+            >
+              {t(key)}
+            </a>
+          ))}
         </nav>
 
         <div className={styles.layout}>
@@ -332,7 +367,7 @@ export function BranchDetailPage() {
             />
 
             <BranchMilestonesSection
-              branchId={branch.id}
+              branch={branch}
               readonly={readonlyReason !== null}
               milestones={milestones.milestones}
               status={milestones.status}

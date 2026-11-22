@@ -1,14 +1,16 @@
 import { useMemo } from 'react';
 import { currentTzOffset } from '@/core/clock';
+import { normalizeBranchColor } from '@/core/rules/branch-color';
 import { formatMilestoneDate } from '@/core/rules/milestone-date';
 import { orderMilestones } from '@/core/rules/milestone-order';
-import type { Milestone } from '@/data/types';
+import type { Branch, Milestone } from '@/data/types';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
+import { DiamondIcon, PlusIcon } from '@/ui/icons';
 import styles from './branch-milestones-section.module.css';
 
 interface BranchMilestonesSectionProps {
-  branchId: string;
+  branch: Branch;
   readonly: boolean;
   milestones: readonly Milestone[];
   status: 'loading' | 'ready' | 'error';
@@ -22,7 +24,7 @@ interface BranchMilestonesSectionProps {
  * 新建预填本分支，保存后本行短暂高亮（`milestoneFocusId`）。
  */
 export function BranchMilestonesSection({
-  branchId,
+  branch,
   readonly,
   milestones,
   status,
@@ -36,6 +38,12 @@ export function BranchMilestonesSection({
     () => orderMilestones(milestones.filter((item) => item.deletedAt === null)).reverse(),
     [milestones],
   );
+
+  const color = branch.depth === 0 ? 'neutral' : normalizeBranchColor(branch.color);
+  const symbolStyle = {
+    backgroundColor: `var(--${color}-bg)`,
+    color: `var(--${color}-1)`,
+  };
 
   return (
     <section
@@ -53,8 +61,9 @@ export function BranchMilestonesSection({
           className={styles.add}
           disabled={readonly}
           title={readonly ? t('milestone.form.readonlyBranch') : undefined}
-          onClick={() => openMilestoneNew(branchId)}
+          onClick={() => openMilestoneNew(branch.id)}
         >
+          <PlusIcon size={15} />
           {t('branchDetail.milestones.new')}
         </button>
       </div>
@@ -88,6 +97,10 @@ export function BranchMilestonesSection({
                 data-highlighted={focusId === item.id ? 'true' : undefined}
                 onClick={() => openMilestoneDetail(item.id)}
               >
+                <span className={styles.symbol} style={symbolStyle} aria-hidden="true">
+                  <DiamondIcon size={15} />
+                </span>
+                <span className={styles.name}>{item.title}</span>
                 <span className={styles.date}>
                   {formatMilestoneDate(
                     item.achievedAt,
@@ -95,7 +108,6 @@ export function BranchMilestonesSection({
                     currentTzOffset(item.achievedAt),
                   )}
                 </span>
-                <span className={styles.name}>{item.title}</span>
               </button>
             </li>
           ))}

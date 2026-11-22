@@ -151,7 +151,15 @@ export function CloseIcon(props: SvgIconProps) {
   );
 }
 
-/** 新建。 */
+/** 里程碑菱形。 */
+export function DiamondIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="m12 3 9 9-9 9-9-9 9-9Z" />
+    </SvgIcon>
+  );
+}
+
 export function PlusIcon(props: SvgIconProps) {
   return (
     <SvgIcon {...props}>

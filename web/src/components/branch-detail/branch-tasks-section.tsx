@@ -7,6 +7,7 @@ import type { Branch, Task } from '@/data/types';
 import { t } from '@/i18n';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { TaskRow } from '@/components/today/task-row';
+import { PlusIcon } from '@/ui/icons';
 import { branchReadonlyKey } from './readonly';
 import styles from './branch-tasks-section.module.css';
 
@@ -105,6 +106,7 @@ export function BranchTasksSection({
           disabled={readonly}
           title={readonlyReason ? t(branchReadonlyKey(readonlyReason)) : undefined}
         >
+          <PlusIcon size={15} />
           {t('branchDetail.tasks.add')}
         </button>
       </div>

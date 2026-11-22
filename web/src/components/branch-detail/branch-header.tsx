@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Fragment, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { currentTzOffset } from '@/core/clock';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
@@ -7,6 +7,7 @@ import { formatMilestoneDate } from '@/core/rules/milestone-date';
 import type { Branch } from '@/data/types';
 import { updateBranchGoal } from '@/data/update-branch-goal';
 import { t } from '@/i18n';
+import { ChevronRightIcon } from '@/ui/icons';
 import { branchReadonlyKey } from './readonly';
 import styles from './branch-header.module.css';
 
@@ -154,35 +155,24 @@ export function BranchHeader({ branch, branches, readonlyReason }: BranchHeaderP
 
   const color = branch.depth === 0 ? 'neutral' : normalizeBranchColor(branch.color);
   const shade = branchShadeForDepth(branch.depth);
-  const status = `${statusText(branch, byId)}${
-    branch.pinnedAt !== null
-      ? `${t('today.header.separator')}${t('branchDetail.status.pinned')}`
-      : ''
-  }${
+  const active = branch.status === 'active';
+  const note = `${branch.pinnedAt !== null ? t('branchDetail.status.pinned') : ''}${
     branch.archivedAt !== null
-      ? `${t('today.header.separator')}${t('branchDetail.status.archived')}`
+      ? `${branch.pinnedAt !== null ? t('today.header.separator') : ''}${t('branchDetail.status.archived')}`
       : ''
   }`;
+  const ancestors = chain.slice(0, -1);
 
   return (
     <div className={styles.head}>
-      <nav className={styles.breadcrumb} aria-label={t('branchDetail.breadcrumb')}>
-        {chain.map((item, index) =>
-          index === chain.length - 1 ? (
-            <span key={item.id} className={styles.crumbCurrent}>
-              {item.title}
-            </span>
-          ) : (
-            <span key={item.id} className={styles.crumb}>
-              <Link className={styles.crumbLink} to={`/branches/${item.id}`}>
-                {item.title}
-              </Link>
-              <span className={styles.crumbSeparator} aria-hidden="true">
-                /
-              </span>
-            </span>
-          ),
-        )}
+      <nav className={styles.ancestry} aria-label={t('branchDetail.breadcrumb')}>
+        <Link to="/branches">{t('branchDetail.ancestry.root')}</Link>
+        {ancestors.map((item) => (
+          <Fragment key={item.id}>
+            <ChevronRightIcon className={styles.chevron} size={13} />
+            <Link to={`/branches/${item.id}`}>{item.title}</Link>
+          </Fragment>
+        ))}
       </nav>
 
       <div className={styles.titleRow}>
@@ -192,7 +182,15 @@ export function BranchHeader({ branch, branches, readonlyReason }: BranchHeaderP
           aria-hidden="true"
         />
         <h1 className={styles.title}>{branch.title}</h1>
-        <span className={styles.status}>{status}</span>
+        {active ? (
+          <span className={styles.activeChip}>
+            <i className={styles.activeDot} aria-hidden="true" />
+            {t('branches.status.active')}
+          </span>
+        ) : (
+          <span className={styles.status}>{statusText(branch, byId)}</span>
+        )}
+        {note ? <span className={styles.statusNote}>{note}</span> : null}
       </div>
 
       {readonlyReason ? (

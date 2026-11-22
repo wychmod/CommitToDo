@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { Link } from 'react-router-dom';
+import { normalizeBranchColor } from '@/core/rules/branch-color';
 import { branchCommitFeed, COMMIT_PAGE_SIZE, isIncomingCommit } from '@/core/rules/commit-feed';
 import type { Branch, Commit } from '@/data/types';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
+import { ChevronRightIcon } from '@/ui/icons';
 import { formatShortDateTime } from './format';
 import styles from './branch-commits-section.module.css';
 
@@ -39,6 +42,13 @@ export function BranchCommitsSection({
   const visible = feed.slice(0, limit);
   const hasMore = visible.length < feed.length;
 
+  const branch = byId.get(branchId);
+  const color = branch && branch.depth > 0 ? normalizeBranchColor(branch.color) : null;
+  const nodeStyle = {
+    '--node-color': color ? `var(--${color}-1)` : 'var(--accent)',
+    '--node-ring': color ? `var(--${color}-bg)` : 'var(--accent-soft)',
+  } as CSSProperties;
+
   return (
     <section id="branch-commits" className={styles.section} aria-labelledby="branch-commits-title">
       <div className={styles.head}>
@@ -46,6 +56,10 @@ export function BranchCommitsSection({
           {t('branchDetail.section.commits')}
           <span className={styles.count}>{feed.length}</span>
         </h2>
+        <Link className={styles.inlineLink} to={`/history?branch=${branchId}`}>
+          {t('branchDetail.commits.view')}
+          <ChevronRightIcon size={13} />
+        </Link>
       </div>
 
       {status === 'loading' ? (
@@ -69,26 +83,33 @@ export function BranchCommitsSection({
 
       {feed.length > 0 ? (
         <>
-          <ul className={styles.list}>
-            {visible.map((commit) => {
+          <ul className={styles.list} style={nodeStyle}>
+            {visible.map((commit, index) => {
               const incoming = isIncomingCommit(commit, branchId);
               const source = incoming ? byId.get(commit.sourceBranchId) : undefined;
               return (
-                <li key={commit.id}>
-                  <button
-                    type="button"
-                    className={styles.item}
-                    onClick={() => openCommitDetail(commit.id)}
-                  >
-                    <span className={styles.time}>{formatShortDateTime(commit.at)}</span>
-                    <span className={styles.summary}>{commit.summary}</span>
+                <li
+                  key={commit.id}
+                  className={styles.row}
+                  data-selected={index === 0 ? 'true' : undefined}
+                >
+                  <span className={styles.node} aria-hidden="true" />
+                  <div className={styles.body}>
+                    <button
+                      type="button"
+                      className={styles.summary}
+                      onClick={() => openCommitDetail(commit.id)}
+                    >
+                      {commit.summary}
+                    </button>
                     {incoming ? (
                       <span className={styles.source}>
                         {t('branchDetail.commits.incomingPrefix')}
                         {source?.title ?? commit.sourceBranchId}
                       </span>
                     ) : null}
-                  </button>
+                  </div>
+                  <time className={styles.time}>{formatShortDateTime(commit.at)}</time>
                 </li>
               );
             })}

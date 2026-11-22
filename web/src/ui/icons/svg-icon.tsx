@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react';
 
-export type IconSize = 13 | 14 | 15 | 16 | 18 | 20 | 24;
+export type IconSize = 13 | 14 | 15 | 16 | 17 | 18 | 20 | 24;
 
 export interface SvgIconProps extends Omit<SVGProps<SVGSVGElement>, 'width' | 'height'> {
   /** 画稿用到的尺寸档位，默认 18。 */

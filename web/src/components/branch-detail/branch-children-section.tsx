@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
+import { normalizeBranchColor } from '@/core/rules/branch-color';
 import type { Branch } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
+import { BranchIcon, ChevronRightIcon, PlusIcon } from '@/ui/icons';
 import styles from './branch-children-section.module.css';
 
 const STATUS_KEYS: Record<Branch['status'], MessageKey> = {
@@ -56,6 +57,7 @@ export function BranchChildrenSection({
           disabled={createReason !== null}
           title={createReason ? t(createReason) : undefined}
         >
+          <PlusIcon size={15} />
           {t('branchDetail.children.new')}
         </button>
       </div>
@@ -66,16 +68,25 @@ export function BranchChildrenSection({
         <ul className={styles.list}>
           {children.map((child) => {
             const color = child.depth === 0 ? 'neutral' : normalizeBranchColor(child.color);
-            const shade = branchShadeForDepth(child.depth);
             return (
               <li key={child.id} className={styles.item} data-status={child.status}>
                 <Link className={styles.link} to={`/branches/${child.id}`} title={child.title}>
                   <span
-                    className={styles.dot}
-                    style={{ backgroundColor: `var(--${color}-${shade})` }}
+                    className={styles.symbol}
+                    style={{
+                      backgroundColor: `var(--${color}-bg)`,
+                      color: `var(--${color}-1)`,
+                    }}
                     aria-hidden="true"
-                  />
-                  <span className={styles.name}>{child.title}</span>
+                  >
+                    <BranchIcon size={17} />
+                  </span>
+                  <strong className={styles.name}>{child.title}</strong>
+                  <span className={styles.level}>
+                    {t('branchDetail.children.levelPrefix')}
+                    {child.depth + 1}
+                    {t('branchDetail.children.levelSuffix')}
+                  </span>
                   <span className={styles.status}>{t(STATUS_KEYS[child.status])}</span>
                   {child.archivedAt !== null ? (
                     <span className={styles.archived}>{t('branchDetail.status.archived')}</span>
@@ -83,6 +94,7 @@ export function BranchChildrenSection({
                   <span className={styles.progress} aria-label={t('branches.progressLabel')}>
                     {child.taskDone}/{child.taskTotal}
                   </span>
+                  <ChevronRightIcon className={styles.chevron} size={14} />
                 </Link>
               </li>
             );

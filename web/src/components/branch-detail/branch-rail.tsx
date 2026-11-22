@@ -2,14 +2,16 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import { branchCommitFeed } from '@/core/rules/commit-feed';
+import { branchTrail } from '@/core/rules/quick-add';
 import type { BranchColor } from '@/core/rules/branch-color';
 import { formatMilestoneDate } from '@/core/rules/milestone-date';
-import { currentTzOffset } from '@/core/clock';
+import { currentTzOffset, localClockTime } from '@/core/clock';
 import type { Branch, Commit } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
-import { CheckIcon } from '@/ui/icons';
-import { formatShortDateTime } from './format';
+import { ArrowIcon, CheckIcon } from '@/ui/icons';
+import { BranchTag } from '@/components/today/branch-tag';
+import { formatLongDate, formatShortDateTime } from './format';
 import styles from './branch-rail.module.css';
 
 const COLOR_KEYS: Record<BranchColor, MessageKey> = {
@@ -49,6 +51,7 @@ export function BranchRail({ branch, branches, commits }: BranchRailProps) {
   const parent = branch.parentId ? byId.get(branch.parentId) : undefined;
   const color = branch.depth === 0 ? 'neutral' : normalizeBranchColor(branch.color);
   const shade = branchShadeForDepth(branch.depth);
+  const trail = branchTrail(branch, byId);
 
   return (
     <aside className={styles.rail} aria-label={t('branchDetail.rail.label')}>
@@ -71,7 +74,7 @@ export function BranchRail({ branch, branches, commits }: BranchRailProps) {
           </div>
           <div>
             <dt>{t('branchDetail.info.createdAt')}</dt>
-            <dd>{shortDate(branch.createdAt)}</dd>
+            <dd>{formatLongDate(branch.createdAt)}</dd>
           </div>
           <div>
             <dt>{t('branches.date.lastCommit')}</dt>
@@ -113,25 +116,27 @@ export function BranchRail({ branch, branches, commits }: BranchRailProps) {
       <section className={styles.receipt} aria-label={t('branchDetail.receipt.label')}>
         {latest ? (
           <>
-            <div className={styles.receiptHead}>
+            <div className={styles.receiptHeading}>
               <span className={styles.receiptCheck} aria-hidden="true">
-                <CheckIcon size={16} />
+                <CheckIcon size={15} />
               </span>
-              <span className={styles.receiptState}>
-                {t('branchDetail.receipt.state')}
-                <time className={styles.receiptTime}>{formatShortDateTime(latest.at)}</time>
-              </span>
+              <span>{t('today.receipt.donePrefix')}</span>
+              <time className={styles.receiptTime}>{localClockTime(latest.at)}</time>
             </div>
             <button
               type="button"
-              className={styles.receiptBody}
+              className={styles.receiptTitle}
               onClick={() => openCommitDetail(latest.id)}
             >
-              <span className={styles.receiptTitle}>{latest.summary}</span>
+              {latest.summary}
             </button>
-            <Link className={styles.receiptLink} to="/history">
-              {t('branchDetail.receipt.view')}
-            </Link>
+            <div className={styles.receiptFoot}>
+              <BranchTag branch={branch} trail={trail} />
+              <Link className={styles.receiptLink} to={`/history?commit=${latest.id}`}>
+                {t('today.receipt.view')}
+                <ArrowIcon size={14} />
+              </Link>
+            </div>
           </>
         ) : (
           <>
