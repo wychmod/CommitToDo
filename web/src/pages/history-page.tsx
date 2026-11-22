@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { TimelineChart, type TimelineHighlight } from '@/components/history/timeline-chart';
+import {
+  TimelineChart,
+  type TimelineConflictMarker,
+  type TimelineHighlight,
+} from '@/components/history/timeline-chart';
 import { addDays, currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import {
@@ -12,6 +16,7 @@ import { milestoneAnchor } from '@/core/rules/timeline-placement';
 import { resolveTimeRange, TIME_RANGE_KINDS, type TimeRangeKind } from '@/core/rules/time-range';
 import { buildBadgeMarkers } from '@/core/rules/badge-marker';
 import { useBadges, useHistoryData } from '@/data/hooks';
+import { useSyncSnapshot } from '@/data/sync-hooks';
 import type { Branch, Commit, Milestone } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useHistoryExpandedStore, useHistoryFilterStore } from '@/stores/history.store';
@@ -123,6 +128,17 @@ export function HistoryPage() {
   const tz = currentTzOffset(now);
   const todayDate = today(systemClock, tz);
   const markers = useMemo(() => buildBadgeMarkers(badges ?? [], tz), [badges, tz]);
+  const sync = useSyncSnapshot();
+  const conflicts = useMemo<TimelineConflictMarker[]>(() => {
+    const labelOf = (deviceId: string | null): string => {
+      if (!deviceId) return t('history.conflict.unknownDevice');
+      return sync.devices.find((device) => device.id === deviceId)?.label ?? deviceId;
+    };
+    return view.conflicts.map((conflict) => ({
+      ...conflict,
+      deviceLabel: labelOf(conflict.deviceId),
+    }));
+  }, [view.conflicts, sync.devices]);
 
   const saved = useHistoryFilterStore((state) => state.filter);
   const setRange = useHistoryFilterStore((state) => state.setRange);
@@ -308,9 +324,18 @@ export function HistoryPage() {
       view.milestones.some((milestone) => {
         const date = milestoneAnchor(milestone.achievedAt, milestone.datePrecision, tz);
         return visible(milestone.branchId) && within(date);
-      })
+      }) ||
+      view.conflicts.some((conflict) => visible(conflict.branchId) && within(conflict.date))
     );
-  }, [view.commits, view.milestones, visibleIds, effectiveRange.start, effectiveRange.end, tz]);
+  }, [
+    view.commits,
+    view.milestones,
+    view.conflicts,
+    visibleIds,
+    effectiveRange.start,
+    effectiveRange.end,
+    tz,
+  ]);
 
   const rangeStartDate = effectiveRange.start ?? earliest;
   const rangeText =
@@ -515,6 +540,7 @@ export function HistoryPage() {
                 commits={view.commits}
                 milestones={view.milestones}
                 badges={markers}
+                conflicts={conflicts}
                 range={effectiveRange}
                 visibleIds={visibleIds}
                 expanded={chartExpanded}
@@ -551,6 +577,10 @@ export function HistoryPage() {
                 <span>
                   <i className={styles.keyDropped} aria-hidden="true" />
                   {t('history.legend.dropped')}
+                </span>
+                <span>
+                  <i className={styles.keyConflict} aria-hidden="true" />
+                  {t('history.legend.conflict')}
                 </span>
               </div>
             </section>

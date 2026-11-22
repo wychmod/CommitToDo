@@ -447,6 +447,26 @@
   outline-offset: var(--timeline-selected-ring);
 }
 
+/* 同步冲突沿用徽章标记的位置与尺寸，只换令牌颜色（PRD V2-02 §5）。 */
+.conflictMarker {
+  composes: badgeMarker;
+  background: var(--warning);
+  color: var(--panel);
+}
+
+.conflictMarker:empty::after {
+  width: var(--s2);
+  height: var(--s2);
+  border-radius: 50%;
+  background: var(--panel);
+  content: '';
+}
+
+.conflictMarker:focus-visible {
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: var(--timeline-selected-ring);
+}
+
 .badgeMarkerPopover {
   position: absolute;
   top: calc(50% + var(--s2));
@@ -502,6 +522,28 @@
   color: var(--muted);
   font-size: var(--type-label);
   list-style: none;
+}
+
+.mobileConflicts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: var(--s2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mobileConflict {
+  display: flex;
+  gap: var(--s2);
+  color: var(--warning);
+  font-size: var(--type-label);
+}
+
+.mobileConflictDate {
+  flex: none;
+  color: var(--subtle);
+  font-variant-numeric: tabular-nums;
 }
 
 .mobileOnly {

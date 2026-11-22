@@ -246,6 +246,11 @@
   background: var(--panel);
 }
 
+.keyConflict {
+  composes: keyDot;
+  background: var(--warning);
+}
+
 .keyStall,
 .keyDropped {
   display: inline-block;

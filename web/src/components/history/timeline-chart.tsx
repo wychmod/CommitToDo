@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
 import type { Branch, Commit, Milestone } from '@/data/types';
-import { t } from '@/i18n';
+import { t, type MessageKey } from '@/i18n';
+import type { TimelineConflict } from '@/core/rules/timeline-conflict';
 import styles from './timeline-chart.module.css';
 import { clusterTimeline, type TimelineCluster } from '@/core/rules/timeline-cluster';
 import {
@@ -31,11 +32,17 @@ export interface TimelineHighlight {
   milestoneId: string | null;
 }
 
+/** 冲突标记：设备已由页面解析成可读名称。 */
+export interface TimelineConflictMarker extends TimelineConflict {
+  deviceLabel: string;
+}
+
 interface TimelineChartProps {
   branches: readonly Branch[];
   commits: readonly Commit[];
   milestones: readonly Milestone[];
   badges: readonly BadgeMarker[];
+  conflicts: readonly TimelineConflictMarker[];
   range: TimeRange;
   /** `null` 表示不筛选；否则只显示集合内的分支。 */
   visibleIds: Set<string> | null;
@@ -114,6 +121,38 @@ function isValidCommit(commit: Commit): boolean {
   return commit.voidedAt === null && commit.deletedAt === null;
 }
 
+const CONFLICT_ENTITY_KEYS: Record<string, MessageKey> = {
+  branch: 'sync.entity.branch',
+  task: 'sync.entity.task',
+  commit: 'sync.entity.commit',
+  milestone: 'sync.entity.milestone',
+  badge: 'sync.entity.badge',
+  settings: 'sync.entity.settings',
+};
+
+function conflictEntityLabel(entity: string): string {
+  const key = CONFLICT_ENTITY_KEYS[entity];
+  return key ? t(key) : t('history.conflict.unknownEntity');
+}
+
+/** 同一天只落一个标记；标记内列出当天的全部冲突。 */
+function groupConflictsByDate(
+  conflicts: readonly TimelineConflictMarker[],
+  branchId: string,
+  start: string,
+  end: string,
+): Array<[string, TimelineConflictMarker[]]> {
+  const groups = new Map<string, TimelineConflictMarker[]>();
+  for (const conflict of conflicts) {
+    if (conflict.branchId !== branchId) continue;
+    if (conflict.date < start || conflict.date > end) continue;
+    const list = groups.get(conflict.date) ?? [];
+    list.push(conflict);
+    groups.set(conflict.date, list);
+  }
+  return [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
+
 function laneEvents(
   lane: Branch,
   commits: readonly Commit[],
@@ -160,6 +199,7 @@ export function TimelineChart({
   commits,
   milestones,
   badges,
+  conflicts,
   range,
   visibleIds,
   expanded,
@@ -524,6 +564,49 @@ export function TimelineChart({
                     );
                   })}
 
+                  {groupConflictsByDate(conflicts, branch.id, rangeStart, range.end).map(
+                    ([date, items]) => {
+                      const markerId = `conflict:${branch.id}:${date}`;
+                      return (
+                        <div
+                          key={markerId}
+                          className={styles.badgeMarkerWrap}
+                          style={{ left: `${markerX(dateToMs(date, tz))}%` }}
+                        >
+                          <button
+                            type="button"
+                            className={styles.conflictMarker}
+                            aria-label={`${t('history.conflict.title')} ${date}`}
+                            aria-expanded={markerOpen === markerId}
+                            onMouseEnter={() => setMarkerOpen(markerId)}
+                            onMouseLeave={() =>
+                              setMarkerOpen((open) => (open === markerId ? null : open))
+                            }
+                            onClick={() =>
+                              setMarkerOpen((open) => (open === markerId ? null : markerId))
+                            }
+                          >
+                            {items.length > 1 ? items.length : ''}
+                          </button>
+                          {markerOpen === markerId ? (
+                            <div className={styles.badgeMarkerPopover}>
+                              <p className={styles.badgeMarkerTitle}>
+                                {date} · {t('history.conflict.title')}
+                              </p>
+                              <ul className={styles.badgeMarkerList}>
+                                {items.map((item) => (
+                                  <li key={item.id}>
+                                    {conflictEntityLabel(item.entity)} · {item.deviceLabel}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    },
+                  )}
+
                   {badges
                     .filter((marker) => markerLane.get(marker.date) === branch.id)
                     .map((marker) => (
@@ -688,6 +771,22 @@ export function TimelineChart({
                     ) : null}
                   </div>
                 ))}
+
+              {groupConflictsByDate(conflicts, branch.id, rangeStart, range.end).map(
+                ([date, items]) => (
+                  <ul key={`conflict:${branch.id}:${date}`} className={styles.mobileConflicts}>
+                    {items.map((item) => (
+                      <li key={item.id} className={styles.mobileConflict}>
+                        <span className={styles.mobileConflictDate}>{date}</span>
+                        <span>
+                          {t('history.conflict.title')} · {conflictEntityLabel(item.entity)} ·{' '}
+                          {item.deviceLabel}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ),
+              )}
 
               <ul className={styles.mobileEvents}>
                 {events.map((event) => (

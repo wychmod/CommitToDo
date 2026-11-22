@@ -32,6 +32,7 @@ import { onboardingDataFrom, type OnboardingData } from '@/core/rules/onboarding
 import { SAMPLE_OWNER_ID } from '@/core/rules/sample-tree';
 import { normalizeTheme } from '@/core/rules/theme-preference';
 import { resolveTreeDensity } from '@/core/rules/tree-density';
+import { collectTimelineConflicts, type TimelineConflict } from '@/core/rules/timeline-conflict';
 import { buildYearDistribution, type YearDistribution } from '@/core/rules/year-distribution';
 import { computeYearMetrics, type YearMetrics } from '@/core/rules/year-metrics';
 import { yearBoundsFor } from '@/core/rules/year-param';
@@ -635,6 +636,7 @@ export interface HistoryDataView {
   branches: Branch[];
   commits: Commit[];
   milestones: Milestone[];
+  conflicts: TimelineConflict[];
   retry: () => void;
 }
 
@@ -642,6 +644,7 @@ const EMPTY_HISTORY = {
   branches: [] as Branch[],
   commits: [] as Commit[],
   milestones: [] as Milestone[],
+  conflicts: [] as TimelineConflict[],
 };
 
 /**
@@ -656,15 +659,18 @@ export function useHistoryData(ownerId = LOCAL_OWNER_ID): HistoryDataView {
     branches: Branch[];
     commits: Commit[];
     milestones: Milestone[];
+    conflicts: TimelineConflict[];
   } | null>(null);
   const result = useLiveQuery(async () => {
     try {
-      const [branches, commits, milestones] = await Promise.all([
+      const [branches, commits, milestones, events] = await Promise.all([
         branchRepository.listByOwner(ownerId),
         commitRepository.listByOwner(ownerId),
         milestoneRepository.listByOwner(ownerId),
+        eventRepository.listByOwner(ownerId),
       ]);
-      return { ok: true as const, branches, commits, milestones };
+      const conflicts = collectTimelineConflicts(events, currentTzOffset(systemClock.now()));
+      return { ok: true as const, branches, commits, milestones, conflicts };
     } catch {
       return { ok: false as const, ...EMPTY_HISTORY };
     }
@@ -677,6 +683,7 @@ export function useHistoryData(ownerId = LOCAL_OWNER_ID): HistoryDataView {
         branches: result.branches,
         commits: result.commits,
         milestones: result.milestones,
+        conflicts: result.conflicts,
       });
     }
   }, [result]);
@@ -689,6 +696,7 @@ export function useHistoryData(ownerId = LOCAL_OWNER_ID): HistoryDataView {
     branches: result.branches,
     commits: result.commits,
     milestones: result.milestones,
+    conflicts: result.conflicts,
     retry,
   };
 }

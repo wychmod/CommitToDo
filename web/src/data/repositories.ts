@@ -75,6 +75,7 @@ export interface SettingsRepository {
 }
 
 export interface EventRepository {
+  listByOwner(ownerId: string): Promise<EventRecord[]>;
   listRecent(ownerId: string, limit: number): Promise<EventRecord[]>;
   listByEntity(entityId: string): Promise<EventRecord[]>;
 }
@@ -176,6 +177,7 @@ export const settingsRepository: SettingsRepository = {
 };
 
 export const eventRepository: EventRepository = {
+  listByOwner: (ownerId) => db.events.where('ownerId').equals(ownerId).toArray(),
   listRecent: async (ownerId, limit) => {
     const rows = await db.events.where('ownerId').equals(ownerId).toArray();
     return rows.sort((a, b) => b.at - a.at).slice(0, limit);
