@@ -543,6 +543,7 @@ section.group > .groupHead {
 @media (min-width: 760px) {
   .layout {
     grid-template-columns: minmax(0, 2.28fr) minmax(290px, 1fr);
+    gap: var(--s6);
   }
 }
 
