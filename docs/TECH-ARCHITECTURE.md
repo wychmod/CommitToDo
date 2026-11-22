@@ -316,6 +316,8 @@ V2 的业务写函数验证调用身份并解析 `ownerId`，校验参数、归�
 
 **V1 的客户端调用 `backup-sign` 获取异地备份的上传或下载地址。** 备份包按本地匿名设备 ID 归档。
 
+**PG 环境注意**：环境为 PostgreSQL 版时，云存储由 `storage.objects` 上的 RLS 把关，云函数默认是匿名角色。`backup-sign` 需以 service_role API Key 初始化（`cloudbase.init({ accessKey })`），并用 `app.storage.from(BUCKET_ID)` 访问对象存储；`BACKUP_BUCKET` 与 `BACKUP_API_KEY` 通过函数环境变量注入，密钥不入库。上传返回桶内对象名（不是 `cloud://` fileID），下载用 `createSignedUrls` 生成限时地址——单个 `createSignedUrl` 会走传统签名分支并返回 404。SDK v4 依赖 bson 7，函数运行时需 `Nodejs20.19`。
+
 **V2 起（有账号）**：
 
 - **写：客户端不直写数据库**，一律调云函数，保证校验、时间戳与审计只有一个落点。
@@ -873,3 +875,4 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | 0.22 | 2026-11-21 | **CloudBase 口径与现状对齐**：MVP 保留 `@cloudbase/js-sdk@^3.11.1` 依赖，但仅在 `src/data/cloud/` 内按需初始化、应用入口不引用、不进首屏包、运行时无请求；云函数 / 对象存储 / 云数据库 / 云开发身份仍从 V1 / V2 起启用。删除「MVP 0 处代码依赖」「不需要任何 `.env`」等旧表述（§1 表、§3.3）。**首发部署暂缓，按用户节奏执行**（§3.3、§9.1、§10.1、§10.4）；自定义域名与备案标注为**上线前**才成为前置（§3.3、§9.3）。§4.5 SDK 路径由 `src/data/cloudbase/**` 修正为 `src/data/cloud/**` |
 | 0.23 | 2026-11-21 | Web 与微信小程序同仓库、分别构建和发布。Web 在 V1 异地备份时先交付根目录的 `cloudfunctions/` 与共享部署配置。V2 小程序以同账号只读接入同一 CloudBase 后端，按需共享纯领域规则。匿名统计阶段与 J-07 对齐为 V2。见 §4.3、§6.3 与 §7.3。 |
 | 0.24 | 2026-11-22 | **云函数命名约束**：函数名只用小写字母、数字与连字符，不得含点号（SCF 会拒绝部署）；`cloudbaserc.json`、目录名与调用方必须一致。已交付函数改为 `backup-sign`、`workspace-read`，V2 规划函数表同步改为连字符命名（§4.3）。 §4.4、§4.7、§5.5、§9.4 的函数名引用同步更新 |
+| 0.25 | 2026-11-22 | `backup-sign` 在 PG 环境落地：改用 service_role API Key + `app.storage.from(bucketId)` 访问对象存储，`BACKUP_BUCKET` / `BACKUP_API_KEY` 走函数环境变量，下载改用 `createSignedUrls`；函数运行时要求 `Nodejs20.19`。见 §4.4 |
