@@ -39,7 +39,11 @@ export function BranchChildrenSection({
   );
 
   return (
-    <section className={styles.section} aria-labelledby="branch-children-title">
+    <section
+      id="branch-children"
+      className={styles.section}
+      aria-labelledby="branch-children-title"
+    >
       <div className={styles.head}>
         <h2 id="branch-children-title" className={styles.title}>
           {t('branchDetail.section.children')}

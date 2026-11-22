@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { currentTzOffset } from '@/core/clock';
 import { branchCommitFeed, COMMIT_PAGE_SIZE, isIncomingCommit } from '@/core/rules/commit-feed';
-import { formatCommitTime } from '@/core/rules/commit-time-format';
 import type { Branch, Commit } from '@/data/types';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
+import { formatShortDateTime } from './format';
 import styles from './branch-commits-section.module.css';
 
 interface BranchCommitsSectionProps {
@@ -41,7 +40,7 @@ export function BranchCommitsSection({
   const hasMore = visible.length < feed.length;
 
   return (
-    <section className={styles.section} aria-labelledby="branch-commits-title">
+    <section id="branch-commits" className={styles.section} aria-labelledby="branch-commits-title">
       <div className={styles.head}>
         <h2 id="branch-commits-title" className={styles.title}>
           {t('branchDetail.section.commits')}
@@ -81,9 +80,7 @@ export function BranchCommitsSection({
                     className={styles.item}
                     onClick={() => openCommitDetail(commit.id)}
                   >
-                    <span className={styles.time}>
-                      {formatCommitTime(commit.at, currentTzOffset(commit.at))}
-                    </span>
+                    <span className={styles.time}>{formatShortDateTime(commit.at)}</span>
                     <span className={styles.summary}>{commit.summary}</span>
                     {incoming ? (
                       <span className={styles.source}>

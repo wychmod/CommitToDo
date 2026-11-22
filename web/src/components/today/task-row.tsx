@@ -39,7 +39,8 @@ interface TaskRowProps {
 function dueLabel(task: Task, todayDate: string): string {
   if (!task.dueDate) return t('today.task.noDue');
   if (task.dueDate === todayDate) return t('today.task.todayLabel');
-  return task.dueDate.slice(5);
+  const [, month, day] = task.dueDate.split('-').map(Number);
+  return `${month}${t('milestone.date.monthSuffix')} ${day}${t('milestone.date.daySuffix')}`;
 }
 
 /**

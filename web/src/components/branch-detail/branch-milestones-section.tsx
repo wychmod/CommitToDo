@@ -38,7 +38,11 @@ export function BranchMilestonesSection({
   );
 
   return (
-    <section className={styles.section} aria-labelledby="branch-milestones-title">
+    <section
+      id="branch-milestones"
+      className={styles.section}
+      aria-labelledby="branch-milestones-title"
+    >
       <div className={styles.head}>
         <h2 id="branch-milestones-title" className={styles.title}>
           {t('branchDetail.section.milestones')}

@@ -15,7 +15,7 @@ import { t, type MessageKey } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
-import { UserIcon } from '@/ui/icons';
+import { ArchiveIcon, BranchIcon, HelpIcon, SunIcon, UserIcon } from '@/ui/icons';
 import styles from './settings-page.module.css';
 
 const COLLECTION_KEYS: Record<string, MessageKey> = {
@@ -174,156 +174,229 @@ export function SettingsPage() {
       {!loaded ? (
         <LoadingShell />
       ) : (
-        <div className={styles.stack}>
-          <section className={styles.section} aria-labelledby="settings-appearance">
-            <h2 id="settings-appearance" className={styles.heading}>
+        <div className={styles.layout}>
+          <nav className={styles.nav} aria-label={t('settings.nav.label')}>
+            <a className={styles.navLink} href="#appearance">
+              <SunIcon size={18} />
               {t('settings.appearance')}
-            </h2>
-            <OptionGroup
-              legendKey="settings.theme"
-              name="theme"
-              value={draft.theme}
-              options={THEME_OPTIONS}
-              onChange={(theme) => void save({ theme })}
-            />
-            <OptionGroup
-              legendKey="settings.density"
-              name="density"
-              value={draft.treeDensity}
-              options={DENSITY_OPTIONS}
-              onChange={(treeDensity) => void save({ treeDensity })}
-            />
-          </section>
-
-          <section className={styles.section} aria-labelledby="settings-annotations">
-            <h2 id="settings-annotations" className={styles.heading}>
+            </a>
+            <a className={styles.navLink} href="#notes">
+              <HelpIcon size={18} />
               {t('settings.annotations')}
-            </h2>
-            <p className={styles.hint}>{t('settings.annotations.hint')}</p>
-            <OptionGroup
-              legendKey="settings.annotations.mode"
-              name="annotations"
-              value={draft.annotations}
-              options={ANNOTATION_OPTIONS}
-              onChange={(annotations) => void save({ annotations })}
-            />
-          </section>
+            </a>
+            <Link className={styles.navLink} to="/data">
+              <ArchiveIcon size={18} />
+              {t('settings.data')}
+            </Link>
+            <a className={styles.navLink} href="#about">
+              <HelpIcon size={18} />
+              {t('settings.about')}
+            </a>
+          </nav>
 
-          <section className={styles.section} aria-labelledby="settings-reminders">
-            <h2 id="settings-reminders" className={styles.heading}>
-              {t('settings.reminders')}
-            </h2>
-            <p className={styles.hint}>{t('settings.reminders.hint')}</p>
-            <OptionGroup
-              legendKey="settings.reminders.mode"
-              name="reminders"
-              value={draft.reminderEnabled ? 'on' : 'off'}
-              options={REMINDER_OPTIONS}
-              onChange={(value) => void save({ reminderEnabled: value === 'on' })}
-            />
-          </section>
-
-          <section id="account" className={styles.section} aria-labelledby="settings-account">
-            <div className={styles.accountCard}>
-              <h2 id="settings-account" className={styles.accountTitle}>
-                {t('settings.account')}
+          <div className={styles.stack}>
+            <section
+              id="appearance"
+              className={`${styles.section} ${styles.panelSection}`}
+              aria-labelledby="appearance-title"
+            >
+              <h2 id="appearance-title" className={styles.heading}>
+                {t('settings.appearance')}
               </h2>
-              {principalId ? (
-                <>
-                  <div className={styles.accountRow}>
-                    <div className={styles.accountText}>
-                      <span className={styles.accountLabel}>{t('auth.email')}</span>
-                      <span className={styles.accountEmail}>{email}</span>
-                    </div>
-                    <span className={styles.accountStatus}>{t('settings.account.status')}</span>
-                  </div>
-                  <div className={styles.accountFoot}>
-                    <button
-                      type="button"
-                      className={styles.dangerButton}
-                      onClick={() => setConfirmingSignOut(true)}
-                    >
-                      {t('settings.account.signOut')}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className={styles.accountRow}>
-                  <span className={styles.accountIcon} aria-hidden="true">
-                    <UserIcon size={20} />
+              <OptionGroup
+                legendKey="settings.theme"
+                name="theme"
+                value={draft.theme}
+                options={THEME_OPTIONS}
+                onChange={(theme) => void save({ theme })}
+              />
+              <OptionGroup
+                legendKey="settings.density"
+                name="density"
+                value={draft.treeDensity}
+                options={DENSITY_OPTIONS}
+                onChange={(treeDensity) => void save({ treeDensity })}
+              />
+              <div className={styles.example} data-density={draft.treeDensity}>
+                <div className={styles.exampleHead}>
+                  <span className={styles.exampleIcon} aria-hidden="true">
+                    <BranchIcon size={18} />
                   </span>
-                  <div className={styles.accountText}>
-                    <span className={styles.accountHeadline}>
-                      {t('settings.account.signedOutTitle')}
+                  <div className={styles.exampleText}>
+                    <strong className={styles.exampleTitle}>
+                      {t('settings.density.example.title')}
+                    </strong>
+                    <span className={styles.hint}>
+                      {draft.treeDensity === 'comfortable'
+                        ? t('settings.density.example.comfortable')
+                        : t('settings.density.example.compact')}
                     </span>
-                    <span className={styles.accountHint}>{t('settings.account.hint')}</span>
-                  </div>
-                  <div className={styles.accountActions}>
-                    <Link
-                      className={styles.primaryButton}
-                      to={`/auth/login?next=${encodeURIComponent(accountNext)}`}
-                    >
-                      {t('settings.account.login')}
-                    </Link>
-                    <Link
-                      className={styles.secondaryButton}
-                      to={`/auth/signup?next=${encodeURIComponent(accountNext)}`}
-                    >
-                      {t('settings.account.register')}
-                    </Link>
                   </div>
                 </div>
-              )}
-            </div>
-          </section>
+                <div className={styles.treeFragment} aria-hidden="true">
+                  <span className={styles.treeRow}>
+                    <span className={styles.treeDot} />
+                    {t('settings.density.example.work')}
+                  </span>
+                  <span className={styles.treeRow}>
+                    <span className={styles.treeDot} />
+                    {t('settings.density.example.design')}
+                    <span className={styles.treeDate}>{t('settings.density.example.date')}</span>
+                  </span>
+                </div>
+              </div>
+            </section>
 
-          <section id="sync" className={styles.section} aria-labelledby="settings-sync">
-            <h2 id="settings-sync" className={styles.heading}>
-              {t('settings.sync')}
-            </h2>
-            <p className={styles.hint}>{t('settings.sync.hint')}</p>
-            {principalId ? (
-              <SyncPanel principalId={principalId} />
-            ) : (
-              <div className={styles.actions}>
-                <Link
-                  className={styles.entry}
-                  to={`/auth/login?next=${encodeURIComponent(syncNext)}`}
-                >
-                  {t('settings.account.login')}
-                </Link>
-                <Link
-                  className={styles.entry}
-                  to={`/auth/signup?next=${encodeURIComponent(syncNext)}`}
-                >
-                  {t('settings.account.register')}
+            <section
+              id="notes"
+              className={`${styles.section} ${styles.panelSection}`}
+              aria-labelledby="notes-title"
+            >
+              <h2 id="notes-title" className={styles.heading}>
+                {t('settings.annotations')}
+              </h2>
+              <p className={styles.hint}>{t('settings.annotations.hint')}</p>
+              <OptionGroup
+                legendKey="settings.annotations.mode"
+                name="annotations"
+                value={draft.annotations}
+                options={ANNOTATION_OPTIONS}
+                onChange={(annotations) => void save({ annotations })}
+              />
+            </section>
+
+            <section
+              className={`${styles.section} ${styles.panelSection}`}
+              aria-labelledby="reminders-title"
+            >
+              <h2 id="reminders-title" className={styles.heading}>
+                {t('settings.reminders')}
+              </h2>
+              <p className={styles.hint}>{t('settings.reminders.hint')}</p>
+              <OptionGroup
+                legendKey="settings.reminders.mode"
+                name="reminders"
+                value={draft.reminderEnabled ? 'on' : 'off'}
+                options={REMINDER_OPTIONS}
+                onChange={(value) => void save({ reminderEnabled: value === 'on' })}
+              />
+            </section>
+
+            <section id="account" className={styles.section} aria-labelledby="settings-account">
+              <div className={styles.accountCard}>
+                <h2 id="settings-account" className={styles.accountTitle}>
+                  {t('settings.account')}
+                </h2>
+                {principalId ? (
+                  <>
+                    <div className={styles.accountRow}>
+                      <div className={styles.accountText}>
+                        <span className={styles.accountLabel}>{t('auth.email')}</span>
+                        <span className={styles.accountEmail}>{email}</span>
+                      </div>
+                      <span className={styles.accountStatus}>{t('settings.account.status')}</span>
+                    </div>
+                    <div className={styles.accountFoot}>
+                      <button
+                        type="button"
+                        className={styles.dangerButton}
+                        onClick={() => setConfirmingSignOut(true)}
+                      >
+                        {t('settings.account.signOut')}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className={styles.accountRow}>
+                    <span className={styles.accountIcon} aria-hidden="true">
+                      <UserIcon size={20} />
+                    </span>
+                    <div className={styles.accountText}>
+                      <span className={styles.accountHeadline}>
+                        {t('settings.account.signedOutTitle')}
+                      </span>
+                      <span className={styles.accountHint}>{t('settings.account.hint')}</span>
+                    </div>
+                    <div className={styles.accountActions}>
+                      <Link
+                        className={styles.primaryButton}
+                        to={`/auth/login?next=${encodeURIComponent(accountNext)}`}
+                      >
+                        {t('settings.account.login')}
+                      </Link>
+                      <Link
+                        className={styles.secondaryButton}
+                        to={`/auth/signup?next=${encodeURIComponent(accountNext)}`}
+                      >
+                        {t('settings.account.register')}
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section id="sync" className={styles.section} aria-labelledby="settings-sync">
+              <h2 id="settings-sync" className={styles.heading}>
+                {t('settings.sync')}
+              </h2>
+              <p className={styles.hint}>{t('settings.sync.hint')}</p>
+              {principalId ? (
+                <SyncPanel principalId={principalId} />
+              ) : (
+                <div className={styles.actions}>
+                  <Link
+                    className={styles.entry}
+                    to={`/auth/login?next=${encodeURIComponent(syncNext)}`}
+                  >
+                    {t('settings.account.login')}
+                  </Link>
+                  <Link
+                    className={styles.entry}
+                    to={`/auth/signup?next=${encodeURIComponent(syncNext)}`}
+                  >
+                    {t('settings.account.register')}
+                  </Link>
+                </div>
+              )}
+            </section>
+
+            <section
+              id="about"
+              className={`${styles.section} ${styles.panelSection}`}
+              aria-labelledby="about-title"
+            >
+              <h2 id="about-title" className={styles.heading}>
+                {t('settings.about')}
+              </h2>
+              <div className={styles.aboutRow}>
+                <div className={styles.aboutText}>
+                  <strong className={styles.aboutTitle}>{t('settings.about.localData')}</strong>
+                  <span className={styles.hint}>{t('settings.about.localDataHint')}</span>
+                </div>
+                <Link className={styles.entry} to="/data">
+                  {t('settings.about.dataLink')}
                 </Link>
               </div>
-            )}
-          </section>
+            </section>
 
-          <section className={styles.section} aria-labelledby="settings-data">
-            <h2 id="settings-data" className={styles.heading}>
-              {t('settings.data')}
-            </h2>
-            <p className={styles.hint}>{t('settings.data.hint')}</p>
-            <Link className={styles.entry} to="/data">
-              {t('nav.data')}
-            </Link>
-          </section>
-
-          <div className={styles.status} role="status" aria-live="polite">
-            {saving && pending ? t('settings.saving') : null}
-          </div>
-
-          {failedPatch ? (
-            <div className={styles.error} role="alert">
-              <span>{t('settings.saveFailed')}</span>
-              <button type="button" className={styles.retry} onClick={() => void save(failedPatch)}>
-                {t('error.retry')}
-              </button>
+            <div className={styles.status} role="status" aria-live="polite">
+              {saving && pending ? t('settings.saving') : null}
             </div>
-          ) : null}
+
+            {failedPatch ? (
+              <div className={styles.error} role="alert">
+                <span>{t('settings.saveFailed')}</span>
+                <button
+                  type="button"
+                  className={styles.retry}
+                  onClick={() => void save(failedPatch)}
+                >
+                  {t('error.retry')}
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       )}
 

@@ -44,6 +44,7 @@ import {
   type BranchLifecycleMode,
 } from '@/components/branch-detail/branch-lifecycle-panel';
 import { BranchMilestonesSection } from '@/components/branch-detail/branch-milestones-section';
+import { BranchRail } from '@/components/branch-detail/branch-rail';
 import { BranchTasksSection } from '@/components/branch-detail/branch-tasks-section';
 import styles from './branch-detail-page.module.css';
 
@@ -263,59 +264,84 @@ export function BranchDetailPage() {
             {t(actionError)}
           </p>
         ) : null}
-        <div className={styles.progress} aria-label={t('branchDetail.progress.label')}>
-          <div className={styles.progressHead}>
-            <span className={styles.progressLabel}>{t('branchDetail.progress.label')}</span>
-            <span className={styles.progressValue}>
-              {progress.hasProgress
-                ? `${progress.done} / ${progress.total}`
-                : t('branchDetail.progress.empty')}
-            </span>
-          </div>
+        <section className={styles.progressPanel} aria-labelledby="branch-progress-label">
+          <span id="branch-progress-label" className={styles.progressLabel}>
+            {t('branchDetail.progress.label')}
+          </span>
           {progress.hasProgress ? (
-            <span className={styles.progressTrack} aria-hidden="true" data-status={tasks.status}>
+            <div
+              className={styles.progressTrack}
+              role="progressbar"
+              aria-labelledby="branch-progress-label"
+              aria-valuemin={0}
+              aria-valuenow={progress.done}
+              aria-valuemax={progress.total}
+            >
               <span
                 className={styles.progressBar}
                 style={{ width: `${Math.round(progress.ratio * 100)}%` }}
               />
-            </span>
-          ) : null}
+            </div>
+          ) : (
+            <span className={styles.progressEmpty}>{t('branchDetail.progress.empty')}</span>
+          )}
+          <strong className={styles.progressValue}>
+            {progress.hasProgress ? (
+              <>
+                {progress.done} / {progress.total}
+                <small className={styles.progressDone}>{t('branchDetail.progress.done')}</small>
+              </>
+            ) : null}
+          </strong>
+        </section>
+
+        <nav className={styles.sectionNav} aria-label={t('branchDetail.sectionNav.label')}>
+          <a href="#branch-tasks">{t('branchDetail.section.tasks')}</a>
+          <a href="#branch-commits">{t('branchDetail.section.commits')}</a>
+          <a href="#branch-children">{t('branchDetail.section.children')}</a>
+          <a href="#branch-milestones">{t('branchDetail.section.milestones')}</a>
+        </nav>
+
+        <div className={styles.layout}>
+          <div className={styles.main}>
+            <BranchTasksSection
+              branch={branch}
+              branchTrail={trail}
+              tasks={tasks.tasks}
+              status={tasks.status}
+              retry={tasks.retry}
+              readonlyReason={readonlyReason}
+              todayDate={todayDate}
+              onOpenTask={(task) => openTaskDetail(task.id)}
+              onAddTask={() => openQuickAdd(branch.id)}
+            />
+
+            <BranchCommitsSection
+              branchId={branch.id}
+              commits={commits.commits}
+              branches={header.branches}
+              status={commits.status}
+              retry={commits.retry}
+            />
+
+            <BranchChildrenSection
+              branch={branch}
+              branches={header.branches}
+              createReason={createReason}
+              onNewChild={() => setPanel({ mode: 'create', parent: branch })}
+            />
+
+            <BranchMilestonesSection
+              branchId={branch.id}
+              readonly={readonlyReason !== null}
+              milestones={milestones.milestones}
+              status={milestones.status}
+              retry={milestones.retry}
+            />
+          </div>
+
+          <BranchRail branch={branch} branches={header.branches} commits={commits.commits} />
         </div>
-
-        <BranchTasksSection
-          branch={branch}
-          branchTrail={trail}
-          tasks={tasks.tasks}
-          status={tasks.status}
-          retry={tasks.retry}
-          readonlyReason={readonlyReason}
-          todayDate={todayDate}
-          onOpenTask={(task) => openTaskDetail(task.id)}
-          onAddTask={() => openQuickAdd(branch.id)}
-        />
-
-        <BranchCommitsSection
-          branchId={branch.id}
-          commits={commits.commits}
-          branches={header.branches}
-          status={commits.status}
-          retry={commits.retry}
-        />
-
-        <BranchChildrenSection
-          branch={branch}
-          branches={header.branches}
-          createReason={createReason}
-          onNewChild={() => setPanel({ mode: 'create', parent: branch })}
-        />
-
-        <BranchMilestonesSection
-          branchId={branch.id}
-          readonly={readonlyReason !== null}
-          milestones={milestones.milestones}
-          status={milestones.status}
-          retry={milestones.retry}
-        />
       </div>
 
       {panel ? (

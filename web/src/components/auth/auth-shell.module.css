@@ -102,7 +102,11 @@
   padding: var(--auth-art-padding);
   border-radius: var(--auth-radius);
   background:
-    radial-gradient(ellipse at 8% 96%, color-mix(in srgb, var(--honey-bg) 55%, transparent), transparent 48%),
+    radial-gradient(
+      ellipse at 8% 96%,
+      color-mix(in srgb, var(--honey-bg) 55%, transparent),
+      transparent 48%
+    ),
     linear-gradient(150deg, var(--home-band), var(--accent-soft));
 }
 
@@ -212,7 +216,13 @@
   position: absolute;
   inset: 50% 0 auto;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--lane-color) 16%, var(--lane-color) 84%, transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--lane-color) 16%,
+    var(--lane-color) 84%,
+    transparent
+  );
   content: '';
 }
 
@@ -295,7 +305,7 @@
 
 @media (max-width: 760px) {
   .headerInner {
-    height: var(--s10);
+    height: calc(var(--s10) - var(--s2));
     padding: 0 var(--s4);
   }
 

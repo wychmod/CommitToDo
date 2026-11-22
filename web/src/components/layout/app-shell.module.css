@@ -121,11 +121,16 @@
       'content'
       'bottomnav';
     grid-template-columns: 1fr;
-    grid-template-rows: var(--layout-topbar) 1fr auto;
+    grid-template-rows: calc(var(--layout-topbar) - var(--s2)) 1fr auto;
   }
 
   .topbar {
+    height: calc(var(--layout-topbar) - var(--s2));
     padding: 0 var(--s4);
+  }
+
+  .storageError {
+    padding: var(--s6) var(--s4);
   }
 
   .sidebar {

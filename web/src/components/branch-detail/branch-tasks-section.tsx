@@ -92,7 +92,7 @@ export function BranchTasksSection({
   };
 
   return (
-    <section className={styles.section} aria-labelledby="branch-tasks-title">
+    <section id="branch-tasks" className={styles.section} aria-labelledby="branch-tasks-title">
       <div className={styles.head}>
         <h2 id="branch-tasks-title" className={styles.title}>
           {t('branchDetail.section.tasks')}
