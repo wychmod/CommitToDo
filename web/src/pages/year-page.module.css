@@ -134,6 +134,11 @@
   background: color-mix(in srgb, var(--accent-soft) 75%, var(--surface));
 }
 
+.metricLabel {
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
 .metricValue {
   color: var(--text);
   font-size: calc(var(--type-marketing) - 1px);
@@ -147,9 +152,14 @@
   color: var(--accent);
 }
 
-.metricLabel {
+.metricMeta {
+  max-width: 100%;
+  overflow: hidden;
   color: var(--muted);
-  font-size: var(--type-label);
+  font-size: var(--type-chart);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .emptyBanner {
@@ -225,6 +235,7 @@
 }
 
 .chart {
+  --plot-h: calc(var(--s10) * 2 + var(--s7) + 2px);
   display: grid;
   grid-template-columns: calc(var(--s7) - 2px) minmax(0, 1fr);
   padding-top: calc(var(--s1) + 1px);
@@ -234,7 +245,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: calc(var(--s10) * 2 + var(--s7) + 2px);
+  height: calc(var(--plot-h) + 1px);
   padding-inline-end: var(--s2);
   color: var(--muted);
   font-size: var(--type-chart);
@@ -248,46 +259,52 @@
 
 .chartPlot {
   position: relative;
-  height: calc(var(--s10) * 2 + var(--s7) + 2px);
 }
 
 .chartGrid {
   position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  inset: 0 0 auto;
+  display: grid;
+  height: calc(var(--plot-h) + 1px);
+  grid-template-rows: repeat(4, 1fr) 1px;
+  pointer-events: none;
 }
 
 .chartGrid span {
   border-top: 1px solid var(--line);
 }
 
+.chartGrid span:last-child {
+  border-color: var(--line-strong);
+  opacity: 0.75;
+}
+
 .months {
   position: relative;
-  display: flex;
-  align-items: flex-end;
-  gap: 0;
-  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .month,
 .monthCurrent {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  height: 100%;
+  display: grid;
+  grid-template-rows: var(--plot-h) calc(var(--s5) + var(--s1));
   min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--muted);
   font-size: var(--type-chart);
+  text-align: center;
   cursor: pointer;
 }
 
 .monthCurrent {
   position: relative;
+}
+
+.monthFuture {
+  color: var(--subtle);
 }
 
 .monthCurrent::before {
@@ -311,29 +328,20 @@
   outline-offset: 2px;
 }
 
-.monthCount {
-  height: var(--s4);
-  color: var(--subtle);
-  font-size: var(--type-chart);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  text-align: center;
-}
-
 .monthPlot {
   display: flex;
-  flex: 1;
   align-items: flex-end;
   justify-content: center;
   width: 100%;
+  height: 100%;
 }
 
 .monthBar {
+  position: relative;
   display: flex;
   flex-direction: column-reverse;
   width: min(74%, calc(var(--s7) + 5px));
   min-height: var(--s2);
-  overflow: hidden;
   border-radius: var(--s1) var(--s1) 0 0;
 }
 
@@ -341,6 +349,10 @@
   flex-basis: 0;
   min-height: var(--timeline-rail);
   background: var(--seg-color, var(--accent));
+}
+
+.monthSegment:last-child {
+  border-radius: var(--s1) var(--s1) 0 0;
 }
 
 .monthSegment + .monthSegment {
@@ -351,24 +363,25 @@
   filter: brightness(1.06);
 }
 
-.monthZero {
-  width: 62%;
-  height: var(--s1);
-  border-radius: var(--radius-marker);
-  background: var(--line-strong);
+.monthNumber {
+  position: absolute;
+  inset-block-start: calc(-1 * var(--s6) + 2px);
+  inset-inline: 0;
+  color: var(--text);
+  font-size: var(--type-label);
+  font-weight: 720;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
-.monthEmpty {
-  width: 62%;
-  height: 100%;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius-marker);
+.monthDash {
+  margin-bottom: calc(var(--s1) + 2px);
+  color: var(--subtle);
+  opacity: 0.8;
 }
 
 .monthLabel {
-  height: calc(var(--s5) + var(--s1));
   padding-top: calc(var(--s1) + 2px);
-  color: var(--muted);
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
@@ -604,13 +617,76 @@ a.branchRow:hover {
 }
 
 .shareCard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s1);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(var(--s10) + var(--s5) + var(--s1));
+  gap: calc(var(--s4) - 1px);
+  align-items: center;
   padding: calc(var(--s3) - 2px) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: color-mix(in srgb, var(--accent-soft) 62%, var(--surface));
+}
+
+.shareCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.shareGraphic {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: inherit;
+}
+
+.sharePaper {
+  fill: var(--panel);
+  stroke: var(--line);
+  stroke-width: 1.5;
+}
+
+.shareGrid {
+  stroke: var(--line);
+  stroke-width: 0.75;
+  opacity: 0.75;
+}
+
+.shareTypography {
+  fill: var(--text);
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.shareFoot {
+  fill: var(--muted);
+  font-size: 7.4px;
+  font-weight: 650;
+}
+
+.shareCoral {
+  stroke: var(--coral-1);
+}
+
+.shareSky {
+  stroke: var(--sky-1);
+}
+
+.shareHoney {
+  stroke: var(--honey-1);
+}
+
+.shareCoralFill {
+  fill: var(--coral-1);
+}
+
+.shareSkyFill {
+  fill: var(--sky-1);
+}
+
+.shareHoneyFill {
+  fill: var(--honey-1);
 }
 
 .shareTitle {
@@ -771,12 +847,8 @@ a.branchRow:hover {
   }
 
   .chart {
+    --plot-h: calc(var(--s10) * 2 - 6px);
     grid-template-columns: calc(var(--s3) - 1px) minmax(0, 1fr);
-  }
-
-  .chartAxis,
-  .chartPlot {
-    height: calc(var(--s10) * 2 - 6px);
   }
 
   .legend {

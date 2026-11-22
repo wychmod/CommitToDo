@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { systemClock, today } from '@/core/clock';
+import { currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
 import type { YearBranchShare, YearMonthBucket } from '@/core/rules/year-distribution';
 import { createLevelOneResolver, isYearCommit } from '@/core/rules/year-metrics';
 import { listSelectableYears, resolveYearParam } from '@/core/rules/year-param';
@@ -122,21 +122,19 @@ function MonthBar({
   return (
     <button
       type="button"
-      className={current ? styles.monthCurrent : styles.month}
+      className={`${current ? styles.monthCurrent : styles.month}${future ? ` ${styles.monthFuture}` : ''}`}
       onClick={onOpen}
       aria-label={label}
     >
-      <span className={styles.monthCount}>{count === null || count === 0 ? null : count}</span>
       <span className={styles.monthPlot} aria-hidden="true">
         {count === null ? (
-          <span className={styles.monthEmpty} />
-        ) : count === 0 ? (
-          <span className={styles.monthZero} />
-        ) : (
+          <span className={styles.monthDash}>—</span>
+        ) : count === 0 ? null : (
           <span
             className={styles.monthBar}
             style={{ height: `${Math.round((count / yMax) * 100)}%` }}
           >
+            {current ? <span className={styles.monthNumber}>{count}</span> : null}
             {segments.map((segment) => (
               <span
                 key={segment.key ?? 'other'}
@@ -300,6 +298,38 @@ export function YearPage() {
   const prevYear = yearIndex > 0 ? years[yearIndex - 1] : null;
   const nextYear = yearIndex >= 0 && yearIndex < years.length - 1 ? years[yearIndex + 1] : null;
 
+  const todayMonth = Number(todayDate.slice(5, 7));
+  const tzOffset = currentTzOffset(systemClock.now());
+  const commitMeta =
+    requestedYear === currentYear
+      ? `${t('year.metric.untilPrefix')}${todayMonth}${t('year.metric.monthSuffix')}${todayDay}${t('year.metric.daySuffix')}`
+      : t('year.metric.fullYear');
+  const activeNames = distribution.shares
+    .filter((share) => share.branchId !== null)
+    .map(shareTitle);
+  const branchMeta =
+    activeNames.length === 0
+      ? t('year.metric.branchesEmpty')
+      : activeNames.join(t('year.metric.listSeparator'));
+  let finishedMeta = t('year.metric.finishedEmpty');
+  const mergedThisYear = view.branches
+    .filter(
+      (branch) =>
+        branch.status === 'merged' &&
+        branch.finishedAt !== null &&
+        Number(toLocalDate(branch.finishedAt, tzOffset).slice(0, 4)) === requestedYear,
+    )
+    .sort((left, right) => (right.finishedAt ?? 0) - (left.finishedAt ?? 0));
+  const finishedBranch = mergedThisYear[0];
+  if (finishedBranch !== undefined && finishedBranch.finishedAt !== null) {
+    const finishedDate = toLocalDate(finishedBranch.finishedAt, tzOffset);
+    finishedMeta = `${finishedBranch.title}${t('year.metric.finishedSeparator')}${Number(
+      finishedDate.slice(5, 7),
+    )}${t('year.metric.monthSuffix')}${Number(finishedDate.slice(8, 10))}${t(
+      'year.metric.daySuffix',
+    )}`;
+  }
+
   const legendBranches = useMemo(
     () =>
       distribution.shares
@@ -407,20 +437,24 @@ export function YearPage() {
           <>
             <div className={styles.metrics}>
               <div className={styles.metric}>
-                <span className={styles.metricValue}>{metrics.commits}</span>
-                <span className={styles.metricLabel}>{t('year.metric.commits')}</span>
+                <span className={styles.metricLabel}>{t('year.metric.commitsLabel')}</span>
+                <strong className={styles.metricValue}>{metrics.commits}</strong>
+                <small className={styles.metricMeta}>{commitMeta}</small>
               </div>
               <div className={styles.metric}>
-                <span className={styles.metricValue}>{metrics.activeLevelOneBranches}</span>
                 <span className={styles.metricLabel}>{t('year.metric.branches')}</span>
+                <strong className={styles.metricValue}>{metrics.activeLevelOneBranches}</strong>
+                <small className={styles.metricMeta}>{branchMeta}</small>
               </div>
               <div className={styles.metric}>
-                <span className={styles.metricValue}>{metrics.opened}</span>
-                <span className={styles.metricLabel}>{t('year.metric.opened')}</span>
+                <span className={styles.metricLabel}>{t('year.metric.openedLabel')}</span>
+                <strong className={styles.metricValue}>{metrics.opened}</strong>
+                <small className={styles.metricMeta}>{t('year.metric.openedMeta')}</small>
               </div>
               <div className={styles.metric}>
-                <span className={styles.metricValue}>{metrics.finished}</span>
-                <span className={styles.metricLabel}>{t('year.metric.finished')}</span>
+                <span className={styles.metricLabel}>{t('year.metric.finishedLabel')}</span>
+                <strong className={styles.metricValue}>{metrics.finished}</strong>
+                <small className={styles.metricMeta}>{finishedMeta}</small>
               </div>
             </div>
 
@@ -605,25 +639,85 @@ export function YearPage() {
                   ) : null}
 
                   <div className={styles.shareCard}>
-                    <strong className={styles.shareTitle}>{t('year.share.cardTitle')}</strong>
-                    <p className={styles.shareBody}>{t('year.share.cardBody')}</p>
-                    {view.status === 'ready' && !view.share.available ? (
-                      <p className={styles.shareHint}>{t('year.share.emptyHint')}</p>
-                    ) : null}
-                    <button
-                      type="button"
-                      className={styles.shareButton}
-                      disabled={view.status !== 'ready' || !view.share.available}
-                      title={
-                        view.status === 'ready' && !view.share.available
-                          ? t('year.share.emptyHint')
-                          : t('year.share.title')
-                      }
-                      onClick={() => setShareOpen(true)}
+                    <div className={styles.shareCardBody}>
+                      <strong className={styles.shareTitle}>{t('year.share.cardTitle')}</strong>
+                      <p className={styles.shareBody}>{t('year.share.cardBody')}</p>
+                      {view.status === 'ready' && !view.share.available ? (
+                        <p className={styles.shareHint}>{t('year.share.emptyHint')}</p>
+                      ) : null}
+                      <button
+                        type="button"
+                        className={styles.shareButton}
+                        disabled={view.status !== 'ready' || !view.share.available}
+                        title={
+                          view.status === 'ready' && !view.share.available
+                            ? t('year.share.emptyHint')
+                            : t('year.share.title')
+                        }
+                        onClick={() => setShareOpen(true)}
+                      >
+                        {SHARE_ICON}
+                        {t('year.share.generate')}
+                      </button>
+                    </div>
+                    <svg
+                      role="img"
+                      aria-label={t('year.share.graphicAlt')}
+                      viewBox="0 0 144 180"
+                      fill="none"
+                      className={styles.shareGraphic}
                     >
-                      {SHARE_ICON}
-                      {t('year.share.generate')}
-                    </button>
+                      <defs>
+                        <pattern
+                          id="year-share-grid"
+                          width="16"
+                          height="16"
+                          patternUnits="userSpaceOnUse"
+                        >
+                          <path d="M16 0H0V16" className={styles.shareGrid} />
+                        </pattern>
+                      </defs>
+                      <rect
+                        x="1"
+                        y="1"
+                        width="142"
+                        height="178"
+                        rx="10"
+                        className={styles.sharePaper}
+                      />
+                      <g transform="translate(1 17) scale(.85 1.16)">
+                        <path d="M18 42h132v66H18z" fill="url(#year-share-grid)" />
+                        <text x="16" y="25" className={styles.shareTypography}>
+                          {requestedYear} {t('year.headingRing')}
+                        </text>
+                        <g strokeWidth="1.6" strokeLinecap="round">
+                          <path
+                            className={styles.shareCoral}
+                            d="M18 58h132m-107 0 13-10h26l13 10"
+                          />
+                          <path className={styles.shareSky} d="M18 76h132m-79 0 12 9h25" />
+                          <path className={styles.shareHoney} d="M18 96h96" />
+                        </g>
+                        <g strokeWidth="0">
+                          <circle cx="28" cy="58" r="3.2" className={styles.shareCoralFill} />
+                          <circle cx="69" cy="48" r="3.2" className={styles.shareCoralFill} />
+                          <circle cx="95" cy="58" r="3.2" className={styles.shareCoralFill} />
+                          <circle cx="142" cy="58" r="3.2" className={styles.shareCoralFill} />
+                          <circle cx="39" cy="76" r="3.2" className={styles.shareSkyFill} />
+                          <circle cx="71" cy="76" r="3.2" className={styles.shareSkyFill} />
+                          <circle cx="108" cy="85" r="3.2" className={styles.shareSkyFill} />
+                          <circle cx="59" cy="96" r="3.2" className={styles.shareHoneyFill} />
+                          <circle cx="98" cy="96" r="3.2" className={styles.shareHoneyFill} />
+                        </g>
+                        <text x="16" y="124" className={styles.shareFoot}>
+                          {t('app.name')}
+                        </text>
+                        <text x="150" y="124" textAnchor="end" className={styles.shareFoot}>
+                          {metrics.commits}
+                          {t('year.share.commitsSuffix')}
+                        </text>
+                      </g>
+                    </svg>
                   </div>
                 </div>
               </section>
