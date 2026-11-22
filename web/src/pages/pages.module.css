@@ -278,6 +278,19 @@
   font-size: var(--type-secondary);
 }
 
+.quietLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--s8);
+  padding: 0 calc(var(--s4) - 2px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  font-weight: 650;
+  text-decoration: none;
+}
+
 .badgeSummary {
   display: flex;
   flex-direction: column;

@@ -1,23 +1,19 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { systemClock, today } from '@/core/clock';
-import { isBranchAccepting } from '@/core/rules/branch-state';
+import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import { branchTrail } from '@/core/rules/quick-add';
 import { groupAllTodoTasks, sortByManualOrder } from '@/core/rules/today-groups';
-import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
 import { useAllTodosData } from '@/data/hooks';
-import { planTask } from '@/data/plan-task';
 import type { Branch, Task } from '@/data/types';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
 import { useTodayStore } from '@/stores/today.store';
 import { EmptyState } from '@/ui/empty-state';
+import { ChevronRightIcon, PlusIcon } from '@/ui/icons';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
-import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { readonlyReasonKey } from '@/components/today/readonly';
-import { TaskRow } from '@/components/today/task-row';
 import styles from './all-todos-page.module.css';
 
 interface Filters {
@@ -39,6 +35,13 @@ function isInDefaultTree(branchId: string, byId: Map<string, Branch>): boolean {
   return byId.has(branchId);
 }
 
+function dueLabel(task: Task, todayDate: string): string {
+  if (!task.dueDate) return t('today.task.noDue');
+  if (task.dueDate === todayDate) return t('today.task.todayLabel');
+  const [, month, day] = task.dueDate.split('-').map(Number);
+  return `${month}${t('milestone.date.monthSuffix')} ${day}${t('milestone.date.daySuffix')}`;
+}
+
 /**
  * `/today/all` 全部待办（PRD M03 S01）。
  *
@@ -48,13 +51,13 @@ function isInDefaultTree(branchId: string, byId: Map<string, Branch>): boolean {
 export function AllTodosPage() {
   const data = useAllTodosData();
   const openTaskDetail = useShellStore((state) => state.openTaskDetail);
+  const openOverlay = useShellStore((state) => state.openOverlay);
   const manualGroups = useTodayStore((state) => state.manualGroups);
   const todayDate = today(systemClock);
   const [filters, setFilters] = useState<Filters>({ root: false, dropped: false, archived: false });
   const [pageError, setPageError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [failedId, setFailedId] = useState<string | null>(null);
-  const [cancelTarget, setCancelTarget] = useState<Task | null>(null);
 
   const byId = useMemo(
     () => new Map(data.branches.map((branch) => [branch.id, branch])),
@@ -85,11 +88,6 @@ export function AllTodosPage() {
   }, [visibleTasks, todayDate, manualGroups]);
   const total = groups.overdue.length + groups.upcoming.length + groups.noDue.length;
 
-  const plan = async (task: Task, plannedDate: string | null) => {
-    const result = await planTask({ taskId: task.id, plannedDate });
-    setPageError(result.ok ? null : t('today.writeFailed'));
-  };
-
   const complete = async (task: Task) => {
     if (busyId) return;
     setBusyId(task.id);
@@ -100,51 +98,85 @@ export function AllTodosPage() {
     else setFailedId(task.id);
   };
 
-  const confirmCancel = async () => {
-    if (!cancelTarget) return;
-    setBusyId(cancelTarget.id);
-    const result = await cancelTask({ taskId: cancelTarget.id });
-    setBusyId(null);
-    setCancelTarget(null);
-    setPageError(result.ok ? null : t('today.writeFailed'));
-  };
+  const toggle = (key: keyof Filters) =>
+    setFilters((current) => ({ ...current, [key]: !current[key] }));
 
   const renderRow = (task: Task) => {
     const branch = byId.get(task.branchId);
+    const readonlyReason = readonlyReasonKey(branch);
+    const color = branch ? normalizeBranchColor(branch.color) : 'sky';
+    const shade = branch ? branchShadeForDepth(branch.depth) : 1;
+    const path = branch ? branchTrail(branch, byId) : '';
+    const busy = busyId === task.id;
+
     return (
-      <TaskRow
+      <div
         key={task.id}
-        task={task}
-        branch={branch}
-        branchTrail={branch ? branchTrail(branch, byId) : task.branchId}
-        todayDate={todayDate}
-        readonlyReason={readonlyReasonKey(branch)}
-        busy={busyId === task.id}
-        error={failedId === task.id}
-        onComplete={complete}
-        onOpen={(row) => openTaskDetail(row.id)}
-        onPlan={(row) => {
-          if (branch && isBranchAccepting(branch)) void plan(row, todayDate);
-        }}
-        onUnplan={(row) => {
-          if (branch && isBranchAccepting(branch)) void plan(row, null);
-        }}
-        onCancel={setCancelTarget}
-      />
+        className={failedId === task.id ? `${styles.row} ${styles.rowError}` : styles.row}
+      >
+        <span className={styles.rowMain}>
+          <button
+            type="button"
+            className={styles.check}
+            aria-label={t('today.task.complete')}
+            disabled={busy || readonlyReason !== null}
+            onClick={() => void complete(task)}
+          />
+          {readonlyReason ? (
+            <span className={styles.nameText}>{task.title}</span>
+          ) : (
+            <button type="button" className={styles.name} onClick={() => openTaskDetail(task.id)}>
+              {task.title}
+            </button>
+          )}
+          {readonlyReason ? <span className={styles.readonly}>{t(readonlyReason)}</span> : null}
+        </span>
+
+        {branch ? (
+          <span
+            className={styles.identity}
+            style={{ '--branch': `var(--${color}-${shade})` } as CSSProperties}
+          >
+            <i className={styles.branchDot} aria-hidden="true" />
+            {path}
+          </span>
+        ) : (
+          <span />
+        )}
+
+        <span className={styles.due}>{dueLabel(task, todayDate)}</span>
+
+        <button
+          type="button"
+          className={styles.chevron}
+          aria-label={t('today.task.open')}
+          onClick={() => openTaskDetail(task.id)}
+        >
+          <ChevronRightIcon size={16} />
+        </button>
+      </div>
     );
   };
 
-  const toggle = (key: keyof Filters) =>
-    setFilters((current) => ({ ...current, [key]: !current[key] }));
+  const renderGroup = (titleKey: Parameters<typeof t>[0], tasks: Task[]) => (
+    <section className={styles.group}>
+      <h2 className={styles.groupTitle}>
+        {t(titleKey)}
+        <small>{tasks.length}</small>
+      </h2>
+      {tasks.map((task) => renderRow(task))}
+    </section>
+  );
 
   return (
     <PageShell
       titleKey="today.all.title"
       bodyKey="today.all.body"
-      back={
-        <Link className={styles.back} to="/today">
-          {t('today.all.back')}
-        </Link>
+      action={
+        <button type="button" className={styles.add} onClick={() => openOverlay('quick-add')}>
+          <PlusIcon size={16} />
+          {t('today.all.add')}
+        </button>
       }
     >
       {data.status === 'loading' ? <LoadingShell /> : null}
@@ -160,16 +192,20 @@ export function AllTodosPage() {
 
       {data.status === 'ready' ? (
         <>
-          <div className={styles.filters} role="group" aria-label={t('today.all.filter')}>
-            <label className={styles.filter}>
+          <div className={styles.toolbar}>
+            <span className={styles.chipInfo}>
+              {t('today.all.summaryPrefix')}
+              {total}
+            </span>
+            <label className={styles.chip}>
               <input type="checkbox" checked={filters.root} onChange={() => toggle('root')} />
               <span>{t('today.all.filter.root')}</span>
             </label>
-            <label className={styles.filter}>
+            <label className={styles.chip}>
               <input type="checkbox" checked={filters.dropped} onChange={() => toggle('dropped')} />
               <span>{t('today.all.filter.dropped')}</span>
             </label>
-            <label className={styles.filter}>
+            <label className={styles.chip}>
               <input
                 type="checkbox"
                 checked={filters.archived}
@@ -177,6 +213,7 @@ export function AllTodosPage() {
               />
               <span>{t('today.all.filter.archived')}</span>
             </label>
+            <span className={styles.sort}>{t('today.all.sort')}</span>
           </div>
 
           {pageError ? (
@@ -188,59 +225,17 @@ export function AllTodosPage() {
           {total === 0 ? (
             <EmptyState messageKey="today.all.empty" />
           ) : (
-            <div className={styles.groups}>
-              {groups.overdue.length > 0 ? (
-                <section className={styles.group}>
-                  <div className={styles.groupHead}>
-                    <h2 className={styles.groupTitle}>{t('today.group.overdue')}</h2>
-                    <span className={styles.groupCount}>
-                      {groups.overdue.length}
-                      {t('today.group.countSuffix')}
-                    </span>
-                  </div>
-                  <ul className={styles.list}>{groups.overdue.map((task) => renderRow(task))}</ul>
-                </section>
-              ) : null}
-
-              {groups.upcoming.length > 0 ? (
-                <section className={styles.group}>
-                  <div className={styles.groupHead}>
-                    <h2 className={styles.groupTitle}>{t('today.group.future')}</h2>
-                    <span className={styles.groupCount}>
-                      {groups.upcoming.length}
-                      {t('today.group.countSuffix')}
-                    </span>
-                  </div>
-                  <ul className={styles.list}>{groups.upcoming.map((task) => renderRow(task))}</ul>
-                </section>
-              ) : null}
-
-              {groups.noDue.length > 0 ? (
-                <section className={styles.group}>
-                  <div className={styles.groupHead}>
-                    <h2 className={styles.groupTitle}>{t('today.group.noDue')}</h2>
-                    <span className={styles.groupCount}>
-                      {groups.noDue.length}
-                      {t('today.group.countSuffix')}
-                    </span>
-                  </div>
-                  <ul className={styles.list}>{groups.noDue.map((task) => renderRow(task))}</ul>
-                </section>
-              ) : null}
+            <div className={styles.table}>
+              {groups.overdue.length > 0
+                ? renderGroup('today.group.overdue', groups.overdue)
+                : null}
+              {groups.upcoming.length > 0
+                ? renderGroup('today.group.future', groups.upcoming)
+                : null}
+              {groups.noDue.length > 0 ? renderGroup('today.group.noDue', groups.noDue) : null}
             </div>
           )}
         </>
-      ) : null}
-
-      {cancelTarget ? (
-        <ConfirmDialog
-          titleKey="taskDetail.cancelTitle"
-          bodyKey="taskDetail.cancelBody"
-          confirmKey="taskDetail.confirmCancel"
-          busy={busyId === cancelTarget.id}
-          onConfirm={confirmCancel}
-          onClose={() => setCancelTarget(null)}
-        />
       ) : null}
     </PageShell>
   );

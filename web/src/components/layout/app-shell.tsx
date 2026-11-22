@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ComponentType } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { OverlayHost } from '@/components/overlays/overlay-host';
+import { localClockTime, localDate } from '@/core/clock';
 import { navSectionFor, type NavSection } from '@/core/rules/nav-selection';
 import { isBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
 import { reportAnonymousStats } from '@/data/anonymous-stats';
@@ -8,25 +9,80 @@ import { verifyCloudSession } from '@/data/cloud/auth';
 import { runDailyAutoBackup } from '@/data/daily-auto-backup';
 import { ensureRootBranch } from '@/data/ensure-root-branch';
 import { grantBadge } from '@/data/grant-badge';
-import { useStorageReady } from '@/data/hooks';
+import { useSettingsState, useStorageReady } from '@/data/hooks';
 import { useSyncRunner } from '@/data/sync-hooks';
+import { updateSettings } from '@/data/update-settings';
 import { t, type MessageKey } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { SEARCH_TRIGGER_ID } from '@/stores/search.store';
 import { useShellStore } from '@/stores/shell.store';
 import { EmptyState } from '@/ui/empty-state';
+import {
+  BranchIcon,
+  DeviceIcon,
+  HistoryIcon,
+  MoonIcon,
+  PlusIcon,
+  SearchIcon,
+  SunIcon,
+  TodayIcon,
+  UserIcon,
+  type SvgIconProps,
+} from '@/ui/icons';
 import { LoadingShell } from '@/ui/loading-shell';
 import styles from './app-shell.module.css';
 
-const NAV_ITEMS: ReadonlyArray<{ section: NavSection; to: string; key: MessageKey }> = [
-  { section: 'today', to: '/today', key: 'nav.today' },
-  { section: 'branches', to: '/branches', key: 'nav.branches' },
-  { section: 'history', to: '/history', key: 'nav.history' },
-  { section: 'me', to: '/me', key: 'nav.me' },
+const NAV_ITEMS: ReadonlyArray<{
+  section: NavSection;
+  to: string;
+  key: MessageKey;
+  Icon: ComponentType<SvgIconProps>;
+}> = [
+  { section: 'today', to: '/today', key: 'nav.today', Icon: TodayIcon },
+  { section: 'branches', to: '/branches', key: 'nav.branches', Icon: BranchIcon },
+  { section: 'history', to: '/history', key: 'nav.history', Icon: HistoryIcon },
+  { section: 'me', to: '/me', key: 'nav.me', Icon: UserIcon },
 ];
 
 function scrollKeyFor(pathname: string, search: string): string {
   return `scroll:${pathname}${search}`;
+}
+
+/** 顶栏面包屑：一级入口 + 当前子页，按路由逐段收集。 */
+function crumbsFor(pathname: string): MessageKey[] {
+  const segments = pathname.split('/').filter((segment) => segment.length > 0);
+  const [root, second, third] = segments;
+  switch (root) {
+    case 'today':
+      return second === 'all' ? ['nav.today', 'today.all.title'] : ['nav.today'];
+    case 'branches':
+      if (second === 'templates') return ['nav.branches', 'template.title'];
+      return second ? ['nav.branches', 'page.branchDetail.title'] : ['nav.branches'];
+    case 'history':
+      return second ? ['nav.history', 'page.year.title'] : ['nav.history'];
+    case 'me':
+      if (second === 'badges') return ['nav.me', 'badge.wall.title'];
+      if (second === 'help') return ['nav.me', 'page.help.title'];
+      return ['nav.me'];
+    case 'settings':
+      if (second === 'sync' && third === 'devices') {
+        return ['nav.me', 'nav.settings', 'page.syncDevices.title'];
+      }
+      if (second === 'sync' && third === 'conflicts') {
+        return ['nav.me', 'nav.settings', 'page.syncConflicts.title'];
+      }
+      return ['nav.me', 'nav.settings'];
+    case 'data':
+      return ['nav.me', 'nav.data'];
+    default:
+      return ['page.notFound.title'];
+  }
+}
+
+function backupLabel(at: number | null): string {
+  if (at === null) return t('shell.localData');
+  const date = localDate(at).slice(5).replace('-', '.');
+  return `${t('shell.backupAtPrefix')}${date} ${localClockTime(at)}`;
 }
 
 /**
@@ -39,7 +95,9 @@ export function AppShell() {
   const location = useLocation();
   const openOverlay = useShellStore((state) => state.openOverlay);
   const { status, retry } = useStorageReady();
+  const { settings } = useSettingsState();
   const section = navSectionFor(location.pathname);
+  const crumbs = crumbsFor(location.pathname);
   const scrollKey = scrollKeyFor(location.pathname, location.search);
   const principalId = useAuthStore((state) => state.principalId);
   const clearSession = useAuthStore((state) => state.clearSession);
@@ -114,44 +172,97 @@ export function AppShell() {
   }, [openOverlay]);
 
   const renderNav = () =>
-    NAV_ITEMS.map((item) => (
-      <Link
-        key={item.section}
-        to={item.to}
-        className={item.section === section ? styles.navActive : styles.navItem}
-        aria-current={item.section === section ? 'page' : undefined}
-      >
-        {t(item.key)}
-      </Link>
-    ));
+    NAV_ITEMS.map((item) => {
+      const Icon = item.Icon;
+      return (
+        <Link
+          key={item.section}
+          to={item.to}
+          className={item.section === section ? styles.navActive : styles.navItem}
+          aria-current={item.section === section ? 'page' : undefined}
+        >
+          <Icon size={18} />
+          <span>{t(item.key)}</span>
+        </Link>
+      );
+    });
+
+  const toggleTheme = () => {
+    void updateSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' });
+  };
 
   return (
     <div className={styles.shell}>
       <header className={styles.topbar}>
         <Link to="/" className={styles.brand}>
+          <span className={styles.brandMark} aria-hidden="true">
+            C
+          </span>
           {t('app.name')}
         </Link>
-        <div className={styles.actions}>
-          <button type="button" className={styles.action} onClick={() => openOverlay('quick-add')}>
-            {t('shell.quickAdd')}
-          </button>
+
+        <nav className={styles.breadcrumbs} aria-label={t('shell.breadcrumbs')}>
+          <span>{t('shell.workspaceName')}</span>
+          {crumbs.map((key, index) => (
+            <span key={key} className={styles.crumb}>
+              <span aria-hidden="true">/</span>
+              <span className={index === crumbs.length - 1 ? styles.crumbCurrent : undefined}>
+                {t(key)}
+              </span>
+            </span>
+          ))}
+        </nav>
+
+        <div className={styles.headerActions}>
           <button
             type="button"
             id={SEARCH_TRIGGER_ID}
-            className={styles.action}
+            className={styles.iconButton}
+            aria-label={t('shell.search')}
             aria-keyshortcuts="Control+K Meta+K"
             onClick={() => openOverlay('search')}
           >
-            {t('shell.search')}
+            <SearchIcon size={16} />
+          </button>
+          <button
+            type="button"
+            className={styles.iconButton}
+            aria-label={settings.theme === 'dark' ? t('shell.theme.dark') : t('shell.theme.light')}
+            onClick={toggleTheme}
+          >
+            {settings.theme === 'dark' ? <MoonIcon size={16} /> : <SunIcon size={16} />}
+          </button>
+          <button
+            type="button"
+            className={styles.quickAdd}
+            onClick={() => openOverlay('quick-add')}
+          >
+            <PlusIcon size={16} />
+            {t('shell.quickAdd')}
           </button>
         </div>
       </header>
 
       <aside className={styles.sidebar}>
+        <div className={styles.workspaceName}>
+          <span className={styles.workspaceIcon}>
+            <DeviceIcon size={18} />
+          </span>
+          <div>
+            <strong>{t('shell.sidebarWorkspace')}</strong>
+            <span>{t('app.localTag')}</span>
+          </div>
+        </div>
         <nav className={styles.nav} aria-label={t('shell.primaryNav')}>
           {renderNav()}
         </nav>
-        <span className={styles.localTag}>{t('app.localTag')}</span>
+        <div className={styles.sidebarStatus}>
+          <span>
+            <i className={styles.localDot} aria-hidden="true" />
+            {t('shell.localData')}
+          </span>
+          <span>{backupLabel(settings.lastAutoBackupAt)}</span>
+        </div>
       </aside>
 
       <main className={styles.content}>

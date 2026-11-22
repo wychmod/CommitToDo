@@ -10,52 +10,149 @@
 }
 
 .topbar {
-  display: flex;
+  display: grid;
   grid-area: topbar;
+  grid-template-columns: var(--layout-sidebar) minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   height: var(--layout-topbar);
-  padding: 0 var(--s6);
   border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  background: var(--panel);
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--s2) + 1px);
+  padding: 0 calc(var(--s6) + 1px);
   color: var(--text);
   font-size: calc(var(--type-heading-small) - 1px);
   font-weight: 750;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.045em;
   text-decoration: none;
 }
 
-.actions {
-  display: flex;
-  gap: var(--s2);
+.brandMark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: calc(var(--s4) + var(--s2));
+  height: calc(var(--s4) + var(--s2));
+  transform: rotate(-8deg);
+  border: calc(var(--s1) / 2) solid currentColor;
+  border-radius: var(--s1);
+  font-family: Georgia, serif;
+  font-size: var(--type-body-large);
+  font-weight: 700;
+  line-height: 1;
 }
 
-.action {
-  min-height: var(--s8);
-  padding: 0 var(--s3);
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--s2) + 2px);
+  min-width: 0;
+  padding-left: calc(var(--s6) + var(--s1));
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  white-space: nowrap;
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--s2) + 2px);
+}
+
+.crumbCurrent {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--s2) + 1px);
+  padding: 0 var(--s6) 0 var(--s4);
+}
+
+.iconButton {
+  display: grid;
+  place-items: center;
+  width: calc(var(--s7) + var(--s1));
+  height: calc(var(--s7) + var(--s1));
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
-  background: var(--panel);
-  color: var(--text);
-  font-size: var(--type-secondary);
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
 }
 
-.action:hover {
+.iconButton:hover {
   border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.quickAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: calc(var(--s7) + var(--s1));
+  padding: 0 calc(var(--s3) + 2px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.quickAdd:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
 }
 
 .sidebar {
   display: flex;
   grid-area: sidebar;
   flex-direction: column;
-  gap: var(--s5);
-  padding: calc(var(--s7) - 4px) var(--s4) calc(var(--s5) - 2px);
+  min-width: 0;
+  padding: calc(var(--s6) + var(--s1)) var(--s4) calc(var(--s4) + 2px);
   border-right: 1px solid var(--line);
   background: var(--sidebar);
+}
+
+.workspaceName {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--s2) + 3px);
+  padding: 0 calc(var(--s2) + 1px) calc(var(--s5) + 1px);
+}
+
+.workspaceIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: calc(var(--s7) + 2px);
+  height: calc(var(--s7) + 2px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-workspace);
+  background: var(--panel);
+  color: var(--accent);
+}
+
+.workspaceName strong {
+  display: block;
+  font-size: var(--type-body-compact);
+}
+
+.workspaceName div > span {
+  display: block;
+  color: var(--muted);
+  font-size: var(--type-chart);
 }
 
 .nav {
@@ -68,14 +165,24 @@
 .navActive {
   display: flex;
   align-items: center;
+  gap: calc(var(--s2) + 3px);
   min-height: calc(var(--s8) + 2px);
-  padding: 0 calc(var(--s3) - 1px);
-  border-left: 2px solid transparent;
-  border-radius: calc(var(--radius-control) - 1px);
+  padding: 0 calc(var(--s2) + 3px);
+  border-left: var(--tree-selected-rail) solid transparent;
+  border-radius: var(--radius-nav);
   color: var(--muted);
-  font-size: calc(var(--type-secondary) + 1px);
+  font-size: var(--type-body-compact);
   font-weight: 650;
   text-decoration: none;
+}
+
+.navItem svg,
+.navActive svg {
+  flex: none;
+}
+
+.navItem:hover {
+  color: var(--text);
 }
 
 .navActive {
@@ -84,11 +191,30 @@
   color: var(--accent);
 }
 
-.localTag {
+.sidebarStatus {
   margin-top: auto;
-  padding: 0 var(--s2);
+  padding: var(--s3) calc(var(--s2) + 1px) 0;
+  border-top: 1px solid var(--line);
+}
+
+.sidebarStatus span {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--s2) - 1px);
+  color: var(--muted);
+  font-size: var(--type-chart);
+}
+
+.sidebarStatus span + span {
+  margin: calc(var(--s1) + 1px) 0 0 calc(var(--s3) + 1px);
   color: var(--subtle);
-  font-size: var(--type-label);
+}
+
+.localDot {
+  width: calc(var(--s2) - 2px);
+  height: calc(var(--s2) - 2px);
+  border-radius: 50%;
+  background: var(--success);
 }
 
 .content {
@@ -128,8 +254,30 @@
   }
 
   .topbar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
     height: calc(var(--layout-topbar) - var(--s2));
-    padding: 0 var(--s4);
+    min-height: calc(var(--layout-topbar) - var(--s2));
+  }
+
+  .brand {
+    padding: 0 calc(var(--s3) + 1px);
+    font-size: var(--type-body-large);
+  }
+
+  .brandMark {
+    width: calc(var(--s4) + var(--s1));
+    height: calc(var(--s4) + var(--s1));
+    font-size: var(--type-secondary);
+  }
+
+  .breadcrumbs {
+    display: none;
+  }
+
+  .headerActions {
+    grid-column: 3;
+    gap: calc(var(--s2) - 2px);
+    padding: 0 var(--s3) 0 0;
   }
 
   .storageError {
@@ -146,20 +294,26 @@
     display: flex;
     grid-area: bottomnav;
     justify-content: space-around;
-    padding: var(--s1) var(--s2) calc(var(--s1) + env(safe-area-inset-bottom));
+    padding: calc(var(--s1) / 2) var(--s1) calc(var(--s1) / 2 + env(safe-area-inset-bottom));
     border-top: 1px solid var(--line);
-    background: var(--surface);
+    background: var(--sidebar);
   }
 
   .bottomNav .navItem,
   .bottomNav .navActive {
     flex: 1;
+    flex-direction: column;
     justify-content: center;
-    min-height: var(--s10);
+    gap: calc(var(--s1) - 1px);
+    min-height: calc(var(--s9) + 5px);
+    padding: calc(var(--s1) - 1px);
+    border-left: 0;
+    border-bottom: var(--tree-selected-rail) solid transparent;
     border-radius: 0;
+    font-size: var(--type-label);
   }
 
-  .localTag {
-    display: none;
+  .bottomNav .navActive {
+    border-bottom-color: var(--accent);
   }
 }

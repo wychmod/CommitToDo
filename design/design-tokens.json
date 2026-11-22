@@ -196,9 +196,13 @@
       64
     ],
     "radius": {
+      "marker": 2,
+      "nav": 5,
       "control": 6,
+      "workspace": 8,
+      "tree": 9,
       "panel": 10,
-      "marker": 2
+      "card": 12
     },
     "layout": {
       "sidebar": 232,
@@ -207,9 +211,11 @@
     },
     "type": {
       "heading": 40,
+      "headingMobile": 32,
       "section": 24,
       "headingSmall": 20,
       "body": 15,
+      "bodyCompact": 14,
       "bodyLarge": 16,
       "secondary": 13,
       "label": 12,

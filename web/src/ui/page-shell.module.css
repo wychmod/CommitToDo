@@ -59,4 +59,13 @@
   .page {
     padding: var(--s6) var(--s4) calc(var(--s7) - 2px);
   }
+
+  .head {
+    align-items: flex-start;
+    gap: var(--s3);
+  }
+
+  .head h1 {
+    font-size: var(--type-heading-mobile);
+  }
 }

@@ -1,11 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, type CSSProperties } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { currentTzOffset } from '@/core/clock';
+import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import { formatCommitTime } from '@/core/rules/commit-time-format';
 import { formatMilestoneDate } from '@/core/rules/milestone-date';
 import { branchTrail } from '@/core/rules/quick-add';
 import { useMilestoneDetail } from '@/data/hooks';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
+import { CloseIcon } from '@/ui/icons';
 import styles from './milestone-detail-panel.module.css';
 
 /**
@@ -17,7 +20,9 @@ import styles from './milestone-detail-panel.module.css';
 export function MilestoneDetailPanel() {
   const milestoneId = useShellStore((state) => state.overlayMilestoneId);
   const closeOverlay = useShellStore((state) => state.closeOverlay);
+  const navigate = useNavigate();
   const detail = useMilestoneDetail(milestoneId);
+  const milestone = detail.status === 'ready' ? detail.milestone : null;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -26,6 +31,22 @@ export function MilestoneDetailPanel() {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [closeOverlay]);
+
+  const byId =
+    detail.status === 'ready'
+      ? new Map(detail.branches.map((branch) => [branch.id, branch]))
+      : new Map();
+  const branch = detail.status === 'ready' ? detail.branch : null;
+  const path = branch && milestone ? branchTrail(branch, byId) : (milestone?.branchId ?? '');
+  const archived = branch !== null && branch.archivedAt !== null;
+  const color = branch ? normalizeBranchColor(branch.color) : 'sky';
+  const shade = branch ? branchShadeForDepth(branch.depth) : 1;
+
+  const locate = () => {
+    if (!milestone) return;
+    navigate(`/history?milestone=${encodeURIComponent(milestone.id)}`);
+    closeOverlay();
+  };
 
   const renderBody = () => {
     if (detail.status === 'loading') {
@@ -45,7 +66,6 @@ export function MilestoneDetailPanel() {
         </div>
       );
     }
-    const milestone = detail.milestone;
     if (!milestone) {
       return (
         <div className={styles.errorBox} role="alert">
@@ -57,37 +77,36 @@ export function MilestoneDetailPanel() {
       );
     }
 
-    const byId = new Map(detail.branches.map((branch) => [branch.id, branch]));
-    const path = detail.branch ? branchTrail(detail.branch, byId) : milestone.branchId;
-    const archived = detail.branch !== null && detail.branch.archivedAt !== null;
-
     return (
       <>
-        <h3 className={styles.heading}>{milestone.title}</h3>
+        <div className={styles.chips}>
+          <span className={styles.chip}>{t('milestone.detail.chip')}</span>
+          {branch ? (
+            <span
+              className={styles.identity}
+              style={{ '--branch': `var(--${color}-${shade})` } as CSSProperties}
+            >
+              <i className={styles.branchDot} aria-hidden="true" />
+              {path}
+            </span>
+          ) : null}
+        </div>
 
-        <dl className={styles.facts}>
-          <div className={styles.fact}>
-            <dt>{t('milestone.detail.date')}</dt>
-            <dd>
-              {formatMilestoneDate(
-                milestone.achievedAt,
-                milestone.datePrecision,
-                currentTzOffset(milestone.achievedAt),
-              )}
-            </dd>
+        <div className={styles.keys}>
+          <div className={styles.keyRow}>
+            <span>{t('milestone.detail.branch')}</span>
+            <span>{path}</span>
           </div>
-          <div className={styles.fact}>
-            <dt>{t('milestone.detail.branch')}</dt>
-            <dd>{path}</dd>
+          <div className={styles.keyRow}>
+            <span>{t('milestone.detail.createdAt')}</span>
+            <span>
+              {formatCommitTime(milestone.createdAt, currentTzOffset(milestone.createdAt))}
+            </span>
           </div>
-          <div className={styles.fact}>
-            <dt>{t('milestone.detail.createdAt')}</dt>
-            <dd>{formatCommitTime(milestone.createdAt, currentTzOffset(milestone.createdAt))}</dd>
-          </div>
-        </dl>
+        </div>
 
         <section className={styles.noteBlock} aria-label={t('milestone.detail.note')}>
-          <h3 className={styles.noteLabel}>{t('milestone.detail.note')}</h3>
+          <span className={styles.noteLabel}>{t('milestone.detail.note')}</span>
           <p className={styles.note}>{milestone.note ?? t('milestone.detail.noNote')}</p>
         </section>
 
@@ -106,12 +125,41 @@ export function MilestoneDetailPanel() {
         onPointerDown={(event) => event.stopPropagation()}
       >
         <header className={styles.header}>
-          <h2 className={styles.title}>{t('overlay.milestone-detail.title')}</h2>
-          <button type="button" className={styles.close} onClick={closeOverlay}>
-            {t('shell.close')}
+          <div className={styles.headText}>
+            <span className={styles.kicker}>{t('overlay.milestone-detail.kicker')}</span>
+            <h2 className={styles.title}>
+              {milestone ? milestone.title : t('overlay.milestone-detail.title')}
+            </h2>
+            {milestone ? (
+              <p className={styles.date}>
+                {formatMilestoneDate(
+                  milestone.achievedAt,
+                  milestone.datePrecision,
+                  currentTzOffset(milestone.achievedAt),
+                )}
+              </p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            className={styles.close}
+            aria-label={t('shell.close')}
+            onClick={closeOverlay}
+          >
+            <CloseIcon size={16} />
           </button>
         </header>
-        {renderBody()}
+
+        <div className={styles.body}>{renderBody()}</div>
+
+        <footer className={styles.actions}>
+          <button type="button" className={styles.ghost} onClick={closeOverlay}>
+            {t('shell.close')}
+          </button>
+          <button type="button" className={styles.primary} disabled={!milestone} onClick={locate}>
+            {t('milestone.detail.locate')}
+          </button>
+        </footer>
       </div>
     </div>
   );

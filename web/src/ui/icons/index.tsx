@@ -102,6 +102,55 @@ export function BranchIcon(props: SvgIconProps) {
   );
 }
 
+/** 一级入口：今天。 */
+export function TodayIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <rect x="4" y="5" width="16" height="15" rx="2" />
+      <path d="M8 3v4M16 3v4M4 10h16" />
+      <path d="m9 15 2 2 4-4" />
+    </SvgIcon>
+  );
+}
+
+/** 一级入口：历程。 */
+export function HistoryIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 7v5l3 2" />
+    </SvgIcon>
+  );
+}
+
+/** 顶栏搜索入口。 */
+export function SearchIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <circle cx="10.5" cy="10.5" r="5.5" />
+      <path d="m15 15 4 4" />
+    </SvgIcon>
+  );
+}
+
+/** 深色主题。 */
+export function MoonIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M20 14A8 8 0 0 1 10 4a8.2 8.2 0 1 0 10 10Z" />
+    </SvgIcon>
+  );
+}
+
+/** 关闭浮层。 */
+export function CloseIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="m6 6 12 12M18 6 6 18" />
+    </SvgIcon>
+  );
+}
+
 /** 新建。 */
 export function PlusIcon(props: SvgIconProps) {
   return (
