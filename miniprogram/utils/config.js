@@ -9,7 +9,7 @@
  */
 module.exports = {
   ENV_ID: '',
-  READ_FUNCTION: 'workspace.read',
+  READ_FUNCTION: 'workspace-read',
   CACHE_PREFIX: 'committo.mp.v1.',
   WEB_URL: 'https://committodo.example.com'
 };

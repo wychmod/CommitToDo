@@ -6,7 +6,7 @@ const cache = require('./cache');
 /**
  * 只读数据入口（PRD V2-04 §5）。
  *
- * 所有业务数据都经 `workspace.read` 云函数按账号归属读取；小程序不直连数据库、
+ * 所有业务数据都经 `workspace-read` 云函数按账号归属读取；小程序不直连数据库、
  * 不写 outbox、不写 events。网络失败时回退该范围上一次成功缓存，并标记 `cached`。
  */
 

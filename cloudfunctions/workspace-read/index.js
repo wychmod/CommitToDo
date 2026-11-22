@@ -170,11 +170,31 @@ async function fetchAll(collection, where, orderBy) {
   for (let skip = 0; skip < MAX_ROWS; skip += PAGE_SIZE) {
     let query = db.collection(collection).where(where).skip(skip).limit(PAGE_SIZE);
     if (orderBy) query = query.orderBy(orderBy.field, orderBy.direction || 'asc');
-    const result = await query.get();
+    const result = await safeGet(query);
     rows.push(...result.data);
     if (result.data.length < PAGE_SIZE) break;
   }
   return rows;
+}
+
+/**
+ * 集合尚未创建（新账号、从未同步）等价于没有数据，按空集返回，
+ * 让第二端走 PRD §4.6 的空态而不是错误态。
+ */
+function isEmptyCollectionError(error) {
+  if (!error) return false;
+  const code = String(error.code || '');
+  const message = String(error.message || '');
+  return code === 'DATABASE_COLLECTION_NOT_EXIST' || /DATABASE_COLLECTION_NOT_EXIST|Db or Table not exist/.test(message);
+}
+
+async function safeGet(query) {
+  try {
+    return await query.get();
+  } catch (error) {
+    if (isEmptyCollectionError(error)) return { data: [] };
+    throw error;
+  }
 }
 
 function callerIdentity(event) {
@@ -200,12 +220,12 @@ async function resolveOwner(event) {
   }
   if (!identity.openId) return null;
 
-  const direct = await db.collection('users').where({ wxOpenId: identity.openId }).limit(1).get();
+  const direct = await safeGet(db.collection('users').where({ wxOpenId: identity.openId }).limit(1));
   if (direct.data.length > 0) {
     const row = direct.data[0];
     return { ownerId: idOf(row), email: row.email || '', identity };
   }
-  const listed = await db.collection('users').where({ wxOpenIds: identity.openId }).limit(1).get();
+  const listed = await safeGet(db.collection('users').where({ wxOpenIds: identity.openId }).limit(1));
   if (listed.data.length > 0) {
     const row = listed.data[0];
     return { ownerId: idOf(row), email: row.email || '', identity };
