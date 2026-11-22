@@ -227,13 +227,13 @@ python %TEMP%\pixel-audit\diff.py design\images\<page>.png <shot>.png <out-prefi
 
 ## 10. 认证（P09–P11，登录 / 注册 / 找回）
 
-画稿：`p09-login-light.png`、`p10-signup-light.png`、`p11-recover-light.png`；修复提交 本文所在提交。
+画稿：`p09-login-light.png`、`p10-signup-light.png`、`p11-recover-light.png`；修复提交 `3bc6597`。
 
 **基准冲突（待定）**：`docs/web-auth/DESIGN.md` 晚于三张旧 PNG，已把布局定为「左表单 380 + 右时间树 680、间距 96、页头 80、页脚移除」，并给出 auth 令牌；旧 PNG 仍是 1184 宽居中卡片 + 页脚。本轮以 DESIGN.md 与 auth 令牌为像素基准，旧 PNG 只作参考，不把实现改回旧结构。
 
 | # | 项目 | 画稿值 | 实测值 | 差值 | 状态 |
 | --- | --- | --- | --- | --- | --- |
-| A-1 | 布局：表单 / 时间树 / 间距 / 最小高 / 页头 | 380 / 680 / 96 / 640 / 80 | 380 / 680 / 96 / 640 / 80 | 0 | 已修 本文所在提交 |
+| A-1 | 布局：表单 / 时间树 / 间距 / 最小高 / 页头 | 380 / 680 / 96 / 640 / 80 | 380 / 680 / 96 / 640 / 80 | 0 | 已修 `3bc6597` |
 | A-2 | `h1` 字号 / 字重 / 行高 / 字距 | 40 / 760 / 1.25 / −0.045em | 40 / 760 / 50 / −1.8 | 0 | 已修 |
 | A-3 | 说明文字字号 / 行高 / 上距 | 14 / 1.6 / 10 | 14 / 1.6 / 10 | 0 | 已修 |
 | A-4 | 表单块间距 / 字段标签→控件间距 | 18 / 7 | 18 / 7 | 0 | 已修 |
@@ -249,7 +249,7 @@ python %TEMP%\pixel-audit\diff.py design\images\<page>.png <shot>.png <out-prefi
 
 ## 11. 徽章墙
 
-画稿：`p06-badges-light.png`（1440×1040）；修复提交 本文所在提交。该页在 `design/source/me-data.css` 的定位是 1000 宽窄栏，不是 1120。
+画稿：`p06-badges-light.png`（1440×1040）；修复提交 `3bc6597`。该页在 `design/source/me-data.css` 的定位是 1000 宽窄栏，不是 1120。
 
 | # | 项目 | 画稿值 | 实测值 | 差值 | 状态 |
 | --- | --- | --- | --- | --- | --- |
@@ -268,7 +268,7 @@ python %TEMP%\pixel-audit\diff.py design\images\<page>.png <shot>.png <out-prefi
 
 ## 12. 帮助
 
-画稿：`support-views.png` 中的帮助面板（`design/source/support-views.css`：`.gx-settings` 850）；修复提交 本文所在提交。
+画稿：`support-views.png` 中的帮助面板（`design/source/support-views.css`：`.gx-settings` 850）；修复提交 `3bc6597`。
 
 | # | 项目 | 画稿值 | 实测值 | 差值 | 状态 |
 | --- | --- | --- | --- | --- | --- |
@@ -284,7 +284,7 @@ python %TEMP%\pixel-audit\diff.py design\images\<page>.png <shot>.png <out-prefi
 
 ## 13. 全部待办
 
-画稿：`support-views.png` 中的全部待办（`design/source/support-views.css`：`.gx-settings` 1120 区）；修复提交 本文所在提交。
+画稿：`support-views.png` 中的全部待办（`design/source/support-views.css`：`.gx-settings` 1120 区）；修复提交 `3bc6597`。
 
 | # | 项目 | 画稿值 | 实测值 | 差值 | 状态 |
 | --- | --- | --- | --- | --- | --- |
@@ -299,7 +299,7 @@ python %TEMP%\pixel-audit\diff.py design\images\<page>.png <shot>.png <out-prefi
 
 ## 14. 模板
 
-画稿：`support-views.png` 中的模板页；修复提交 本文所在提交。该页只在空工作区展示，截图取自独立端口（空 IndexedDB）：`templates.png`。
+画稿：`support-views.png` 中的模板页；修复提交 `3bc6597`。该页只在空工作区展示，截图取自独立端口（空 IndexedDB）：`templates.png`。
 
 | # | 项目 | 画稿值 | 实测值（修前） | 差值 | 状态 |
 | --- | --- | --- | --- | --- | --- |
@@ -309,7 +309,7 @@ python %TEMP%\pixel-audit\diff.py design\images\<page>.png <shot>.png <out-prefi
 
 ## 15. 里程碑（新建 / 详情右侧面板）
 
-画稿：`layers.css` 的 `.ds-sheet` / `.ds-layer-*` / `.ds-field` / `.ds-input`；修复提交 本文所在提交。两面板共用 480 宽右侧 sheet。
+画稿：`layers.css` 的 `.ds-sheet` / `.ds-layer-*` / `.ds-field` / `.ds-input`；修复提交 `3bc6597`。两面板共用 480 宽右侧 sheet。
 
 | # | 项目 | 画稿值 | 实测值 | 差值 | 状态 |
 | --- | --- | --- | --- | --- | --- |
