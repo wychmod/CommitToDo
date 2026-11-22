@@ -1,0 +1,10 @@
+{
+  "name": "sync-pull",
+  "version": "1.0.0",
+  "private": true,
+  "description": "V2-02 入站同步：按 updatedAt + id 游标返回变更，跳过本设备写入",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.1.0"
+  }
+}

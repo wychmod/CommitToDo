@@ -8,6 +8,7 @@ import type { MigrationProgress } from './migrate';
 import { readMigrationProgress, startMigration } from './migrate';
 import { startOpsReporting } from './ops-events';
 import { isOnline, maxAttempts, runSync } from './sync';
+import { startSyncPull } from './sync-pull';
 
 /**
  * 同步状态的读钩子（PRD V2-02 OP-07）。
@@ -70,6 +71,12 @@ export function useSyncRunner(principalId: string | null): void {
     if (!principalId) return;
     // 行为埋点与同步同生命周期：登录后启动，退出登录后停止（队列保留）。
     return startOpsReporting();
+  }, [principalId]);
+
+  useEffect(() => {
+    if (!principalId) return;
+    // 入站同步：登录后开始游标轮询，卸载时停止；游标保留在本机。
+    return startSyncPull(principalId);
   }, [principalId]);
 
   useEffect(() => {

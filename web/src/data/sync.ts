@@ -52,7 +52,9 @@ async function recordConflict(
       ? op.payload.branchId
       : typeof server?.branchId === 'string'
         ? server.branchId
-        : null;
+        : op.entity === 'branch'
+          ? op.entityId
+          : null;
   const tableName = TABLE_OF_ENTITY[op.entity];
   const tables: Table[] = [db.conflicts, db.events, db.outbox];
   if (tableName) tables.push(db.table(tableName));

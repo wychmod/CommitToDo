@@ -115,6 +115,58 @@ export async function pushOutbox(
   });
 }
 
+export interface PullChange {
+  entity: string;
+  collection: string;
+  row: Record<string, unknown>;
+}
+
+export interface PullResponse {
+  changes: PullChange[];
+  cursor: string | null;
+  serverTime: number;
+}
+
+interface RawPullChange {
+  entity?: string;
+  collection?: string;
+  row?: Record<string, unknown> | null;
+}
+
+/**
+ * 游标轮询拉取（PRD V2-02 入站同步，方案 B）。
+ *
+ * 游标是服务端生成的不透明字符串；失败时调用方保留原游标，重试会从原位置续传。
+ */
+export async function pullChanges(
+  cursor: string | null,
+  deviceId: string,
+  limit = 100,
+): Promise<Result<PullResponse>> {
+  const result = await callFunction<{
+    changes?: RawPullChange[];
+    cursor?: string | null;
+    serverTime?: number;
+  }>('sync-pull', { cursor, deviceId, limit });
+  if (!result.ok) return result;
+
+  const changes: PullChange[] = [];
+  for (const change of result.value.changes ?? []) {
+    const row = withId(change.row ?? null);
+    if (row === null || typeof change.entity !== 'string') continue;
+    changes.push({
+      entity: change.entity,
+      collection: change.collection ?? '',
+      row,
+    });
+  }
+  return ok({
+    changes,
+    cursor: result.value.cursor ?? null,
+    serverTime: result.value.serverTime ?? Date.now(),
+  });
+}
+
 /** 首次迁移按集合分页推送；同一批重试由服务端按 `_id` upsert。 */
 export async function pushMigrationPage(
   collection: string,
