@@ -1,0 +1,16 @@
+{
+  "envId": "committodo-d6gmapg0j6397889f",
+  "functionRoot": "../cloudfunctions",
+  "functions": [
+    {
+      "name": "admin-api",
+      "timeout": 20,
+      "runtime": "Nodejs20.19",
+      "handler": "index.main",
+      "installDependency": true,
+      "envVariables": {
+        "ADMIN_EMAIL_VERIFICATION_MODE": "enforce"
+      }
+    }
+  ]
+}

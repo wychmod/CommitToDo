@@ -1,0 +1,53 @@
+:root {
+  color-scheme: light dark;
+
+  --admin-bg: #f4f3ef;
+  --admin-surface: #ffffff;
+  --admin-surface-soft: #faf9f6;
+  --admin-ink: #1e242a;
+  --admin-ink-soft: #59636d;
+  --admin-ink-faint: #87909a;
+  --admin-line: #dcdfe3;
+  --admin-line-strong: #c3c8ce;
+  --admin-accent: #245f9d;
+  --admin-accent-soft: #e8f0f8;
+  --admin-danger: #a33a32;
+  --admin-danger-soft: #f8e9e7;
+  --admin-warning: #8a5a12;
+  --admin-warning-soft: #fbf1de;
+  --admin-ok: #2f6b49;
+  --admin-ok-soft: #e7f2ea;
+
+  --admin-radius-sm: 6px;
+  --admin-radius-md: 10px;
+  --admin-radius-lg: 14px;
+  --admin-space-1: 4px;
+  --admin-space-2: 8px;
+  --admin-space-3: 12px;
+  --admin-space-4: 16px;
+  --admin-space-5: 24px;
+  --admin-space-6: 32px;
+  --admin-font: 'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --admin-mono: 'SFMono-Regular', 'Consolas', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --admin-bg: #15181b;
+    --admin-surface: #1d2125;
+    --admin-surface-soft: #23282d;
+    --admin-ink: #eceef0;
+    --admin-ink-soft: #b3bac1;
+    --admin-ink-faint: #8a939c;
+    --admin-line: #333a41;
+    --admin-line-strong: #46505a;
+    --admin-accent: #7fb1e6;
+    --admin-accent-soft: #1e2c3b;
+    --admin-danger: #e0857c;
+    --admin-danger-soft: #33201e;
+    --admin-warning: #e0b25f;
+    --admin-warning-soft: #332a19;
+    --admin-ok: #8fcca6;
+    --admin-ok-soft: #1d2d24;
+  }
+}

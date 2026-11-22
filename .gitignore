@@ -3,6 +3,11 @@
 /.codebuddy/
 /web/node_modules/
 /web/dist/
+/admin/node_modules/
+/admin/dist/
+/admin/.env
+/admin/.env.*
+!/admin/.env.example
 /.playwright-cli/
 /web/.playwright-cli/
 /web/.env
