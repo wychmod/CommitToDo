@@ -176,12 +176,12 @@ export function BranchHeader({ branch, branches, readonlyReason }: BranchHeaderP
       </nav>
 
       <div className={styles.titleRow}>
+        <h1 className={styles.title}>{branch.title}</h1>
         <span
           className={styles.dot}
           style={{ backgroundColor: `var(--${color}-${shade})` }}
           aria-hidden="true"
         />
-        <h1 className={styles.title}>{branch.title}</h1>
         {active ? (
           <span className={styles.activeChip}>
             <i className={styles.activeDot} aria-hidden="true" />
