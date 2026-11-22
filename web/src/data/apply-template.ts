@@ -167,6 +167,7 @@ export async function applyTemplate(
             title: spec.title,
             note: null,
             status: 'open',
+            priority: spec.priority,
             dueDate: null,
             plannedDate: null,
             completedAt: null,

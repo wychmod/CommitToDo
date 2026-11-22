@@ -99,6 +99,7 @@ describe('模板生成', () => {
 
     expect(tasks).toHaveLength(4);
     expect(tasks.every((task) => task.dueDate === null && task.status === 'open')).toBe(true);
+    expect(tasks.map((task) => task.priority)).toEqual(['high', 'medium', 'medium', 'low']);
     expect(tasks.every((task) => secondaries.some((branch) => branch.id === task.branchId))).toBe(
       true,
     );

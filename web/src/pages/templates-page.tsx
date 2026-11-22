@@ -6,6 +6,7 @@ import {
   TEMPLATE_TASK_COUNT,
   type TemplateId,
 } from '@/core/rules/template-catalog';
+import type { TaskPriority } from '@/core/rules/task-priority';
 import { applyTemplate } from '@/data/apply-template';
 import { useTemplateState } from '@/data/hooks';
 import { t, type MessageKey } from '@/i18n';
@@ -18,6 +19,12 @@ const TEMPLATE_COPY: Record<TemplateId, { name: MessageKey; body: MessageKey }> 
   reading: { name: 'template.reading.name', body: 'template.reading.body' },
   job: { name: 'template.job.name', body: 'template.job.body' },
   'side-project': { name: 'template.sideProject.name', body: 'template.sideProject.body' },
+};
+
+const PRIORITY_KEY: Record<TaskPriority, MessageKey> = {
+  high: 'template.priority.high',
+  medium: 'template.priority.medium',
+  low: 'template.priority.low',
 };
 
 /**
@@ -114,7 +121,13 @@ export function TemplatesPage() {
                     .filter((task) => task.branch === group.kind)
                     .map((task) => (
                       <li key={task.title} className={styles.task}>
-                        <span>{task.title}</span>
+                        <span className={styles.taskTitle}>
+                          <span className={styles.priority}>
+                            {t('template.priority')}
+                            {t(PRIORITY_KEY[task.priority])}
+                          </span>
+                          {task.title}
+                        </span>
                         <span className={styles.noDue}>{t('template.noDue')}</span>
                       </li>
                     ))}

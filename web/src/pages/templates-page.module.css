@@ -144,6 +144,23 @@
   font-size: var(--type-secondary);
 }
 
+.taskTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.priority {
+  flex: none;
+  padding: 0 var(--s2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-marker);
+  color: var(--muted);
+  font-size: var(--type-chart);
+  white-space: nowrap;
+}
+
 .noDue {
   flex: none;
   color: var(--muted);

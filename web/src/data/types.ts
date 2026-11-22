@@ -6,6 +6,7 @@
  */
 
 import type { AnnotationMode } from '@/core/rules/annotation-visibility';
+import type { TaskPriority } from '@/core/rules/task-priority';
 import type { Theme } from '@/core/rules/theme-preference';
 import type { TreeDensity } from '@/core/rules/tree-density';
 
@@ -53,6 +54,8 @@ export interface Task {
   /** 待办的补充说明，可为空；提交文案的「补一句」另存于 `commits.summary`。 */
   note: string | null;
   status: TaskStatus;
+  /** 模板生成的待办带优先级；普通待办不写该字段，也不建索引。 */
+  priority?: TaskPriority;
   /** 外部截止日期，`YYYY-MM-DD`。 */
   dueDate: string | null;
   /** 用户显式安排做这件事的日期，`YYYY-MM-DD`（R8）。 */

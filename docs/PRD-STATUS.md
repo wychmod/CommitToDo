@@ -25,7 +25,7 @@
 
 1. **「小程序端整体未开工」与代码不符。** 仓库已存在 `miniprogram/`：`app.json`、自定义 tabBar、11 个页面（今天/分支树/分支详情/历程/年轮/我的/徽章/归档/详情/帮助/登录）与 `utils/api.js`；并有 `cloudfunctions/workspace-read/index.js` 提供只读聚合。本次按代码事实记为「V2-04 只读端已实现」。
 2. **V2-04 只读是设计口径，不是缺陷。** 第二端不写业务表、不写 outbox/events，所有读取走 `workspace-read`，页面无任何写入口。
-3. **模板待办优先级未做，属已知口径。** `tasks` 表没有 `priority` 字段（`web/src/data/types.ts`），模板生成的 4 条待办只有标题等基础字段，不展示/不排序优先级。该项不作为 V2-03 的缺陷，只在此标注。
+3. **模板待办优先级已补。** `tasks` 增加可选 `priority`（`high` / `medium` / `low`，不建索引，未 bump `DB_VERSION`），模板生成的 4 条待办分别带高/中/中/低，模板预览逐条显示「优先级」。
 4. **M00 PRD §8.2 写「本 PRD 无新增单测」，但代码已有 `web/src/core/rules/home-demo.test.ts`。** 代码领先于文档，不构成功能缺陷。
 5. **M01 OP-07 写「`/settings#account` 不出现账号内容」，V2-01 落地后该分区已有账号内容。** 属分阶段演进，M01 当时的范围排除已被 V2-01 覆盖，不算矛盾。
 6. **M06 OP-08 的「滚动加载更早区间」已补齐。** 按 90 天一批向左扩展下界，滚动到左边界或点「加载更早」都会触发；加载中有可见状态，读取失败时保留已加载区间并可重试，没有更早活动时提示已到最早。分批口径见 `web/src/core/rules/history-window.ts`，测试见 `history-window.test.ts`。
@@ -58,9 +58,9 @@
 | V1-08 | 排序与置顶 | 8 | 8 | 0 | 0 | 完成 |
 | V2-01 | 账号与认证 | 10 | 10 | 0 | 0 | 完成，云端联调待验收 |
 | V2-02 | 同步与冲突 | 10 | 10 | 0 | 0 | 完成，云端联调待验收 |
-| V2-03 | 帮助、彩蛋与模板 | 11 | 11 | 0 | 0 | 完成（模板优先级为已知口径） |
+| V2-03 | 帮助、彩蛋与模板 | 11 | 11 | 0 | 0 | 完成（模板待办带优先级） |
 | V2-04 | 第二端只读 | 12 | 12 | 0 | 0 | 只读端已实现，实机验收待做 |
-| **合计** |  | **205** | **204** | **1** | **0** |  |
+| **合计** |  | **205** | **205** | **0** | **0** |  |
 
 ## 明细
 
@@ -371,7 +371,7 @@
 | OP-04 | 完成时点彩蛋判定 | 已实现 | `core/rules/easter-egg.ts`、`easter-egg.test.ts` |
 | OP-05 | 补查彩蛋判定 | 已实现 | `easter-egg.test.ts`、`data/grant-badge.ts` 补查 |
 | OP-06 | 同日多枚合并提示 | 已实现 | `components/today/badge-toast.tsx`（解锁 N 枚）、`badge-marker.ts` 同日合并 |
-| OP-07 | 模板预览与生成 | 已实现 | `pages/templates-page.tsx`、`core/rules/template-catalog.ts`、`template-catalog.test.ts`、`data/apply-template.ts`；模板待办无优先级展示（`tasks` 无 `priority` 字段，已知口径） |
+| OP-07 | 模板预览与生成 | 已实现 | `pages/templates-page.tsx`、`core/rules/template-catalog.ts`、`template-catalog.test.ts`、`data/apply-template.ts`；4 条待办带 `priority`（高/中/中/低）并在预览中显示 |
 | OP-08 | 空树入口显隐 | 已实现 | `templates-page.tsx#L37`（非空直接回 `/branches`）、`data/hooks.ts` 空树判定 |
 | OP-09 | 撤回模板 | 已实现 | `core/rules/template-guard.ts`、`template-guard.test.ts`、模板撤回流程 |
 | OP-10 | 有提交时禁止撤回 | 已实现 | `template-guard.ts`、`template-guard.test.ts` |
@@ -400,8 +400,7 @@
 | ---: | --- | --- | --- |
 | 1 | **V2-01 / V2-02 / V1-06 云端能力需真实环境验收** | 中 | 登录、找回密码、outbox 补推、首次迁移、设备列表、异地备份代码均已落地，测试覆盖纯规则与本地事务；但真实 CloudBase 环境、邮件重置链接、跨设备 3 秒可见、备份签名上传未在本次只读核对中执行。建议按 `docs/MANUAL-ACCEPTANCE.md` 做端到端验收。 |
 | 2 | **V2-04 第二端实机验收未做** | 中 | 代码与 11 个页面已存在，`workspace-read` 已就绪；仍需微信开发者工具 Nightly + 真实 AppID 验证登录回跳、下拉刷新、断网缓存与只读约束。 |
-| 3 | **模板待办优先级（已知口径）** | 低 | `tasks` 无 `priority` 字段，模板 4 条待办不展示/不排序优先级。属既定数据模型范围，不作为缺陷；如后续需要，先改表结构文档再实现。 |
-| 4 | **M00 动效时序、M01/M07/M12/V1-05/V1-07 的 390 px 与焦点行为** | 低 | 代码已实现并有静态结构，但 PRD 明确只能人工验收。建议按各 PRD §8.3 清单逐条走查。 |
+| 3 | **M00 动效时序、M01/M07/M12/V1-05/V1-07 的 390 px 与焦点行为** | 低 | 代码已实现并有静态结构，但 PRD 明确只能人工验收。建议按各 PRD §8.3 清单逐条走查。 |
 
 ## 验证边界
 

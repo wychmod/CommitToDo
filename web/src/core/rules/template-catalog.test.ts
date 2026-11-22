@@ -5,6 +5,7 @@ import {
   TEMPLATE_TASK_COUNT,
   templateById,
 } from './template-catalog';
+import { TASK_PRIORITIES, isTaskPriority } from './task-priority';
 
 describe('模板常量', () => {
   it('每个模板恰好 1 个一级、2 个二级、4 条待办，总节点数 7', () => {
@@ -40,6 +41,17 @@ describe('模板常量', () => {
       }
       expect(counts.get('secondary-a')).toBe(2);
       expect(counts.get('secondary-b')).toBe(2);
+    }
+  });
+
+  it('每条待办都带合法优先级，且每套模板覆盖三档', () => {
+    for (const template of TEMPLATES) {
+      for (const task of template.tasks) {
+        expect(isTaskPriority(task.priority)).toBe(true);
+      }
+      expect(new Set(template.tasks.map((task) => task.priority))).toEqual(
+        new Set(TASK_PRIORITIES),
+      );
     }
   });
 
