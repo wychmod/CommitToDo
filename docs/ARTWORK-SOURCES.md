@@ -2,6 +2,8 @@
 
 **范围**: `design/images/` 下的 109 个文件。**用途**: 分清哪些是 `design/source/*.mjs` 渲染生成、哪些是生图模型产出后导入，避免把导入图当成可复现产物。本文只做盘点，不改图、不重跑渲染、不改源码。
 
+2026 年 11 月 22 日已确认 [Web 认证最新 UI 参考](web-auth/DESIGN.md)。这 17 张 ImageGen 原图单独收录在 `docs/web-auth/`，包含八组明暗主方案和一张浅色居中备选。下表继续记录 `design/images/` 的原始来源和数量。P09–P11、S11 及站内账号状态的视觉评审以新交接稿为准。
+
 ## 判定方法与顺序
 
 1. **SHA256 比对**：将 109 个文件与归档 `commit-archive/2026-11-19/.../homepage-images` 的 217 个文件逐一比对，命中即判为生图导入，并记录命中对象。
@@ -46,7 +48,7 @@
 | `branches-map.mjs` | `p02-branches-map-light/dark` | 2 |
 | `year.mjs` | `p05-year-light/dark` | 2 |
 | `me-data.mjs` | `p06-me`、`p07-settings`、`p08-data`、`s06-badge-wall`、`s06-badge-detail`、`s08-restore-file`、`s08-data-v1`、`s08-snapshot-restore`（各 light/dark） | 16 |
-| `auth-pages.mjs` | `p09-login`、`p10-signup`、`p11-recover`、`s11-recover-reset`、`s11-recover-sent`（各 light/dark） | 10 |
+| `auth-pages.mjs` | `p09-login`、`p10-signup`、`p11-recover`、`s11-recover-reset`、`s11-recover-sent`（各 light/dark，旧渲染形式） | 10 |
 | `branch-layers.mjs` | `b01-branch-menu`、`b02-branch-new`、`b03-branch-new-child`、`b04-branch-rename`、`b05-branch-move`、`b06-branch-finish`、`b07-branch-finish-confirm`、`b08-branch-pause`、`b09-branch-archive`、`b10-branch-delete-empty`、`b11-branch-unarchive`、`b12-branch-restart`（各 light/dark） | 24 |
 | `support-views.mjs` | `o01-quick-add`、`o02-todo-detail`、`o03-commit-detail`、`o04-search`、`o05-clear-local`、`o06-first-task`、`o06-first-commit`、`o06-sample-tree`、`o07-sync-entry`、`o08-sync-devices`、`o08-sync-conflict`、`s01-all-todos`、`s01-week-review`、`s01-month-review`、`s02-archived-branches`、`s04-milestone-detail`、`s04-milestone-new`、`s05-year-share`、`s06-help`（各 light/dark） | 38 |
 | `visual-language.mjs` | `visual-language-light/dark` | 2 |
