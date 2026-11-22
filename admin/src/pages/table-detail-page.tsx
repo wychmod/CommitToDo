@@ -4,13 +4,17 @@ import {
   callAdminApi,
   errorMessage,
   isApiError,
+  type TableListData,
+  type TableMeta,
   type TableRowsData,
 } from '@/lib/admin-api';
 import { fixtureState } from '@/lib/fixture';
 import { formatValue } from '@/lib/format';
-import { ArrowLeftIcon, ChevronRightIcon, CloseIcon, DatabaseIcon, SearchBranchIcon } from '@/components/icons';
+import { formatFieldValue } from '@/lib/display';
+import { ArrowLeftIcon, ChevronRightIcon, CloseIcon, DatabaseIcon, EditIcon, SearchBranchIcon } from '@/components/icons';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorPanel } from '@/components/error-panel';
+import { RowEditor } from '@/components/row-editor';
 import { TableSkeleton } from '@/components/skeleton';
 import { Chip, StatusLabel } from '@/components/status-chip';
 import { copy, tableLabels } from '@/i18n';
@@ -81,6 +85,38 @@ export function TableDetailPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<PageError | null>(null);
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
+  const [tableMeta, setTableMeta] = useState<TableMeta | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [savedAuditId, setSavedAuditId] = useState('');
+  const [sample, setSample] = useState(false);
+
+  useEffect(() => {
+    if (!collection) return;
+    let active = true;
+    void callAdminApi<TableListData>('tables.list')
+      .then((result) => {
+        if (!active) return;
+        setTableMeta(result.tables.find((table) => table.name === collection) ?? null);
+      })
+      .catch(() => {
+        if (active) setTableMeta(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [collection]);
+
+  const openRow = useCallback((row: Record<string, unknown>) => {
+    setSelected(row);
+    setEditing(false);
+    setSavedAuditId('');
+  }, []);
+
+  const closeDrawer = useCallback(() => {
+    setSelected(null);
+    setEditing(false);
+    setSavedAuditId('');
+  }, []);
 
   const load = useCallback(
     async (reset: boolean) => {
@@ -104,6 +140,7 @@ export function TableDetailPage() {
         setRows((previous) => (reset ? result.rows : [...previous, ...result.rows]));
         setMaskedFields(result.maskedFields ?? []);
         setCursor(result.nextCursor);
+        setSample(Boolean(result.sample));
       } catch (caught) {
         setError({
           code: isApiError(caught) ? caught.code : undefined,
@@ -127,11 +164,11 @@ export function TableDetailPage() {
   useEffect(() => {
     if (!selected) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelected(null);
+      if (event.key === 'Escape') closeDrawer();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selected]);
+  }, [selected, closeDrawer]);
 
   // 仅像素核对：`?fixture=ready&drawer=1` 自动打开首行抽屉，生产环境不生效。
   useEffect(() => {
@@ -141,10 +178,9 @@ export function TableDetailPage() {
       fixtureState() &&
       new URLSearchParams(window.location.search).get('drawer') === '1'
     ) {
-      setSelected(rows[0]);
+      openRow(rows[0]);
     }
-  }, [rows, selected]);
-
+  }, [rows, selected, openRow]);
   const columns = useMemo(() => buildColumns(rows), [rows]);
   const missing = error?.code === 'admin_collection_missing';
   const label = tableLabels[collection] || collection;
@@ -176,7 +212,9 @@ export function TableDetailPage() {
               {copy.tableDetail.title} <code className="admin-browser-title__id">{collection}</code>
             </h1>
             <span className="admin-browser-title__label">{label}</span>
-            <Chip>{copy.tableDetail.readChip}</Chip>
+            <Chip tone={tableMeta?.write ? 'accent' : undefined}>
+              {tableMeta?.write ? copy.tableDetail.editableChip : copy.tableDetail.readChip}
+            </Chip>
           </div>
         </div>
       </header>
@@ -230,6 +268,13 @@ export function TableDetailPage() {
 
       {!loading && !error ? (
         <div className="admin-panel">
+          {sample ? (
+            <div className="admin-sample-strip">
+              <DatabaseIcon />
+              <strong>{copy.overview.sample}</strong>
+              <span>{copy.tableDetail.sampleBody}</span>
+            </div>
+          ) : null}
           {!rows.length ? (
             appliedOwnerId ? (
               <EmptyState
@@ -269,16 +314,22 @@ export function TableDetailPage() {
                           key={key}
                           className={selected === row ? 'admin-table__row--selected' : undefined}
                           tabIndex={0}
-                          onClick={() => setSelected(row)}
+                          onClick={() => openRow(row)}
                           onKeyDown={(event) => {
-                            if (event.key === 'Enter') setSelected(row);
+                            if (event.key === 'Enter') openRow(row);
                           }}
                         >
                           {columns.map((column) => (
                             <td key={column.key}>
-                              <span className={`admin-cell${isMonoKey(column.key) ? ' admin-mono' : ''}`}>
-                                {formatValue(row[column.key])}
-                              </span>
+                              {column.key === 'status' ? (
+                                <Chip tone={String(row.status) === 'active' ? 'accent' : undefined}>
+                                  {formatFieldValue(collection, column.key, row[column.key])}
+                                </Chip>
+                              ) : (
+                                <span className={`admin-cell${isMonoKey(column.key) ? ' admin-mono' : ''}`}>
+                                  {formatFieldValue(collection, column.key, row[column.key])}
+                                </span>
+                              )}
                             </td>
                           ))}
                           <td className="admin-cell--action">
@@ -300,14 +351,14 @@ export function TableDetailPage() {
                     type="button"
                     className="admin-row-card"
                     key={rowKeyOf(row, index)}
-                    onClick={() => setSelected(row)}
+                    onClick={() => openRow(row)}
                   >
                     <span className="admin-row-card__body">
                       {columns.slice(0, 3).map((column) => (
                         <span className="admin-row-card__item" key={column.key}>
                           <span className="admin-row-card__label">{column.key}</span>
                           <span className={`admin-row-card__value${isMonoKey(column.key) ? ' admin-mono' : ''}`}>
-                            {formatValue(row[column.key])}
+                            {formatFieldValue(collection, column.key, row[column.key])}
                           </span>
                         </span>
                       ))}
@@ -319,13 +370,13 @@ export function TableDetailPage() {
             </>
           )}
 
-          {cursor && rows.length ? (
+          {rows.length ? (
             <div className="admin-panel__foot">
               <button
                 type="button"
                 className="admin-btn"
                 onClick={() => void load(false)}
-                disabled={loadingMore}
+                disabled={loadingMore || !cursor}
               >
                 {loadingMore ? copy.tableDetail.loadingMore : copy.tableDetail.loadMore}
               </button>
@@ -336,56 +387,108 @@ export function TableDetailPage() {
 
       {selected ? (
         <div className="admin-drawer-layer">
-          <div className="admin-drawer__scrim" onClick={() => setSelected(null)} aria-hidden="true" />
+          <div className="admin-drawer__scrim" onClick={closeDrawer} aria-hidden="true" />
           <aside className="admin-drawer" role="dialog" aria-modal="true" aria-label={copy.tableDetail.drawerTitle}>
             <header className="admin-drawer__head">
               <div className="admin-drawer__heading">
-                <h2>{copy.tableDetail.drawerTitle}</h2>
-                <code className="admin-drawer__collection">{collection}</code>
+                <h2>{editing ? `${copy.tableDetail.edit}${label}` : copy.tableDetail.drawerTitle}</h2>
+                <code className="admin-drawer__collection">
+                  {editing ? String(selected._id ?? selected.id ?? '') : collection}
+                </code>
               </div>
-              <button
-                type="button"
-                className="admin-icon-btn"
-                onClick={() => setSelected(null)}
-                aria-label={copy.tableDetail.close}
-              >
-                <CloseIcon />
-              </button>
+              <div className="admin-drawer__actions">
+                {!editing && tableMeta?.write ? (
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn--quiet"
+                    onClick={() => setEditing(true)}
+                  >
+                    <EditIcon />
+                    {copy.tableDetail.edit}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="admin-icon-btn"
+                  onClick={closeDrawer}
+                  aria-label={copy.tableDetail.close}
+                >
+                  <CloseIcon />
+                </button>
+              </div>
             </header>
 
-            <div className="admin-drawer__body">
-              <p className="admin-drawer__headline">
-                {formatValue(selected.title ?? selected.summary ?? selected._id ?? selected.id)}
-              </p>
-              <div className="admin-drawer__chips">
-                <Chip>{copy.tableDetail.readChip}</Chip>
-                {revValue != null ? (
-                  <Chip>{copy.tableDetail.rev.replace('{rev}', String(revValue))}</Chip>
-                ) : null}
-              </div>
-
-              <dl className="admin-fields">
-                {Object.entries(selected).map(([key, value]) => (
-                  <div className="admin-fields__row" key={key}>
-                    <dt>{key}</dt>
-                    <dd className={isMonoKey(key) ? 'admin-mono' : undefined}>{formatValue(value)}</dd>
+            <div
+              className={`admin-drawer__body${editing ? ' admin-drawer__body--editor' : ''}`}
+            >
+              {editing && tableMeta ? (
+                <RowEditor
+                  collection={collection}
+                  row={selected}
+                  writableFields={tableMeta.writableFields ?? []}
+                  onCancel={() => setEditing(false)}
+                  onSaved={(updated, auditId) => {
+                    const updatedId = updated._id ?? updated.id;
+                    setRows((previous) =>
+                      previous.map((item) => {
+                        const itemId = item._id ?? item.id;
+                        return updatedId != null && itemId === updatedId ? updated : item;
+                      }),
+                    );
+                    setSelected(updated);
+                    setEditing(false);
+                    setSavedAuditId(auditId);
+                  }}
+                />
+              ) : (
+                <>
+                  <p className="admin-drawer__headline">
+                    {formatValue(selected.title ?? selected.summary ?? selected._id ?? selected.id)}
+                  </p>
+                  <div className="admin-drawer__chips">
+                    <Chip>{tableMeta?.write ? copy.tableDetail.editableChip : copy.tableDetail.readChip}</Chip>
+                    {selected.status != null ? (
+                      <Chip tone={String(selected.status) === 'active' ? 'accent' : undefined}>
+                        {formatFieldValue(collection, 'status', selected.status)}
+                      </Chip>
+                    ) : null}
+                    {revValue != null ? (
+                      <Chip>{copy.tableDetail.rev.replace('{rev}', String(revValue))}</Chip>
+                    ) : null}
                   </div>
-                ))}
-              </dl>
 
-              {maskedFields.length ? (
-                <div className="admin-drawer__masked">
-                  <span className="admin-drawer__masked-label">{copy.tableDetail.masked}</span>
-                  {maskedFields.map((field) => (
-                    <Chip key={field}>{field}</Chip>
-                  ))}
-                </div>
-              ) : null}
+                  {savedAuditId ? (
+                    <p className="admin-drawer__saved" role="status">
+                      {copy.tableDetail.saved.replace('{id}', savedAuditId)}
+                    </p>
+                  ) : null}
 
-              <section className="admin-raw">
-                <h3>{copy.tableDetail.raw}</h3>
-                <pre>{JSON.stringify(selected, null, 2)}</pre>
-              </section>
+                  <dl className="admin-fields">
+                    {Object.entries(selected).map(([key, value]) => (
+                      <div className="admin-fields__row" key={key}>
+                        <dt>{key}</dt>
+                        <dd className={isMonoKey(key) ? 'admin-mono' : undefined}>
+                          {formatFieldValue(collection, key, value)}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  {maskedFields.length ? (
+                    <div className="admin-drawer__masked">
+                      <span className="admin-drawer__masked-label">{copy.tableDetail.masked}</span>
+                      {maskedFields.map((field) => (
+                        <Chip key={field}>{field}</Chip>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <section className="admin-raw">
+                    <h3>{copy.tableDetail.raw}</h3>
+                    <pre>{JSON.stringify(selected, null, 2)}</pre>
+                  </section>
+                </>
+              )}
             </div>
           </aside>
         </div>

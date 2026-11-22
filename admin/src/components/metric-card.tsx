@@ -1,8 +1,17 @@
+import type { ReactNode } from 'react';
 import type { MetricItem } from '@/lib/admin-api';
 import { formatMetricValue } from '@/lib/format';
 import { copy } from '@/i18n';
 
-export function MetricCard({ label, item }: { label: string; item?: MetricItem }) {
+export function MetricCard({
+  label,
+  item,
+  icon,
+}: {
+  label: string;
+  item?: MetricItem;
+  icon?: ReactNode;
+}) {
   const status = item?.status ?? 'not_ready';
   const value =
     item && item.status === 'ready' && item.value != null ? formatMetricValue(item.value) : '—';
@@ -11,7 +20,10 @@ export function MetricCard({ label, item }: { label: string; item?: MetricItem }
 
   return (
     <article className={`admin-kpi admin-kpi--${status}`}>
-      <span className="admin-kpi__label">{label}</span>
+      <span className="admin-kpi__head">
+        {icon ? <span className="admin-kpi__icon">{icon}</span> : null}
+        <span className="admin-kpi__label">{label}</span>
+      </span>
       <strong className="admin-kpi__value">{value}</strong>
       <span className={`admin-kpi__state${stateText ? '' : ' admin-kpi__state--empty'}`}>
         {stateText}

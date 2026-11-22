@@ -24,14 +24,23 @@ export class AdminApiError extends Error {
   readonly status: number;
   readonly retriable: boolean;
   readonly requestId: string;
+  readonly details: Record<string, unknown>;
 
-  constructor(code: AdminErrorCode, message: string, status = 0, retriable = false, requestId = '') {
+  constructor(
+    code: AdminErrorCode,
+    message: string,
+    status = 0,
+    retriable = false,
+    requestId = '',
+    details: Record<string, unknown> = {},
+  ) {
     super(message);
     this.name = 'AdminApiError';
     this.code = code;
     this.status = status;
     this.retriable = retriable;
     this.requestId = requestId;
+    this.details = details;
   }
 }
 
@@ -44,6 +53,9 @@ interface ApiEnvelope<T> {
   retriable?: boolean;
   requestId?: string;
   serverTime?: number;
+  field?: string;
+  expectedRev?: number;
+  currentRev?: number;
 }
 
 interface CallFunctionResponse<T> {
@@ -71,6 +83,7 @@ export interface TableRowsData {
   nextCursor: string | null;
   maskedFields: string[];
   note?: string;
+  sample?: boolean;
 }
 
 export interface TableRowData {
@@ -87,11 +100,76 @@ export interface MetricItem {
   note?: string;
 }
 
+export type MetricStatus = 'ready' | 'not_ready' | 'insufficient';
+
+export interface OverviewPoint {
+  date: string;
+  active: number;
+  signups: number;
+  compare?: number | null;
+}
+
+export interface RetentionStat {
+  day: number;
+  value: number | null;
+  status: MetricStatus;
+}
+
+export interface RetentionCohort {
+  cohortDate: string;
+  cohortSize: number;
+  d1: number | null;
+  d7: number | null;
+  d30: number | null;
+  matured?: boolean;
+}
+
+export interface RetentionBlock {
+  mode: 'exact';
+  status: MetricStatus;
+  stats: RetentionStat[];
+  cohorts: RetentionCohort[];
+}
+
+export interface SyncBlock {
+  status: MetricStatus;
+  successRate: number | null;
+  total: number | null;
+  success: number | null;
+  conflict: number | null;
+  failed: number | null;
+  devices: number | null;
+}
+
+export interface BackupBlock {
+  status: MetricStatus;
+  success: number | null;
+  failure: number | null;
+}
+
+export interface CommitsBlock {
+  status: MetricStatus;
+  activeUsers: number | null;
+  total: number | null;
+  points: { date: string; value: number }[];
+}
+
 export interface MetricsOverviewData {
   range: { from: string; to: string; timezone: string; tzOffset: number };
-  availability: { opsEvents: boolean; userFirstSeen: boolean };
+  availability: { opsEvents: boolean; userFirstSeen: boolean; commits?: boolean };
   metrics: MetricItem[];
+  series: OverviewPoint[] | null;
+  retention: RetentionBlock;
+  sync: SyncBlock;
+  backup: BackupBlock;
+  commits: CommitsBlock;
   notes: string[];
+  sample?: boolean;
+}
+
+export interface TableUpdateData {
+  row: Record<string, unknown>;
+  auditId: string;
 }
 
 export interface AuditRow {
@@ -100,7 +178,14 @@ export interface AuditRow {
   action?: string;
   collection?: string;
   docId?: string;
+  ownerId?: string | null;
   changedFields?: string[];
+  before?: Record<string, unknown>;
+  after?: Record<string, unknown>;
+  beforeAbsent?: string[];
+  revBefore?: number;
+  revAfter?: number;
+  reason?: string;
   at?: number;
   status?: string;
 }
@@ -108,6 +193,7 @@ export interface AuditRow {
 export interface AuditListData {
   rows: AuditRow[];
   nextCursor: string | null;
+  sample?: boolean;
 }
 
 export interface WhoAmI {
@@ -177,12 +263,17 @@ export async function callAdminApi<T>(
   }
   if (payload.ok !== true) {
     const code = (payload.code || 'admin_unknown') as AdminErrorCode;
+    const details: Record<string, unknown> = {};
+    if (payload.field) details.field = payload.field;
+    if (payload.expectedRev != null) details.expectedRev = payload.expectedRev;
+    if (payload.currentRev != null) details.currentRev = payload.currentRev;
     throw new AdminApiError(
       code,
       payload.message || '管理接口返回失败',
       payload.status || 0,
       Boolean(payload.retriable),
       payload.requestId || response.requestId || '',
+      details,
     );
   }
 

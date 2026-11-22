@@ -27,7 +27,7 @@ export function TableSkeleton({ rows = 6 }: { rows?: number }) {
 export function KpiSkeleton() {
   return (
     <div className="admin-skeleton-kpis" aria-label={copy.common.loading}>
-      {Array.from({ length: 6 }).map((_, index) => (
+      {Array.from({ length: 5 }).map((_, index) => (
         <div className="admin-skeleton-kpi" key={index}>
           <SkeletonLine variant="label" />
           <SkeletonLine variant="value" />

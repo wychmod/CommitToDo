@@ -11,7 +11,22 @@ import { MetricCard } from '@/components/metric-card';
 import { ErrorPanel } from '@/components/error-panel';
 import { KpiSkeleton } from '@/components/skeleton';
 import { StatusLabel } from '@/components/status-chip';
-import { NoticeIcon } from '@/components/icons';
+import {
+  CalendarIcon,
+  CheckIcon,
+  DeviceIcon,
+  PersonIcon,
+  PersonPlusIcon,
+  PulseIcon,
+  TableIcon,
+} from '@/components/icons';
+import {
+  BackupPanel,
+  CommitsPanel,
+  RetentionPanel,
+  SyncPanel,
+  TrendPanel,
+} from '@/components/overview-charts';
 import { copy } from '@/i18n';
 
 interface PageError {
@@ -20,8 +35,19 @@ interface PageError {
   requestId?: string;
 }
 
+/** 画稿只保留 5 个 KPI；M6/M7 留存移入右侧留存卡，M9–M13 归入底部三块。 */
+const KPI_KEYS = ['dau', 'dauDevice', 'wau', 'mau', 'newUsers'] as const;
+
+const KPI_ICONS = {
+  dau: <PersonIcon />,
+  dauDevice: <DeviceIcon />,
+  wau: <PulseIcon />,
+  mau: <CalendarIcon />,
+  newUsers: <PersonPlusIcon />,
+};
+
 export function OverviewPage() {
-  const [from, setFrom] = useState(() => formatDate(daysAgo(6)));
+  const [from, setFrom] = useState(() => formatDate(daysAgo(21)));
   const [to, setTo] = useState(() => formatDate(new Date()));
   const [data, setData] = useState<MetricsOverviewData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,14 +80,11 @@ export function OverviewPage() {
     return map;
   }, [data]);
 
-  const kpis = [
-    { label: copy.overview.labels.dau, item: byKey.get('dau') },
-    { label: copy.overview.labels.wau, item: byKey.get('wau') },
-    { label: copy.overview.labels.mau, item: byKey.get('mau') },
-    { label: copy.overview.labels.signups, item: byKey.get('newUsers') },
-    { label: copy.overview.labels.retentionD1, item: byKey.get('retentionD1') },
-    { label: copy.overview.labels.retentionD7, item: byKey.get('retentionD7') },
-  ];
+  const kpis = KPI_KEYS.map((key) => ({
+    key,
+    label: copy.overview.labels[key],
+    item: byKey.get(key),
+  }));
 
   const notReady = data ? !data.availability.opsEvents || !data.availability.userFirstSeen : false;
 
@@ -70,7 +93,6 @@ export function OverviewPage() {
       <header className="admin-page__head">
         <div className="admin-page__titles">
           <h1>{copy.overview.title}</h1>
-          <p className="admin-page__subtitle">{copy.overview.description}</p>
         </div>
         <div className="admin-date-range">
           <input
@@ -117,32 +139,80 @@ export function OverviewPage() {
       {data && !error ? (
         <>
           {notReady ? (
-            <div className="admin-notice" role="status">
-              <NoticeIcon />
-              <strong className="admin-notice__title">{copy.overview.notReadyTitle}</strong>
-              <span className="admin-notice__body">{copy.overview.notReadyBody}</span>
+            <div className="admin-sources admin-sources--cards">
+              <div className="admin-source admin-source--card">
+                <span className="admin-source__head">
+                  <TableIcon />
+                  <span className="admin-source__name">{copy.overview.sourceOps}</span>
+                  <StatusLabel tone={data.availability.opsEvents ? 'ready' : 'notready'}>
+                    {data.availability.opsEvents ? copy.overview.ready : copy.overview.notReady}
+                  </StatusLabel>
+                </span>
+                <span className="admin-source__desc">{copy.overview.sourceOpsDesc}</span>
+              </div>
+              <div className="admin-source admin-source--card">
+                <span className="admin-source__head">
+                  <TableIcon />
+                  <span className="admin-source__name">{copy.overview.sourceFirstSeen}</span>
+                  <StatusLabel tone={data.availability.userFirstSeen ? 'ready' : 'notready'}>
+                    {data.availability.userFirstSeen
+                      ? copy.overview.ready
+                      : copy.overview.notReady}
+                  </StatusLabel>
+                </span>
+                <span className="admin-source__desc">{copy.overview.sourceFirstSeenDesc}</span>
+              </div>
             </div>
-          ) : null}
-
-          <div className="admin-sources">
-            <div className="admin-source">
-              <code className="admin-source__name">{copy.overview.sourceOps}</code>
-              <StatusLabel tone={data.availability.opsEvents ? 'ready' : 'notready'}>
-                {data.availability.opsEvents ? copy.overview.ready : copy.overview.notReady}
-              </StatusLabel>
+          ) : (
+            <div className="admin-sources">
+              <span className="admin-source">
+                <TableIcon />
+                <span className="admin-source__name">{copy.overview.sourceOps}</span>
+                <span className="admin-source__sep">·</span>
+                <span className="admin-source__state">
+                  <CheckIcon />
+                  {copy.overview.ready}
+                </span>
+              </span>
+              <span className="admin-sources__divider" aria-hidden="true" />
+              <span className="admin-source">
+                <TableIcon />
+                <span className="admin-source__name">{copy.overview.sourceFirstSeen}</span>
+                <span className="admin-source__sep">·</span>
+                <span className="admin-source__state">
+                  <CheckIcon />
+                  {copy.overview.ready}
+                </span>
+              </span>
+              {data.sample ? (
+                <span className="admin-sources__sample">{copy.overview.sample}</span>
+              ) : null}
             </div>
-            <div className="admin-source">
-              <code className="admin-source__name">{copy.overview.sourceFirstSeen}</code>
-              <StatusLabel tone={data.availability.userFirstSeen ? 'ready' : 'notready'}>
-                {data.availability.userFirstSeen ? copy.overview.ready : copy.overview.notReady}
-              </StatusLabel>
-            </div>
-          </div>
+          )}
 
           <div className="admin-kpi-grid">
             {kpis.map((kpi) => (
-              <MetricCard key={kpi.label} label={kpi.label} item={kpi.item} />
+              <MetricCard
+                key={kpi.key}
+                label={kpi.label}
+                item={kpi.item}
+                icon={KPI_ICONS[kpi.key]}
+              />
             ))}
+          </div>
+
+          <div className="admin-chart-grid">
+            <TrendPanel
+              series={data.series}
+              hint={data.availability.opsEvents ? undefined : copy.overview.notReadyHint}
+            />
+            <RetentionPanel retention={data.retention} />
+          </div>
+
+          <div className="admin-ops-grid">
+            <SyncPanel sync={data.sync} />
+            <BackupPanel backup={data.backup} />
+            <CommitsPanel commits={data.commits} />
           </div>
         </>
       ) : null}

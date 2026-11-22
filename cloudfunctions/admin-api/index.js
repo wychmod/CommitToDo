@@ -6,7 +6,8 @@
  * 约束：
  * - 每个 action 进入前独立鉴权，只允许 ADMIN_EMAILS 白名单邮箱。
  * - 不信任请求里的 email / userId 作为身份依据。
- * - 只读接口先交付；写接口保留 tables.update，未开放时返回 admin_not_implemented。
+ * - 只读接口与 `tables.update` 均已开放；写接口仅限 §4.2 六张表与字段白名单，
+ *   校验 `expectedRev` / `reason`，业务写入与 admin_audit_log 同事务。
  * - 新增表由数据库线创建，本函数只读；不建表、不写测试业务数据。
  */
 
@@ -175,7 +176,7 @@ function requestIdOf(context) {
   return (context && (context.request_id || context.requestId)) || `req-${Date.now()}`;
 }
 
-function fail(code, message, status, retriable, requestId) {
+function fail(code, message, status, retriable, requestId, extra) {
   return {
     ok: false,
     code,
@@ -183,6 +184,7 @@ function fail(code, message, status, retriable, requestId) {
     status: status || 400,
     retriable: Boolean(retriable),
     requestId: requestId || '',
+    ...(extra || {}),
   };
 }
 
@@ -444,7 +446,7 @@ async function handleMetaContract({ requestId }) {
       collections,
       eventNames: EVENT_NAMES,
       metrics: METRIC_DEFS,
-      writeEnabled: false,
+      writeEnabled: true,
     },
     requestId,
   );
@@ -608,6 +610,77 @@ async function loadEvents(eventName, from, to) {
   return fetchPage('ops_events', query, MAX_EVENT_ROWS);
 }
 
+async function existsOrFalse(name) {
+  try {
+    return await collectionExists(name);
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * 精确日留存：cohort 来自 user_first_seen.firstSeenDate，
+ * 分子只统计 cohort 内用户在 C+n 当天有 app.open。
+ * 未成熟（C+n > today）输出 null，不拿 0 填充；无 mature cohort 返回 insufficient。
+ */
+function buildRetention(cohortRows, activeByUser, today, days, ready) {
+  if (!ready) {
+    return {
+      mode: 'exact',
+      status: 'not_ready',
+      stats: days.map((day) => ({ day, value: null, status: 'not_ready' })),
+      cohorts: [],
+    };
+  }
+  const cohortMap = new Map();
+  for (const row of cohortRows) {
+    if (!row.userId || !row.firstSeenDate) continue;
+    if (!cohortMap.has(row.firstSeenDate)) cohortMap.set(row.firstSeenDate, new Set());
+    cohortMap.get(row.firstSeenDate).add(row.userId);
+  }
+  const totals = new Map(days.map((day) => [day, { retained: 0, size: 0 }]));
+  const cohorts = [];
+  const ordered = Array.from(cohortMap.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  for (const [cohortDate, users] of ordered) {
+    const entry = { cohortDate, cohortSize: users.size };
+    let matured = false;
+    for (const day of days) {
+      const target = addDays(cohortDate, day);
+      if (target > today) {
+        entry[`d${day}`] = null;
+        continue;
+      }
+      matured = true;
+      let retained = 0;
+      for (const uid of users) {
+        const dates = activeByUser.get(uid);
+        if (dates && dates.has(target)) retained += 1;
+      }
+      entry[`d${day}`] = users.size ? Number(((retained / users.size) * 100).toFixed(1)) : null;
+      const total = totals.get(day);
+      total.retained += retained;
+      total.size += users.size;
+    }
+    entry.matured = matured;
+    cohorts.push(entry);
+  }
+  const stats = days.map((day) => {
+    const total = totals.get(day);
+    if (!total || !total.size) return { day, value: null, status: 'insufficient' };
+    return {
+      day,
+      value: Number(((total.retained / total.size) * 100).toFixed(1)),
+      status: 'ready',
+    };
+  });
+  return {
+    mode: 'exact',
+    status: stats.some((item) => item.status === 'ready') ? 'ready' : 'insufficient',
+    stats,
+    cohorts: cohorts.slice(0, 3),
+  };
+}
+
 async function handleMetricsOverview({ event, requestId }) {
   const tzOffset = Number.isFinite(Number(event.tzOffset)) ? Number(event.tzOffset) : 480;
   const to = isValidDate(event.to) ? event.to : todayLocalDate(tzOffset);
@@ -616,21 +689,22 @@ async function handleMetricsOverview({ event, requestId }) {
     return fail('admin_invalid_params', 'from 不能晚于 to', 400, false, requestId);
   }
 
-  const metrics = [];
+  const today = todayLocalDate(tzOffset);
+  const days = [1, 7, 30];
   const notes = [];
-  let eventsReady = false;
-  let firstSeenReady = false;
+  const metrics = [];
 
-  try {
-    eventsReady = await collectionExists('ops_events');
-  } catch (_) {
-    eventsReady = false;
-  }
-  try {
-    firstSeenReady = await collectionExists('user_first_seen');
-  } catch (_) {
-    firstSeenReady = false;
-  }
+  const eventsReady = await existsOrFalse('ops_events');
+  const firstSeenReady = await existsOrFalse('user_first_seen');
+
+  let openRows = [];
+  let openByDate = new Map();
+  let compareByDate = new Map();
+  let deviceByDate = new Map();
+  let syncRows = [];
+  let backupRows = [];
+  let cohortRows = [];
+  let eventsComputed = false;
 
   if (!eventsReady) {
     notes.push('ops_events 尚未就绪，活跃/留存/同步/备份指标不可用');
@@ -640,12 +714,12 @@ async function handleMetricsOverview({ event, requestId }) {
   } else {
     try {
       const lookbackFrom = addDays(to, -29);
-      const appOpen = await loadEvents('app.open', lookbackFrom, to);
-      const openByDate = groupCountByDate(appOpen, 'localDate', 'userId');
-      const deviceByDate = groupCountByDate(appOpen, 'localDate', 'visitorId');
-      const today = to;
-      const dau = (openByDate.get(today) || new Set()).size;
-      const dauDevice = (deviceByDate.get(today) || new Set()).size;
+      const fetchFrom = from < lookbackFrom ? from : lookbackFrom;
+      openRows = await loadEvents('app.open', fetchFrom, to);
+      openByDate = groupCountByDate(openRows, 'localDate', 'userId');
+      deviceByDate = groupCountByDate(openRows, 'localDate', 'visitorId');
+      const dau = (openByDate.get(to) || new Set()).size;
+      const dauDevice = (deviceByDate.get(to) || new Set()).size;
       const wauSet = new Set();
       const mauSet = new Set();
       for (const [date, users] of openByDate) {
@@ -657,7 +731,20 @@ async function handleMetricsOverview({ event, requestId }) {
       metrics.push(metricResult(METRIC_DEFS[2], wauSet.size, 'ready'));
       metrics.push(metricResult(METRIC_DEFS[3], mauSet.size, 'ready'));
 
-      const syncRows = await loadEvents('sync.push', from, to);
+      // 上期对比：取等长的前一个区间，按相同位移映射到当天。
+      const span = rangeDays(from, to).length;
+      try {
+        const compareRows = await loadEvents('app.open', addDays(from, -span), addDays(to, -span));
+        compareByDate = groupCountByDate(compareRows, 'localDate', 'userId');
+      } catch (compareError) {
+        notes.push(
+          `上期对比计算失败：${String(
+            compareError && compareError.message ? compareError.message : compareError,
+          )}`,
+        );
+      }
+
+      syncRows = await loadEvents('sync.push', from, to);
       const syncDevices = new Set();
       let syncTotal = 0;
       let syncSuccess = 0;
@@ -679,7 +766,7 @@ async function handleMetricsOverview({ event, requestId }) {
         ),
       );
 
-      const backupRows = await loadEvents('backup.upload', from, to);
+      backupRows = await loadEvents('backup.upload', from, to);
       let backupSuccess = 0;
       let backupFailure = 0;
       for (const row of backupRows) {
@@ -689,6 +776,7 @@ async function handleMetricsOverview({ event, requestId }) {
       }
       metrics.push(metricResult(METRIC_DEFS[7], backupSuccess, 'ready'));
       metrics.push(metricResult(METRIC_DEFS[8], backupFailure, 'ready'));
+      eventsComputed = true;
     } catch (error) {
       notes.push(`事件指标计算失败：${String(error && error.message ? error.message : error)}`);
       for (const def of METRIC_DEFS.filter((item) => item.source === 'ops_events')) {
@@ -703,12 +791,12 @@ async function handleMetricsOverview({ event, requestId }) {
     metrics.push(metricResult(METRIC_DEFS[4], null, 'not_ready', '首见表未创建'));
   } else {
     try {
-      const rows = await fetchPage(
+      cohortRows = await fetchPage(
         'user_first_seen',
         { firstSeenDate: _.and([_.gte(from), _.lte(to)]) },
         MAX_EVENT_ROWS,
       );
-      metrics.push(metricResult(METRIC_DEFS[4], rows.length, 'ready'));
+      metrics.push(metricResult(METRIC_DEFS[4], cohortRows.length, 'ready'));
     } catch (error) {
       if (isMissingCollection(error)) {
         metrics.push(metricResult(METRIC_DEFS[4], null, 'not_ready', '首见表未创建'));
@@ -719,6 +807,12 @@ async function handleMetricsOverview({ event, requestId }) {
   }
 
   // 现有业务表兜底：commits / branches。缺索引时明确标记为未就绪。
+  let commitsBlock = {
+    status: 'not_ready',
+    activeUsers: null,
+    total: null,
+    points: [],
+  };
   try {
     const commitRows = await fetchPage(
       'commits',
@@ -731,6 +825,19 @@ async function handleMetricsOverview({ event, requestId }) {
     const todayCommits = valid.filter((row) => row.date === to).length;
     metrics.push(metricResult(METRIC_DEFS[9], todayUsers, 'ready', '按 commits.date 统计；不含已撤销/已删除'));
     metrics.push(metricResult(METRIC_DEFS[10], todayCommits, 'ready', '按 commits.date 统计；不含已撤销/已删除'));
+
+    const perDay = new Map();
+    const owners = new Set();
+    for (const row of valid) {
+      if (row.date) perDay.set(row.date, (perDay.get(row.date) || 0) + 1);
+      if (row.ownerId) owners.add(row.ownerId);
+    }
+    commitsBlock = {
+      status: 'ready',
+      activeUsers: owners.size,
+      total: valid.length,
+      points: rangeDays(from, to).map((date) => ({ date, value: perDay.get(date) || 0 })),
+    };
   } catch (error) {
     const note = isMissingCollection(error)
       ? 'commits 表未创建'
@@ -739,6 +846,7 @@ async function handleMetricsOverview({ event, requestId }) {
         : 'commits 查询失败';
     metrics.push(metricResult(METRIC_DEFS[9], null, 'not_ready', note));
     metrics.push(metricResult(METRIC_DEFS[10], null, 'not_ready', note));
+    commitsBlock.status = 'not_ready';
   }
 
   try {
@@ -758,14 +866,103 @@ async function handleMetricsOverview({ event, requestId }) {
     metrics.push(metricResult(METRIC_DEFS[11], null, 'not_ready', note));
   }
 
+  const signupCounts = new Map();
+  for (const row of cohortRows) {
+    if (!row.firstSeenDate) continue;
+    signupCounts.set(row.firstSeenDate, (signupCounts.get(row.firstSeenDate) || 0) + 1);
+  }
+  const seriesDays = rangeDays(from, to);
+  const seriesSpan = seriesDays.length;
+  const series = eventsComputed
+    ? seriesDays.map((date) => ({
+        date,
+        active: (openByDate.get(date) || new Set()).size,
+        signups: signupCounts.get(date) || 0,
+        compare: (compareByDate.get(addDays(date, -seriesSpan)) || new Set()).size,
+      }))
+    : null;
+
+  let retention = buildRetention([], new Map(), today, days, false);
+  if (eventsReady && firstSeenReady) {
+    try {
+      const end = today > to ? today : to;
+      const activeRows = await loadEvents('app.open', from, end);
+      const activeByUser = new Map();
+      for (const row of activeRows) {
+        if (!row.userId || !row.localDate) continue;
+        if (!activeByUser.has(row.userId)) activeByUser.set(row.userId, new Set());
+        activeByUser.get(row.userId).add(row.localDate);
+      }
+      retention = buildRetention(cohortRows, activeByUser, today, days, true);
+    } catch (error) {
+      notes.push(`留存计算失败：${String(error && error.message ? error.message : error)}`);
+    }
+  }
+
+  let sync = {
+    status: eventsComputed ? 'insufficient' : 'not_ready',
+    successRate: null,
+    total: null,
+    success: null,
+    conflict: null,
+    failed: null,
+    devices: null,
+  };
+  if (eventsComputed) {
+    let total = 0;
+    let success = 0;
+    let conflict = 0;
+    let failed = 0;
+    const devices = new Set();
+    for (const row of syncRows) {
+      total += 1;
+      const result = row.props && row.props.result;
+      if (result === 'success') {
+        success += 1;
+        if (row.deviceId) devices.add(row.deviceId);
+      } else if (result === 'conflict') {
+        conflict += 1;
+      } else if (result === 'failed') {
+        failed += 1;
+      }
+    }
+    sync = {
+      status: total ? 'ready' : 'insufficient',
+      successRate: total ? Number(((success / total) * 100).toFixed(1)) : null,
+      total,
+      success,
+      conflict,
+      failed,
+      devices: devices.size,
+    };
+  }
+
+  let backup = { status: eventsComputed ? 'ready' : 'not_ready', success: null, failure: null };
+  if (eventsComputed) {
+    let success = 0;
+    let failure = 0;
+    for (const row of backupRows) {
+      const result = row.props && row.props.result;
+      if (result === 'success') success += 1;
+      if (result === 'failed') failure += 1;
+    }
+    backup = { status: 'ready', success, failure };
+  }
+
   return ok(
     {
       range: { from, to, timezone: 'Asia/Shanghai', tzOffset },
       availability: {
         opsEvents: eventsReady,
         userFirstSeen: firstSeenReady,
+        commits: commitsBlock.status === 'ready',
       },
       metrics,
+      series,
+      retention,
+      sync,
+      backup,
+      commits: commitsBlock,
       notes,
     },
     requestId,
@@ -992,17 +1189,290 @@ async function handleAuditList({ event, requestId }) {
 }
 
 // ---------------------------------------------------------------------------
-// 写接口（第二阶段后段开放）
+// 写接口：仅更新，不新增、不删除
 // ---------------------------------------------------------------------------
 
-async function handleTableUpdate({ requestId }) {
-  return fail(
-    'admin_not_implemented',
-    '编辑能力尚未开放；需要先完成 admin_audit_log 与事务写入验收',
-    501,
-    false,
+const WRITE_RULES = {
+  branches: {
+    title: { kind: 'text', min: 1, max: 120 },
+    goal: { kind: 'nullableText', max: 500 },
+    color: { kind: 'enum', values: ['coral', 'sky', 'honey', 'mint', 'iris', 'rose', 'teal'] },
+  },
+  tasks: {
+    title: { kind: 'text', min: 1, max: 120 },
+    note: { kind: 'nullableText', max: 1000 },
+    dueDate: { kind: 'nullableDate' },
+    plannedDate: { kind: 'nullableDate' },
+    order: { kind: 'int', min: 0, max: 9999 },
+  },
+  commits: {
+    summary: { kind: 'text', min: 0, max: 500 },
+  },
+  milestones: {
+    title: { kind: 'text', min: 1, max: 120 },
+    note: { kind: 'nullableText', max: 1000 },
+  },
+  settings: {
+    theme: { kind: 'enum', values: ['light', 'dark'] },
+    treeDensity: { kind: 'enum', values: ['compact', 'comfortable'] },
+    annotations: { kind: 'enum', values: ['off', 'once', 'always'] },
+    reminderEnabled: { kind: 'boolean' },
+  },
+  year_reviews: {
+    note: { kind: 'text', min: 0, max: 2000 },
+  },
+};
+
+function normalizeField(rule, raw) {
+  if (rule.kind === 'boolean') {
+    return typeof raw === 'boolean' ? { value: raw } : { error: '必须是布尔值' };
+  }
+  if (rule.kind === 'int') {
+    if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < rule.min || raw > rule.max) {
+      return { error: `必须是 ${rule.min}–${rule.max} 的整数` };
+    }
+    return { value: raw };
+  }
+  if (rule.kind === 'enum') {
+    if (typeof raw !== 'string' || !rule.values.includes(raw)) {
+      return { error: `只能是 ${rule.values.join(' / ')}` };
+    }
+    return { value: raw };
+  }
+  if (rule.kind === 'nullableDate') {
+    if (raw == null || raw === '') return { value: null };
+    if (typeof raw !== 'string' || !isValidDate(raw)) return { error: '需要 YYYY-MM-DD 或 null' };
+    const year = Number(raw.slice(0, 4));
+    if (year < 1900 || year > 2999) return { error: '年份需要在 1900–2999' };
+    const parsed = new Date(`${raw}T00:00:00.000Z`);
+    if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== raw) {
+      return { error: '日期不存在' };
+    }
+    return { value: raw };
+  }
+  if (typeof raw !== 'string') return { error: '必须是字符串' };
+  if (/[\r\n]/.test(raw)) return { error: '不能包含换行' };
+  const value = raw.trim();
+  if (value.length < rule.min) return { error: rule.min > 0 ? '不能为空' : '长度不合法' };
+  if (value.length > rule.max) return { error: `长度不能超过 ${rule.max}` };
+  if (rule.kind === 'nullableText' && !value) return { value: null };
+  return { value };
+}
+
+function validatePatch(collection, patch, requestId) {
+  const rules = WRITE_RULES[collection];
+  if (!rules) {
+    return { error: fail('admin_table_not_allowed', '该表不在可写清单内', 403, false, requestId) };
+  }
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+    return { error: fail('admin_invalid_params', 'patch 必须是对象', 400, false, requestId) };
+  }
+  const keys = Object.keys(patch);
+  if (!keys.length) {
+    return { error: fail('admin_invalid_params', 'patch 不能为空', 400, false, requestId) };
+  }
+  const values = {};
+  for (const key of keys) {
+    const rule = rules[key];
+    if (!rule) {
+      return {
+        error: fail('admin_field_not_allowed', `字段 ${key} 不允许修改`, 403, false, requestId, { field: key }),
+      };
+    }
+    const result = normalizeField(rule, patch[key]);
+    if (result.error) {
+      return {
+        error: fail('admin_invalid_params', `${key}：${result.error}`, 400, false, requestId, { field: key }),
+      };
+    }
+    values[key] = result.value;
+  }
+  return { keys, values };
+}
+
+function prepareUpdate(row, values, expectedRev) {
+  const currentRev = Number.isInteger(row.rev) ? row.rev : 0;
+  if (currentRev !== expectedRev) return { conflict: currentRev };
+  const changedFields = [];
+  const before = {};
+  const after = {};
+  const beforeAbsent = [];
+  for (const key of Object.keys(values)) {
+    const next = values[key];
+    const had = Object.prototype.hasOwnProperty.call(row, key);
+    const prev = had ? row[key] : null;
+    if (JSON.stringify(prev) === JSON.stringify(next)) continue;
+    changedFields.push(key);
+    if (had) before[key] = prev === undefined ? null : prev;
+    else beforeAbsent.push(key);
+    after[key] = next;
+  }
+  return {
+    currentRev,
+    revAfter: currentRev + 1,
+    changedFields,
+    before,
+    after,
+    beforeAbsent,
+    afterAbsent: [],
+  };
+}
+
+function buildAudit({ auth, collection, id, row, prepared, reason, requestId, context, at, status }) {
+  return {
+    actorUid: auth.uid,
+    actorEmail: auth.email,
+    action: 'admin.update',
+    collection,
+    docId: id,
+    ownerId: row && row.ownerId ? row.ownerId : null,
+    changedFields: prepared.changedFields,
+    before: prepared.before,
+    after: prepared.after,
+    beforeAbsent: prepared.beforeAbsent,
+    afterAbsent: prepared.afterAbsent,
+    revBefore: prepared.currentRev,
+    revAfter: prepared.revAfter,
+    reason,
+    at,
     requestId,
-  );
+    clientIp: (context && (context.clientIP || context.clientIp)) || '',
+    status: status || 'applied',
+    errorCode: null,
+    schemaVersion: 1,
+  };
+}
+
+function auditIdOf(added) {
+  if (!added) return '';
+  return added.id || added._id || (added.data && (added.data.id || added.data._id)) || '';
+}
+
+function throwAdminError(code, message, extra) {
+  const error = new Error(message);
+  error.adminCode = code;
+  Object.assign(error, extra || {});
+  return error;
+}
+
+function assertEditableRow(row, values, expectedRev) {
+  if (!row) throw throwAdminError('admin_not_found', '该行不存在或已删除');
+  const prepared = prepareUpdate(row, values, expectedRev);
+  if (prepared.conflict != null) {
+    throw throwAdminError('admin_conflict', 'rev 不一致', { currentRev: prepared.conflict });
+  }
+  if (!prepared.changedFields.length) {
+    throw throwAdminError('admin_invalid_params', '未检测到字段变化');
+  }
+  return prepared;
+}
+
+async function handleTableUpdate({ event, context, requestId, auth }) {
+  const collection = String(event.collection || '');
+  const invalid = assertCollection(collection, requestId);
+  if (invalid) return invalid;
+  if (!WRITE_RULES[collection]) {
+    return fail('admin_table_not_allowed', '该表不在可写清单内', 403, false, requestId);
+  }
+  const id = String(event.id || '');
+  if (!id) return fail('admin_invalid_params', '缺少 id', 400, false, requestId);
+  const expectedRev = Number(event.expectedRev);
+  if (!Number.isInteger(expectedRev) || expectedRev < 0) {
+    return fail('admin_invalid_params', 'expectedRev 必须是非负整数', 400, false, requestId);
+  }
+  const reason = typeof event.reason === 'string' ? event.reason.trim() : '';
+  if (!reason || reason.length > 200) {
+    return fail('admin_invalid_params', 'reason 必填，长度 1–200', 400, false, requestId);
+  }
+
+  const checked = validatePatch(collection, event.patch, requestId);
+  if (checked.error) return checked.error;
+  const values = checked.values;
+  const now = Date.now();
+
+  try {
+    let payload;
+    if (typeof db.runTransaction === 'function') {
+      payload = await db.runTransaction(async (transaction) => {
+        const result = await transaction.collection(collection).doc(id).get();
+        const raw = result && result.data;
+        const row = Array.isArray(raw) ? raw[0] : raw;
+        const prepared = assertEditableRow(row, values, expectedRev);
+        const patch = { ...values, rev: prepared.revAfter, updatedAt: now };
+        await transaction.collection(collection).doc(id).update(patch);
+        const audit = buildAudit({
+          auth,
+          collection,
+          id,
+          row,
+          prepared,
+          reason,
+          requestId,
+          context,
+          at: now,
+          status: 'applied',
+        });
+        const added = await transaction.collection('admin_audit_log').add(audit);
+        return { row: maskRow(collection, { ...row, ...patch }), auditId: auditIdOf(added) };
+      });
+    } else {
+      // 兼容不支持 runTransaction 的环境：先写 pending 审计，再写业务，最后回填 applied。
+      const result = await db.collection(collection).doc(id).get();
+      const raw = result && result.data;
+      const row = Array.isArray(raw) ? raw[0] : raw;
+      const prepared = assertEditableRow(row, values, expectedRev);
+      const audit = buildAudit({
+        auth,
+        collection,
+        id,
+        row,
+        prepared,
+        reason,
+        requestId,
+        context,
+        at: now,
+        status: 'pending',
+      });
+      const added = await db.collection('admin_audit_log').add(audit);
+      const auditId = auditIdOf(added);
+      const patch = { ...values, rev: prepared.revAfter, updatedAt: now };
+      try {
+        await db.collection(collection).doc(id).update(patch);
+        await db.collection('admin_audit_log').doc(auditId).update({ status: 'applied' });
+      } catch (error) {
+        await db
+          .collection('admin_audit_log')
+          .doc(auditId)
+          .update({ status: 'failed', errorCode: 'admin_write_failed' })
+          .catch(() => {});
+        throw error;
+      }
+      payload = { row: maskRow(collection, { ...row, ...patch }), auditId };
+    }
+    return ok(payload, requestId);
+  } catch (error) {
+    if (error && error.adminCode === 'admin_not_found') {
+      return fail('admin_not_found', '该行不存在或已删除', 404, false, requestId);
+    }
+    if (error && error.adminCode === 'admin_conflict') {
+      return fail(
+        'admin_conflict',
+        `记录已被更新：编辑版本 rev ${expectedRev}，最新版本 rev ${error.currentRev}。请刷新后重试。`,
+        409,
+        false,
+        requestId,
+        { expectedRev, currentRev: error.currentRev },
+      );
+    }
+    if (error && error.adminCode === 'admin_invalid_params') {
+      return fail('admin_invalid_params', error.message, 400, false, requestId);
+    }
+    if (isMissingCollection(error)) {
+      return fail('admin_collection_missing', '业务表或审计表尚未创建，未写入任何变更', 503, true, requestId);
+    }
+    console.error(`[admin-api] tables.update failed requestId=${requestId}`, error);
+    return fail('admin_write_failed', '写入失败，未产生任何变更', 500, true, requestId);
+  }
 }
 
 // ---------------------------------------------------------------------------

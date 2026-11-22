@@ -1,11 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { callAdminApi, errorMessage, isApiError, type TableListData, type TableMeta } from '@/lib/admin-api';
-import { ChevronRightIcon } from '@/components/icons';
+import {
+  ArchiveIcon,
+  CalendarIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  DatabaseIcon,
+  DeviceIcon,
+  EditIcon,
+  LedgerIcon,
+  PersonIcon,
+  PersonPlusIcon,
+  PulseIcon,
+  SearchBranchIcon,
+  SyncIcon,
+  TableIcon,
+} from '@/components/icons';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorPanel } from '@/components/error-panel';
 import { TableSkeleton } from '@/components/skeleton';
-import { Chip, StatusLabel, type StatusTone } from '@/components/status-chip';
+import { StatusLabel, type StatusTone } from '@/components/status-chip';
 import { copy, tableLabels } from '@/i18n';
 
 interface PageError {
@@ -41,6 +56,48 @@ function labelOf(table: TableMeta): string {
 
 function toneOf(name: string): string {
   return TABLE_TONES[name] || 'sky';
+}
+
+function glyphOf(name: string) {
+  switch (name) {
+    case 'branches':
+      return <SearchBranchIcon />;
+    case 'tasks':
+      return <TableIcon />;
+    case 'commits':
+      return <CheckIcon />;
+    case 'milestones':
+      return <ArchiveIcon />;
+    case 'badges':
+      return <CheckIcon />;
+    case 'settings':
+      return <EditIcon />;
+    case 'year_reviews':
+      return <CalendarIcon />;
+    case 'users':
+      return <PersonIcon />;
+    case 'devices':
+      return <DeviceIcon />;
+    case 'events':
+      return <PulseIcon />;
+    case 'backups':
+      return <ArchiveIcon />;
+    case 'outbox':
+      return <SyncIcon />;
+    case 'conflicts':
+      return <SyncIcon />;
+    case 'migration_state':
+    case 'counters':
+      return <DatabaseIcon />;
+    case 'ops_events':
+      return <PulseIcon />;
+    case 'user_first_seen':
+      return <PersonPlusIcon />;
+    case 'admin_audit_log':
+      return <LedgerIcon />;
+    default:
+      return <TableIcon />;
+  }
 }
 
 function readyStateOf(table: TableMeta): { tone: StatusTone; label: string } {
@@ -125,18 +182,25 @@ export function TablesPage() {
                     <tr key={table.name}>
                       <td>
                         <span className="admin-table-name">
-                          <span className={`admin-mark admin-mark--${toneOf(table.name)}`} aria-hidden="true">
-                            <span className="admin-mark__node" />
-                            <span className="admin-mark__line" />
+                          <span
+                            className={`admin-glyph admin-glyph--${toneOf(table.name)}`}
+                            aria-hidden="true"
+                          >
+                            {glyphOf(table.name)}
                           </span>
-                          <span>{labelOf(table)}</span>
+                          <span className="admin-table-name__text">
+                            <span>{labelOf(table)}</span>
+                            <small>{copy.tables.descriptions[table.name] || ''}</small>
+                          </span>
                         </span>
                       </td>
                       <td>
                         <code className="admin-mono">{table.name}</code>
                       </td>
                       <td>
-                        <Chip>{copy.tables.read}</Chip>
+                        <span className="admin-table-permission">
+                          {table.write ? copy.tables.editable : copy.tables.read}
+                        </span>
                       </td>
                       <td>
                         <StatusLabel tone={status.tone}>{status.label}</StatusLabel>
@@ -165,9 +229,11 @@ export function TablesPage() {
                 >
                   <span className="admin-list-card__top">
                     <span className="admin-list-card__name">
-                      <span className={`admin-mark admin-mark--${toneOf(table.name)}`} aria-hidden="true">
-                        <span className="admin-mark__node" />
-                        <span className="admin-mark__line" />
+                      <span
+                        className={`admin-glyph admin-glyph--${toneOf(table.name)}`}
+                        aria-hidden="true"
+                      >
+                        {glyphOf(table.name)}
                       </span>
                       {labelOf(table)}
                     </span>
@@ -175,7 +241,12 @@ export function TablesPage() {
                   </span>
                   <span className="admin-list-card__meta">
                     <code className="admin-mono">{table.name}</code>
-                    <Chip>{copy.tables.read}</Chip>
+                    <span className="admin-table-permission">
+                      {table.write ? copy.tables.editable : copy.tables.read}
+                    </span>
+                  </span>
+                  <span className="admin-list-card__desc">
+                    {copy.tables.descriptions[table.name] || ''}
                   </span>
                 </Link>
               );
