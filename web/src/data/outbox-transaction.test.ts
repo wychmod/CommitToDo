@@ -161,6 +161,21 @@ describe('本地先写与 outbox 入队', () => {
     expect(op.lastError).toBeNull();
   });
 
+  it('冲突留痕只写 events，不入 outbox', async () => {
+    await db.transaction('rw', [db.events, db.outbox], async (tx) => {
+      await writeEvent(
+        tx,
+        'sync.conflict',
+        'task-1',
+        { branchId: 'branch-1', entityId: 'task-1', field: '' },
+        deps(),
+      );
+    });
+
+    expect(await db.events.count()).toBe(1);
+    expect(await db.outbox.count()).toBe(0);
+  });
+
   it('连续两条写入各入队一条，顺序按写入时刻', async () => {
     const shared = deps();
     await db.transaction('rw', [db.tasks, db.events, db.outbox], async (tx) => {

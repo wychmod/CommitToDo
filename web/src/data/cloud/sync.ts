@@ -8,12 +8,28 @@ import type { Device, OutboxOp } from '../types';
  *
  * Web 端不直写数据库：补推、迁移与匿名计数都经云函数。未配置云环境时统一返回
  * `sync.unavailable`，调用方保留 outbox 并在界面给出「同步失败 + 重试」。
+ * 函数返回 `{ ok: false, code }`（身份失效、参数不合法）时按不可重试失败处理。
  */
 
 interface CallResult<T> {
-  result?: T;
+  result?: (T & { ok?: boolean; code?: string; message?: string }) | null;
   error?: string;
 }
+
+/** 云端返回的行以 `_id` 为主键，落到本机时补回 `id`。 */
+function withId(raw: unknown): Record<string, unknown> | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const row = { ...(raw as Record<string, unknown>) };
+  if (typeof row.id !== 'string' && typeof row._id === 'string') row.id = row._id;
+  return row;
+}
+
+const FATAL_CODES = new Set([
+  'unauthenticated',
+  'invalid_op',
+  'invalid_collection',
+  'payload_invalid',
+]);
 
 async function callFunction<T>(name: string, data: Record<string, unknown>): Promise<Result<T>> {
   try {
@@ -23,7 +39,15 @@ async function callFunction<T>(name: string, data: Record<string, unknown>): Pro
     if (response.error) {
       return fail('sync.failed', { retriable: true, cause: response.error });
     }
-    return ok((response.result ?? ({} as T)) as T);
+    const payload = response.result;
+    if (payload && payload.ok === false) {
+      const code = String(payload.code ?? '');
+      return fail('sync.failed', {
+        retriable: !FATAL_CODES.has(code),
+        cause: { code, message: payload.message ?? '' },
+      });
+    }
+    return ok((payload ?? ({} as T)) as T);
   } catch (cause) {
     if (cause instanceof Error && cause.message === 'cloud.not_configured') {
       return fail('sync.unavailable', { retriable: true, cause });
@@ -36,6 +60,12 @@ export interface PushResponse {
   results: PushOpResult[];
   devices: Device[];
   serverTime: number;
+}
+
+export interface PushDevice {
+  id: string;
+  label: string;
+  platform: string;
 }
 
 interface RawDevice {
@@ -60,18 +90,26 @@ function toDevice(raw: RawDevice, fallbackAt: number): Device {
   };
 }
 
-/** 按 `createdAt` 顺序补推；服务端按 `opId` 幂等，并按 `baseRev` 判定过期写入。 */
-export async function pushOutbox(ops: readonly OutboxOp[]): Promise<Result<PushResponse>> {
+/**
+ * 按 `createdAt` 顺序补推；服务端按 `opId` 幂等，并按 `baseRev` 判定过期写入。
+ * `device` 用于服务端更新当前设备的最近同步时间。
+ */
+export async function pushOutbox(
+  ops: readonly OutboxOp[],
+  device: PushDevice,
+): Promise<Result<PushResponse>> {
   const result = await callFunction<{
-    results?: PushOpResult[];
+    results?: Array<PushOpResult & { server?: Record<string, unknown> | null }>;
     devices?: RawDevice[];
     serverTime?: number;
-  }>('sync-push', { ops });
+  }>('sync-push', { ops, device });
   if (!result.ok) return result;
 
   const serverTime = result.value.serverTime ?? Date.now();
+  const rows: Array<PushOpResult & { server?: Record<string, unknown> | null }> =
+    result.value.results ?? ops.map((op) => ({ opId: op.opId, accepted: true }));
   return ok({
-    results: result.value.results ?? ops.map((op) => ({ opId: op.opId, accepted: true })),
+    results: rows.map((row) => ({ ...row, server: withId(row.server ?? null) })),
     devices: (result.value.devices ?? []).map((raw) => toDevice(raw, serverTime)),
     serverTime,
   });

@@ -135,7 +135,11 @@ async function executeSync(
 
   let response;
   try {
-    response = await pushOutbox(ops);
+    response = await pushOutbox(ops, {
+      id: device.id,
+      label: device.label,
+      platform: device.platform,
+    });
   } catch (cause) {
     return fail('sync.failed', { retriable: true, cause });
   }
@@ -159,6 +163,11 @@ async function executeSync(
     if (result.accepted) {
       await db.outbox.delete(op.opId);
       pushed += 1;
+      // 服务端每次写入递增 rev；本机同步跟进，下一次补推才不会把自己判成过期写入。
+      const tableName = TABLE_OF_ENTITY[op.entity];
+      if (tableName && typeof result.serverRev === 'number') {
+        await db.table(tableName).update(op.entityId, { rev: result.serverRev });
+      }
       continue;
     }
     await recordConflict(op, result.serverRev ?? null, result.server ?? null);

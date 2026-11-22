@@ -18,6 +18,7 @@ import { detectPlatform } from './devices';
  */
 
 const ENABLED_KEY = 'committodo.stats.enabled';
+const ENABLED_AT_KEY = 'committodo.stats.enabledAt';
 const INSTALL_KEY = 'committodo.stats.install';
 const LAST_KEY = 'committodo.stats.lastReported';
 const QUEUE_KEY = 'committodo.stats.queue';
@@ -46,7 +47,13 @@ export function isStatsEnabled(): boolean {
 /** 关闭即停止上报并清空未发送队列；不影响同步与其他功能。 */
 export function setStatsEnabled(enabled: boolean): void {
   write(ENABLED_KEY, enabled ? 'on' : null);
-  if (!enabled) write(QUEUE_KEY, null);
+  if (!enabled) {
+    write(QUEUE_KEY, null);
+    write(ENABLED_AT_KEY, null);
+    return;
+  }
+  // 记录开启当天：开启前的计数属于「关闭期间」，不补报。
+  write(ENABLED_AT_KEY, toLocalDate(systemClock.now(), currentTzOffset(systemClock.now())));
 }
 
 export function getLastReportedDate(): string | null {
@@ -138,17 +145,25 @@ export async function reportAnonymousStats(ownerId: string): Promise<void> {
 
   if (isStatsDue(last, today)) {
     const date = previousLocalDate(today);
-    const counts = await collectDailyCounts(date, ownerId);
-    const payload = buildAnonymousStatsPayload({
-      installId: getInstallId(),
-      localDate: date,
-      commitCount: counts.commitCount,
-      activeBranchCount: counts.activeBranchCount,
-      appVersion: import.meta.env.VITE_APP_VERSION ?? '1.0.0',
-      platform: detectPlatform(),
-    });
-    const queue = readQueue().filter((row) => row.localDate !== date);
-    writeQueue([...queue, payload]);
+    // 开启当天不补报开启之前的计数；存量用户缺该标记时按今天起算。
+    let enabledAt = read(ENABLED_AT_KEY);
+    if (enabledAt === null) {
+      enabledAt = today;
+      write(ENABLED_AT_KEY, enabledAt);
+    }
+    if (date >= enabledAt) {
+      const counts = await collectDailyCounts(date, ownerId);
+      const payload = buildAnonymousStatsPayload({
+        installId: getInstallId(),
+        localDate: date,
+        commitCount: counts.commitCount,
+        activeBranchCount: counts.activeBranchCount,
+        appVersion: import.meta.env.VITE_APP_VERSION ?? '1.0.0',
+        platform: detectPlatform(),
+      });
+      const queue = readQueue().filter((row) => row.localDate !== date);
+      writeQueue([...queue, payload]);
+    }
   }
 
   await sendQueued();

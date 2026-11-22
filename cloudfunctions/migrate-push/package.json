@@ -1,0 +1,10 @@
+{
+  "name": "migrate-push",
+  "version": "1.0.0",
+  "private": true,
+  "description": "V2-02 首次迁移：按集合分批接收本机数据，按 _id upsert",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.1.0"
+  }
+}

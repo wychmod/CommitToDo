@@ -1,0 +1,10 @@
+{
+  "name": "sync-devices",
+  "version": "1.0.0",
+  "private": true,
+  "description": "V2-02 设备列表：返回当前账号的设备与最近同步时间",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.1.0"
+  }
+}

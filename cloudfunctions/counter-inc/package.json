@@ -1,0 +1,10 @@
+{
+  "name": "counter-inc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "V2-02 匿名统计：按 J-07 白名单记录每日计数，只由函数写 counters",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.1.0"
+  }
+}

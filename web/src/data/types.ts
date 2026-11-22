@@ -170,7 +170,7 @@ export interface EventRecord {
 export interface OutboxOp {
   /** 推送幂等键，ULID。 */
   opId: string;
-  entity: 'branch' | 'task' | 'commit' | 'milestone' | 'badge' | 'sync';
+  entity: 'branch' | 'task' | 'commit' | 'milestone' | 'badge';
   entityId: string;
   action: string;
   /** 推送时的实体快照；行已被删除时为动作 payload。 */

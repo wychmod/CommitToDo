@@ -18,6 +18,34 @@
       "runtime": "Nodejs16.13",
       "handler": "index.main",
       "installDependency": true
+    },
+    {
+      "name": "sync-push",
+      "timeout": 20,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "installDependency": true
+    },
+    {
+      "name": "sync-devices",
+      "timeout": 20,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "installDependency": true
+    },
+    {
+      "name": "migrate-push",
+      "timeout": 20,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "installDependency": true
+    },
+    {
+      "name": "counter-inc",
+      "timeout": 20,
+      "runtime": "Nodejs16.13",
+      "handler": "index.main",
+      "installDependency": true
     }
   ]
 }

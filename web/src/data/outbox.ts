@@ -11,7 +11,11 @@ import type { OutboxOp } from './types';
  * 首次写入（`.create`）不带 `baseRev`，服务端据此识别首次与过期写入。
  */
 
-export const SYNCED_ENTITIES = ['branch', 'task', 'commit', 'milestone', 'badge', 'sync'] as const;
+/**
+ * 参与补推的业务实体。`sync` 是冲突留痕的审计实体，只落本机 `events`：
+ * 它由 `recordConflict` 在同一事务里写回，若再入队会在服务端拒绝时递归产生新冲突。
+ */
+export const SYNCED_ENTITIES = ['branch', 'task', 'commit', 'milestone', 'badge'] as const;
 
 export type SyncedEntity = (typeof SYNCED_ENTITIES)[number];
 

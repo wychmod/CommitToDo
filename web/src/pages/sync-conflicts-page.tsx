@@ -6,7 +6,7 @@ import { currentTzOffset, toLocalDate } from '@/core/clock';
 import { db } from '@/data/db';
 import { useSyncSnapshot } from '@/data/sync-hooks';
 import type { SyncConflict } from '@/data/types';
-import { t } from '@/i18n';
+import { t, type MessageKey } from '@/i18n';
 import { PageShell } from '@/ui/page-shell';
 import styles from './sync-pages.module.css';
 
@@ -20,12 +20,37 @@ const META_KEYS = new Set([
   'deletedAt',
   'tzOffset',
   'deviceId',
+  'lastDeviceId',
   'resolved',
   'resolvedAt',
 ]);
 
+const ENTITY_KEYS: Record<string, string> = {
+  branch: 'sync.entity.branch',
+  task: 'sync.entity.task',
+  commit: 'sync.entity.commit',
+  milestone: 'sync.entity.milestone',
+  badge: 'sync.entity.badge',
+  settings: 'sync.entity.settings',
+};
+
 function formatTime(at: number): string {
   return new Date(at).toLocaleString('zh-CN');
+}
+
+function entityLabel(entity: string): string {
+  const key = ENTITY_KEYS[entity];
+  return key ? t(key as MessageKey) : entity;
+}
+
+/** 服务端版本的修改时间与最后写入设备；缺失时退回冲突时间。 */
+function serverMeta(conflict: SyncConflict): { at: number; deviceId: string | null } {
+  const updatedAt = conflict.serverPayload?.updatedAt;
+  const deviceId = conflict.serverPayload?.lastDeviceId;
+  return {
+    at: typeof updatedAt === 'number' ? updatedAt : conflict.at,
+    deviceId: typeof deviceId === 'string' && deviceId.length > 0 ? deviceId : null,
+  };
 }
 
 function conflictName(conflict: SyncConflict): string {
@@ -66,6 +91,7 @@ export function SyncConflictsPage() {
     if (!deviceId) return '—';
     return devices.find((device) => device.id === deviceId)?.label ?? deviceId;
   };
+  const selectedServer = selected ? serverMeta(selected) : null;
 
   return (
     <PageShell
@@ -88,9 +114,12 @@ export function SyncConflictsPage() {
                   onClick={() => setSelectedId(conflict.id)}
                 >
                   <span className={styles.itemTitle}>{conflictName(conflict)}</span>
-                  <span className={styles.hint}>{formatTime(conflict.at)}</span>
                   <span className={styles.hint}>
-                    {t('sync.conflicts.field')} · {conflict.field ?? t('sync.conflicts.wholeRow')}
+                    {entityLabel(conflict.entity)} · {formatTime(conflict.at)}
+                  </span>
+                  <span className={styles.hint}>
+                    {t('sync.conflicts.field')} · {conflict.field ?? t('sync.conflicts.wholeRow')} ·{' '}
+                    {t('sync.conflicts.device')} · {deviceLabel(conflict.deviceId)}
                   </span>
                 </button>
               </li>
@@ -131,11 +160,11 @@ export function SyncConflictsPage() {
                   <dl className={styles.meta}>
                     <div>
                       <dt>{t('sync.conflicts.time')}</dt>
-                      <dd>{formatTime(selected.at)}</dd>
+                      <dd>{formatTime(selectedServer?.at ?? selected.at)}</dd>
                     </div>
                     <div>
                       <dt>{t('sync.conflicts.device')}</dt>
-                      <dd>{deviceLabel(selected.deviceId)}</dd>
+                      <dd>{deviceLabel(selectedServer?.deviceId ?? null)}</dd>
                     </div>
                   </dl>
                   <dl className={styles.meta}>

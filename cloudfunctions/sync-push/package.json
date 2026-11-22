@@ -1,0 +1,10 @@
+{
+  "name": "sync-push",
+  "version": "1.0.0",
+  "private": true,
+  "description": "V2-02 同步：接收 outbox 增量，按 opId 幂等、按 baseRev 判定过期写入",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.1.0"
+  }
+}
