@@ -16,7 +16,10 @@ const TOPICS: readonly HelpTopic[] = [
     id: 'depth',
     questionKey: 'help.q1',
     answerKey: 'help.a1',
-    links: [{ to: '/branches', labelKey: 'help.q1.action' }],
+    links: [
+      { to: '/branches', labelKey: 'help.q1.action' },
+      { to: '/sample', labelKey: 'help.q1.sample' },
+    ],
   },
   {
     id: 'stalled',
