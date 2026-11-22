@@ -291,6 +291,10 @@
   cursor: pointer;
 }
 
+.milestoneRowWide {
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+}
+
 .milestoneRow + .milestoneRow {
   border-top: 1px solid var(--line);
 }
@@ -502,6 +506,11 @@
     flex: 1;
   }
 
+  .branchMenu {
+    right: 0;
+    left: auto;
+  }
+
   .rangeText {
     width: 100%;
     margin-inline-start: 0;
@@ -519,6 +528,10 @@
   .milestoneRow {
     grid-template-columns: 2.75rem minmax(0, 1fr);
     padding-inline: var(--s4);
+  }
+
+  .milestoneRowWide {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
   }
 
   .milestoneBranch {

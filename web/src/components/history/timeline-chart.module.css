@@ -185,14 +185,12 @@
   align-self: stretch;
 }
 
-.track::before {
+.rail {
   position: absolute;
   top: 50%;
   right: 0;
-  left: 0;
   height: var(--timeline-rail);
   background: var(--lane-color);
-  content: '';
   opacity: 0.55;
 }
 

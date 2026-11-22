@@ -317,6 +317,8 @@ export function HistoryPage() {
     rangeStartDate === null
       ? `— ${dottedDate(effectiveRange.end)}`
       : `${dottedDate(rangeStartDate)} — ${dottedDate(effectiveRange.end)}`;
+  const crossYear =
+    rangeStartDate !== null && rangeStartDate.slice(0, 4) !== effectiveRange.end.slice(0, 4);
   const todayLabel = `${t('history.today')}${Number(todayDate.slice(5, 7))}${t(
     'history.axis.monthSuffix',
   )}${Number(todayDate.slice(8, 10))}${t('history.daySuffix')}`;
@@ -588,10 +590,16 @@ export function HistoryPage() {
                       <button
                         key={milestone.id}
                         type="button"
-                        className={styles.milestoneRow}
+                        className={
+                          crossYear
+                            ? `${styles.milestoneRow} ${styles.milestoneRowWide}`
+                            : styles.milestoneRow
+                        }
                         onClick={() => openMilestoneDetail(milestone.id)}
                       >
-                        <span className={styles.milestoneDate}>{dottedDate(date).slice(5)}</span>
+                        <span className={styles.milestoneDate}>
+                          {crossYear ? dottedDate(date) : dottedDate(date).slice(5)}
+                        </span>
                         <strong className={styles.milestoneName}>{milestone.title}</strong>
                         <span className={styles.milestoneBranch}>
                           <i

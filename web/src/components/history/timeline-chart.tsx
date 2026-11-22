@@ -20,6 +20,8 @@ import type { BadgeMarker } from '@/core/rules/badge-marker';
 const LABEL_WIDTH_PX = 160;
 const MIN_DAY_WIDTH_PX = 3;
 const MIN_GAP_PX = 12;
+/** 节点最大半宽（当天徽章 20px）；用于让区间首尾的节点不被面板边缘裁掉。 */
+const EDGE_PAD_PX = 10;
 const DAY_MS = 86_400_000;
 
 export interface TimelineHighlight {
@@ -83,6 +85,7 @@ function monthTicks(
   start: string,
   end: string,
   suffix: string,
+  yearSuffix: string,
 ): Array<{ date: string; label: string }> {
   const ticks = [{ date: start, label: start.slice(5) }];
   const startYear = Number(start.slice(0, 4));
@@ -95,7 +98,8 @@ function monthTicks(
   while (year < endYear || (year === endYear && month <= endMonth)) {
     const date = `${year}-${pad2(month)}-01`;
     if (date > start && date <= end) {
-      ticks.push({ date, label: `${month}${suffix}` });
+      // 跨年范围内一月只写年份，避免只看到「1 月」分不清是哪一年。
+      ticks.push({ date, label: month === 1 ? `${year}${yearSuffix}` : `${month}${suffix}` });
     }
     month += 1;
     if (month > 12) {
@@ -261,19 +265,25 @@ export function TimelineChart({
   const pxPerMs = trackWidth / totalMs;
   const todayDate = today(systemClock, tz);
   const todayX = Math.min(
-    trackWidth,
-    Math.max(0, (dateToMs(todayDate, tz, 0) - startMs) * pxPerMs),
+    Math.max(EDGE_PAD_PX, (dateToMs(todayDate, tz, 0) - startMs) * pxPerMs),
+    Math.max(EDGE_PAD_PX, trackWidth - EDGE_PAD_PX),
   );
   const tickClass = (date: string): string =>
     date === range.end ? styles.tickEnd : date === rangeStart ? styles.tickStart : styles.tick;
   const monthSuffix = t('history.axis.monthSuffix');
+  const yearSuffix = t('history.axis.yearSuffix');
   const ticks = useMemo(
-    () => monthTicks(rangeStart, range.end, monthSuffix),
-    [rangeStart, range.end, monthSuffix],
+    () => monthTicks(rangeStart, range.end, monthSuffix, yearSuffix),
+    [rangeStart, range.end, monthSuffix, yearSuffix],
   );
 
   const dayX = (date: string): number => xPercent(dateToMs(date, tz), startMs, totalMs);
   const msX = (ms: number): number => xPercent(ms, startMs, totalMs);
+  // 首尾当天的节点会被 100% / 0% 定位切掉一半，向内收一个节点半径。
+  const markerX = (ms: number): number => {
+    const pad = trackWidth > 0 ? (EDGE_PAD_PX / trackWidth) * 100 : 0;
+    return Math.min(100 - pad, Math.max(pad, msX(ms)));
+  };
 
   const markerByDate = useMemo(
     () => new Map(badges.map((marker) => [marker.date, marker])),
@@ -408,6 +418,13 @@ export function TimelineChart({
                 </div>
 
                 <div className={styles.track} style={{ width: trackWidth }}>
+                  <span
+                    className={styles.rail}
+                    style={{
+                      left: `${lane.isRoot ? 0 : dayX(toLocalDate(branch.createdAt, tz))}%`,
+                    }}
+                  />
+
                   {ticks.map((tick) => (
                     <span
                       key={tick.date}
@@ -474,7 +491,7 @@ export function TimelineChart({
 
                   {clusters.map((cluster) => {
                     const first = cluster.items[0]!;
-                    const x = msX(first.at);
+                    const x = markerX(first.at);
                     if (cluster.items.length === 1) {
                       const event = first;
                       const highlighted = matchesHighlight(branch.id, event);
@@ -513,7 +530,7 @@ export function TimelineChart({
                       <div
                         key={marker.date}
                         className={styles.badgeMarkerWrap}
-                        style={{ left: `${dayX(marker.date)}%` }}
+                        style={{ left: `${markerX(dateToMs(marker.date, tz))}%` }}
                       >
                         <button
                           type="button"
