@@ -35,7 +35,21 @@
   letter-spacing: -0.045em;
 }
 
-.head p {
+.eyebrow {
+  margin-bottom: calc(var(--s2) + 1px);
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  letter-spacing: 0.025em;
+}
+
+.eyebrow p {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.description {
   margin: calc(var(--s2) + 1px) 0 0;
   color: var(--muted);
   font-size: calc(var(--type-secondary) + 1px);

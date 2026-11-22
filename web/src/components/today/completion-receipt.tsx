@@ -1,15 +1,18 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { localClockTime } from '@/core/clock';
 import { composeCommitSummary } from '@/core/rules/commit-summary';
-import type { Commit } from '@/data/types';
+import type { Branch, Commit } from '@/data/types';
 import { t } from '@/i18n';
-import { CheckIcon } from '@/ui/icons';
+import { ArrowIcon, CheckIcon } from '@/ui/icons';
+import { BranchTag } from './branch-tag';
 import styles from './completion-receipt.module.css';
 
 interface CompletionReceiptProps {
   commit: Commit;
   taskTitle: string;
-  onOpenCommit: (commit: Commit) => void;
+  branch: Branch | undefined;
+  branchTrail: string;
   onSaveNote: (summary: string) => Promise<boolean>;
 }
 
@@ -22,7 +25,8 @@ interface CompletionReceiptProps {
 export function CompletionReceipt({
   commit,
   taskTitle,
-  onOpenCommit,
+  branch,
+  branchTrail,
   onSaveNote,
 }: CompletionReceiptProps) {
   const [open, setOpen] = useState(false);
@@ -49,20 +53,29 @@ export function CompletionReceipt({
   const summary = hasNote ? composeCommitSummary(taskTitle, savedExtra) : commit.summary;
 
   return (
-    <div className={styles.receipt} role="status">
-      <div className={styles.header}>
+    <section className={styles.receipt} role="status" aria-label={t('today.receipt.title')}>
+      <div className={styles.heading}>
         <span className={styles.check} aria-hidden="true">
-          <CheckIcon />
+          <CheckIcon size={15} />
         </span>
-        <span className={styles.done}>
-          {t('today.receipt.donePrefix')}
-          {localClockTime(commit.at)}
-        </span>
-        <button type="button" className={styles.view} onClick={() => onOpenCommit(commit)}>
-          {t('today.receipt.view')}
-        </button>
+        <span>{t('today.receipt.donePrefix')}</span>
+        <time className={styles.time}>{localClockTime(commit.at)}</time>
       </div>
-      <p className={styles.summary}>{summary}</p>
+
+      <h2 className={styles.title}>{summary}</h2>
+
+      <div className={styles.foot}>
+        <BranchTag branch={branch} trail={branchTrail} />
+        <div className={styles.links}>
+          <button type="button" className={styles.noteLink} onClick={() => setOpen(true)}>
+            {hasNote ? t('today.receipt.saved') : t('today.receipt.note')}
+          </button>
+          <Link className={styles.view} to={`/history?commit=${commit.id}`}>
+            {t('today.receipt.view')}
+            <ArrowIcon size={14} />
+          </Link>
+        </div>
+      </div>
 
       {open ? (
         <div className={styles.noteForm}>
@@ -86,14 +99,7 @@ export function CompletionReceipt({
             </p>
           ) : null}
         </div>
-      ) : (
-        <div className={styles.footer}>
-          <button type="button" className={styles.noteLink} onClick={() => setOpen(true)}>
-            {t('today.receipt.note')}
-          </button>
-          {hasNote ? <span className={styles.saved}>{t('today.receipt.saved')}</span> : null}
-        </div>
-      )}
-    </div>
+      ) : null}
+    </section>
   );
 }

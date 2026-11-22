@@ -143,6 +143,7 @@ export function BranchTasksSection({
               branch={branch}
               branchTrail={branchTrail}
               todayDate={todayDate}
+              showBranch={false}
               readonlyReason={readonlyReason ? branchReadonlyKey(readonlyReason) : null}
               busy={busyId === task.id}
               error={failedId === task.id}
