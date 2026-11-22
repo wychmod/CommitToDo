@@ -210,14 +210,14 @@
 
 .metaDate {
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: baseline;
+  gap: 6px;
   white-space: nowrap;
 }
 
 .dateLabel {
   color: var(--subtle);
-  font-size: var(--type-label);
+  font-size: var(--type-chart);
 }
 
 .dateValue {
@@ -243,9 +243,14 @@
   align-items: center;
   gap: var(--s3);
   min-height: var(--s10);
-  padding: 0 var(--s3) 0 var(--s2);
+  padding: calc(var(--s2) + 1px) calc(var(--s4) + 2px) calc(var(--s2) + 1px) calc(var(--s4) + 1px);
   border-radius: var(--radius-panel) var(--radius-panel) 0 0;
-  background: var(--inset);
+  border-bottom: 1px solid color-mix(in srgb, var(--family-tint, var(--line)) 42%, var(--line));
+  background: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--family-tint, var(--inset)) 60%, var(--panel)),
+    var(--panel) 70%
+  );
 }
 
 .familyHead:only-child {
@@ -276,11 +281,39 @@
 .familyIcon {
   display: grid;
   place-items: center;
-  width: var(--s8);
-  height: var(--s8);
-  border-radius: var(--radius-control);
+  width: calc(var(--s7) + 2px);
+  height: calc(var(--s7) + 2px);
+  border-radius: calc(var(--radius-panel) - 1px);
   background: color-mix(in srgb, currentColor 12%, var(--panel));
   color: var(--muted);
+}
+
+.familyNode[data-color='coral'] {
+  --family-tint: var(--coral-bg);
+}
+
+.familyNode[data-color='sky'] {
+  --family-tint: var(--sky-bg);
+}
+
+.familyNode[data-color='honey'] {
+  --family-tint: var(--honey-bg);
+}
+
+.familyNode[data-color='mint'] {
+  --family-tint: var(--mint-bg);
+}
+
+.familyNode[data-color='iris'] {
+  --family-tint: var(--iris-bg);
+}
+
+.familyNode[data-color='rose'] {
+  --family-tint: var(--rose-bg);
+}
+
+.familyNode[data-color='teal'] {
+  --family-tint: var(--teal-bg);
 }
 
 .familyIcon[data-color='coral'] {
@@ -320,8 +353,9 @@
 .familyName {
   overflow: hidden;
   color: var(--text);
-  font-size: var(--type-body);
-  font-weight: 600;
+  font-size: calc(var(--type-body-large) + 2px);
+  font-weight: 700;
+  letter-spacing: 0;
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;

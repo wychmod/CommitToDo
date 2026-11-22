@@ -1,26 +1,30 @@
 .link {
   display: inline-flex;
   align-items: center;
-  min-height: var(--s9);
-  padding: 0 var(--s4);
+  gap: var(--s2);
+  min-height: var(--s8);
+  padding: 0 calc(var(--s4) - 2px);
   border: 1px solid var(--accent);
   border-radius: var(--radius-control);
   background: var(--accent);
   color: var(--accent-ink);
   font-size: var(--type-secondary);
+  font-weight: 650;
   text-decoration: none;
 }
 
 .action {
   display: inline-flex;
   align-items: center;
-  min-height: var(--s9);
-  padding: 0 var(--s4);
+  gap: var(--s2);
+  min-height: var(--s8);
+  padding: 0 calc(var(--s4) - 2px);
   border: 1px solid var(--accent);
   border-radius: var(--radius-control);
   background: var(--accent);
   color: var(--accent-ink);
   font-size: var(--type-secondary);
+  font-weight: 650;
   white-space: nowrap;
   cursor: pointer;
 }

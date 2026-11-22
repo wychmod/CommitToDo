@@ -22,8 +22,9 @@
 
 .brand {
   color: var(--text);
-  font-size: var(--type-heading-small);
-  font-weight: 600;
+  font-size: calc(var(--type-heading-small) - 1px);
+  font-weight: 750;
+  letter-spacing: -0.02em;
   text-decoration: none;
 }
 
@@ -52,7 +53,7 @@
   grid-area: sidebar;
   flex-direction: column;
   gap: var(--s5);
-  padding: var(--s5) var(--s4);
+  padding: calc(var(--s7) - 4px) var(--s4) calc(var(--s5) - 2px);
   border-right: 1px solid var(--line);
   background: var(--sidebar);
 }
@@ -67,18 +68,20 @@
 .navActive {
   display: flex;
   align-items: center;
-  min-height: var(--s9);
-  padding: 0 var(--s3);
-  border-radius: var(--radius-control);
+  min-height: calc(var(--s8) + 2px);
+  padding: 0 calc(var(--s3) - 1px);
+  border-left: 2px solid transparent;
+  border-radius: calc(var(--radius-control) - 1px);
   color: var(--muted);
-  font-size: var(--type-body);
+  font-size: calc(var(--type-secondary) + 1px);
+  font-weight: 650;
   text-decoration: none;
 }
 
 .navActive {
+  border-left-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
-  font-weight: 600;
 }
 
 .localTag {

@@ -24,8 +24,9 @@
 .rootTitle {
   margin: 0;
   color: var(--text);
-  font-size: var(--type-heading-small);
-  font-weight: 600;
+  font-size: calc(var(--type-body-large) + 1px);
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .rootMeta {
