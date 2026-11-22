@@ -36,12 +36,10 @@ admin/                              # 独立前端工程，不进 web 包
   package.json                      # 独立依赖与脚本
   package-lock.json
   tsconfig.json
-  tsconfig.node.json
   vite.config.ts
-  eslint.config.js
   index.html                        # noindex,nofollow
   .env.example
-  cloudbaserc.json                  # 只声明 admin-api，functionRoot 指向 ../cloudfunctions
+  cloudbaserc.json                  # 声明 admin-api / ops-event / ops-retention，functionRoot 指向 ../cloudfunctions
   src/
     main.tsx
     app.tsx
@@ -72,6 +70,14 @@ cloudfunctions/
     index.js
     package.json
     README.md
+  ops-event/                        # 客户端行为事件采集，写 ops_events
+    index.js
+    package.json
+    README.md
+  ops-retention/                    # ops_events 400 天保留清理，定时触发器
+    index.js
+    package.json
+    README.md
 ```
 
 ### 2.2 构建与部署
@@ -93,6 +99,7 @@ npx @cloudbase/cli hosting deploy dist /admin-console -e committodo-d6gmapg0j639
 
 - 若后续希望完全独立域名，可把 `admin/dist` 挂到单独静态站点或自定义域名；管理接口鉴权不依赖静态资源位置，静态 HTML 暴露不构成数据泄露。
 - `index.html` 带 `<meta name="robots" content="noindex,nofollow">`，且 web 侧不出现任何入口链接。
+- **当前状态**：静态托管发布尚未执行，`admin-console/` 路径下没有任何文件；等用户明确确认后再跑上面的 `hosting deploy`。
 
 ### 2.3 为什么不会破坏 `web` 的 lint / test / build
 
@@ -574,6 +581,45 @@ app.callFunction({
 - 开放前必须完成字段白名单、`expectedRev` 冲突校验、事务内审计、二次确认交互（待定项）。
 - 不支持新增、物理删除、批量写。
 
+### 6.5 事件采集接口（`ops-event`）
+
+```ts
+await app.callFunction({
+  name: 'ops-event',
+  data: {
+    events: [{
+      event: 'app.open',
+      platform: 'web',          // web | wechat
+      localDate: '2026-11-22',  // 客户端本地日
+      tzOffset: 480,            // 分钟，东正西负，-720..840
+      visitorId: 'v_xxx',       // 未登录必填
+      deviceId: 'd_xxx',
+      appVersion: '2.0.0',
+      eventId: '...',           // 非 app.open/account.signup 必填，8..64 位
+      props: {},                // 仅白名单键
+    }],
+  },
+});
+```
+
+| 约束 | 规则 |
+|---|---|
+| 批量 | 单次最多 20 条，超过返回 `ops_batch_too_large`（413） |
+| 事件白名单 | 只接受 CLOUD-SCHEMA-REQUEST §3 的 10 个事件；未知事件整包拒绝 `ops_invalid_event` |
+| props | 每事件白名单键；未知键、超过 12 键、类型不符整包拒绝 |
+| 身份 | `userId` 只取调用身份；客户端传值忽略；未登录必须带 `visitorId` 或 `deviceId` |
+| 时间 | `localDate` 必须是合法日期且与服务端日期偏差 ≤1 天；`at` 取服务端时间 |
+| 去重 | `app.open` 键为 `evt:app.open:<账号或匿名>:<设备>:<localDate>`；`account.signup` 为 `evt:account.signup:<账号>:<localDate>`；其余为 `evt:<event>:<eventId>`；重试命中已存在键计入 `duplicates`，不重复计数 |
+| 失败 | 返回 `ok:false` + 错误码，客户端静默忽略，不阻塞主流程 |
+| 派生表 | 有 `userId` 时 upsert `user_first_seen`；派生失败只记日志，不影响事件写入 |
+
+### 6.6 保留清理（`ops-retention`）
+
+- 触发：定时触发器 `ops-retention-daily`，Cron `0 10 3 * * * *`（每天 03:10，北京时间）。
+- 行为：只删除 `ops_events.at < now - 400 天` 的行；单次最多 5000 行，未删完下次继续。
+- 保护：带用户身份的客户端调用返回 `ops_retention_forbidden`；定时触发器与控制台运维无用户身份，可执行。
+- 真实返回：`{ ok: true, data: { retentionDays: 400, cutoffIso, scanned, deleted, capped } }`。
+
 ---
 
 ## 7. 待定清单（需要你拍板）
@@ -624,3 +670,123 @@ app.callFunction({
 6. `ops_events` 未创建 → 指标显示「未接入」，不显示假数据。
 7. `ops_events` 创建但无数据 → 指标显示空态或 `insufficient`，不报错。
 8. 无权限账号看不到任何业务行；通过云函数直接调用同样被拒绝。
+
+---
+
+## 10. 部署与运维
+
+### 10.1 目标与产物
+
+| 项 | 值 |
+|---|---|
+| 前端工程 | `admin/`（独立 `package.json` 与 lockfile） |
+| 构建命令 | `cd admin && npm ci && npm run build` |
+| 构建产物 | `admin/dist/`（`index.html` + `assets/*`） |
+| 生产 `base` | `/admin-console/` |
+| 静态托管目标 | 环境 `committodo-d6gmapg0j6397889f` 的 `/admin-console` 子路径 |
+| 部署命令 | `npx @cloudbase/cli hosting deploy dist /admin-console -e committodo-d6gmapg0j6397889f` |
+| 当前状态 | **未执行**；等用户确认后再发布，不覆盖 web 根目录 |
+
+### 10.2 环境变量清单
+
+| 变量 | 归属 | 必填 | 说明 |
+|---|---|---|---|
+| `ADMIN_EMAILS` | `admin-api` 函数环境变量 | 是（未配置时默认全拒） | 逗号分隔的白名单邮箱；服务端 `trim + 小写` 归一化；空串或未配置 → 所有请求 `admin_forbidden` |
+| `ADMIN_EMAIL_VERIFICATION_MODE` | `admin-api` 函数环境变量 | 否 | `enforce`（默认，要求接口返回邮箱已验证）或 `trust-login`（已确认登录强制验证时使用） |
+| `VITE_CLOUDBASE_ENV_ID` | 前端构建时 | 是 | `committodo-d6gmapg0j6397889f` |
+| `VITE_CLOUDBASE_REGION` | 前端构建时 | 是 | `ap-shanghai` |
+| `VITE_ADMIN_API_FUNCTION` | 前端构建时 | 是 | `admin-api` |
+
+- 不配置任何密钥：管理前端只用 CloudBase Web SDK 的登录态调用云函数；云函数用环境内置凭据访问数据库。
+- `.env.local` 只放环境 ID / 地域 / 函数名，已被 gitignore；`.env.example` 入库。
+- 白名单具体邮箱值不进仓库，只在云函数环境变量里配置。
+
+### 10.3 云函数部署
+
+```bash
+# 三个函数都在 admin/cloudbaserc.json 中声明，functionRoot 指向 ../cloudfunctions
+tcb fn deploy admin-api     --cwd admin -e committodo-d6gmapg0j6397889f
+tcb fn deploy ops-event     --cwd admin -e committodo-d6gmapg0j6397889f
+tcb fn deploy ops-retention --cwd admin -e committodo-d6gmapg0j6397889f
+```
+
+- 函数名只允许小写字母、数字与连字符：`admin-api`、`ops-event`、`ops-retention`。
+- 只新增自己的函数目录，不修改 `backup-sign`、`workspace-read`、`sync-push` 等他人函数。
+- 部署配置：Nodejs20.19，`admin-api` / `ops-event` 超时 20s，`ops-retention` 超时 60s，云端安装依赖。
+
+### 10.4 定时触发器
+
+| 项 | 值 |
+|---|---|
+| 函数 | `ops-retention` |
+| 触发器名 | `ops-retention-daily` |
+| 类型 | `timer` |
+| Cron | `0 10 3 * * * *`（每天 03:10，SCF 定时触发器按北京时间） |
+| 创建命令 | `tcb fn trigger create ops-retention --trigger-name ops-retention-daily --cron "0 10 3 * * * *" -e committodo-d6gmapg0j6397889f` |
+| 已创建 | 2026-11-22 13:45:58，`tcb fn detail ops-retention` 已确认 |
+
+### 10.5 更新流程
+
+1. 前端：`cd admin && npm ci && npm run build`；确认 `dist/index.html` 引用 `/admin-console/assets/...`。
+2. 云函数：改动后按 §10.3 重新 `fn deploy`；改环境变量用 `tcb fn env` 或控制台。
+3. 静态托管：经用户确认后执行 §10.1 的 `hosting deploy`，只写 `/admin-console`，不动 web 根路径与既有 bucket 对象。
+4. 发布后回归：`whoami` → `tables.list` → `metrics.overview` → 浏览器打开 `/admin-console/` 确认资源 200。
+
+---
+
+## 11. 真实验证记录（2026-11-22）
+
+### 11.1 已完成
+
+| 项 | 命令 / 方式 | 真实返回 |
+|---|---|---|
+| 部署 `admin-api`（未配置 `ADMIN_EMAILS`） | `tcb fn deploy admin-api` | `create` 成功 |
+| 未登录调用 | `tcb fn invoke admin-api` + `{"action":"whoami"}` | `{"ok":false,"code":"admin_unauthenticated","status":401}`，requestId `fc4e2be0-d761-4c3a-935c-9bce6b2d5797` |
+| 空白名单 / 归一化 / 未验证 / 无身份（本地校验同一份函数代码） | 注入假身份调用 `main()` | `empty-whitelist → admin_forbidden 403`；`whitelisted-normalized → ok`；`not-whitelisted → admin_forbidden 403`；`verified-false → admin_email_unverified 403`；`verified-unknown-enforce → admin_email_unverified 403`；`trust-login → ok`；`no-uid → admin_unauthenticated 401` |
+| 部署 `ops-event` | `tcb fn deploy ops-event` | `create` 成功 |
+| 未知事件 | 真实调用 | `ops_invalid_event`：`未知事件：fake.event（第 1 条）` |
+| 非法 props | 真实调用 `app.open` + `props.email` | `ops_invalid_event`：`app.open 不接受 props（第 1 条）` |
+| 日期偏差 | 真实调用 `localDate=2020-01-01` | `ops_invalid_event`：`localDate 与服务端日期偏差超过 1 天（第 1 条）` |
+| 批量超限 | 真实调用 21 条 | `ops_batch_too_large`：`单次最多 20 条事件`（413） |
+| 未带身份 | 真实调用 `app.open` 不带 `visitorId` | `ops_invalid_event`：`未登录时必须提供 visitorId 或 deviceId（第 1 条）` |
+| 未登录注册事件 | 真实调用 `account.signup` 仅带 `visitorId` | `ops_invalid_event`：`account.signup 需要登录身份（第 1 条）` |
+| 部署 `ops-retention` + 触发器 | `tcb fn deploy` / `tcb fn trigger create` | 触发器详情：`ops-retention-daily` / `timer` / `{"cron":"0 10 3 * * * *"}` |
+| 清理函数空跑 | 真实调用 | `{"ok":true,"data":{"retentionDays":400,"cutoffIso":"2025-10-18T05:46:19.666Z","scanned":0,"deleted":0,"capped":false}}` |
+
+### 11.2 待验证（被账号阻塞）
+
+| 项 | 阻塞原因 | 解除条件 |
+|---|---|---|
+| 真实只读链路：`tables.list` 列出 18 张真实表、`tables.row` 读行、`metrics.overview` 从 `not_ready` 变 `ready` | 云函数身份只能来自真实登录；本地没有白名单账号凭据 | 用户提供白名单账号的邮箱 + 测试密码（或临时密码），或用户在预览里自行登录后交接 |
+| 三个鉴权错误码端到端 | 同上 | 同上，另加一个非白名单账号 |
+| `tables.update` 单行改回与两条审计 | 同上；且按约定只读链路验通后再实现 | 同上 |
+| 集合安全规则：客户端能否直读集合 | 该环境**未开启匿名登录**：`signInAnonymously` 真实返回 `login_type_disabled`（errorCode 4045） | 控制台开启匿名登录后复测，或用真实登录账号的 token 直读测试 |
+
+### 11.3 集合安全规则（待办）
+
+- 现状：无法用匿名 key 验证（匿名登录未开启）。
+- 需要确认：所有业务集合应为「仅云函数可读写」，客户端 Web SDK 直接 `collection().get()` 应被拒绝。
+- 这条已列为待办，需到控制台「数据库 → 安全规则」逐集合确认；管理站代码无法替代该配置。
+
+---
+
+## 12. Web 端埋点改动清单（只报告，未修改 `web/src/**`）
+
+> 等用户确认没有其他线在改这些文件后再实施。
+
+| 文件 | 改动 | 事件 |
+|---|---|---|
+| `web/src/data/cloud/ops-events.ts`（新增） | 事件队列 + `callFunction('ops-event')`；自动补 `localDate`（`core/clock` 的 `today()`）、`tzOffset`（`-new Date().getTimezoneOffset()`）、`eventId`（ULID/UUID）；失败静默、不重试阻塞主流程 | 通用 |
+| `web/src/components/layout/app-shell.tsx` | 每个本地日首次进入工作区上报一次（localStorage 记已上报日期） | `app.open` |
+| `web/src/data/cloud/auth.ts` | 注册成功后上报 | `account.signup`（`method`） |
+| `web/src/data/sync.ts` | `pushOutbox` 结束后按结果上报 | `sync.push`（`ops`、`result`、`errorCode`） |
+| `web/src/data/upload-remote-backup.ts` | 备份上传结束后上报 | `backup.upload`（`result`、`bytes`、`errorCode`） |
+| `web/src/data/complete-task.ts` | 完成待办事务成功后上报 | `task.complete`（`count`、`hadDueDate`）、`commit.create`（`count`） |
+| `web/src/data/create-branch.ts` | 新建分支成功后上报 | `branch.create`（`depth`） |
+| `web/src/data/create-milestone.ts` | 新建里程碑成功后上报 | `milestone.create`（`precision`） |
+| `web/src/data/grant-badge.ts` | 授予徽章成功后上报 | `badge.grant`（`catalogId`） |
+| 周/月/年回顾页 | 打开回顾时上报 | `review.open`（`kind`） |
+
+- 所有上报都在业务成功后异步发出，不改变原有用例的返回值和事务边界。
+- 不上报标题、备注、邮箱、分支名等自由文本；`eventId` 由客户端生成，重试复用同一个。
+

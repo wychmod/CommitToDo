@@ -11,6 +11,20 @@
       "envVariables": {
         "ADMIN_EMAIL_VERIFICATION_MODE": "enforce"
       }
+    },
+    {
+      "name": "ops-event",
+      "timeout": 20,
+      "runtime": "Nodejs20.19",
+      "handler": "index.main",
+      "installDependency": true
+    },
+    {
+      "name": "ops-retention",
+      "timeout": 60,
+      "runtime": "Nodejs20.19",
+      "handler": "index.main",
+      "installDependency": true
     }
   ]
 }
