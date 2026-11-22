@@ -1,7 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { SessionProvider, useSession } from '@/session/session-context';
 import { AppShell } from '@/components/app-shell';
-import { StatePanel } from '@/components/state-panel';
+import { PublicHeader } from '@/components/public-header';
+import { BootSkeleton } from '@/components/skeleton';
+import { ErrorPanel } from '@/components/error-panel';
 import { LoginPage } from '@/pages/login-page';
 import { DeniedPage } from '@/pages/denied-page';
 import { OverviewPage } from '@/pages/overview-page';
@@ -11,12 +13,13 @@ import { AuditPage } from '@/pages/audit-page';
 import { copy } from '@/i18n';
 
 function Gate() {
-  const { state, error, retry } = useSession();
+  const { state, error, requestId, retry } = useSession();
 
   if (state === 'loading') {
     return (
-      <div className="admin-login">
-        <StatePanel title={copy.status.loading} />
+      <div className="admin-public">
+        <PublicHeader />
+        <BootSkeleton />
       </div>
     );
   }
@@ -31,14 +34,16 @@ function Gate() {
 
   if (state !== 'ready') {
     return (
-      <div className="admin-login">
-        <StatePanel
-          tone="error"
-          title={copy.common.error}
-          description={error}
-          actionLabel={copy.common.retry}
-          onAction={() => void retry()}
-        />
+      <div className="admin-public">
+        <PublicHeader />
+        <main className="admin-main admin-main--narrow">
+          <ErrorPanel
+            title={copy.common.errorTitle}
+            message={error}
+            requestId={requestId}
+            onRetry={() => void retry()}
+          />
+        </main>
       </div>
     );
   }

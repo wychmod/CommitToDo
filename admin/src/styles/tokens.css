@@ -1,53 +1,107 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
-  --admin-bg: #f4f3ef;
-  --admin-surface: #ffffff;
-  --admin-surface-soft: #faf9f6;
-  --admin-ink: #1e242a;
-  --admin-ink-soft: #59636d;
-  --admin-ink-faint: #87909a;
-  --admin-line: #dcdfe3;
-  --admin-line-strong: #c3c8ce;
+  /* surfaces */
+  --admin-canvas: #f7f9fc;
+  --admin-paper: #ffffff;
+  --admin-surface-soft: #fbfcfe;
+  --admin-surface-inset: #f2f6fa;
+  --admin-skeleton: #edf1f6;
+
+  /* ink */
+  --admin-ink: #20242c;
+  --admin-ink-soft: #5b6675;
+  --admin-ink-faint: #8a94a3;
+
+  /* lines */
+  --admin-line: #e2e7ee;
+  --admin-line-strong: #cbd3de;
+
+  /* action */
   --admin-accent: #245f9d;
-  --admin-accent-soft: #e8f0f8;
-  --admin-danger: #a33a32;
-  --admin-danger-soft: #f8e9e7;
-  --admin-warning: #8a5a12;
-  --admin-warning-soft: #fbf1de;
-  --admin-ok: #2f6b49;
-  --admin-ok-soft: #e7f2ea;
+  --admin-accent-strong: #1b4b7e;
+  --admin-accent-soft: #eaf1f9;
+  --admin-accent-faint: #f4f8fc;
+  --admin-row-hover: #f7faff;
 
+  /* semantic node colors */
+  --admin-coral: #bd5b50;
+  --admin-coral-soft: #fbece9;
+  --admin-honey: #a5781f;
+  --admin-honey-soft: #fbf3e2;
+  --admin-sky: #3d7fb5;
+  --admin-sky-soft: #eaf3fa;
+  --admin-mint: #2f7f5f;
+  --admin-mint-soft: #e7f3ed;
+  --admin-iris: #6668ac;
+  --admin-iris-soft: #eeeff9;
+  --admin-rose: #b15a7c;
+  --admin-rose-soft: #fbeef3;
+  --admin-teal: #2c8383;
+  --admin-teal-soft: #e6f3f3;
+
+  /* overlay */
+  --admin-scrim: rgb(32 36 44 / 18%);
+  --admin-shadow-card: 0 1px 2px rgb(32 36 44 / 4%);
+  --admin-shadow-drawer: -8px 0 24px rgb(32 36 44 / 10%);
+
+  /* radii */
   --admin-radius-sm: 6px;
-  --admin-radius-md: 10px;
-  --admin-radius-lg: 14px;
+  --admin-radius-md: 8px;
+  --admin-radius-lg: 10px;
+  --admin-radius-pill: 999px;
+
+  /* spacing */
   --admin-space-1: 4px;
   --admin-space-2: 8px;
   --admin-space-3: 12px;
   --admin-space-4: 16px;
-  --admin-space-5: 24px;
-  --admin-space-6: 32px;
-  --admin-font: 'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
-  --admin-mono: 'SFMono-Regular', 'Consolas', monospace;
-}
+  --admin-space-5: 20px;
+  --admin-space-6: 24px;
+  --admin-space-7: 32px;
+  --admin-space-8: 40px;
+  --admin-space-9: 48px;
+  --admin-space-10: 64px;
+  --admin-space-11: 72px;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --admin-bg: #15181b;
-    --admin-surface: #1d2125;
-    --admin-surface-soft: #23282d;
-    --admin-ink: #eceef0;
-    --admin-ink-soft: #b3bac1;
-    --admin-ink-faint: #8a939c;
-    --admin-line: #333a41;
-    --admin-line-strong: #46505a;
-    --admin-accent: #7fb1e6;
-    --admin-accent-soft: #1e2c3b;
-    --admin-danger: #e0857c;
-    --admin-danger-soft: #33201e;
-    --admin-warning: #e0b25f;
-    --admin-warning-soft: #332a19;
-    --admin-ok: #8fcca6;
-    --admin-ok-soft: #1d2d24;
-  }
+  /* widths and heights */
+  --admin-content-max: 1376px;
+  --admin-gutter: 72px;
+  --admin-gutter-mobile: 20px;
+  --admin-header-h: 64px;
+  --admin-control-h: 40px;
+  --admin-touch-h: 44px;
+  --admin-card-w: 506px;
+  --admin-login-card-w: 380px;
+  --admin-drawer-w: 480px;
+  --admin-icon-block: 40px;
+  --admin-mark-size: 28px;
+  --admin-access-offset: 160px;
+
+  /* line widths */
+  --admin-hairline: 1px;
+  --admin-underline: 2px;
+  --admin-stroke-1: 1.5;
+  --admin-stroke-2: 2;
+
+  /* type */
+  --admin-font-family: 'Inter', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', system-ui,
+    sans-serif;
+  --admin-font-mono: 'SFMono-Regular', 'JetBrains Mono', 'Consolas', monospace;
+  --admin-font-xs: 12px;
+  --admin-font-sm: 13px;
+  --admin-font-base: 14px;
+  --admin-font-md: 15px;
+  --admin-font-lg: 16px;
+  --admin-font-xl: 18px;
+  --admin-font-2xl: 20px;
+  --admin-font-3xl: 24px;
+  --admin-font-4xl: 26px;
+  --admin-font-5xl: 30px;
+  --admin-font-6xl: 32px;
+
+  /* motion */
+  --admin-duration-fast: 120ms;
+  --admin-duration-base: 180ms;
+  --admin-duration-pulse: 1600ms;
 }

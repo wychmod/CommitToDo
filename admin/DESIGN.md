@@ -4,6 +4,8 @@
 > 云端环境：`committodo-d6gmapg0j6397889f`（PostgreSQL 版 / ap-shanghai）。
 > 表结构以 `docs/TECH-ARCHITECTURE.md` §5.3 与 V2 各 PRD 为准；本文只提出**新增表与索引请求**，不建表、不写 DDL。
 
+管理端设计仅采用 CommitToDo 首页的浅色视觉语言。[桌面画稿与生成提示词](docs/visuals/README.md)包含页面、关键状态和后续编辑方案。路由、权限、指标口径与编辑开放条件按本文执行。
+
 ---
 
 ## 1. 目标与边界
