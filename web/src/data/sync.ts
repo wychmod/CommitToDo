@@ -12,6 +12,7 @@ import {
   replaceRemoteDevices,
 } from './devices';
 import { writeEvent } from './events';
+import { trackOpsEvent } from './ops-events';
 import type { SyncRunSummary } from './sync-types';
 import type { OutboxOp, SyncConflict } from './types';
 
@@ -85,7 +86,13 @@ async function recordConflict(
       tx,
       'sync.conflict',
       op.entityId,
-      { branchId, entityId: op.entityId, field: '' },
+      {
+        branchId,
+        entityId: op.entityId,
+        field: '',
+        entity: op.entity,
+        deviceId: conflict.deviceId ?? undefined,
+      },
       deps,
     );
   });
@@ -150,6 +157,7 @@ async function executeSync(
       row.attempts += 1;
       row.lastError = code;
     });
+    trackOpsEvent('sync.push', { ops: ops.length, result: 'failed', errorCode: code });
     return fail(code, { retriable: true, cause: response.error.cause });
   }
 
@@ -180,6 +188,11 @@ async function executeSync(
   if (response.value.devices.length > 0) {
     await replaceRemoteDevices(principalId, response.value.devices);
   }
+
+  trackOpsEvent('sync.push', {
+    ops: ops.length,
+    result: conflicts > 0 ? 'conflict' : 'success',
+  });
 
   return ok({
     pushed,

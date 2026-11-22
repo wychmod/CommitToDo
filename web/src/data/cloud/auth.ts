@@ -1,5 +1,6 @@
 import { fail, ok, type Result } from '@/core/errors';
 import { authFailureCode, authFailureReason, type AuthSession } from '@/core/rules/auth-form';
+import { trackOpsEvent } from '../ops-events';
 
 /**
  * 账号认证的云端适配（PRD V2-01 §4 / OP-01～OP-07）。
@@ -87,7 +88,10 @@ export async function signUp(email: string, password: string): Promise<Result<Au
     })) as AuthLikeResponse<{ user?: unknown }>;
     if (!retry.error) {
       const signedIn = toSession(retry.data.user, email);
-      if (signedIn) return ok(signedIn);
+      if (signedIn) {
+        trackOpsEvent('account.signup', { method: 'password' });
+        return ok(signedIn);
+      }
     }
     return fail('auth.email_unverified', { retriable: false });
   } catch (cause) {

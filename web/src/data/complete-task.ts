@@ -5,6 +5,7 @@ import { syncBranchCounts } from './branch-counts';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
+import { trackOpsEvent } from './ops-events';
 import { grantBadge } from './grant-badge';
 import { branchRepository, commitRepository, taskRepository } from './repositories';
 import type { Commit, Task } from './types';
@@ -26,6 +27,7 @@ export async function completeTask(
   deps: WriteDeps = defaultWriteDeps,
 ): Promise<Result<CompleteTaskValue>> {
   try {
+    let createdNow = false;
     const result = await db.transaction(
       'rw',
       [db.tasks, db.commits, db.branches, db.events, db.outbox],
@@ -102,11 +104,16 @@ export async function completeTask(
           deps,
         );
 
+        createdNow = true;
         return ok({ task: nextTask, commit });
       },
     );
     // 徽章发放失败不回滚主操作；下次启动或进入「我的」时补查。
     if (result.ok) await grantBadge(deps);
+    if (result.ok && createdNow) {
+      trackOpsEvent('task.complete', { count: 1 });
+      trackOpsEvent('commit.create', { count: 1 });
+    }
     return result;
   } catch (cause) {
     return fail('storage.write_failed', { retriable: true, cause });

@@ -6,6 +6,7 @@ import { anonymousDeviceId } from './cloud/device';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
+import { trackOpsEvent } from './ops-events';
 import { backupRepository } from './repositories';
 import type { Backup } from './types';
 
@@ -34,7 +35,10 @@ export async function uploadRemoteBackup(
     requestId,
     text: snapshot.value.text,
   });
-  if (!uploaded.ok) return uploaded;
+  if (!uploaded.ok) {
+    trackOpsEvent('backup.upload', { result: 'failed', errorCode: uploaded.error.code });
+    return uploaded;
+  }
 
   if (input.signal?.aborted) {
     await deleteRemotePackage(uploaded.value.remoteKey);
@@ -42,7 +46,7 @@ export async function uploadRemoteBackup(
   }
 
   try {
-    return await db.transaction('rw', [db.backups, db.events, db.outbox], async (tx) => {
+    const result = await db.transaction('rw', [db.backups, db.events, db.outbox], async (tx) => {
       const existing = await backupRepository.listByOwner(LOCAL_OWNER_ID);
       const previousRemote = existing.find(
         (row) => row.kind === 'remote' && row.remoteKey !== null,
@@ -75,9 +79,16 @@ export async function uploadRemoteBackup(
 
       return ok(row);
     });
+    if (result.ok) {
+      trackOpsEvent('backup.upload', { result: 'success', bytes: result.value.bytes });
+    } else {
+      trackOpsEvent('backup.upload', { result: 'failed', errorCode: result.error.code });
+    }
+    return result;
   } catch (cause) {
     // 本地元数据写失败时清理刚上传的文件，避免远端留下无人引用的半份记录。
     await deleteRemotePackage(uploaded.value.remoteKey);
+    trackOpsEvent('backup.upload', { result: 'failed', errorCode: 'storage.write_failed' });
     return fail('storage.write_failed', { retriable: true, cause });
   }
 }

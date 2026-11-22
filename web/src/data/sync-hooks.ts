@@ -6,6 +6,7 @@ import { db } from './db';
 import { getDeviceId } from './devices';
 import type { MigrationProgress } from './migrate';
 import { readMigrationProgress, startMigration } from './migrate';
+import { startOpsReporting } from './ops-events';
 import { isOnline, maxAttempts, runSync } from './sync';
 
 /**
@@ -64,6 +65,12 @@ export function useSyncRunner(principalId: string | null): void {
       window.removeEventListener('offline', down);
     };
   }, []);
+
+  useEffect(() => {
+    if (!principalId) return;
+    // 行为埋点与同步同生命周期：登录后启动，退出登录后停止（队列保留）。
+    return startOpsReporting();
+  }, [principalId]);
 
   useEffect(() => {
     if (!principalId || !online || pending === 0) return;

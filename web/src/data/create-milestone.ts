@@ -11,6 +11,7 @@ import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
 import { grantBadge } from './grant-badge';
 import { branchRepository, milestoneRepository } from './repositories';
+import { trackOpsEvent } from './ops-events';
 import type { Milestone } from './types';
 
 export type CreateMilestonePrecision = 'day' | 'month';
@@ -112,6 +113,7 @@ export async function createMilestone(
     );
     // 徽章发放失败不回滚主操作。
     if (result.ok) await grantBadge(deps);
+    if (result.ok) trackOpsEvent('milestone.create', { precision: input.precision });
     return result;
   } catch (cause) {
     return fail('storage.write_failed', { retriable: true, cause });

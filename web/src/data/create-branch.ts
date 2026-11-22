@@ -9,6 +9,7 @@ import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
 import { grantBadge } from './grant-badge';
 import { branchRepository } from './repositories';
+import { trackOpsEvent } from './ops-events';
 import type { Branch } from './types';
 
 export interface CreateBranchInput {
@@ -103,6 +104,7 @@ export async function createBranch(
     });
     // 徽章发放失败不回滚主操作。
     if (result.ok) await grantBadge(deps);
+    if (result.ok) trackOpsEvent('branch.create', { depth: result.value.depth });
     return result;
   } catch (cause) {
     return fail('storage.write_failed', { retriable: true, cause });

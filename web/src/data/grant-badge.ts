@@ -5,6 +5,7 @@ import { assessBadges } from '@/core/rules/badges';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
+import { trackOpsEvent } from './ops-events';
 import {
   badgeRepository,
   branchRepository,
@@ -25,7 +26,7 @@ export async function grantBadge(
   options: GrantSelectOptions = {},
 ): Promise<Result<Badge[]>> {
   try {
-    return await db.transaction(
+    const result = await db.transaction(
       'rw',
       [db.badges, db.branches, db.commits, db.milestones, db.events, db.outbox],
       async (tx) => {
@@ -68,6 +69,11 @@ export async function grantBadge(
         return ok(granted);
       },
     );
+    if (result.ok) {
+      for (const badge of result.value)
+        trackOpsEvent('badge.grant', { catalogId: badge.catalogId });
+    }
+    return result;
   } catch (cause) {
     return fail('storage.write_failed', { retriable: true, cause });
   }

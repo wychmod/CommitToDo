@@ -48,7 +48,13 @@ export type EventPayloads = {
   'backup.create': { backupId: string; kind: string };
   'backup.restore': { backupId: string; schemaVersion: number };
 
-  'sync.conflict': { branchId: string | null; entityId: string; field: string };
+  'sync.conflict': {
+    branchId: string | null;
+    entityId: string;
+    field: string;
+    entity?: string;
+    deviceId?: string;
+  };
 };
 
 export type EventAction = keyof EventPayloads;
