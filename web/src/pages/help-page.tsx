@@ -3,52 +3,55 @@ import { t, type MessageKey } from '@/i18n';
 import { PageShell } from '@/ui/page-shell';
 import styles from './help-page.module.css';
 
-interface HelpSection {
-  titleKey: MessageKey;
-  bodyKey: MessageKey;
-  links?: ReadonlyArray<{ to: string; labelKey: MessageKey }>;
+interface HelpTopic {
+  id: string;
+  questionKey: MessageKey;
+  answerKey: MessageKey;
+  links: ReadonlyArray<{ to: string; labelKey: MessageKey }>;
 }
 
-const SECTIONS: readonly HelpSection[] = [
+/** 固定五个主题，顺序即 PRD V2-03 §4.1 的顺序。 */
+const TOPICS: readonly HelpTopic[] = [
   {
-    titleKey: 'help.start.title',
-    bodyKey: 'help.start.body',
+    id: 'depth',
+    questionKey: 'help.q1',
+    answerKey: 'help.a1',
+    links: [{ to: '/branches', labelKey: 'help.q1.action' }],
+  },
+  {
+    id: 'stalled',
+    questionKey: 'help.q2',
+    answerKey: 'help.a2',
+    links: [{ to: '/history', labelKey: 'help.q2.action' }],
+  },
+  {
+    id: 'commit-lock',
+    questionKey: 'help.q3',
+    answerKey: 'help.a3',
+    links: [{ to: '/history', labelKey: 'help.q3.action' }],
+  },
+  {
+    id: 'merge',
+    questionKey: 'help.q4',
+    answerKey: 'help.a4',
+    links: [{ to: '/history', labelKey: 'help.q4.action' }],
+  },
+  {
+    id: 'device',
+    questionKey: 'help.q5',
+    answerKey: 'help.a5',
     links: [
-      { to: '/today', labelKey: 'help.start.today' },
-      { to: '/branches', labelKey: 'help.start.branches' },
-      { to: '/history', labelKey: 'help.start.history' },
+      { to: '/settings#sync', labelKey: 'help.q5.sync' },
+      { to: '/data', labelKey: 'help.q5.backup' },
     ],
   },
-  { titleKey: 'help.branch.title', bodyKey: 'help.branch.body' },
-  { titleKey: 'help.history.title', bodyKey: 'help.history.body' },
-  {
-    titleKey: 'help.badge.title',
-    bodyKey: 'help.badge.body',
-    links: [{ to: '/me/badges', labelKey: 'badge.wall.title' }],
-  },
-  {
-    titleKey: 'help.sync.title',
-    bodyKey: 'help.sync.body',
-    links: [{ to: '/settings#sync', labelKey: 'help.sync.action' }],
-  },
-  {
-    titleKey: 'help.backup.title',
-    bodyKey: 'help.backup.body',
-    links: [{ to: '/data', labelKey: 'help.backup.action' }],
-  },
-];
-
-const FAQ: ReadonlyArray<{ questionKey: MessageKey; answerKey: MessageKey }> = [
-  { questionKey: 'help.faq.q1', answerKey: 'help.faq.a1' },
-  { questionKey: 'help.faq.q2', answerKey: 'help.faq.a2' },
-  { questionKey: 'help.faq.q3', answerKey: 'help.faq.a3' },
-  { questionKey: 'help.faq.q4', answerKey: 'help.faq.a4' },
 ];
 
 /**
  * S06 帮助（PRD V2-03 OP-01 / OP-02）。
  *
- * 只做本机说明与站内跳转，不联网；未登录时同步入口落到 O07 提示，备份入口照常可用。
+ * 内容为常量，不联网：五个主题固定顺序，默认全部收起，可同时展开多条。
+ * 每条入口都落到本机页面；未登录时同步入口由设置页显示登录提示。
  */
 export function HelpPage() {
   return (
@@ -61,34 +64,22 @@ export function HelpPage() {
         </Link>
       }
     >
-      <div className={styles.sections}>
-        {SECTIONS.map((section) => (
-          <section key={section.titleKey} className={styles.section}>
-            <h2 className={styles.sectionTitle}>{t(section.titleKey)}</h2>
-            <p className={styles.body}>{t(section.bodyKey)}</p>
-            {section.links ? (
+      <div className={styles.topics}>
+        {TOPICS.map((topic) => (
+          <details key={topic.id} className={styles.topic}>
+            <summary className={styles.question}>{t(topic.questionKey)}</summary>
+            <div className={styles.answer}>
+              <p className={styles.body}>{t(topic.answerKey)}</p>
               <div className={styles.links}>
-                {section.links.map((link) => (
+                {topic.links.map((link) => (
                   <Link key={link.to} className={styles.link} to={link.to}>
                     {t(link.labelKey)}
                   </Link>
                 ))}
               </div>
-            ) : null}
-          </section>
+            </div>
+          </details>
         ))}
-
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>{t('help.faq.title')}</h2>
-          <dl className={styles.faq}>
-            {FAQ.map((item) => (
-              <div key={item.questionKey} className={styles.faqItem}>
-                <dt className={styles.question}>{t(item.questionKey)}</dt>
-                <dd className={styles.answer}>{t(item.answerKey)}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
       </div>
     </PageShell>
   );

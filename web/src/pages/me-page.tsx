@@ -242,6 +242,16 @@ export function MePage() {
                 </span>
                 <ChevronRightIcon size={16} />
               </Link>
+              <Link className={styles.navRow} to="/me/help">
+                <span className={styles.rowIcon}>
+                  <HelpIcon size={16} />
+                </span>
+                <span className={styles.navCopy}>
+                  <strong>{t('page.help.title')}</strong>
+                  <small>{t('help.entry.hint')}</small>
+                </span>
+                <ChevronRightIcon size={16} />
+              </Link>
               <Link className={styles.navRow} to="/settings#about">
                 <span className={styles.rowIcon}>
                   <TuneIcon size={16} />

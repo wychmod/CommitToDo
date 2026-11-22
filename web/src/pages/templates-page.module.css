@@ -124,10 +124,35 @@
   margin-top: var(--s5);
 }
 
+.applyActions {
+  display: flex;
+  gap: var(--s2);
+}
+
 .error {
   margin: 0;
   color: var(--danger);
   font-size: var(--type-secondary);
+}
+
+.switch {
+  min-height: var(--s10);
+  padding: 0 var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--type-body);
+  cursor: pointer;
+}
+
+.switch:hover {
+  border-color: var(--line-strong);
+}
+
+.switch:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .apply {
@@ -151,7 +176,16 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .applyBar {
+    position: sticky;
+    bottom: 0;
+    margin-top: var(--s4);
+    padding: var(--s3) 0;
+    background: var(--page);
+  }
+
+  .switch,
   .apply {
-    width: 100%;
+    flex: 1 1 0;
   }
 }

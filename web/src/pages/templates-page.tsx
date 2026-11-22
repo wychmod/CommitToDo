@@ -54,6 +54,13 @@ export function TemplatesPage() {
     setError(true);
   };
 
+  const switchTemplate = (): void => {
+    const index = TEMPLATES.findIndex((entry) => entry.id === selected);
+    const next = TEMPLATES[(index + 1) % TEMPLATES.length]!;
+    setSelected(next.id);
+    setError(false);
+  };
+
   return (
     <PageShell
       titleKey="template.title"
@@ -115,9 +122,19 @@ export function TemplatesPage() {
             {t('template.failed')}
           </p>
         ) : null}
-        <button type="button" className={styles.apply} onClick={() => void apply()} disabled={busy}>
-          {busy ? t('template.applying') : t('template.apply')}
-        </button>
+        <div className={styles.applyActions}>
+          <button type="button" className={styles.switch} onClick={switchTemplate} disabled={busy}>
+            {t('template.switch')}
+          </button>
+          <button
+            type="button"
+            className={styles.apply}
+            onClick={() => void apply()}
+            disabled={busy}
+          >
+            {busy ? t('template.applying') : t('template.apply')}
+          </button>
+        </div>
       </div>
     </PageShell>
   );
