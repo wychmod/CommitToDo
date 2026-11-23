@@ -18,16 +18,15 @@ import { SEARCH_TRIGGER_ID } from '@/stores/search.store';
 import { useShellStore } from '@/stores/shell.store';
 import { EmptyState } from '@/ui/empty-state';
 import {
-  BranchIcon,
   DeviceIcon,
-  HistoryIcon,
+  HomeBranchIcon,
+  HomeHistoryIcon,
+  HomeTodayIcon,
   MoonIcon,
   PlusIcon,
   SearchIcon,
   SunIcon,
-  TodayIcon,
   UserIcon,
-  type SvgIconProps,
 } from '@/ui/icons';
 import { LoadingShell } from '@/ui/loading-shell';
 import styles from './app-shell.module.css';
@@ -36,11 +35,11 @@ const NAV_ITEMS: ReadonlyArray<{
   section: NavSection;
   to: string;
   key: MessageKey;
-  Icon: ComponentType<SvgIconProps>;
+  Icon: ComponentType<{ size?: 18 }>;
 }> = [
-  { section: 'today', to: '/today', key: 'nav.today', Icon: TodayIcon },
-  { section: 'branches', to: '/branches', key: 'nav.branches', Icon: BranchIcon },
-  { section: 'history', to: '/history', key: 'nav.history', Icon: HistoryIcon },
+  { section: 'today', to: '/today', key: 'nav.today', Icon: HomeTodayIcon },
+  { section: 'branches', to: '/branches', key: 'nav.branches', Icon: HomeBranchIcon },
+  { section: 'history', to: '/history', key: 'nav.history', Icon: HomeHistoryIcon },
   { section: 'me', to: '/me', key: 'nav.me', Icon: UserIcon },
 ];
 
