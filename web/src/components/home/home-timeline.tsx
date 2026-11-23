@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { t } from '@/i18n';
+import { MergeIcon } from '@/ui/icons';
 import { useInView } from './use-in-view';
 import styles from './home-timeline.module.css';
 
@@ -10,11 +11,26 @@ interface HomeTimelineProps {
 }
 
 const rows = {
-  work: 18.333,
-  research: 35.333,
-  design: 53.333,
-  health: 70,
-  life: 89,
+  work: 21.5,
+  research: 37.5,
+  design: 53.5,
+  health: 72.5,
+  life: 91,
+};
+
+const dates = {
+  firstCommit: 8,
+  merge: 51.2,
+  milestone: 70.8,
+  researchFirst: 21,
+  researchSecond: 32,
+  designFirst: 64,
+  shared: 78.2,
+  healthFirst: 13.3,
+  healthSecond: 42.7,
+  lifeFirst: 30.8,
+  lifeSecond: 67.6,
+  selected: 97.1,
 };
 
 function Chevron({ open }: { open: boolean }) {
@@ -41,7 +57,7 @@ function Chevron({ open }: { open: boolean }) {
 
 function TimelineIcon() {
   return (
-    <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true" fill="none">
+    <svg viewBox="0 0 18 18" width="20" height="20" aria-hidden="true" fill="none">
       <path d="M4 9h4m0 0V4h5m-5 5v5h5" stroke="currentColor" strokeWidth="1.3" />
       <circle cx="3.5" cy="9" r="1.5" fill="var(--panel)" stroke="currentColor" strokeWidth="1.2" />
       <circle cx="14" cy="4" r="1.5" fill="var(--panel)" stroke="currentColor" strokeWidth="1.2" />
@@ -52,7 +68,7 @@ function TimelineIcon() {
 
 function CalendarIcon() {
   return (
-    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none">
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none">
       <rect
         x="2.5"
         y="3.5"
@@ -104,6 +120,13 @@ export function HomeTimeline({ checked, onOpenNode, onFirstView }: HomeTimelineP
 
           <div className={styles.chart} ref={ref} data-inview={inView} data-selected={checked}>
             <div className={styles.labels} aria-hidden="true">
+              <svg
+                className={styles.labelConnectors}
+                viewBox="0 0 232 300"
+                preserveAspectRatio="none"
+              >
+                <path d="M52 78V160.5H72M52 112.5H72" />
+              </svg>
               <span className={styles.laneLabel} style={{ top: `${rows.work}%` }}>
                 <Chevron open />
                 {t('home.timeline.work')}
@@ -164,96 +187,82 @@ export function HomeTimeline({ checked, onOpenNode, onFirstView }: HomeTimelineP
                   <path
                     className={`${styles.curve} ${styles.curveResearch}`}
                     pathLength={1}
-                    d="M140 70C158 110 172 110 196 110H414C446 110 462 70 496 70"
+                    d="M80 64.5C98 64.5 112 112.5 144 112.5H446C474 112.5 486 64.5 512 64.5"
                   />
                   <path
                     className={`${styles.curve} ${styles.curveDesign}`}
                     pathLength={1}
-                    d="M510 70C526 110 540 150 566 150H1000"
+                    d="M512 64.5C530 64.5 534 160.5 566 160.5H971"
                   />
                 </svg>
 
                 <span
                   className={styles.node}
-                  style={{ left: '8%', top: `${rows.work}%` }}
+                  style={{ left: `${dates.firstCommit}%`, top: `${rows.work}%` }}
                   data-kind="solid"
                   data-tone="coral"
                   aria-hidden="true"
                 />
                 <span
                   className={styles.node}
-                  style={{ left: '52.5%', top: `${rows.work}%` }}
+                  style={{ left: `${dates.merge}%`, top: `${rows.work}%` }}
                   data-kind="solid"
                   data-tone="coral"
                   aria-hidden="true"
                 />
                 <span
                   className={styles.milestone}
-                  style={{ left: '72.6%', top: `${rows.work}%` }}
+                  style={{ left: `${dates.milestone}%`, top: `${rows.work}%` }}
                   aria-hidden="true"
                 />
 
                 <span
                   className={styles.node}
-                  style={{ left: '21%', top: `${rows.research}%` }}
+                  style={{ left: `${dates.researchFirst}%`, top: `${rows.research}%` }}
                   data-kind="solid"
-                  data-tone="coral"
+                  data-tone="coralSoft"
                   aria-hidden="true"
                 />
                 <span
                   className={styles.node}
-                  style={{ left: '32.5%', top: `${rows.research}%` }}
+                  style={{ left: `${dates.researchSecond}%`, top: `${rows.research}%` }}
                   data-kind="solid"
-                  data-tone="coral"
-                  aria-hidden="true"
-                />
-                <span
-                  className={styles.node}
-                  style={{ left: '44.3%', top: `${rows.research}%` }}
-                  data-kind="solid"
-                  data-tone="coral"
+                  data-tone="coralSoft"
                   aria-hidden="true"
                 />
 
                 <span
                   className={styles.node}
-                  style={{ left: '65%', top: `${rows.design}%` }}
+                  style={{ left: `${dates.designFirst}%`, top: `${rows.design}%` }}
                   data-kind="solid"
-                  data-tone="coral"
+                  data-tone="coralSoft"
                   aria-hidden="true"
                 />
                 <span
                   className={styles.node}
-                  style={{ left: '80.5%', top: `${rows.design}%` }}
+                  style={{ left: `${dates.shared}%`, top: `${rows.design}%` }}
                   data-kind="hollow"
-                  data-tone="coral"
-                  aria-hidden="true"
-                />
-                <span
-                  className={styles.node}
-                  style={{ left: '95.5%', top: `${rows.design}%` }}
-                  data-kind="hollow"
-                  data-tone="coral"
+                  data-tone="coralSoft"
                   aria-hidden="true"
                 />
 
                 <span
                   className={styles.node}
-                  style={{ left: '13.5%', top: `${rows.health}%` }}
+                  style={{ left: `${dates.healthFirst}%`, top: `${rows.health}%` }}
                   data-kind="hollow"
                   data-tone="sky"
                   aria-hidden="true"
                 />
                 <span
                   className={styles.node}
-                  style={{ left: '43.5%', top: `${rows.health}%` }}
+                  style={{ left: `${dates.healthSecond}%`, top: `${rows.health}%` }}
                   data-kind="hollow"
                   data-tone="sky"
                   aria-hidden="true"
                 />
                 <span
                   className={styles.node}
-                  style={{ left: '80.3%', top: `${rows.health}%` }}
+                  style={{ left: `${dates.shared}%`, top: `${rows.health}%` }}
                   data-kind="hollow"
                   data-tone="sky"
                   aria-hidden="true"
@@ -261,14 +270,14 @@ export function HomeTimeline({ checked, onOpenNode, onFirstView }: HomeTimelineP
 
                 <span
                   className={styles.node}
-                  style={{ left: '31%', top: `${rows.life}%` }}
+                  style={{ left: `${dates.lifeFirst}%`, top: `${rows.life}%` }}
                   data-kind="hollow"
                   data-tone="honey"
                   aria-hidden="true"
                 />
                 <span
                   className={styles.node}
-                  style={{ left: '70%', top: `${rows.life}%` }}
+                  style={{ left: `${dates.lifeSecond}%`, top: `${rows.life}%` }}
                   data-kind="hollow"
                   data-tone="honey"
                   aria-hidden="true"
@@ -276,14 +285,14 @@ export function HomeTimeline({ checked, onOpenNode, onFirstView }: HomeTimelineP
 
                 <span
                   className={styles.mergeDot}
-                  style={{ left: '52.5%', top: `${rows.work}%` }}
+                  style={{ left: `${dates.merge}%`, top: `${rows.work}%` }}
                   aria-hidden="true"
                 />
 
                 <button
                   type="button"
                   className={styles.demoNode}
-                  style={{ left: '96%', top: `${rows.design}%` }}
+                  style={{ left: `${dates.selected}%`, top: `${rows.design}%` }}
                   onClick={onOpenNode}
                   aria-label={t('home.timeline.demoNodeLabel')}
                 >
@@ -306,7 +315,7 @@ export function HomeTimeline({ checked, onOpenNode, onFirstView }: HomeTimelineP
               {t('home.timeline.legendMilestone')}
             </span>
             <span className={styles.legendItem}>
-              <span className={styles.legendMerge} aria-hidden="true" />
+              <MergeIcon size={16} className={styles.legendMerge} />
               {t('home.timeline.legendMerge')}
             </span>
           </div>

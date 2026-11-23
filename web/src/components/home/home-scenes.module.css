@@ -47,6 +47,7 @@
 
 .card[data-tone='coral'] {
   --scene-ink: var(--coral-1);
+  --scene-fill: var(--home-scene-coral);
 
   background: linear-gradient(
     180deg,
@@ -58,6 +59,7 @@
 
 .card[data-tone='sky'] {
   --scene-ink: var(--sky-1);
+  --scene-fill: var(--home-scene-sky);
 
   background: linear-gradient(
     180deg,
@@ -69,6 +71,7 @@
 
 .card[data-tone='honey'] {
   --scene-ink: var(--honey-1);
+  --scene-fill: var(--home-scene-honey);
 
   background: linear-gradient(
     180deg,
@@ -92,23 +95,25 @@
 .cardTitle {
   margin: auto 0 0;
   color: var(--marketing-ink);
-  font-size: var(--type-card-title);
-  font-weight: 600;
+  font-size: var(--type-section);
+  font-weight: 700;
 }
 
 .cardBody {
   max-width: calc(var(--s10) * 4);
   margin: 0;
   color: var(--marketing-muted);
-  font-size: var(--type-secondary);
+  font-size: var(--type-body-large);
   line-height: 1.6;
 }
 
 .track {
+  align-self: stretch;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
   margin-top: 0;
   padding-top: var(--s8);
 }
@@ -117,9 +122,9 @@
   position: absolute;
   right: 0;
   left: 0;
-  height: var(--tree-connector);
+  height: var(--timeline-rail);
   background: var(--scene-ink);
-  opacity: 0.35;
+  opacity: 0.7;
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform var(--duration-scene-sweep) var(--ease-enter);
@@ -133,9 +138,9 @@
   position: relative;
   width: var(--s2);
   height: var(--s2);
-  border: 2px solid var(--scene-ink);
+  border: var(--timeline-selected-ring) solid var(--scene-ink);
   border-radius: 50%;
-  background: var(--panel);
+  background: var(--scene-fill);
   opacity: 0.45;
   transition: opacity var(--duration-standard) var(--ease-enter);
 }
