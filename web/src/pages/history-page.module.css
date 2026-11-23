@@ -1,23 +1,34 @@
 /* P04 历程页：工具行、时间树面板、里程碑面板与状态提示。 */
 
+.eyebrow {
+  display: block;
+  color: var(--muted);
+  font-size: var(--type-label);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: 0.018em;
+}
+
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--s6);
+  gap: 0;
 }
 
 .yearLink {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--s2);
+  gap: calc(var(--s2) - 1px);
   min-height: calc(var(--s7) + 6px);
+  margin-bottom: calc(var(--s1) - 1px);
   padding: 0 var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
   background: var(--panel);
   color: var(--text);
   font-size: var(--type-secondary);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-decoration: none;
   white-space: nowrap;
@@ -37,7 +48,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--s3);
+  gap: calc(var(--s3) - 1px);
+  margin-bottom: calc(var(--s4) - 1px);
 }
 
 .segmented {
@@ -47,27 +59,27 @@
   padding: calc(var(--s1) - 1px);
   border: 1px solid var(--line);
   border-radius: calc(var(--radius-panel) - 3px);
-  background: var(--inset);
+  background: var(--panel);
 }
 
 .segment {
   height: calc(var(--s7) - 2px);
   padding: 0 calc(var(--s3) - 2px);
-  border: 1px solid transparent;
+  border: 0;
   border-radius: calc(var(--radius-control) - 2px);
   background: transparent;
   color: var(--muted);
   font-size: var(--type-secondary);
-  line-height: 1.4;
+  font-weight: 500;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
 }
 
 .segment[aria-pressed='true'] {
-  border-color: var(--line);
-  background: var(--surface);
+  background: var(--accent-soft);
   color: var(--accent);
-  font-weight: 650;
+  font-weight: 680;
 }
 
 .segment:hover {
@@ -86,7 +98,7 @@
 .branchButton {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
+  gap: calc(var(--s2) - 1px);
   min-height: calc(var(--s7) + 6px);
   padding: 0 var(--s3);
   border: 1px solid var(--line);
@@ -94,6 +106,7 @@
   background: var(--panel);
   color: var(--text);
   font-size: var(--type-secondary);
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -152,9 +165,14 @@
 .rangeText {
   margin-inline-start: auto;
   color: var(--muted);
-  font-size: var(--type-secondary);
+  font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.rangeDash {
+  margin-inline: var(--s1);
+  color: var(--subtle);
 }
 
 .panel {
@@ -162,6 +180,10 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
+}
+
+.panel + .panel {
+  margin-top: calc(var(--s5) + 2px);
 }
 
 .panelHead {
@@ -175,10 +197,14 @@
   border-bottom: 1px solid var(--line);
 }
 
+.milestonePanelHead {
+  min-height: calc(var(--s9) - 2px);
+}
+
 .panelTitle {
   display: flex;
   align-items: center;
-  gap: var(--s2);
+  gap: calc(var(--s3) - 1px);
   color: var(--accent);
 }
 
@@ -186,21 +212,21 @@
   margin: 0;
   color: var(--text);
   font-size: calc(var(--type-body-large) + 1px);
-  font-weight: 700;
+  font-weight: 680;
   line-height: 1.2;
 }
 
 .today {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
+  gap: calc(var(--s2) - 1px);
   color: var(--muted);
   font-size: var(--type-label);
 }
 
 .today i {
-  width: var(--s2);
-  height: var(--s2);
+  width: calc(var(--s2) - 1px);
+  height: calc(var(--s2) - 1px);
   border-radius: 50%;
   background: var(--accent);
 }
@@ -209,9 +235,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--s4);
-  min-height: calc(var(--s8) + 2px);
-  padding: var(--s2) calc(var(--s5) + 2px);
+  gap: calc(var(--s5) + 2px);
+  min-height: var(--s8);
+  padding: 0 calc(var(--s5) + 2px);
   border-top: 1px solid var(--line);
   background: var(--surface);
   color: var(--muted);
@@ -221,31 +247,15 @@
 .legend span {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
-}
-
-.keyDot,
-.keyDiamond,
-.keyMerge {
-  display: inline-block;
-  width: var(--s2);
-  height: var(--s2);
-  background: var(--accent);
+  gap: calc(var(--s2) - 2px);
 }
 
 .keyDot {
+  display: inline-block;
+  width: calc(var(--s2) - 1px);
+  height: calc(var(--s2) - 1px);
   border-radius: 50%;
-}
-
-.keyDiamond {
-  border-radius: var(--radius-marker);
-  transform: rotate(45deg);
-}
-
-.keyMerge {
-  border: var(--timeline-rail) solid var(--accent);
-  border-radius: 50%;
-  background: var(--panel);
+  background: var(--accent);
 }
 
 .keyConflict {
@@ -285,12 +295,12 @@
 
 .milestoneRow {
   display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  grid-template-columns: calc(var(--s9) + var(--s2) - 1px) minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--s3);
+  gap: calc(var(--s4) - 2px);
   width: 100%;
   min-height: var(--s9);
-  padding: var(--s2) var(--s5);
+  padding: 0 calc(var(--s5) + 2px);
   border: 0;
   background: transparent;
   color: inherit;
@@ -317,15 +327,15 @@
 
 .milestoneDate {
   color: var(--muted);
-  font-size: var(--type-chart);
+  font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
 }
 
 .milestoneName {
   overflow: hidden;
   color: var(--text);
-  font-size: var(--type-secondary);
-  font-weight: 600;
+  font-size: var(--type-body-compact);
+  font-weight: 610;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -348,25 +358,26 @@
 
 .milestoneEmpty {
   margin: 0;
-  padding: var(--s5);
+  padding: calc(var(--s4) + 2px) calc(var(--s5) + 2px);
   color: var(--muted);
   font-size: var(--type-secondary);
 }
 
 .addMilestone {
-  min-height: var(--s7);
-  padding: 0 var(--s3);
-  border: 1px solid var(--accent);
+  min-height: calc(var(--s7) - 2px);
+  padding: 0 calc(var(--s3) - 2px);
+  border: 1px solid var(--line);
   border-radius: var(--radius-control);
-  background: var(--accent-soft);
+  background: var(--panel);
   color: var(--accent);
   font-size: var(--type-label);
+  font-weight: 600;
   cursor: pointer;
 }
 
 .addMilestone:hover {
   border-color: var(--accent);
-  background: var(--panel);
+  background: var(--accent-soft);
 }
 
 .addMilestone:focus-visible {
@@ -375,7 +386,7 @@
 }
 
 .temporary {
-  margin: 0;
+  margin: 0 0 var(--s4);
   padding: var(--s2) var(--s3);
   border-radius: var(--radius-control);
   background: var(--accent-soft);
@@ -389,6 +400,7 @@
   gap: var(--s2);
   align-items: center;
   justify-content: space-between;
+  margin-bottom: var(--s4);
   padding: var(--s2) var(--s3);
   border: 1px solid var(--warning);
   border-radius: var(--radius-control);

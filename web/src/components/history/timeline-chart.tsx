@@ -3,6 +3,7 @@ import { currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
 import type { Branch, Commit, Milestone } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import type { TimelineConflict } from '@/core/rules/timeline-conflict';
+import { ChevronDownIcon, ChevronRightIcon } from '@/ui/icons';
 import styles from './timeline-chart.module.css';
 import { clusterTimeline, type TimelineCluster } from '@/core/rules/timeline-cluster';
 import {
@@ -21,6 +22,7 @@ import type { BadgeMarker } from '@/core/rules/badge-marker';
 const LABEL_WIDTH_PX = 160;
 const MIN_DAY_WIDTH_PX = 3;
 const MIN_GAP_PX = 12;
+const RIGHT_PAD_PX = 40;
 /** 节点最大半宽（当天徽章 20px）；用于让区间首尾的节点不被面板边缘裁掉。 */
 const EDGE_PAD_PX = 10;
 const DAY_MS = 86_400_000;
@@ -86,31 +88,47 @@ function dateToMs(date: string, tzOffsetMinutes: number, hour = 12): number {
   return Date.UTC(year!, month! - 1, day!, hour) - tzOffsetMinutes * 60_000;
 }
 
-function xPercent(ms: number, startMs: number, totalMs: number): number {
-  const value = ((ms - startMs) / totalMs) * 100;
-  if (!Number.isFinite(value)) return 0;
-  return Math.min(100, Math.max(0, value));
+interface AxisTick {
+  date: string;
+  label: string;
+  isNow: boolean;
+}
+
+function axisTickLabel(month: number, year: number, crossYear: boolean): string {
+  return month === 1 && crossYear ? `${year}.01` : `${pad2(month)}.01`;
 }
 
 function monthTicks(
   start: string,
   end: string,
-  suffix: string,
-  yearSuffix: string,
-): Array<{ date: string; label: string }> {
-  const ticks = [{ date: start, label: start.slice(5) }];
+  todayDate: string,
+  plotPxForDate: (date: string) => number,
+): AxisTick[] {
+  const startLabel = start.slice(5).replace('-', '.');
+  const ticks: AxisTick[] = [{ date: start, label: startLabel, isNow: start === todayDate }];
+  if (end <= start) return ticks;
+
   const startYear = Number(start.slice(0, 4));
   const startMonth = Number(start.slice(5, 7));
   const endYear = Number(end.slice(0, 4));
   const endMonth = Number(end.slice(5, 7));
+  const crossYear = startYear !== endYear;
+  const startPx = plotPxForDate(start);
+  const endPx = plotPxForDate(end);
 
   let year = startYear;
   let month = startMonth + 1;
   while (year < endYear || (year === endYear && month <= endMonth)) {
     const date = `${year}-${pad2(month)}-01`;
-    if (date > start && date <= end) {
-      // 跨年范围内一月只写年份，避免只看到「1 月」分不清是哪一年。
-      ticks.push({ date, label: month === 1 ? `${year}${yearSuffix}` : `${month}${suffix}` });
+    if (date > start && date < end) {
+      const px = plotPxForDate(date);
+      if (px - startPx >= 48 && endPx - px >= 48) {
+        ticks.push({
+          date,
+          label: axisTickLabel(month, year, crossYear),
+          isNow: date === todayDate,
+        });
+      }
     }
     month += 1;
     if (month > 12) {
@@ -118,6 +136,12 @@ function monthTicks(
       year += 1;
     }
   }
+
+  ticks.push({
+    date: end,
+    label: end.slice(5).replace('-', '.'),
+    isNow: end === todayDate,
+  });
   return ticks;
 }
 
@@ -305,31 +329,35 @@ export function TimelineChart({
 
   const rangeStart = range.start ?? earliest;
   const totalDays = Math.max(1, daysBetween(rangeStart, range.end) + 1);
-  const totalMs = totalDays * DAY_MS;
-  const startMs = dateToMs(rangeStart, tz, 0);
   const trackWidth = Math.max(viewportWidth - LABEL_WIDTH_PX, totalDays * MIN_DAY_WIDTH_PX);
-  const pxPerMs = trackWidth / totalMs;
-  const todayDate = today(systemClock, tz);
-  const todayX = Math.min(
-    Math.max(EDGE_PAD_PX, (dateToMs(todayDate, tz, 0) - startMs) * pxPerMs),
-    Math.max(EDGE_PAD_PX, trackWidth - EDGE_PAD_PX),
-  );
-  const tickClass = (date: string): string =>
-    date === range.end ? styles.tickEnd : date === rangeStart ? styles.tickStart : styles.tick;
-  const monthSuffix = t('history.axis.monthSuffix');
-  const yearSuffix = t('history.axis.yearSuffix');
-  const ticks = useMemo(
-    () => monthTicks(rangeStart, range.end, monthSuffix, yearSuffix),
-    [rangeStart, range.end, monthSuffix, yearSuffix],
-  );
+  const plotWidth = Math.max(1, trackWidth - RIGHT_PAD_PX);
+  const startCenterMs = dateToMs(rangeStart, tz, 12);
+  const endCenterMs = dateToMs(range.end, tz, 12);
+  const spanMs = Math.max(DAY_MS, endCenterMs - startCenterMs);
+  const pxPerMs = plotWidth / spanMs;
+  const plotPx = (ms: number): number =>
+    Math.min(plotWidth, Math.max(0, ((ms - startCenterMs) / spanMs) * plotWidth));
+  const msX = (ms: number): number => (plotPx(ms) / trackWidth) * 100;
+  const dayX = (date: string): number => msX(dateToMs(date, tz, 12));
+  // 首尾当天的节点会被面板边缘切掉一半，向内收一个节点半径。
+  const markerX = (ms: number): number =>
+    (Math.min(trackWidth - EDGE_PAD_PX, Math.max(EDGE_PAD_PX, plotPx(ms))) / trackWidth) * 100;
 
-  const dayX = (date: string): number => xPercent(dateToMs(date, tz), startMs, totalMs);
-  const msX = (ms: number): number => xPercent(ms, startMs, totalMs);
-  // 首尾当天的节点会被 100% / 0% 定位切掉一半，向内收一个节点半径。
-  const markerX = (ms: number): number => {
-    const pad = trackWidth > 0 ? (EDGE_PAD_PX / trackWidth) * 100 : 0;
-    return Math.min(100 - pad, Math.max(pad, msX(ms)));
-  };
+  const todayDate = today(systemClock, tz);
+  const todayX = plotPx(dateToMs(todayDate, tz, 12));
+  const renderedIds = useMemo(() => new Set(lanes.map((item) => item.branch.id)), [lanes]);
+  const ticks = useMemo(
+    () =>
+      monthTicks(rangeStart, range.end, todayDate, (date) =>
+        Math.min(
+          plotWidth,
+          Math.max(0, ((dateToMs(date, tz, 12) - startCenterMs) / spanMs) * plotWidth),
+        ),
+      ),
+    [rangeStart, range.end, todayDate, tz, plotWidth, startCenterMs, spanMs],
+  );
+  const tickClass = (tick: AxisTick): string =>
+    tick.isNow ? styles.tickNow : tick.date === rangeStart ? styles.tickStart : styles.tick;
 
   const markerByDate = useMemo(
     () => new Map(badges.map((marker) => [marker.date, marker])),
@@ -427,7 +455,7 @@ export function TimelineChart({
               {ticks.map((tick) => (
                 <span
                   key={tick.date}
-                  className={tickClass(tick.date)}
+                  className={tickClass(tick)}
                   style={{ left: `${dayX(tick.date)}%` }}
                 >
                   {tick.label}
@@ -459,6 +487,14 @@ export function TimelineChart({
               ? branches.find((row) => row.id === branch.finishedIntoId)
               : undefined;
             const laneHighlighted = highlight?.branchId === branch.id;
+            const railStartPct = lane.isRoot ? 0 : dayX(toLocalDate(branch.createdAt, tz));
+            const railEndDate =
+              (stall.kind === 'stalled' || stall.kind === 'dropped') && stall.fromDate
+                ? stall.fromDate
+                : merge
+                  ? merge.date
+                  : range.end;
+            const railWidthPct = Math.max(0, dayX(railEndDate) - railStartPct);
 
             return (
               <div
@@ -469,35 +505,53 @@ export function TimelineChart({
                 style={laneStyle(lane)}
               >
                 <div className={styles.laneLabel}>
-                  <button
-                    type="button"
-                    className={styles.laneToggle}
-                    aria-label={
-                      lane.expanded ? t('history.lane.collapse') : t('history.lane.expand')
-                    }
-                    aria-expanded={lane.hasChildren ? lane.expanded : undefined}
-                    disabled={!lane.hasChildren}
-                    onClick={() => onToggle(branch.id)}
-                  >
-                    {lane.hasChildren ? (lane.expanded ? '−' : '+') : '·'}
-                  </button>
-                  <span className={styles.laneName} title={branch.title}>
-                    {branch.title}
-                  </span>
-                  <span className={styles.laneStatus}>
-                    {branch.archivedAt !== null
-                      ? t('history.archived')
-                      : branch.droppedAt !== null
-                        ? t('history.dropped')
-                        : null}
-                  </span>
+                  {lane.hasChildren ? (
+                    <button
+                      type="button"
+                      className={styles.laneToggle}
+                      aria-label={
+                        lane.expanded ? t('history.lane.collapse') : t('history.lane.expand')
+                      }
+                      aria-expanded={lane.expanded}
+                      onClick={() => onToggle(branch.id)}
+                    >
+                      <i className={styles.laneMark} aria-hidden="true" />
+                      <span className={styles.laneName} title={branch.title}>
+                        {branch.title}
+                      </span>
+                      <span
+                        className={styles.laneChevron}
+                        data-collapsed={!lane.expanded ? 'true' : undefined}
+                        aria-hidden="true"
+                      >
+                        {lane.expanded ? (
+                          <ChevronDownIcon size={12} />
+                        ) : (
+                          <ChevronRightIcon size={12} />
+                        )}
+                      </span>
+                    </button>
+                  ) : (
+                    <span className={styles.laneStatic}>
+                      <i className={styles.laneMark} aria-hidden="true" />
+                      <span className={styles.laneName} title={branch.title}>
+                        {branch.title}
+                      </span>
+                    </span>
+                  )}
+                  {branch.archivedAt !== null || branch.droppedAt !== null ? (
+                    <span className={styles.laneStatus}>
+                      {branch.archivedAt !== null ? t('history.archived') : t('history.dropped')}
+                    </span>
+                  ) : null}
                 </div>
 
                 <div className={styles.track} style={{ width: trackWidth }}>
                   <span
                     className={styles.rail}
                     style={{
-                      left: `${lane.isRoot ? 0 : dayX(toLocalDate(branch.createdAt, tz))}%`,
+                      left: `${railStartPct}%`,
+                      width: `${railWidthPct}%`,
                     }}
                   />
 
@@ -509,7 +563,7 @@ export function TimelineChart({
                     />
                   ))}
 
-                  {fork ? (
+                  {fork && branch.parentId !== null && renderedIds.has(branch.parentId) ? (
                     <span
                       className={styles.fork}
                       style={{ left: `${dayX(fork.date)}%` }}
@@ -533,13 +587,16 @@ export function TimelineChart({
                         className={styles.stall}
                         style={{
                           left: `${dayX(stall.fromDate)}%`,
-                          width: `${dayX(stall.toDate) - dayX(stall.fromDate)}%`,
+                          width: `${Math.max(0, dayX(stall.toDate) - dayX(stall.fromDate))}%`,
                         }}
                       />
-                      <span className={styles.stallDays} style={{ left: `${dayX(stall.toDate)}%` }}>
-                        {t('history.stall.prefix')}
+                      <span
+                        className={styles.stallDays}
+                        style={{ left: `${Math.min(dayX(stall.fromDate) + 2, 88)}%` }}
+                        title={`${t('history.stall.prefix')}${stall.days}${t('history.stall.suffix')}`}
+                      >
                         {stall.days}
-                        {t('history.stall.suffix')}
+                        {t('history.stall.daysSuffix')}
                       </span>
                     </>
                   ) : null}
@@ -549,7 +606,7 @@ export function TimelineChart({
                       className={styles.historyLine}
                       style={{
                         left: `${dayX(stall.fromDate)}%`,
-                        width: `${dayX(stall.toDate) - dayX(stall.fromDate)}%`,
+                        width: `${Math.max(0, dayX(stall.toDate) - dayX(stall.fromDate))}%`,
                       }}
                     />
                   ) : null}
@@ -559,7 +616,7 @@ export function TimelineChart({
                       className={styles.droppedLine}
                       style={{
                         left: `${dayX(stall.fromDate)}%`,
-                        width: `${dayX(stall.toDate) - dayX(stall.fromDate)}%`,
+                        width: `${Math.max(0, dayX(stall.toDate) - dayX(stall.fromDate))}%`,
                       }}
                       title={t('history.dropped')}
                     />

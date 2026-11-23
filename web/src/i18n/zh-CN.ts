@@ -709,8 +709,9 @@ export const zhCN = {
   'commitDetail.prev': '上一条',
   'commitDetail.next': '下一条',
 
+  'history.eyebrow': '个人工作区 / 历程',
   'page.history.title': '历程',
-  'page.history.body': '按实际日期分布的提交与里程碑。',
+  'page.history.body': '看见每一次完成，也看见分支怎样长出来。',
   'page.history.empty': '完成第一条待办后，这里会出现你的第一段路。',
   'page.history.action': '去今天',
   'page.history.backfill': '补几件过去的事',
@@ -731,6 +732,7 @@ export const zhCN = {
   'history.mergeInto': ' 合回 ',
   'history.stall.prefix': '已 ',
   'history.stall.suffix': ' 天没有提交',
+  'history.stall.daysSuffix': ' 天',
   'history.dropped': '已放下',
   'history.archived': '已归档',
   'history.direct.temporary': '已临时显示目标分支',

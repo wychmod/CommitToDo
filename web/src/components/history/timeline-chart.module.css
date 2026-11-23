@@ -54,7 +54,7 @@
 .axisRow {
   display: flex;
   border-bottom: 1px solid var(--line);
-  background: var(--inset);
+  background: var(--panel);
 }
 
 .axisCorner {
@@ -63,23 +63,23 @@
   z-index: 2;
   flex: none;
   width: var(--timeline-label-width);
-  height: calc(var(--s7) + 5px);
+  height: calc(var(--s9) - var(--s1));
   border-right: 1px solid var(--line);
-  background: var(--inset);
+  background: var(--panel);
 }
 
 .axisTrack {
   position: relative;
   flex: none;
-  height: calc(var(--s7) + 5px);
+  height: calc(var(--s9) - var(--s1));
 }
 
 .tick {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  color: var(--subtle);
-  font-size: var(--type-chart);
+  color: var(--muted);
+  font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -89,26 +89,28 @@
   transform: translate(0, -50%);
 }
 
-.tickEnd {
+.tickNow {
   composes: tick;
-  transform: translate(-100%, -50%);
+  color: var(--accent);
+  font-weight: 700;
 }
+
 .todayLine {
   position: absolute;
-  top: var(--timeline-axis);
-  bottom: 0;
+  top: calc(var(--s9) - var(--s3));
+  bottom: var(--s1);
   z-index: 0;
-  width: var(--s4);
-  margin-left: calc(var(--s4) / -2);
-  border-radius: var(--radius-marker);
-  background: var(--accent);
-  opacity: 0.12;
+  width: calc(var(--s4) + 2px);
+  margin-left: calc((var(--s4) + 2px) / -2);
+  border-radius: var(--radius-nav);
+  background: var(--accent-soft);
+  opacity: 0.7;
   pointer-events: none;
 }
 
 .laneRow {
   display: flex;
-  min-height: var(--s9);
+  min-height: var(--timeline-lane);
   border-bottom: 1px solid var(--line);
 }
 
@@ -134,7 +136,7 @@
   align-items: center;
   gap: var(--s2);
   width: var(--timeline-label-width);
-  padding: 0 var(--s2);
+  padding: 0 var(--s3) 0 var(--s6);
   border-right: 1px solid var(--line);
   background: var(--panel);
 }
@@ -144,45 +146,91 @@
 }
 
 .laneRow[data-depth='2'] .laneLabel {
-  padding-left: var(--s4);
+  padding-left: calc(var(--s9) + 2px);
 }
 
 .laneRow[data-depth='3'] .laneLabel {
-  padding-left: var(--s6);
+  padding-left: calc(var(--s9) + var(--s4));
+}
+
+.laneRow[data-depth='2'] .laneLabel::before,
+.laneRow[data-depth='3'] .laneLabel::before {
+  position: absolute;
+  top: calc(50% - var(--s4) - 2px);
+  left: var(--s7);
+  width: calc(var(--s3) - 1px);
+  height: calc(var(--s4) + 2px);
+  border-bottom: var(--tree-connector) solid var(--line-strong);
+  border-left: var(--tree-connector) solid var(--line-strong);
+  content: '';
+  pointer-events: none;
+}
+
+.laneRow[data-depth='3'] .laneLabel::before {
+  left: calc(var(--s7) + var(--s4) - 2px);
+}
+
+.laneToggle,
+.laneStatic {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--s1) 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
 .laneToggle {
-  flex: none;
-  width: var(--s6);
-  height: var(--s6);
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: var(--panel);
-  color: var(--muted);
-  font-size: var(--type-secondary);
-  line-height: 1;
   cursor: pointer;
-}
-
-.laneToggle:disabled {
-  color: var(--disabled);
-  background: var(--disabled-bg);
-  cursor: default;
 }
 
 .laneToggle:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
+  border-radius: var(--radius-nav);
+}
+
+.laneMark {
+  flex: none;
+  width: var(--tree-identity);
+  height: var(--tree-identity);
+  border-radius: var(--radius-marker);
+  background: var(--lane-color);
 }
 
 .laneName {
   min-width: 0;
   overflow: hidden;
   color: var(--text);
-  font-size: var(--type-secondary);
+  font-size: var(--type-body-compact);
+  font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.laneRow[data-depth='2'] .laneName,
+.laneRow[data-depth='3'] .laneName {
+  color: var(--muted);
+  font-size: var(--type-secondary);
+  font-weight: 500;
+}
+
+.laneChevron {
+  display: inline-flex;
+  flex: none;
+  color: var(--subtle);
+  opacity: 0;
+  transition: opacity var(--duration-micro) var(--ease-enter);
+}
+
+.laneToggle:hover .laneChevron,
+.laneToggle:focus-visible .laneChevron,
+.laneChevron[data-collapsed='true'] {
+  opacity: 1;
 }
 
 .laneStatus {
@@ -200,10 +248,9 @@
 .rail {
   position: absolute;
   top: 50%;
-  right: 0;
   height: var(--timeline-rail);
   background: var(--lane-color);
-  opacity: 0.55;
+  opacity: 1;
 }
 
 .guide {
@@ -212,26 +259,15 @@
   bottom: 0;
   width: var(--timeline-guide);
   background: var(--line);
+  opacity: 0.7;
 }
 
 .fork {
   position: absolute;
   top: 0;
-  width: var(--timeline-guide);
+  width: var(--timeline-rail);
   height: 50%;
   background: var(--lane-color);
-}
-
-.fork::after {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: var(--tree-identity);
-  height: var(--tree-identity);
-  border-radius: var(--radius-marker);
-  background: var(--lane-color);
-  content: '';
-  transform: translate(-50%, 50%);
 }
 
 .merge {
@@ -248,9 +284,9 @@
   left: 50%;
   width: var(--timeline-merge-diameter);
   height: var(--timeline-merge-diameter);
-  border: var(--timeline-guide) solid var(--panel);
+  border: var(--timeline-rail) solid var(--lane-color);
   border-radius: 50%;
-  background: var(--lane-color);
+  background: var(--panel);
   content: '';
   transform: translate(-50%, 50%);
 }
@@ -264,10 +300,14 @@
 
 .stallDays {
   position: absolute;
-  top: calc(50% + var(--s2));
-  transform: translateX(-100%);
-  color: var(--subtle);
+  top: calc(50% + var(--s3));
+  padding: calc(var(--s1) / 2) var(--s2);
+  border-radius: var(--radius-nav);
+  background: var(--honey-bg);
+  color: var(--muted);
   font-size: var(--type-chart);
+  font-weight: 650;
+  line-height: 1.4;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -427,13 +467,13 @@
 
 .badgeMarker {
   position: absolute;
-  top: calc(50% - var(--s7));
+  top: calc(50% - var(--s4));
   left: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: var(--s5);
-  height: var(--s5);
+  min-width: var(--s4);
+  height: var(--s4);
   padding: 0 var(--s1);
   border: var(--timeline-guide) solid var(--panel);
   border-radius: var(--s9);

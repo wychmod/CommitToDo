@@ -32,6 +32,7 @@ import { t, type MessageKey } from '@/i18n';
 import { useHistoryExpandedStore, useHistoryFilterStore } from '@/stores/history.store';
 import { useShellStore } from '@/stores/shell.store';
 import { EmptyState } from '@/ui/empty-state';
+import { ChevronDownIcon, DiamondIcon, MergeIcon } from '@/ui/icons';
 import { SvgIcon } from '@/ui/icons/svg-icon';
 import { PageShell } from '@/ui/page-shell';
 import styles from './history-page.module.css';
@@ -43,7 +44,7 @@ const RANGE_LABEL_KEY: Record<TimeRangeKind, MessageKey> = {
 };
 
 const TREE_ICON = (
-  <SvgIcon size={12}>
+  <SvgIcon size={18}>
     <path d="M12 4v4.5M12 8.5H6.5v5M12 8.5h5.5v5" />
     <circle cx="12" cy="3.5" r="1.4" />
     <circle cx="6.5" cy="15" r="1.4" />
@@ -51,20 +52,8 @@ const TREE_ICON = (
   </SvgIcon>
 );
 
-const MILESTONE_ICON = (
-  <SvgIcon size={12}>
-    <path d="m12 3 7 7-7 7-7-7Z" />
-  </SvgIcon>
-);
-
-const CHEVRON_ICON = (
-  <SvgIcon size={16}>
-    <path d="m6 9 6 6 6-6" />
-  </SvgIcon>
-);
-
 const DIAGONAL_ICON = (
-  <SvgIcon size={16}>
+  <SvgIcon size={15}>
     <path d="M7 17 17 7M9 7h8v8" />
   </SvgIcon>
 );
@@ -359,7 +348,7 @@ export function HistoryPage() {
     rangeStartDate !== null && rangeStartDate.slice(0, 4) !== effectiveRange.end.slice(0, 4);
   const todayLabel = `${t('history.today')}${Number(todayDate.slice(5, 7))}${t(
     'history.axis.monthSuffix',
-  )}${Number(todayDate.slice(8, 10))}${t('history.daySuffix')}`;
+  )} ${Number(todayDate.slice(8, 10))}${t('history.daySuffix')}`;
 
   const milestoneRows = useMemo(() => {
     if (!hasVisibleEvents) return [];
@@ -458,6 +447,7 @@ export function HistoryPage() {
   return (
     <PageShell
       titleKey="page.history.title"
+      eyebrow={<span className={styles.eyebrow}>{t('history.eyebrow')}</span>}
       bodyKey="page.history.body"
       action={
         <Link className={styles.yearLink} to={`/history/${todayDate.slice(0, 4)}`}>
@@ -491,7 +481,7 @@ export function HistoryPage() {
               onClick={() => setBranchMenuOpen((open) => !open)}
             >
               {selectedBranchLabel}
-              {CHEVRON_ICON}
+              <ChevronDownIcon size={14} />
             </button>
             {branchMenuOpen ? (
               <ul
@@ -519,7 +509,11 @@ export function HistoryPage() {
             ) : null}
           </div>
 
-          <span className={styles.rangeText}>{rangeText}</span>
+          <span className={styles.rangeText} aria-label={rangeText}>
+            {rangeStartDate !== null ? dottedDate(rangeStartDate) : null}
+            <span className={styles.rangeDash}>—</span>
+            {dottedDate(effectiveRange.end)}
+          </span>
         </div>
 
         {direct.temporary && !focusMilestone ? (
@@ -601,11 +595,11 @@ export function HistoryPage() {
                   {t('history.legend.commit')}
                 </span>
                 <span>
-                  <i className={styles.keyDiamond} aria-hidden="true" />
+                  <DiamondIcon size={13} />
                   {t('history.legend.milestone')}
                 </span>
                 <span>
-                  <i className={styles.keyMerge} aria-hidden="true" />
+                  <MergeIcon size={15} />
                   {t('history.legend.merge')}
                 </span>
                 <span>
@@ -624,9 +618,9 @@ export function HistoryPage() {
             </section>
 
             <section className={styles.panel}>
-              <div className={styles.panelHead}>
+              <div className={`${styles.panelHead} ${styles.milestonePanelHead}`}>
                 <div className={styles.panelTitle}>
-                  {MILESTONE_ICON}
+                  <DiamondIcon size={18} />
                   <h2>{t('history.milestones.title')}</h2>
                 </div>
                 <div className={styles.milestoneHeadRight}>
