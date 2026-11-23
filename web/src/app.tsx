@@ -11,6 +11,7 @@ import { HomePage } from '@/pages/home-page';
 import { LoginPage } from '@/pages/login-page';
 import { MePage } from '@/pages/me-page';
 import { NotFoundPage } from '@/pages/not-found-page';
+import { PrivacyPage } from '@/pages/privacy-page';
 import { RecoverPage } from '@/pages/recover-page';
 import { SamplePage } from '@/pages/sample-page';
 import { SettingsPage } from '@/pages/settings-page';
@@ -18,6 +19,7 @@ import { SignupPage } from '@/pages/signup-page';
 import { SyncConflictsPage } from '@/pages/sync-conflicts-page';
 import { SyncDevicesPage } from '@/pages/sync-devices-page';
 import { TemplatesPage } from '@/pages/templates-page';
+import { TermsPage } from '@/pages/terms-page';
 import { TodayPage } from '@/pages/today-page';
 import { YearPage } from '@/pages/year-page';
 
@@ -54,6 +56,8 @@ export default function App() {
         <Route path="auth/login" element={<LoginPage />} />
         <Route path="auth/signup" element={<SignupPage />} />
         <Route path="auth/recover" element={<RecoverPage />} />
+        <Route path="terms" element={<TermsPage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
       </Routes>
     </BrowserRouter>
   );

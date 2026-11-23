@@ -82,6 +82,7 @@ export function AuthField({
           autoComplete={autoComplete}
           autoFocus={autoFocus}
           disabled={disabled}
+          data-password={isPassword || undefined}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           onChange={(event) => onChange(event.target.value)}
@@ -163,7 +164,7 @@ export function AuthSwitch({ lead, to, action }: { lead?: string; to: string; ac
   );
 }
 
-/** 注册前的条款确认；只做可读文字，不挂尚未上线的条款页。 */
+/** 注册前的条款确认：勾选与条款/隐私独立页面链接分离，点击链接不会误切换勾选。 */
 export function AuthConsent({
   checked,
   onChange,
@@ -174,21 +175,29 @@ export function AuthConsent({
   disabled?: boolean;
 }) {
   return (
-    <label className={styles.consent}>
+    <div className={styles.consent}>
       <input
+        id="auth-consent"
         type="checkbox"
         checked={checked}
         disabled={disabled}
+        aria-labelledby="auth-consent-text"
         onChange={(event) => onChange(event.target.checked)}
       />
-      <span>
-        {t('auth.signup.consent.lead')}
-        <span className={styles.consentTerm}>{t('auth.signup.consent.terms')}</span>
-        {t('auth.signup.consent.join')}
-        <span className={styles.consentTerm}>{t('auth.signup.consent.privacy')}</span>
+      <span id="auth-consent-text">
+        <label className={styles.consentLabel} htmlFor="auth-consent">
+          {t('auth.signup.consent.lead')}
+        </label>{' '}
+        <Link className={styles.consentTerm} to="/terms">
+          {t('auth.signup.consent.terms')}
+        </Link>{' '}
+        {t('auth.signup.consent.join')}{' '}
+        <Link className={styles.consentTerm} to="/privacy">
+          {t('auth.signup.consent.privacy')}
+        </Link>
         {t('auth.signup.consent.tail')}
       </span>
-    </label>
+    </div>
   );
 }
 

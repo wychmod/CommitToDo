@@ -1541,4 +1541,232 @@ export const zhCN = {
   'badge.wall.locked': '待获得',
   // V2-01 账号与登录态：登录把本机数据归属到账号后的一次性提示（措辞取自 PRD §8.1-12，待与 V2-02 对齐）
   'auth.takeover.notice': '登录后由同步接管',
+
+  // 独立法务文档页（服务条款 / 隐私说明）
+  'legal.nav.label': '条款与隐私切换',
+  'legal.nav.terms': '服务条款',
+  'legal.nav.privacy': '隐私说明',
+  'legal.backSignup': '返回创建账号',
+  'legal.status.active': '当前生效',
+  'legal.version': '版本 2.0 · 生效于 2026.11.23',
+  'legal.receipt.title': '核心承诺',
+  'legal.receipt.count': '3 项原则',
+  'legal.toc.label': '文档目录',
+  'legal.toc.title': '章节目录',
+  'legal.toc.mobileToggle': '快速跳转章节',
+  'legal.toc.count': '共 7 节',
+  'legal.toc.companionLabel': '配套阅读',
+  'legal.callout.label': '通俗说明',
+  'legal.closing.help': '查看帮助',
+  'legal.closing.data': '数据与备份',
+  'legal.closing.signup': '创建账号',
+  'legal.footer.note': '本机工作区可独立使用',
+  'legal.footer.home': '首页',
+
+  // 服务条款（/terms）
+  'terms.title': '服务条款',
+  'terms.lead.before': '把规则写明白，让你',
+  'terms.lead.highlight': '放心使用',
+  'terms.lead.after': '每一天。',
+  'terms.subtitle': '适用于 CommitToDo Web 应用、本机工作区以及可选的云账号与多设备同步服务。',
+  'terms.companion.action': '阅读隐私说明',
+  'terms.companion.desc': '了解数据如何保存在本机、何时上云以及你拥有的完整控制权。',
+  'terms.closing.title': '对条款内容还有疑问？',
+  'terms.closing.desc': '你可以继续查看《隐私说明》，或在帮助页了解分支、锁定与同步机制。',
+
+  'terms.receipt.1.title': '本机可独立使用',
+  'terms.receipt.1.meta': '不登录也能完整使用待办、分支与时间树',
+  'terms.receipt.2.title': '记录完全归你',
+  'terms.receipt.2.meta': '待办、提交与年度总结所有权属于你本人',
+  'terms.receipt.3.title': '随时完整带走',
+  'terms.receipt.3.meta': '支持随时导出标准 JSON 备份文件',
+
+  'terms.pillar.1.title': '先在本机运行，再决定是否同步',
+  'terms.pillar.1.desc':
+    '无需注册即可开始记录。云账号仅在你希望跨设备续写或留存异地备份时按需启用。',
+  'terms.pillar.2.title': '你的内容不做商业分析与训练',
+  'terms.pillar.2.desc':
+    '我们只在提供存储、同步与备份功能所需范围内处理你的记录，不用于广告画像或模型训练。',
+  'terms.pillar.3.title': '退出登录不清空你的本机记录',
+  'terms.pillar.3.desc':
+    '退出账号后，同步会立即停止，但已保存在当前设备上的待办与历程仍然完整留给你。',
+
+  'terms.s1.num': '01',
+  'terms.s1.title': '接受与适用范围',
+  'terms.s1.p1':
+    '欢迎使用 CommitToDo。当你打开本机工作区、注册账号或开启多设备同步功能时，即表示你已阅读、理解并同意受本《服务条款》及《隐私说明》的约束。',
+  'terms.s1.p2':
+    '如果你不同意本条款的任何内容，可随时停止使用相关云服务；对于已保存在你浏览器本机中的数据，你可以先导出备份后再自行清除。',
+
+  'terms.s2.num': '02',
+  'terms.s2.title': '服务形态与本机优先原则',
+  'terms.s2.p1':
+    'CommitToDo 是一款围绕「待办、分支与时间树」构建的个人记录工具，默认采用本机优先（Local-First）方式运行：',
+  'terms.s2.b1.lead': '离线本机工作区：',
+  'terms.s2.b1.text':
+    '无需登录即可使用今天清单、分支树、历程时间树、年轮统计、徽章墙、本机快照与 JSON 导出恢复。',
+  'terms.s2.b2.lead': '可选云账号与同步：',
+  'terms.s2.b2.text':
+    '当你注册并登录账号后，可在「设置」中开启多设备同步或使用异地备份，让不同设备上的分支和待办保持连续。',
+  'terms.s2.b3.lead': '无绑定锁定：',
+  'terms.s2.b3.text': '云服务不是使用 CommitToDo 的前提。你随时可以退出账号并继续仅在本机使用。',
+
+  'terms.s3.num': '03',
+  'terms.s3.title': '账号注册与安全责任',
+  'terms.s3.p1':
+    '创建账号时，请你提供真实、有效且由本人控制的电子邮箱，以便在忘记密码时接收重置邮件。你应妥善保管登录密码及已授权设备，并对该账号下发生的操作负责。',
+  'terms.s3.b1.lead': '设备自查与移除：',
+  'terms.s3.b1.text':
+    '你可以随时在「设置 → 已登录设备」中查看当前在线或历史同步设备，并一键移除不再信任的终端。',
+  'terms.s3.b2.lead': '异常及时处理：',
+  'terms.s3.b2.text':
+    '若发现账号存在未经授权的访问，请立即通过「找回密码」重置凭据并移除异常设备。',
+
+  'terms.s4.num': '04',
+  'terms.s4.title': '你的内容与数据所有权',
+  'terms.s4.p1':
+    '你在 CommitToDo 中创建的每一条待办、分支目标、完成提交、里程碑、放下原因与年度总结，其知识产权与所有权始终完整归属于你本人。',
+  'terms.s4.p2':
+    '为了向你提供跨设备同步、异地备份与页面呈现服务，你授予我们在必要范围内对上述内容进行加密传输、存储与还原的技术许可；除实现这些功能外，我们不会对外公开、出售或另作他用。',
+  'terms.s4.callout':
+    '完成待办后产生的提交记录支持在「当天」撤销或修正，跨过本地零点后会自动锁定为不可篡改的历史记录；收尾分支时，已完成提交会按你的选择并入父分支并保留在历程中。',
+
+  'terms.s5.num': '05',
+  'terms.s5.title': '多设备同步、冲突与备份',
+  'terms.s5.p1':
+    '开启同步后，首次登录会将本机尚未归属账号的本地记录归属到当前账号，以便统一同步。当多台设备离线编辑同一分支或待办后重新联网时，系统优先保证任何一方的记录不丢失。',
+  'terms.s5.b1.lead': '冲突双版本留痕：',
+  'terms.s5.b1.text':
+    '若发生并发冲突，系统会在「设置 → 同步冲突记录」中并排留存双方版本，方便你回看并核对最终内容。',
+  'terms.s5.b2.lead': '本机备份建议：',
+  'terms.s5.b2.text':
+    '浏览器清理站点数据、隐私模式关闭或设备硬件损坏可能导致未同步的本机数据丢失。建议定期在「数据与备份」页下载 JSON 备份文件妥善保存。',
+
+  'terms.s6.num': '06',
+  'terms.s6.title': '合理使用边界',
+  'terms.s6.p1':
+    '为保障服务的稳定与安全，使用 CommitToDo 时不得利用本产品存储或传播违反法律法规的内容，不得实施恶意高频请求、逆向干扰接口、绕过访问控制或危害其他用户数据安全的行为。',
+  'terms.s6.p2':
+    '若存在明确且严重的违规使用，我们有权在合理提示后暂停或终止相应云账号的同步服务；该措施仅涉及云端服务，不会主动删除你设备本机已保存的数据。',
+
+  'terms.s7.num': '07',
+  'terms.s7.title': '服务变更、免责与条款更新',
+  'terms.s7.p1':
+    '我们将持续维护并改进 CommitToDo，但软件服务按「现状」提供。因不可抗力、运营商网络中断、云基础设施突发故障，或用户自行清除浏览器存储而造成的未备份数据损失，我们在法律允许范围内不承担赔偿责任。',
+  'terms.s7.p2':
+    '随着功能演进，我们可能适时修订本条款。涉及用户核心权利的实质性变更，我们将在本页更新生效日期并通过站内或登录入口给予清晰提示。你在更新后继续使用云账号服务，即视为接受修订后的条款。',
+
+  // 隐私说明（/privacy）
+  'privacy.title': '隐私说明',
+  'privacy.lead.before': '记录先留在你的设备，',
+  'privacy.lead.highlight': '控制权归你',
+  'privacy.lead.after': '自己。',
+  'privacy.subtitle':
+    '透明说明 CommitToDo 如何存储本机记录、在何时收集最少必要的账号信息，以及你如何导出或删除数据。',
+  'privacy.companion.action': '阅读服务条款',
+  'privacy.companion.desc': '查看账号责任、数据所有权、同步冲突留痕与合理使用边界。',
+  'privacy.closing.title': '想立即管理你的本机记录？',
+  'privacy.closing.desc': '你可以前往「数据与备份」导出完整 JSON、查看本机快照或清理本机空间。',
+
+  'privacy.receipt.1.title': '默认仅存本机',
+  'privacy.receipt.1.meta': '未开启同步前，数据不离开当前浏览器',
+  'privacy.receipt.2.title': '最少必要收集',
+  'privacy.receipt.2.meta': '云账号仅保存邮箱、加密凭据与同步内容',
+  'privacy.receipt.3.title': '零广告与追踪',
+  'privacy.receipt.3.meta': '不植入广告 SDK，不出售也不画像',
+
+  'privacy.pillar.1.title': '不登录，零数据上传',
+  'privacy.pillar.1.desc':
+    '所有待办、分支、提交和偏好默认写入浏览器 IndexedDB，离线状态也能完整读写。',
+  'privacy.pillar.2.title': '同步按需开启，边界清晰',
+  'privacy.pillar.2.desc':
+    '只有你主动注册登录并开启同步时，记录才经 HTTPS 加密同步至云端，用于多端保持一致。',
+  'privacy.pillar.3.title': '透明清单，随时导出与清空',
+  'privacy.pillar.3.desc':
+    '我们用清单写清每一类数据的存放位置与用途；你随时可以一键导出 JSON 或清空本机。',
+
+  'privacy.s1.num': '01',
+  'privacy.s1.title': '核心原则：本机优先与最小收集',
+  'privacy.s1.p1':
+    'CommitToDo 相信个人待办与时间历程属于私密的日常记录。因此我们在架构设计之初就确立了「本机优先」原则：只要你没有主动登录云账号并开启同步，你的任何一条记录都不会离开你当前使用的设备。',
+  'privacy.s1.p2':
+    '当你选择使用云账号进行多设备同步时，我们也只收集实现身份验证、密码找回与同步所必需的最少信息，不收集与核心功能无关的个人隐私。',
+
+  'privacy.s2.num': '02',
+  'privacy.s2.title': '我们处理的数据清单',
+  'privacy.s2.p1': '下表完整列出了 CommitToDo 在本机与云端场景下可能涉及的每一类数据：',
+  'privacy.table.col.type': '数据类型',
+  'privacy.table.col.scope': '存放边界',
+  'privacy.table.col.purpose': '使用目的',
+  'privacy.table.col.control': '你的控制权',
+  'privacy.table.r1.type': '工作区内容（待办、分支、提交、里程碑、总结）',
+  'privacy.table.r1.scope': '默认本机 · 可选云端',
+  'privacy.table.r1.purpose': '展示工作区、时间树统计与跨设备续写',
+  'privacy.table.r1.control': '随时编辑、导出 JSON、停用同步或清空本机',
+  'privacy.table.r2.type': '账号信息（电子邮箱、加密密码、会话凭据）',
+  'privacy.table.r2.scope': '仅注册登录后',
+  'privacy.table.r2.purpose': '登录鉴权、密码找回邮件与账号归属校验',
+  'privacy.table.r2.control': '随时重置密码、退出登录或申请注销账号',
+  'privacy.table.r3.type': '设备与同步记录（设备标识、同步时间、冲突版本）',
+  'privacy.table.r3.scope': '开启同步后',
+  'privacy.table.r3.purpose': '列出已同步终端并留存并发修改供你核对',
+  'privacy.table.r3.control': '在「设置 → 已登录设备」随时移除设备',
+  'privacy.table.r4.type': '界面偏好（浅色/深色主题、树密度、注解开关）',
+  'privacy.table.r4.scope': '仅存本机',
+  'privacy.table.r4.purpose': '记住你的阅读与界面排布偏好',
+  'privacy.table.r4.control': '在「设置」页随时即时切换',
+  'privacy.s2.callout':
+    '明确不收集的内容：我们不读取你的通讯录、地理位置、剪贴板或浏览历史，不接入第三方广告追踪 SDK，也不进行跨网站行为画像。',
+
+  'privacy.s3.num': '03',
+  'privacy.s3.title': '本机存储、快照与备份文件',
+  'privacy.s3.p1':
+    '在本机模式下，你的工作区数据保存在当前浏览器的 IndexedDB 数据库中，并辅以本地每日自动快照及「从文件恢复」前的安全副本，以便在误操作时快速还原。',
+  'privacy.s3.b1.lead': '本地快照仅留在本机：',
+  'privacy.s3.b1.text':
+    '自动快照和恢复前副本均不自动上传，你可以随时在「数据与备份」中查看或下载。',
+  'privacy.s3.b2.lead': '导出文件由你保管：',
+  'privacy.s3.b2.text':
+    '你主动导出的 JSON 备份文件以明文结构化格式保存在你的设备磁盘上，便于长期归档与迁移，请妥善保管该文件。',
+
+  'privacy.s4.num': '04',
+  'privacy.s4.title': '云账号与多设备同步机制',
+  'privacy.s4.p1':
+    '当你主动登录账号并在设置中启用同步后，客户端会通过 HTTPS 加密信道与云端服务（基于 CloudBase 基础设施）同步你的工作区记录。',
+  'privacy.s4.b1.lead': '本机数据归属：',
+  'privacy.s4.b1.text':
+    '登录成功后，本机尚未归属任何账号的本地工作区记录将归属到你的账号下，以便与其他设备合并续写。',
+  'privacy.s4.b2.lead': '退出登录的影响：',
+  'privacy.s4.b2.text':
+    '退出登录会立即清除当前浏览器的登录会话并停止同步，但不会删除设备本机已存在的工作区数据，你仍可离线继续使用。',
+
+  'privacy.s5.num': '05',
+  'privacy.s5.title': '信息共享与披露边界',
+  'privacy.s5.p1':
+    '我们绝不向任何第三方出售、出租或交易你的个人数据与记录内容。仅在以下严格限定的情形中，相关数据可能经由受托基础设施处理：',
+  'privacy.s5.b1.lead': '基础云托管与邮件发送：',
+  'privacy.s5.b1.text':
+    '为实现云账号鉴权、密码重置邮件投递与同步数据存储，数据由经过安全隔离的云服务基础设施承载处理。',
+  'privacy.s5.b2.lead': '法定合规要求：',
+  'privacy.s5.b2.text':
+    '仅在法律法规明确规定或配合有权机关依法定程序提出要求时，在最小必要范围内予以配合。',
+
+  'privacy.s6.num': '06',
+  'privacy.s6.title': '数据安全与保存期限',
+  'privacy.s6.p1':
+    '我们采取多重技术措施保护你的数据安全：全站与同步通信采用 HTTPS 加密传输；账号密码经不可逆加密处理，任何人无法读取你的明文密码；本机 IndexedDB 数据受浏览器同源安全策略隔离保护。',
+  'privacy.s6.p2':
+    '保存期限方面，本机数据由你完全决定去留；云端同步数据将在你维持账号期间持续保留，以便你在新设备随时恢复。当你主动申请删除或注销云账号后，我们将在合理期限内清除云端关联数据与备份。',
+
+  'privacy.s7.num': '07',
+  'privacy.s7.title': '你的权利与隐私政策更新',
+  'privacy.s7.p1': '你对自己的个人数据始终享有完整的知情、访问、更正、导出与删除权利：',
+  'privacy.s7.b1.lead': '查阅与导出：',
+  'privacy.s7.b1.text': '随时前往「数据与备份」页导出包含全部待办、分支、提交与总结的 JSON 文件。',
+  'privacy.s7.b2.lead': '停用同步与移除设备：',
+  'privacy.s7.b2.text': '随时在「设置」页退出登录，或在「已登录设备」中撤销任意终端的访问状态。',
+  'privacy.s7.b3.lead': '清空本机空间：',
+  'privacy.s7.b3.text': '可在「数据与备份」页通过二次确认一键清空当前浏览器内的全部本机记录。',
+  'privacy.s7.p2':
+    '若本《隐私说明》因产品能力或法规要求而更新，我们将在本页顶部标注最新版本号与生效日期，并在显著位置提醒查阅。',
 } as const;
