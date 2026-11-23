@@ -51,7 +51,19 @@
       "marketing-page": "#FFFFFF",
       "marketing-ink": "#111111",
       "marketing-muted": "#4F4F4F",
-      "marketing-accent": "#1167B5"
+      "marketing-accent": "#1167B5",
+      "auth-page": "#FFFFFF",
+      "auth-accent": "#1167B5",
+      "auth-art-bg": "#EEF6FD",
+      "auth-highlight-bg": "#DCEEFF",
+      "auth-input-border": "#CBD5E1",
+      "auth-local-bg": "#FFFFFF",
+      "auth-local-ink": "#1167B5",
+      "auth-local-border": "#2B7BC0",
+      "auth-local-hover-bg": "#E7F1FB",
+      "auth-sticky-border": "#1B2432",
+      "auth-receipt-bg": "#E4F2FD",
+      "auth-receipt-border": "#9EC6EA"
     },
     "dark": {
       "page": "#192230",
@@ -103,7 +115,19 @@
       "marketing-page": "#1C2431",
       "marketing-ink": "#F2F2F2",
       "marketing-muted": "#B5C1D1",
-      "marketing-accent": "#80ACE8"
+      "marketing-accent": "#80ACE8",
+      "auth-page": "#192230",
+      "auth-accent": "#A4C8F8",
+      "auth-art-bg": "#263547",
+      "auth-highlight-bg": "#364D6B",
+      "auth-input-border": "#3A495D",
+      "auth-local-bg": "#A4C8F8",
+      "auth-local-ink": "#11233E",
+      "auth-local-border": "#A4C8F8",
+      "auth-local-hover-bg": "#B7D4FA",
+      "auth-sticky-border": "transparent",
+      "auth-receipt-bg": "#2A3F58",
+      "auth-receipt-border": "#7699C4"
     }
   },
   "branches": {
@@ -289,24 +313,36 @@
       "sceneTitleGap": 16,
       "sceneFadeStop": "4%",
       "noteCheckSize": 44,
-      "ctaPadding": 28,
+      "ctaPadding": 32,
       "footerTop": 56,
       "footerBottom": 36,
       "brandMark": 30,
       "headerCtaHeight": 42
     },
     "auth": {
+      "stageMax": 1380,
       "formWidth": 380,
-      "artWidth": 680,
-      "minHeight": 640,
-      "columnGap": 96,
-      "headerHeight": 80,
+      "artWidth": 900,
+      "minHeight": 720,
+      "minHeightCompact": 580,
+      "columnGap": 64,
+      "headerHeight": 72,
       "artPadding": 48,
-      "radius": 14,
+      "artPaddingTop": 56,
+      "artPaddingBottom": 96,
+      "radius": 20,
+      "cardRadius": 14,
       "fieldHeight": 48,
       "buttonHeight": 48,
-      "stickySize": 84,
-      "receiptWidth": 200
+      "stickySize": 88,
+      "receiptWidth": 256,
+      "artTitleSize": 48
+    },
+    "legal": {
+      "contentMax": 1160,
+      "tocWidth": 248,
+      "receiptWidth": 316,
+      "columnGap": 56
     },
     "control": {
       "height": 34

@@ -9,12 +9,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--s1);
+  gap: var(--s4);
   max-width: var(--layout-marketing-content-max);
   margin: 0 auto;
   padding: 0 var(--s6);
   text-align: center;
-  transform: translateY(calc(var(--s3) * -1));
 }
 
 .ctaTitle {
@@ -23,6 +22,7 @@
   font-size: var(--home-section-title-size);
   font-weight: 700;
   letter-spacing: -0.01em;
+  line-height: var(--home-title-line-height);
 }
 
 .ctaAction {
@@ -136,16 +136,12 @@
   }
 
   .ctaInner {
+    gap: var(--s4);
     padding: 0 var(--s4);
   }
 
   .ctaTitle {
     font-size: var(--type-marketing-compact);
-  }
-
-  .ctaInner {
-    gap: var(--s4);
-    transform: none;
   }
 
   .footerInner {
