@@ -2,6 +2,7 @@
 
 .section {
   padding: var(--s8) 0 var(--s9);
+  border-top: var(--tree-connector) solid var(--line);
   background: var(--marketing-page);
 }
 

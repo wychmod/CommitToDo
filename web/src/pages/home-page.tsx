@@ -43,11 +43,7 @@ export function HomePage() {
 
   return (
     <main className={styles.page}>
-      <HomeHero
-        demo={demo}
-        onOpenReceipt={openReceipt}
-        onLocateWorkbench={() => scrollTo('home-workbench')}
-      />
+      <HomeHero demo={demo} onOpenReceipt={openReceipt} />
       <HomeFeatures />
       <HomeSectionNav reducedMotion={reducedMotion} />
       <HomeDesk />

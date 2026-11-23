@@ -14,8 +14,10 @@
   display: flex;
   align-items: center;
   gap: calc(var(--s7) + 2px);
+  max-width: var(--layout-marketing-content-max);
+  margin: 0 auto;
   height: var(--layout-marketing-header);
-  padding: 0 var(--layout-marketing-gutter);
+  padding: 0 var(--s6);
 }
 
 .brand {
@@ -145,36 +147,6 @@
   line-height: 1.5;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--home-hero-action-gap);
-  margin-top: var(--s6);
-}
-
-.look {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s2);
-  height: var(--home-hero-action-height);
-  padding: 0 var(--home-hero-action-padding);
-  border-radius: var(--home-hero-action-radius);
-  font-size: var(--type-heading-small);
-  cursor: pointer;
-}
-
-.look {
-  border: 1px solid var(--marketing-accent);
-  background: var(--marketing-accent);
-  color: var(--accent-ink);
-}
-
-.look:hover {
-  filter: brightness(1.08);
-}
-
-.look:focus-visible,
 .headerLogin:focus-visible,
 .headerAction:focus-visible,
 .brand:focus-visible,
@@ -314,9 +286,26 @@
 }
 
 .windowCrumb {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--subtle);
   font-size: var(--type-chart);
   font-weight: 700;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.windowCrumb:hover {
+  color: var(--text);
+}
+
+.windowCrumb:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: var(--s1);
+  border-radius: var(--radius-control);
 }
 
 .windowControls {
@@ -592,17 +581,6 @@
 
   .subtitle {
     font-size: var(--type-body);
-  }
-
-  .actions {
-    margin-top: var(--s5);
-  }
-
-  .look {
-    height: var(--s7);
-    padding: 0 var(--s4);
-    border-radius: var(--radius-control);
-    font-size: var(--type-secondary);
   }
 
   .stage {

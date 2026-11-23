@@ -95,7 +95,7 @@ export const zhCN = {
   'home.hero.titleLead': '把小事放进自己的',
   'home.hero.titleHighlight': '今天。',
   'home.hero.subtitle': '待办、分支和时间树，一处看得清。',
-  'home.hero.look': '查看示例',
+  'home.hero.replayAction': '重播首页演示',
   'home.hero.windowLabel': '工作区示例',
   'home.hero.windowTitle': '我的工作区',
   'home.hero.windowCrumb': '今天',

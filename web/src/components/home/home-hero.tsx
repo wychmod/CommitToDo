@@ -8,7 +8,6 @@ import styles from './home-hero.module.css';
 interface HomeHeroProps {
   demo: HomeDemo;
   onOpenReceipt: () => void;
-  onLocateWorkbench: () => void;
 }
 
 function ArrowIcon() {
@@ -87,17 +86,12 @@ function SidebarMarker({ kind }: { kind: 'today' | 'branches' | 'history' }) {
   );
 }
 
-export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroProps) {
+export function HomeHero({ demo, onOpenReceipt }: HomeHeroProps) {
   const workbenchRef = useRef<HTMLDivElement>(null);
   const { start, setVisible } = demo;
 
   const replayWhenDone = () => {
     if (demo.status === 'done') demo.replay();
-  };
-
-  const locateWorkbench = () => {
-    replayWhenDone();
-    onLocateWorkbench();
   };
 
   useEffect(() => {
@@ -161,12 +155,6 @@ export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroPro
           </span>
         </h1>
         <p className={styles.subtitle}>{t('home.hero.subtitle')}</p>
-        <div className={styles.actions}>
-          <button type="button" className={styles.look} onClick={locateWorkbench}>
-            {t('home.hero.look')}
-            <ArrowIcon />
-          </button>
-        </div>
 
         <div className={styles.stage}>
           <div className={styles.sticky} data-checked={demo.checked} aria-hidden="true">
@@ -188,9 +176,15 @@ export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroPro
           >
             <div className={styles.titlebar}>
               <span className={styles.windowBrand}>{t('app.name')}</span>
-              <span className={styles.windowCrumb} onPointerEnter={replayWhenDone}>
+              <button
+                type="button"
+                className={styles.windowCrumb}
+                aria-label={t('home.hero.replayAction')}
+                onPointerEnter={replayWhenDone}
+                onClick={replayWhenDone}
+              >
                 {t('home.hero.windowTitle')} / {t('home.hero.windowCrumb')}
-              </span>
+              </button>
               <span className={styles.windowControls} aria-hidden="true">
                 <SearchIcon />
                 <PlusIcon />

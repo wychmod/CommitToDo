@@ -28,7 +28,7 @@ export function HomeSectionNav({ reducedMotion }: HomeSectionNavProps) {
       getComputedStyle(list).getPropertyValue('--home-section-nav-rail-inset'),
     );
     setLine({
-      left: button.offsetLeft + label.offsetLeft - railInset,
+      left: label.offsetLeft - railInset,
       width: label.offsetWidth + railInset * 2,
     });
   }, [active]);
