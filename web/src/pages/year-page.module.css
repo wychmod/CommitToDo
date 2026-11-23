@@ -8,6 +8,16 @@
   margin-top: calc(var(--s5) - var(--s6) - 2px);
 }
 
+.yearHead {
+  padding-bottom: calc(var(--s1) + 1px);
+}
+
+.yearHead p {
+  margin-top: 0;
+  font-size: var(--type-secondary);
+  line-height: 1.55;
+}
+
 .headingWrap h1.heading {
   margin: calc(var(--s2) - 1px) 0 calc(var(--s1) + 1px);
   color: var(--text);
@@ -271,7 +281,7 @@
 }
 
 .chartGrid span {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid color-mix(in srgb, var(--line) 73%, transparent);
 }
 
 .chartGrid span:last-child {
@@ -315,6 +325,7 @@
   border-radius: calc(var(--radius-marker) + var(--s1)) calc(var(--radius-marker) + var(--s1))
     var(--s1) var(--s1);
   background: var(--accent-soft);
+  opacity: 0.58;
 }
 
 .monthCurrent > * {
@@ -419,12 +430,30 @@
 }
 
 .distColumns {
-  display: flex;
-  gap: calc(var(--s4) - 1px);
+  display: grid;
+  grid-template-columns: calc(var(--s8) + 2px) calc(var(--s8) + 3px);
+  gap: calc(var(--s1) + 1px);
+  justify-items: end;
   padding-top: calc(var(--s1) - 1px);
   color: var(--muted);
   font-size: var(--type-chart);
   font-variant-numeric: tabular-nums;
+}
+
+.shareBar {
+  display: flex;
+  gap: 2px;
+  height: calc(var(--s2) - 1px);
+  margin: calc(var(--s1) - 1px) 0 calc(var(--s3) - 2px);
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: var(--line);
+}
+
+.shareSlice {
+  display: block;
+  min-width: 2px;
+  background: var(--share-color, var(--neutral));
 }
 
 .branchList {
@@ -435,12 +464,14 @@
 
 .branchRow {
   display: grid;
-  grid-template-columns: var(--s2) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) calc(var(--s8) + 2px) calc(var(--s8) + 3px);
   align-items: center;
-  gap: var(--s3);
+  gap: calc(var(--s1) + 1px);
   min-height: calc(var(--s7) + 3px);
   border-bottom: 1px solid var(--line);
   color: inherit;
+  font-size: var(--type-secondary);
+  font-variant-numeric: tabular-nums;
   text-decoration: none;
 }
 
@@ -452,36 +483,34 @@ a.branchRow:hover {
   background: var(--inset);
 }
 
+.branchInfo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--s2) - 1px);
+  min-width: 0;
+}
+
 .branchDot {
+  flex: none;
   width: var(--s2);
   height: var(--s2);
   border-radius: var(--radius-marker);
   background: var(--share-color, var(--neutral));
 }
 
-.branchMain {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--s2) var(--s3);
-  min-width: 0;
-}
-
 .branchTitle {
   overflow: hidden;
   color: var(--text);
-  font-size: var(--type-body);
+  font-size: var(--type-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.branchMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s2);
+.branchProgress {
   color: var(--muted);
-  font-size: var(--type-label);
-  font-variant-numeric: tabular-nums;
+  font-size: var(--type-chart);
+  white-space: nowrap;
 }
 
 .branchTag {
@@ -489,6 +518,19 @@ a.branchRow:hover {
   border-radius: var(--radius-control);
   background: var(--neutral-bg);
   color: var(--neutral);
+  font-size: var(--type-chart);
+}
+
+.branchCount {
+  color: var(--text);
+  font-weight: 700;
+  text-align: right;
+}
+
+.branchRatio {
+  color: var(--muted);
+  font-size: var(--type-label);
+  text-align: right;
 }
 
 .quiet {
@@ -501,7 +543,7 @@ a.branchRow:hover {
 .summaryBody {
   display: flex;
   flex-direction: column;
-  gap: var(--s4);
+  gap: calc(var(--s3) + 1px);
 }
 
 .note,

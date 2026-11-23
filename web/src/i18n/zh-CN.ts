@@ -827,7 +827,7 @@ export const zhCN = {
   'milestone.detail.chip': '◆ 里程碑',
 
   'page.year.title': '年轮',
-  'page.year.body': '一年里的提交、分支与结构变化。',
+  'page.year.body': '回看一年里的每一次提交、开枝和收尾。',
 
   'year.headingSuffix': ' 年',
   'year.switch.label': '切换年份',

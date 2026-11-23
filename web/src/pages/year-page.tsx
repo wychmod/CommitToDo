@@ -62,27 +62,22 @@ function shareTitle(share: YearBranchShare): string {
 function ShareRow({ share, to }: { share: YearBranchShare; to: string | null }) {
   const body = (
     <>
-      <span className={styles.branchDot} style={shareStyle(share)} aria-hidden="true" />
-      <span className={styles.branchMain}>
+      <span className={styles.branchInfo}>
+        <span className={styles.branchDot} style={shareStyle(share)} aria-hidden="true" />
         <span className={styles.branchTitle}>{shareTitle(share)}</span>
-        <span className={styles.branchMeta}>
-          <span>
-            {share.commits}
-            {t('year.branches.commitsSuffix')}
-          </span>
-          <span>
-            {Math.round(share.ratio * 100)}
-            {t('year.branches.ratioSuffix')}
-          </span>
-          <span>
-            {share.taskTotal === 0
-              ? t('year.branches.progressEmpty')
-              : `${t('year.branches.progressPrefix')}${share.taskDone}/${share.taskTotal}`}
-          </span>
-          {share.archived ? (
-            <span className={styles.branchTag}>{t('year.branches.archived')}</span>
-          ) : null}
+        <span className={styles.branchProgress}>
+          {share.taskTotal === 0
+            ? t('year.branches.progressEmpty')
+            : `${t('year.branches.progressPrefix')}${share.taskDone}/${share.taskTotal}`}
         </span>
+        {share.archived ? (
+          <span className={styles.branchTag}>{t('year.branches.archived')}</span>
+        ) : null}
+      </span>
+      <strong className={styles.branchCount}>{share.commits}</strong>
+      <span className={styles.branchRatio}>
+        {Math.round(share.ratio * 100)}
+        {t('year.branches.ratioSuffix')}
       </span>
     </>
   );
@@ -391,12 +386,12 @@ export function YearPage() {
             <span>{t('year.crumb.review')}</span>
           </nav>
           <h1 className={styles.heading}>
-            {requestedYear}
-            <span>{t('year.headingRing')}</span>
+            {requestedYear} <span>{t('year.headingRing')}</span>
           </h1>
         </div>
       }
       bodyKey="page.year.body"
+      headClassName={styles.yearHead}
       action={
         <div className={styles.picker} role="group" aria-label={t('year.switch.label')}>
           <button
@@ -566,21 +561,32 @@ export function YearPage() {
                 {distribution.shares.length === 0 ? (
                   <p className={styles.quiet}>{t('year.empty')}</p>
                 ) : (
-                  <div className={styles.branchList}>
-                    {distribution.shares.map((share) => (
-                      <ShareRow
-                        key={share.branchId ?? 'root'}
-                        share={share}
-                        to={
-                          share.branchId !== null
-                            ? `/branches/${share.branchId}`
-                            : rootId
-                              ? `/branches/${rootId}`
-                              : null
-                        }
-                      />
-                    ))}
-                  </div>
+                  <>
+                    <div className={styles.shareBar} aria-hidden="true">
+                      {distribution.shares.map((share) => (
+                        <i
+                          key={share.branchId ?? 'root'}
+                          className={styles.shareSlice}
+                          style={{ ...shareStyle(share), flexGrow: share.commits }}
+                        />
+                      ))}
+                    </div>
+                    <div className={styles.branchList}>
+                      {distribution.shares.map((share) => (
+                        <ShareRow
+                          key={share.branchId ?? 'root'}
+                          share={share}
+                          to={
+                            share.branchId !== null
+                              ? `/branches/${share.branchId}`
+                              : rootId
+                                ? `/branches/${rootId}`
+                                : null
+                          }
+                        />
+                      ))}
+                    </div>
+                  </>
                 )}
               </section>
 
