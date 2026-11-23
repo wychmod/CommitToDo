@@ -1,32 +1,48 @@
 /* 第 5 段：时间树。线只在演示窗内，随区块结束收束。 */
 
 .section {
-  padding: var(--s10) 0;
-  background: var(--home-band-strong);
+  padding: var(--home-timeline-section-top) 0 var(--home-timeline-section-padding);
+  background: var(--marketing-page);
 }
 
 .inner {
-  max-width: var(--layout-content-max);
+  position: relative;
+  isolation: isolate;
+  max-width: var(--layout-marketing-content-max);
   margin: 0 auto;
   padding: 0 var(--s6);
 }
 
+.inner::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: calc(0px - var(--home-timeline-section-top));
+  right: var(--s6);
+  bottom: calc(0px - var(--home-timeline-section-padding));
+  left: var(--s6);
+  border-radius: var(--radius-panel);
+  background: var(--home-timeline-shell);
+}
+
 .title {
   margin: 0;
-  color: var(--text);
+  color: var(--marketing-ink);
   font-size: var(--type-marketing);
   font-weight: 700;
   letter-spacing: -0.01em;
+  transform: translateY(calc(var(--s4) * -1));
 }
 
 .body {
   margin: var(--s2) 0 var(--s6);
-  color: var(--muted);
+  color: var(--marketing-muted);
   font-size: var(--type-secondary);
 }
 
 .window {
   overflow: hidden;
+  padding: var(--s6);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
@@ -38,20 +54,25 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--s3);
-  padding: var(--s4) var(--s5);
+  padding: var(--s3) var(--s5);
   border-bottom: 1px solid var(--line);
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  background: var(--panel);
 }
 
 .windowTitle {
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
-  color: var(--text);
+  color: var(--marketing-ink);
   font-size: var(--type-secondary);
   font-weight: 600;
 }
 
 .range {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
   padding: var(--s1) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
@@ -62,14 +83,17 @@
 
 .chart {
   display: grid;
-  grid-template-columns: var(--timeline-label-width) minmax(0, 1fr);
-  padding: var(--s3) var(--s4) var(--s2);
+  grid-template-columns: var(--home-timeline-label-width) minmax(0, 1fr);
+  padding: var(--s3) var(--home-timeline-plot-right-inset) var(--s2) var(--s4);
+  background: var(--panel);
 }
 
 .labels {
   position: relative;
   height: var(--home-timeline-height);
-  color: var(--muted);
+  border-radius: 0 0 var(--radius-control) var(--radius-control);
+  background: var(--panel);
+  color: var(--marketing-muted);
   font-size: var(--type-secondary);
 }
 
@@ -113,6 +137,12 @@
   justify-content: space-between;
   color: var(--subtle);
   font-size: var(--type-chart);
+}
+
+.axis span:nth-child(2) {
+  position: absolute;
+  left: var(--home-timeline-middle-position);
+  transform: translateX(-50%);
 }
 
 .mergeBand {
@@ -347,8 +377,20 @@
     padding: 0 var(--s4);
   }
 
+  .inner::before {
+    top: calc(0px - var(--s9));
+    right: var(--s4);
+    bottom: calc(0px - var(--s9));
+    left: var(--s4);
+  }
+
   .title {
     font-size: var(--type-marketing-compact);
+    transform: none;
+  }
+
+  .body {
+    margin-bottom: var(--s4);
   }
 
   .chart {
@@ -369,6 +411,10 @@
   .legend {
     padding-right: var(--s4);
     padding-left: var(--s4);
+  }
+
+  .window {
+    padding: var(--s3);
   }
 }
 

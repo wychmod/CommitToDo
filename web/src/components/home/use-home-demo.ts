@@ -14,6 +14,7 @@ export interface HomeDemo {
   resume: () => void;
   replay: () => void;
   toggleCheck: () => void;
+  showStaticResult: () => void;
   setVisible: (visible: boolean) => void;
 }
 
@@ -88,6 +89,14 @@ export function useHomeDemo(reducedMotion: boolean): HomeDemo {
     setChecked((current) => !current);
   }, []);
 
+  const showStaticResult = useCallback(() => {
+    if (status !== 'waiting') return;
+    elapsedRef.current = HOME_DEMO_END;
+    setElapsed(HOME_DEMO_END);
+    setChecked(true);
+    setStatus('done');
+  }, [status]);
+
   const setVisible = useCallback((visible: boolean) => {
     visibleRef.current = visible;
   }, []);
@@ -101,6 +110,7 @@ export function useHomeDemo(reducedMotion: boolean): HomeDemo {
     resume,
     replay,
     toggleCheck,
+    showStaticResult,
     setVisible,
   };
 }

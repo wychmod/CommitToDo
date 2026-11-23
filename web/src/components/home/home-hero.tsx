@@ -72,6 +72,54 @@ function CheckIcon() {
   );
 }
 
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none">
+      <circle cx="7" cy="7" r="4" stroke="currentColor" strokeWidth="1.4" />
+      <path d="m10 10 3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none">
+      <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SidebarMarker({ kind }: { kind: 'today' | 'branches' | 'history' }) {
+  if (kind === 'branches') {
+    return (
+      <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" fill="none">
+        <path d="M3 2v8m0-5h5m0 0V2m0 3v5" stroke="currentColor" strokeWidth="1" />
+        <circle cx="3" cy="2" r="1.2" fill="var(--panel)" stroke="currentColor" />
+        <circle cx="8" cy="2" r="1.2" fill="var(--panel)" stroke="currentColor" />
+        <circle cx="8" cy="10" r="1.2" fill="var(--panel)" stroke="currentColor" />
+      </svg>
+    );
+  }
+
+  if (kind === 'history') {
+    return (
+      <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" fill="none">
+        <path d="M1 6h10" stroke="currentColor" strokeWidth="1" />
+        <circle cx="2" cy="6" r="1.2" fill="var(--panel)" stroke="currentColor" />
+        <circle cx="6" cy="6" r="1.2" fill="var(--panel)" stroke="currentColor" />
+        <circle cx="10" cy="6" r="1.2" fill="var(--panel)" stroke="currentColor" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" fill="none">
+      <rect x="2" y="2" width="8" height="8" rx="1.5" stroke="currentColor" />
+      <path d="m4 6 1.2 1.2L8 4.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroProps) {
   const workbenchRef = useRef<HTMLDivElement>(null);
   const { start, setVisible } = demo;
@@ -105,10 +153,10 @@ export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroPro
 
   const heroStyle = { '--bezel-scale': demo.frame.bezel } as CSSProperties;
   const receiptStyle: CSSProperties = demo.checked
-    ? {
+    ? ({
         opacity: 0.35 + demo.frame.receipt * 0.65,
-        transform: `translateY(${(1 - demo.frame.receipt) * 6}px)`,
-      }
+        '--receipt-offset': `${(1 - demo.frame.receipt) * 6}px`,
+      } as CSSProperties)
     : { opacity: 0, visibility: 'hidden' };
 
   return (
@@ -173,25 +221,30 @@ export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroPro
             aria-label={t('home.hero.windowLabel')}
           >
             <div className={styles.titlebar}>
-              <span className={styles.windowBrand}>
-                <span className={styles.windowDot} aria-hidden="true" />
-                {t('app.name')}
-              </span>
+              <span className={styles.windowBrand}>{t('app.name')}</span>
               <span className={styles.windowCrumb}>
                 {t('home.hero.windowTitle')} / {t('home.hero.windowCrumb')}
               </span>
               <span className={styles.windowControls} aria-hidden="true">
-                <i />
-                <i />
-                <i />
+                <SearchIcon />
+                <PlusIcon />
               </span>
             </div>
             <div className={styles.windowBody}>
               <div className={styles.sidebar}>
                 <span className={styles.spaceName}>{t('home.hero.space')}</span>
-                <span className={styles.sidebarItemActive}>{t('home.hero.navToday')}</span>
-                <span className={styles.sidebarItem}>{t('home.hero.navBranches')}</span>
-                <span className={styles.sidebarItem}>{t('home.hero.navHistory')}</span>
+                <span className={styles.sidebarItemActive}>
+                  <SidebarMarker kind="today" />
+                  {t('home.hero.navToday')}
+                </span>
+                <span className={styles.sidebarItem}>
+                  <SidebarMarker kind="branches" />
+                  {t('home.hero.navBranches')}
+                </span>
+                <span className={styles.sidebarItem}>
+                  <SidebarMarker kind="history" />
+                  {t('home.hero.navHistory')}
+                </span>
               </div>
               <div className={styles.main}>
                 <div className={styles.mainHead}>

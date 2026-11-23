@@ -32,7 +32,7 @@ function CheckIcon() {
   );
 }
 
-/** 第 4 段：一处放下，沿路找回。两张独立产品窗，柱状图首次入视逐根生长。 */
+/** 第 4 段：一处放下，沿路找回。两张清单窗与一个分支树窗。 */
 export function HomeDesk() {
   const [done, setDone] = useState(tasks.map((task) => task.done));
   const { ref, inView } = useInView<HTMLDivElement>(0.4);
@@ -46,7 +46,7 @@ export function HomeDesk() {
       <div className={styles.inner}>
         <h2 className={styles.title}>{t('home.desk.title')}</h2>
         <div className={styles.grid}>
-          <article className={styles.card}>
+          <article className={`${styles.card} ${styles.todayCard}`}>
             <span className={styles.eyebrow}>{t('home.desk.todayEyebrow')}</span>
             <h3 className={styles.cardTitle}>{t('home.desk.todayTitle')}</h3>
             <p className={styles.cardBody}>{t('home.desk.todayBody')}</p>
@@ -74,11 +74,10 @@ export function HomeDesk() {
                   </li>
                 ))}
               </ul>
-              <p className={styles.hint}>{t('home.desk.taskDoneHint')}</p>
             </div>
           </article>
 
-          <article className={styles.card}>
+          <article className={`${styles.card} ${styles.historyCard}`}>
             <span className={styles.eyebrow}>{t('home.desk.historyEyebrow')}</span>
             <h3 className={styles.cardTitle}>{t('home.desk.historyTitle')}</h3>
             <p className={styles.cardBody}>{t('home.desk.historyBody')}</p>
@@ -102,60 +101,42 @@ export function HomeDesk() {
             </div>
           </article>
 
-          <article className={styles.card} id="home-branch">
-            <span className={styles.eyebrow}>{t('home.desk.branchEyebrow')}</span>
-            <h3 className={styles.cardTitle}>{t('home.desk.branchTitle')}</h3>
-            <p className={styles.cardBody}>{t('home.desk.branchBody')}</p>
-            <div className={styles.panel}>
-              <svg
-                className={styles.branchDiagram}
-                viewBox="0 0 320 120"
-                role="img"
-                aria-label={t('home.desk.branchDiagram')}
-              >
-                <path
-                  className={styles.workLine}
-                  d="M12 30h296"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-                <path
-                  className={styles.workLineMid}
-                  d="M64 30c0 26 4 32 30 32h58c26 0 30 10 30 28"
-                  fill="none"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-                <path
-                  className={styles.workLineSoft}
-                  d="M214 30c0 20 4 24 24 24h78"
-                  fill="none"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-                <path
-                  className={styles.healthLine}
-                  d="M12 90h296"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-                <circle className={styles.workNode} cx="64" cy="30" r="4" />
-                <circle className={styles.workNodeMid} cx="112" cy="62" r="4" />
-                <circle className={styles.workNodeMid} cx="182" cy="90" r="4" />
-                <circle className={styles.workNodeSoft} cx="238" cy="54" r="4" />
-                <circle className={styles.healthNode} cx="86" cy="90" r="4" />
-                <circle className={styles.healthNode} cx="196" cy="90" r="4" />
-              </svg>
+          <article className={`${styles.card} ${styles.branchCard}`} id="home-branch">
+            <div className={styles.branchCopy}>
+              <span className={styles.eyebrow}>{t('home.desk.branchEyebrow')}</span>
+              <h3 className={styles.cardTitle}>{t('home.desk.branchTitle')}</h3>
+              <p className={styles.cardBody}>{t('home.desk.branchBody')}</p>
             </div>
-          </article>
-
-          <article className={styles.card}>
-            <span className={styles.eyebrow}>{t('home.desk.meEyebrow')}</span>
-            <div className={styles.panel}>
+            <div
+              className={styles.branchPanel}
+              role="img"
+              aria-label={t('home.desk.branchDiagram')}
+            >
+              <div className={styles.branchRoot}>
+                <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" fill="none">
+                  <path
+                    d="m2 4 4 4 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>{t('home.desk.meEyebrow')}</span>
+              </div>
               <ul className={styles.trails}>
-                {trails.map((trail) => (
-                  <li key={trail.label} className={styles.trail}>
-                    <span className={styles.trailDot} data-tone={trail.tone} aria-hidden="true" />
+                {trails.map((trail, index) => (
+                  <li key={trail.label} className={styles.trail} data-tone={trail.tone}>
+                    <span className={styles.branchGlyph} aria-hidden="true">
+                      <svg viewBox="0 0 12 18" width="12" height="18" fill="none">
+                        <path
+                          d={index === trails.length - 1 ? 'M3 0v9h7' : 'M3 0v18M3 9h7'}
+                          stroke="currentColor"
+                          strokeWidth="1"
+                        />
+                      </svg>
+                    </span>
+                    <span className={styles.trailDot} aria-hidden="true" />
                     {t(trail.label)}
                   </li>
                 ))}

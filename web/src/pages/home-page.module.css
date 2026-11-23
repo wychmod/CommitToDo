@@ -2,8 +2,8 @@
 
 .page {
   min-height: 100vh;
-  background: var(--page);
-  color: var(--text);
+  background: var(--marketing-page);
+  color: var(--marketing-ink);
 }
 
 /* 区块锚点定位时给顶边留一点呼吸，不影响演示窗内的线。 */

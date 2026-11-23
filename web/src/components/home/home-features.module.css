@@ -1,20 +1,20 @@
 /* 第 2 段：三块内容。动作只在图标笔画上，卡面保持稳定。 */
 
 .section {
-  padding: var(--s10) 0;
-  background: var(--page);
+  padding: var(--s8) 0 var(--s9);
+  background: var(--marketing-page);
 }
 
 .inner {
-  max-width: var(--layout-content-max);
+  max-width: var(--layout-marketing-content-max);
   margin: 0 auto;
   padding: 0 var(--s6);
 }
 
 .title {
-  margin: 0 0 var(--s6);
-  color: var(--text);
-  font-size: var(--type-marketing);
+  margin: 0 0 var(--s3);
+  color: var(--marketing-ink);
+  font-size: var(--home-section-title-size);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -32,10 +32,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--s3);
-  padding: var(--s6);
+  padding: var(--home-feature-card-padding-block) var(--s7);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
-  background: var(--inset);
+  background: var(--home-band-strong);
 }
 
 .card:focus-visible {
@@ -45,42 +45,54 @@
 
 .icon {
   display: inline-flex;
-  color: var(--accent);
+  color: var(--marketing-ink);
 }
 
-.iconStroke {
+[data-theme='dark'] .card[data-key='today'] .icon {
+  color: var(--sky-1);
+}
+
+[data-theme='dark'] .card[data-key='branch'] .icon {
+  color: var(--mint-1);
+}
+
+[data-theme='dark'] .card[data-key='history'] .icon {
+  color: var(--iris-1);
+}
+
+.icon > svg > * {
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
 }
 
-.cards[data-inview='true'] .card .iconStroke {
+.cards[data-inview='true'] .card .icon > svg > * {
   animation: iconDraw var(--duration-standard) var(--ease-enter) both;
 }
 
-.cards[data-inview='true'] .card:nth-child(2) .iconStroke {
+.cards[data-inview='true'] .card:nth-child(2) .icon > svg > * {
   animation-delay: var(--duration-card-stagger);
 }
 
-.cards[data-inview='true'] .card:nth-child(3) .iconStroke {
+.cards[data-inview='true'] .card:nth-child(3) .icon > svg > * {
   animation-delay: calc(var(--duration-card-stagger) * 2);
 }
 
-.card:hover .iconStroke,
-.card:focus-visible .iconStroke {
+.card:hover .icon > svg > *,
+.card:focus-visible .icon > svg > * {
   animation: iconDraw var(--duration-standard) var(--ease-enter);
   animation-delay: 0s;
 }
 
 .cardTitle {
   margin: 0;
-  color: var(--text);
+  color: var(--marketing-ink);
   font-size: var(--type-card-title);
   font-weight: 600;
 }
 
 .cardBody {
   margin: 0;
-  color: var(--muted);
+  color: var(--marketing-muted);
   font-size: var(--type-secondary);
   line-height: 1.6;
 }
@@ -105,18 +117,23 @@
   }
 
   .title {
+    margin-bottom: var(--s5);
     font-size: var(--type-marketing-compact);
   }
 
   .cards {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .card {
+    padding: var(--s5);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cards[data-inview='true'] .card .iconStroke,
-  .card:hover .iconStroke,
-  .card:focus-visible .iconStroke {
+  .cards[data-inview='true'] .card .icon > svg > *,
+  .card:hover .icon > svg > *,
+  .card:focus-visible .icon > svg > * {
     animation: none;
     stroke-dashoffset: 0;
   }

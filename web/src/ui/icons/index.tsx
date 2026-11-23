@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { SvgIcon, type SvgIconProps } from './svg-icon';
 
 /** 图标骨架示例：每个图标一个组件，路径内联，不复用外部 sprite。 */
@@ -120,6 +121,71 @@ export function HistoryIcon(props: SvgIconProps) {
       <circle cx="12" cy="12" r="8" />
       <path d="M12 7v5l3 2" />
     </SvgIcon>
+  );
+}
+
+type HomeFeatureIconProps = {
+  size?: 18 | 48;
+};
+
+function HomeFeatureIcon({ size = 48, children }: HomeFeatureIconProps & { children: ReactNode }) {
+  return (
+    <svg
+      width={size === 18 ? 18 : 'var(--home-feature-icon-size)'}
+      height={size === 18 ? 18 : 'var(--home-feature-icon-size)'}
+      viewBox="0 0 48 48"
+      aria-hidden="true"
+      focusable="false"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={size === 18 ? 'var(--stroke-home-nav-icon)' : 'var(--stroke-home-feature-icon)'}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {children}
+    </svg>
+  );
+}
+
+/** 首页与工作区导航共用的「今天」清单图标。 */
+export function HomeTodayIcon(props: HomeFeatureIconProps) {
+  return (
+    <HomeFeatureIcon {...props}>
+      <path pathLength={1} d="M20 12h21M20 24h21M20 36h17" />
+      <path
+        pathLength={1}
+        d="m7 12 2.5 2.5L14 9"
+        strokeWidth={
+          props.size === 18 ? 'var(--stroke-home-nav-check)' : 'var(--stroke-home-feature-check)'
+        }
+      />
+      <rect pathLength={1} x="6" y="20" width="10" height="9" rx="1.5" />
+      <rect pathLength={1} x="6" y="32" width="10" height="9" rx="1.5" />
+    </HomeFeatureIcon>
+  );
+}
+
+/** 首页与工作区导航共用的分支图标。 */
+export function HomeBranchIcon(props: HomeFeatureIconProps) {
+  return (
+    <HomeFeatureIcon {...props}>
+      <path pathLength={1} d="M11 24h9m0 0V12h10m-10 12v12h10" />
+      <circle pathLength={1} cx="8" cy="24" r="4" />
+      <circle pathLength={1} cx="34" cy="12" r="4" />
+      <circle pathLength={1} cx="34" cy="36" r="4" />
+    </HomeFeatureIcon>
+  );
+}
+
+/** 首页与工作区导航共用的历程图标。 */
+export function HomeHistoryIcon(props: HomeFeatureIconProps) {
+  return (
+    <HomeFeatureIcon {...props}>
+      <path pathLength={1} d="M6 24h36" />
+      <circle pathLength={1} cx="8" cy="24" r="4" />
+      <circle pathLength={1} cx="24" cy="24" r="4" />
+      <circle pathLength={1} cx="40" cy="24" r="4" />
+    </HomeFeatureIcon>
   );
 }
 

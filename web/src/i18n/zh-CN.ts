@@ -141,7 +141,6 @@ export const zhCN = {
   'home.desk.taskReview': '预习一段会议',
   'home.desk.taskPlan': '整理本周调研计划',
   'home.desk.taskChapter': '读完一章',
-  'home.desk.taskDoneHint': '示例清单，勾选只改变当前演示。',
   'home.desk.historyEyebrow': '历程',
   'home.desk.historyTitle': '看自己走了多远。',
   'home.desk.historyBody': '每次完成留下进度，回望方向更清楚。',

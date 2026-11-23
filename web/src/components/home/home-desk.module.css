@@ -1,28 +1,29 @@
-/* 第 4 段：一处放下，沿路找回。左清单、右柱状图，两张独立演示窗。 */
+/* 第 4 段：清单、柱状图与横跨内容区的分支窗。 */
 
 .section {
-  padding: var(--s10) 0;
-  background: var(--home-band);
+  padding: var(--s10) 0 var(--s4);
+  background: var(--marketing-page);
 }
 
 .inner {
-  max-width: var(--layout-content-max);
+  max-width: var(--layout-marketing-content-max);
   margin: 0 auto;
   padding: 0 var(--s6);
 }
 
 .title {
-  margin: 0 0 var(--s6);
-  color: var(--text);
-  font-size: var(--type-marketing);
+  margin: 0 0 var(--s1);
+  color: var(--marketing-ink);
+  font-size: var(--home-section-title-size);
   font-weight: 700;
   letter-spacing: -0.01em;
+  transform: translateY(calc(var(--s6) * -1));
 }
 
 .grid {
   display: grid;
-  grid-template-columns: 1.08fr 0.92fr;
-  gap: var(--s5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s4);
 }
 
 .card {
@@ -35,8 +36,32 @@
   background: var(--panel);
 }
 
+.todayCard {
+  background: var(--home-cta-band);
+}
+
+.historyCard {
+  background: var(--home-band-strong);
+}
+
+.branchCard {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr);
+  align-items: center;
+  gap: var(--s6);
+  min-height: var(--home-branch-card-height);
+  background: var(--home-cta-band);
+}
+
+.branchCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
 .eyebrow {
-  color: var(--accent);
+  color: var(--marketing-accent);
   font-size: var(--type-label);
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -44,14 +69,14 @@
 
 .cardTitle {
   margin: 0;
-  color: var(--text);
+  color: var(--marketing-ink);
   font-size: var(--type-card-title);
   font-weight: 600;
 }
 
 .cardBody {
   margin: 0;
-  color: var(--muted);
+  color: var(--marketing-muted);
   font-size: var(--type-secondary);
   line-height: 1.6;
 }
@@ -62,7 +87,7 @@
   padding: var(--s4);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
-  background: var(--inset);
+  background: var(--panel);
 }
 
 .checklist {
@@ -101,8 +126,8 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--s4);
-  height: var(--s4);
+  width: var(--home-task-check-size);
+  height: var(--home-task-check-size);
   border: 1.5px solid var(--line-strong);
   border-radius: var(--s1);
   color: var(--accent-ink);
@@ -112,8 +137,8 @@
 }
 
 .checkBoxDone {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: var(--marketing-accent);
+  background: var(--marketing-accent);
 }
 
 .taskText {
@@ -125,23 +150,18 @@
   text-decoration: line-through;
 }
 
-.hint {
-  margin: var(--s3) 0 0;
-  color: var(--subtle);
-  font-size: var(--type-chart);
-}
-
 .chart {
   display: flex;
   align-items: flex-end;
   gap: var(--s3);
-  height: calc(var(--home-timeline-height) * 0.7);
-  padding-top: var(--s4);
+  height: var(--home-chart-height);
+  padding: var(--s4) 0 var(--s2);
+  border-bottom: var(--tree-connector) solid var(--line);
 }
 
 .bar {
   flex: 1;
-  border-top: 2px solid var(--accent);
+  border-top: var(--tree-selected-rail) solid var(--marketing-accent);
   border-radius: var(--radius-marker) var(--radius-marker) 0 0;
   background: var(--accent-soft);
   transform: scaleY(0);
@@ -169,80 +189,65 @@
   transition-delay: calc(var(--duration-chart-stagger) * 4);
 }
 
-.branchDiagram {
-  display: block;
-  width: 100%;
-  height: auto;
+.branchPanel {
+  min-width: 0;
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--panel);
+  box-shadow: var(--shadow);
 }
 
-.workLine {
-  stroke: var(--coral-1);
-}
-
-.workLineMid {
-  stroke: var(--coral-2);
-}
-
-.workLineSoft {
-  stroke: var(--coral-3);
-}
-
-.healthLine {
-  stroke: var(--sky-1);
-}
-
-.workNode {
-  fill: var(--coral-1);
-}
-
-.workNodeMid {
-  fill: var(--coral-2);
-}
-
-.workNodeSoft {
-  fill: var(--coral-3);
-}
-
-.healthNode {
-  fill: var(--sky-1);
-}
-
-.trails {
+.branchRoot {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: var(--s2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  min-height: var(--s7);
+  padding: 0 var(--s2);
+  border-bottom: 1px solid var(--line);
+  color: var(--sky-1);
+  font-size: var(--type-label);
+  font-weight: 600;
 }
 
 .trail {
   display: flex;
   align-items: center;
-  gap: var(--s3);
-  padding: var(--s3);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: var(--panel);
+  gap: var(--s2);
+  min-height: var(--s7);
+  padding: 0 var(--s2);
+  border-bottom: 1px solid var(--line);
   color: var(--text);
   font-size: var(--type-secondary);
+}
+
+.trail:last-child {
+  border-bottom: 0;
+}
+
+.branchGlyph {
+  display: inline-flex;
+  flex: none;
+  align-self: stretch;
+  color: var(--line-strong);
 }
 
 .trailDot {
   width: var(--home-scene-node);
   height: var(--home-scene-node);
+  flex: none;
   border-radius: 50%;
 }
 
-.trailDot[data-tone='coral'] {
+.trail[data-tone='coral'] .trailDot {
   background: var(--coral-1);
 }
 
-.trailDot[data-tone='sky'] {
+.trail[data-tone='sky'] .trailDot {
   background: var(--sky-1);
 }
 
-.trailDot[data-tone='honey'] {
+.trail[data-tone='honey'] .trailDot {
   background: var(--honey-1);
 }
 
@@ -256,11 +261,23 @@
   }
 
   .title {
+    margin-bottom: var(--s4);
     font-size: var(--type-marketing-compact);
+    transform: none;
   }
 
   .grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card {
+    padding: var(--s5);
+  }
+
+  .branchCard {
+    grid-column: auto;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
   }
 }
 

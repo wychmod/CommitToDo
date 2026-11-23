@@ -22,8 +22,15 @@ export function HomeSectionNav({ reducedMotion }: HomeSectionNavProps) {
   const measure = useCallback(() => {
     const list = listRef.current;
     const button = buttonsRef.current[active];
-    if (!list || !button) return;
-    setLine({ left: button.offsetLeft, width: button.offsetWidth });
+    const label = button?.querySelector<HTMLElement>(`.${styles.label}`);
+    if (!list || !button || !label) return;
+    const railInset = Number.parseFloat(
+      getComputedStyle(list).getPropertyValue('--home-section-nav-rail-inset'),
+    );
+    setLine({
+      left: button.offsetLeft + label.offsetLeft - railInset,
+      width: label.offsetWidth + railInset * 2,
+    });
   }, [active]);
 
   useEffect(() => {

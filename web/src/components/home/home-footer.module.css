@@ -1,7 +1,7 @@
 /* 第 7 段：行动按钮与页脚。 */
 
 .cta {
-  padding: var(--s10) 0;
+  padding: var(--home-cta-padding) 0;
   background: var(--home-cta-band);
 }
 
@@ -9,17 +9,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--s6);
-  max-width: var(--layout-content-max);
+  gap: var(--s1);
+  max-width: var(--layout-marketing-content-max);
   margin: 0 auto;
   padding: 0 var(--s6);
   text-align: center;
+  transform: translateY(calc(var(--s3) * -1));
 }
 
 .ctaTitle {
   margin: 0;
-  color: var(--text);
-  font-size: var(--type-marketing);
+  color: var(--marketing-ink);
+  font-size: var(--home-section-title-size);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -28,11 +29,12 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
-  padding: var(--s3) var(--s5);
+  height: var(--home-hero-action-height);
+  padding: 0 var(--s6);
   border-radius: var(--radius-control);
-  background: var(--accent);
+  background: var(--marketing-accent);
   color: var(--accent-ink);
-  font-size: var(--type-body);
+  font-size: var(--type-body-large);
   text-decoration: none;
 }
 
@@ -53,16 +55,16 @@
 }
 
 .footer {
-  padding: var(--home-footer-top) 0 var(--s8);
+  padding: var(--home-footer-top) 0 var(--home-footer-bottom);
   border-top: 1px solid var(--line);
-  background: var(--page);
+  background: var(--marketing-page);
 }
 
 .footerInner {
   display: grid;
   grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
   gap: var(--s6);
-  max-width: var(--layout-content-max);
+  max-width: var(--layout-marketing-content-max);
   margin: 0 auto;
   padding: 0 var(--s6);
 }
@@ -71,48 +73,56 @@
   display: inline-flex;
   align-items: flex-start;
   gap: var(--s2);
-  color: var(--text);
-  font-size: var(--type-body);
+  color: var(--marketing-ink);
+  font-size: var(--type-body-large);
   font-weight: 700;
   text-decoration: none;
 }
 
 .brandMark {
   display: grid;
+  flex: none;
   place-items: center;
-  width: var(--s6);
-  height: var(--s6);
-  border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: var(--type-label);
+  width: var(--home-brand-mark);
+  height: var(--home-brand-mark);
+  transform: rotate(-8deg);
+  border: var(--stroke-brand-mark) solid currentColor;
+  border-radius: var(--s1);
+  font-family: Georgia, serif;
+  font-size: var(--type-heading-small);
+  font-weight: 700;
+  line-height: 1;
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s1);
 }
 
 .columnTitle {
   margin: 0;
-  color: var(--text);
+  color: var(--marketing-ink);
   font-size: var(--type-label);
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .links {
   display: flex;
   flex-direction: column;
-  gap: var(--s2);
+  gap: var(--s1);
+  font-size: var(--type-chart);
+  line-height: 1.2;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .link {
-  color: var(--muted);
-  font-size: var(--type-secondary);
+  color: var(--marketing-muted);
+  font-size: var(--type-chart);
+  line-height: 1.2;
   text-decoration: none;
 }
 
@@ -131,6 +141,11 @@
 
   .ctaTitle {
     font-size: var(--type-marketing-compact);
+  }
+
+  .ctaInner {
+    gap: var(--s4);
+    transform: none;
   }
 
   .footerInner {

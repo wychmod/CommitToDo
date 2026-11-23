@@ -24,10 +24,9 @@ export function HomeScenes() {
               <p className={styles.cardBody}>{t(scene.body)}</p>
               <span className={styles.track} aria-hidden="true">
                 <span className={styles.trackLine} />
+                <span className={`${styles.trackDot} ${styles.trackDotStart}`} />
                 <span className={styles.trackDot} />
                 <span className={styles.trackDot} />
-                <span className={styles.trackDot} />
-                <span className={`${styles.trackDot} ${styles.trackDotEnd}`} />
               </span>
             </li>
           ))}

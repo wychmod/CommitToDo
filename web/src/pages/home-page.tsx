@@ -51,7 +51,11 @@ export function HomePage() {
       <HomeFeatures />
       <HomeSectionNav reducedMotion={reducedMotion} />
       <HomeDesk />
-      <HomeTimeline checked={demo.checked} onOpenNode={() => setNodeOpen(true)} />
+      <HomeTimeline
+        checked={demo.checked}
+        onOpenNode={() => setNodeOpen(true)}
+        onFirstView={demo.showStaticResult}
+      />
       <HomeScenes />
       <HomeFooter />
       {nodeOpen ? (

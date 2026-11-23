@@ -1,20 +1,20 @@
 /* 第 6 段：生活场景。卡片保持位置，只有轨迹与弧线响应。 */
 
 .section {
-  padding: var(--s10) 0;
-  background: var(--page);
+  padding: var(--home-scene-section-top) 0 var(--home-scene-section-bottom);
+  background: var(--marketing-page);
 }
 
 .inner {
-  max-width: var(--layout-content-max);
+  max-width: var(--layout-marketing-content-max);
   margin: 0 auto;
   padding: 0 var(--s6);
 }
 
 .title {
-  margin: 0 0 var(--s6);
-  color: var(--text);
-  font-size: var(--type-marketing);
+  margin: 0 0 var(--home-scene-title-gap);
+  color: var(--marketing-ink);
+  font-size: var(--home-section-title-size);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -33,7 +33,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--s2);
-  min-height: calc(var(--s10) * 3.4);
+  min-height: var(--home-scene-card-height);
   padding: var(--s6);
   overflow: hidden;
   border: 1px solid transparent;
@@ -48,35 +48,50 @@
 .card[data-tone='coral'] {
   --scene-ink: var(--coral-1);
 
-  background: var(--coral-bg);
+  background: linear-gradient(
+    180deg,
+    var(--home-scene-coral-start) 0%,
+    var(--home-scene-coral) var(--home-scene-fade-stop),
+    var(--home-scene-coral) 100%
+  );
 }
 
 .card[data-tone='sky'] {
   --scene-ink: var(--sky-1);
 
-  background: var(--sky-bg);
+  background: linear-gradient(
+    180deg,
+    var(--home-scene-sky-start) 0%,
+    var(--home-scene-sky) var(--home-scene-fade-stop),
+    var(--home-scene-sky) 100%
+  );
 }
 
 .card[data-tone='honey'] {
   --scene-ink: var(--honey-1);
 
-  background: var(--honey-bg);
+  background: linear-gradient(
+    180deg,
+    var(--home-scene-honey-start) 0%,
+    var(--home-scene-honey) var(--home-scene-fade-stop),
+    var(--home-scene-honey) 100%
+  );
 }
 
 .arc {
   position: absolute;
   top: calc(var(--s10) * -0.8);
-  right: calc(var(--s10) * -0.6);
-  width: calc(var(--s10) * 2.2);
-  height: calc(var(--s10) * 2.2);
+  right: var(--s1);
+  width: var(--home-scene-arc-diameter);
+  height: var(--home-scene-arc-diameter);
   border: 1px solid var(--scene-ink);
   border-radius: 50%;
   opacity: 0.18;
 }
 
 .cardTitle {
-  margin: 0;
-  color: var(--text);
+  margin: auto 0 0;
+  color: var(--marketing-ink);
   font-size: var(--type-card-title);
   font-weight: 600;
 }
@@ -84,7 +99,7 @@
 .cardBody {
   max-width: calc(var(--s10) * 4);
   margin: 0;
-  color: var(--muted);
+  color: var(--marketing-muted);
   font-size: var(--type-secondary);
   line-height: 1.6;
 }
@@ -94,7 +109,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: auto;
+  margin-top: 0;
   padding-top: var(--s8);
 }
 
@@ -102,7 +117,7 @@
   position: absolute;
   right: 0;
   left: 0;
-  height: 2px;
+  height: var(--tree-connector);
   background: var(--scene-ink);
   opacity: 0.35;
   transform: scaleX(0);
@@ -137,11 +152,7 @@
   transition-delay: calc(var(--duration-card-stagger) * 2);
 }
 
-.trackDot:nth-child(5) {
-  transition-delay: calc(var(--duration-card-stagger) * 3);
-}
-
-.trackDotEnd {
+.trackDotStart {
   background: var(--scene-ink);
 }
 
@@ -175,11 +186,16 @@
   }
 
   .title {
+    margin-bottom: var(--s4);
     font-size: var(--type-marketing-compact);
   }
 
   .cards {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .section {
+    padding-bottom: var(--s9);
   }
 }
 
