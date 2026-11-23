@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { assessUnarchive, isDropReasonValid } from '@/core/rules/branch-lifecycle';
 import { assessRestoreQuota } from '@/core/rules/branch-quota';
 import { archiveBranch } from '@/data/archive-branch';
@@ -6,6 +6,8 @@ import { pauseBranch } from '@/data/pause-branch';
 import { unarchiveBranch } from '@/data/unarchive-branch';
 import type { Branch, BranchStatus } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
+import { Button } from '@/ui/button';
+import { Dialog, DialogActions, DialogHeader } from '@/ui/dialog';
 import styles from './branch-lifecycle-panel.module.css';
 
 const STATUS_KEYS: Record<BranchStatus, MessageKey> = {
@@ -59,14 +61,6 @@ export function BranchLifecyclePanel({
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [busy, onClose]);
-
   const byId = new Map(branches.map((row) => [row.id, row]));
   const trail = trailOf(branch, byId);
   const parent = branch.parentId ? byId.get(branch.parentId) : undefined;
@@ -109,110 +103,92 @@ export function BranchLifecyclePanel({
         : 'branchDetail.lifecycle.unarchiveFailed';
 
   return (
-    <div className={styles.backdrop} role="presentation" onClick={busy ? undefined : onClose}>
-      <section
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t(titleKey(mode))}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className={styles.head}>
-          <h2 className={styles.title}>{t(titleKey(mode))}</h2>
-          <button type="button" className={styles.close} onClick={onClose} disabled={busy}>
-            {t('shell.close')}
-          </button>
-        </header>
+    <Dialog onClose={onClose} busy={busy}>
+      <DialogHeader title={t(titleKey(mode))} />
 
-        <p className={styles.trail}>{trail}</p>
+      <p className={styles.trail}>{trail}</p>
 
-        {mode === 'pause' ? (
-          <>
-            <p className={styles.lead}>{t('branchDetail.lifecycle.pauseLead')}</p>
-            <p className={styles.note}>{t('branchDetail.lifecycle.pauseTasks')}</p>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>
-                {t('branchDetail.lifecycle.pauseReasonLabel')}
-              </span>
-              <textarea
-                className={styles.textarea}
-                value={reason}
-                rows={4}
-                placeholder={t('branchDetail.lifecycle.pauseReasonPlaceholder')}
-                onChange={(event) => setReason(event.target.value)}
-              />
-            </label>
-            {!reasonValid ? (
-              <p className={styles.hint}>{t('branchDetail.lifecycle.pauseRequired')}</p>
-            ) : null}
-          </>
-        ) : null}
-
-        {mode === 'archive' ? (
-          <div className={styles.facts}>
-            <p>{t('branchDetail.lifecycle.archiveLeave')}</p>
-            <p>{t('branchDetail.lifecycle.archiveQuota')}</p>
-            <p>{t('branchDetail.lifecycle.archiveKeep')}</p>
-            <p>{t('branchDetail.lifecycle.archiveReversible')}</p>
-          </div>
-        ) : null}
-
-        {mode === 'unarchive' ? (
-          unarchiveBlocked ? (
-            <div className={styles.blocked} role="alert">
-              <p>{t('branchDetail.lifecycle.unarchiveBlocked')}</p>
-              <ul className={styles.reasons}>
-                {unarchiveAssessment?.reason === 'ancestor-archived' ? (
-                  <li>{t('branchDetail.lifecycle.ancestorArchived')}</li>
-                ) : null}
-                {quota !== null && !quota.allowed ? (
-                  <li>{t('branchDetail.lifecycle.quotaFull')}</li>
-                ) : null}
-              </ul>
-            </div>
-          ) : (
-            <div className={styles.facts}>
-              <p>
-                {t('branchDetail.lifecycle.unarchivePathPrefix')}
-                {trail}
-              </p>
-              <p>
-                {t('branchDetail.lifecycle.unarchiveStatusPrefix')}
-                {t(STATUS_KEYS[branch.status])}
-              </p>
-              {quota ? (
-                <p>
-                  {t('branchDetail.lifecycle.unarchiveQuotaPrefix')}
-                  {quota.used}
-                  {t('branchDetail.lifecycle.unarchiveQuotaSuffix')}
-                </p>
-              ) : null}
-            </div>
-          )
-        ) : null}
-
-        {failed ? (
-          <p className={styles.error} role="alert">
-            {t(failedLabel)}
-          </p>
-        ) : null}
-
-        <footer className={styles.actions}>
-          <button type="button" className={styles.ghost} onClick={onClose} disabled={busy}>
-            {t('shell.cancel')}
-          </button>
-          {!unarchiveBlocked ? (
-            <button
-              type="button"
-              className={styles.primary}
-              onClick={submit}
-              disabled={busy || !reasonValid}
-            >
-              {busy ? t('branches.saving') : t(confirmLabel)}
-            </button>
+      {mode === 'pause' ? (
+        <>
+          <p className={styles.lead}>{t('branchDetail.lifecycle.pauseLead')}</p>
+          <p className={styles.note}>{t('branchDetail.lifecycle.pauseTasks')}</p>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>
+              {t('branchDetail.lifecycle.pauseReasonLabel')}
+            </span>
+            <textarea
+              className={styles.textarea}
+              value={reason}
+              rows={4}
+              placeholder={t('branchDetail.lifecycle.pauseReasonPlaceholder')}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </label>
+          {!reasonValid ? (
+            <p className={styles.hint}>{t('branchDetail.lifecycle.pauseRequired')}</p>
           ) : null}
-        </footer>
-      </section>
-    </div>
+        </>
+      ) : null}
+
+      {mode === 'archive' ? (
+        <div className={styles.facts}>
+          <p>{t('branchDetail.lifecycle.archiveLeave')}</p>
+          <p>{t('branchDetail.lifecycle.archiveQuota')}</p>
+          <p>{t('branchDetail.lifecycle.archiveKeep')}</p>
+          <p>{t('branchDetail.lifecycle.archiveReversible')}</p>
+        </div>
+      ) : null}
+
+      {mode === 'unarchive' ? (
+        unarchiveBlocked ? (
+          <div className={styles.blocked} role="alert">
+            <p>{t('branchDetail.lifecycle.unarchiveBlocked')}</p>
+            <ul className={styles.reasons}>
+              {unarchiveAssessment?.reason === 'ancestor-archived' ? (
+                <li>{t('branchDetail.lifecycle.ancestorArchived')}</li>
+              ) : null}
+              {quota !== null && !quota.allowed ? (
+                <li>{t('branchDetail.lifecycle.quotaFull')}</li>
+              ) : null}
+            </ul>
+          </div>
+        ) : (
+          <div className={styles.facts}>
+            <p>
+              {t('branchDetail.lifecycle.unarchivePathPrefix')}
+              {trail}
+            </p>
+            <p>
+              {t('branchDetail.lifecycle.unarchiveStatusPrefix')}
+              {t(STATUS_KEYS[branch.status])}
+            </p>
+            {quota ? (
+              <p>
+                {t('branchDetail.lifecycle.unarchiveQuotaPrefix')}
+                {quota.used}
+                {t('branchDetail.lifecycle.unarchiveQuotaSuffix')}
+              </p>
+            ) : null}
+          </div>
+        )
+      ) : null}
+
+      {failed ? (
+        <p className={styles.error} role="alert">
+          {t(failedLabel)}
+        </p>
+      ) : null}
+
+      <DialogActions>
+        <Button onClick={onClose} disabled={busy}>
+          {t('shell.cancel')}
+        </Button>
+        {!unarchiveBlocked ? (
+          <Button variant="primary" onClick={submit} disabled={busy || !reasonValid}>
+            {busy ? t('branches.saving') : t(confirmLabel)}
+          </Button>
+        ) : null}
+      </DialogActions>
+    </Dialog>
   );
 }

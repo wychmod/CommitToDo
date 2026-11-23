@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { clearAllData } from '@/data/clear-data';
 import { t } from '@/i18n';
+import { Button } from '@/ui/button';
+import { Dialog, DialogActions, DialogHeader } from '@/ui/dialog';
 import styles from './clear-data-panel.module.css';
 
 interface ClearDataPanelProps {
@@ -29,14 +31,6 @@ export function ClearDataPanel({
   const [failed, setFailed] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [busy, onClose]);
-
   const exportCurrent = async () => {
     if (exporting) return;
     setExporting(true);
@@ -58,73 +52,50 @@ export function ClearDataPanel({
   };
 
   return (
-    <div className={styles.backdrop} role="presentation" onClick={busy ? undefined : onClose}>
-      <section
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('data.clear.title')}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className={styles.head}>
-          <h2 className={styles.title}>{t('data.clear.title')}</h2>
-          <button type="button" className={styles.close} onClick={onClose} disabled={busy}>
-            {t('shell.close')}
-          </button>
-        </header>
+    <Dialog onClose={onClose} busy={busy}>
+      <DialogHeader title={t('data.clear.title')} />
 
-        <div className={styles.warningBox}>
-          <p>{t('data.clear.warning')}</p>
+      <div className={styles.warningBox}>
+        <p>{t('data.clear.warning')}</p>
+      </div>
+
+      {step === 1 && hasData ? (
+        <div className={styles.exportRow}>
+          <Button onClick={exportCurrent} disabled={exporting || busy}>
+            {exporting ? t('data.export.busy') : t('data.clear.exportFirst')}
+          </Button>
+          {exportedInSession ? (
+            <span className={styles.done}>{t('data.restore.exported')}</span>
+          ) : null}
         </div>
+      ) : null}
 
-        {step === 1 && hasData ? (
-          <div className={styles.exportRow}>
-            <button
-              type="button"
-              className={styles.ghost}
-              onClick={exportCurrent}
-              disabled={exporting || busy}
-            >
-              {exporting ? t('data.export.busy') : t('data.clear.exportFirst')}
-            </button>
-            {exportedInSession ? (
-              <span className={styles.done}>{t('data.restore.exported')}</span>
-            ) : null}
-          </div>
-        ) : null}
+      {failed ? (
+        <p className={styles.error} role="alert">
+          {t('data.clear.failed')}
+        </p>
+      ) : null}
 
-        {failed ? (
-          <p className={styles.error} role="alert">
-            {t('data.clear.failed')}
-          </p>
-        ) : null}
-
-        <footer className={styles.actions}>
-          {step === 2 ? (
-            <button
-              type="button"
-              className={styles.ghost}
-              onClick={() => setStep(1)}
-              disabled={busy}
-            >
-              {t('shell.back')}
-            </button>
-          ) : (
-            <button type="button" className={styles.ghost} onClick={onClose} disabled={busy}>
-              {t('shell.cancel')}
-            </button>
-          )}
-          {step === 1 ? (
-            <button type="button" className={styles.dangerGhost} onClick={() => setStep(2)}>
-              {t('data.clear.next')}
-            </button>
-          ) : (
-            <button type="button" className={styles.danger} onClick={submit} disabled={busy}>
-              {busy ? t('data.clear.busy') : t('data.clear.confirm')}
-            </button>
-          )}
-        </footer>
-      </section>
-    </div>
+      <DialogActions>
+        {step === 2 ? (
+          <Button onClick={() => setStep(1)} disabled={busy}>
+            {t('shell.back')}
+          </Button>
+        ) : (
+          <Button onClick={onClose} disabled={busy}>
+            {t('shell.cancel')}
+          </Button>
+        )}
+        {step === 1 ? (
+          <Button variant="danger-outline" onClick={() => setStep(2)}>
+            {t('data.clear.next')}
+          </Button>
+        ) : (
+          <Button variant="danger" onClick={submit} disabled={busy}>
+            {busy ? t('data.clear.busy') : t('data.clear.confirm')}
+          </Button>
+        )}
+      </DialogActions>
+    </Dialog>
   );
 }

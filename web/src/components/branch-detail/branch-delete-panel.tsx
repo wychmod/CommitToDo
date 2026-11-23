@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { DeleteBlockReason } from '@/core/rules/delete-guard';
 import { deleteEmptyBranch } from '@/data/delete-empty-branch';
 import { useBranchDeleteGuard } from '@/data/hooks';
 import type { Branch } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
+import { Button } from '@/ui/button';
+import { Dialog, DialogActions, DialogHeader } from '@/ui/dialog';
 import styles from './branch-delete-panel.module.css';
 
 const REASON_KEYS: Record<DeleteBlockReason, MessageKey> = {
@@ -54,14 +56,6 @@ export function BranchDeletePanel({
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [busy, onClose]);
-
   const byId = new Map(branches.map((row) => [row.id, row]));
   const guard = view.guard;
   const trail = trailOf(branch, byId);
@@ -80,72 +74,57 @@ export function BranchDeletePanel({
   };
 
   return (
-    <div className={styles.backdrop} role="presentation" onClick={busy ? undefined : onClose}>
-      <section
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('branchDetail.delete.title')}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className={styles.head}>
-          <h2 className={styles.title}>{t('branchDetail.delete.title')}</h2>
-          <button type="button" className={styles.close} onClick={onClose} disabled={busy}>
-            {t('shell.close')}
-          </button>
-        </header>
+    <Dialog onClose={onClose} busy={busy}>
+      <DialogHeader title={t('branchDetail.delete.title')} />
 
-        <p className={styles.trail}>{trail}</p>
+      <p className={styles.trail}>{trail}</p>
 
-        {view.status === 'loading' ? (
-          <p className={styles.state} role="status">
-            {t('branchDetail.delete.loading')}
-          </p>
-        ) : null}
+      {view.status === 'loading' ? (
+        <p className={styles.state} role="status">
+          {t('branchDetail.delete.loading')}
+        </p>
+      ) : null}
 
-        {view.status === 'error' ? (
-          <div className={styles.blocked} role="alert">
-            <p>{t('branchDetail.delete.loadFailed')}</p>
-            <button type="button" className={styles.ghost} onClick={view.retry}>
-              {t('branchDetail.retry')}
-            </button>
-          </div>
-        ) : null}
+      {view.status === 'error' ? (
+        <div className={styles.blocked} role="alert">
+          <p>{t('branchDetail.delete.loadFailed')}</p>
+          <Button onClick={view.retry}>{t('branchDetail.retry')}</Button>
+        </div>
+      ) : null}
 
-        {view.status === 'ready' && (!guard || !guard.allowed) ? (
-          <div className={styles.blocked} role="alert">
-            <p>{t('branchDetail.delete.blocked')}</p>
-            <ul className={styles.reasons}>
-              {(guard?.reasons ?? ['deleted']).map((reason) => (
-                <li key={reason}>{t(REASON_KEYS[reason])}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+      {view.status === 'ready' && (!guard || !guard.allowed) ? (
+        <div className={styles.blocked} role="alert">
+          <p>{t('branchDetail.delete.blocked')}</p>
+          <ul className={styles.reasons}>
+            {(guard?.reasons ?? ['deleted']).map((reason) => (
+              <li key={reason}>{t(REASON_KEYS[reason])}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
+      {view.status === 'ready' && guard?.allowed ? (
+        <div className={styles.warningBox}>
+          <p>{t('branchDetail.delete.warning')}</p>
+        </div>
+      ) : null}
+
+      {failed ? (
+        <p className={styles.error} role="alert">
+          {t('branchDetail.delete.failed')}
+        </p>
+      ) : null}
+
+      <DialogActions>
+        <Button onClick={onClose} disabled={busy}>
+          {t('shell.cancel')}
+        </Button>
         {view.status === 'ready' && guard?.allowed ? (
-          <div className={styles.warningBox}>
-            <p>{t('branchDetail.delete.warning')}</p>
-          </div>
+          <Button variant="danger" onClick={submit} disabled={busy}>
+            {busy ? t('branches.saving') : t('branchDetail.delete.confirm')}
+          </Button>
         ) : null}
-
-        {failed ? (
-          <p className={styles.error} role="alert">
-            {t('branchDetail.delete.failed')}
-          </p>
-        ) : null}
-
-        <footer className={styles.actions}>
-          <button type="button" className={styles.ghost} onClick={onClose} disabled={busy}>
-            {t('shell.cancel')}
-          </button>
-          {view.status === 'ready' && guard?.allowed ? (
-            <button type="button" className={styles.danger} onClick={submit} disabled={busy}>
-              {busy ? t('branches.saving') : t('branchDetail.delete.confirm')}
-            </button>
-          ) : null}
-        </footer>
-      </section>
-    </div>
+      </DialogActions>
+    </Dialog>
   );
 }

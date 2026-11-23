@@ -8,6 +8,8 @@ import {
 import { restoreSnapshot } from '@/data/snapshot-restore';
 import type { Backup, BackupKind } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
+import { Button } from '@/ui/button';
+import { Dialog, DialogActions, DialogHeader } from '@/ui/dialog';
 import styles from './snapshot-restore-panel.module.css';
 
 interface SnapshotRestorePanelProps {
@@ -69,89 +71,67 @@ export function SnapshotRestorePanel({ backup, onClose, onRestored }: SnapshotRe
   };
 
   return (
-    <div className={styles.backdrop} role="presentation">
-      <div
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="snapshot-restore-title"
-      >
-        <div className={styles.head}>
-          <h2 id="snapshot-restore-title" className={styles.title}>
-            {t('data.snapshot.restoreTitle')}
-          </h2>
-          <button type="button" className={styles.close} onClick={onClose}>
-            {t('shell.close')}
-          </button>
-        </div>
+    <Dialog onClose={onClose} busy={state === 'busy'} size="md">
+      <DialogHeader title={t('data.snapshot.restoreTitle')} />
 
-        <div className={styles.summary}>
-          <dl className={styles.meta}>
-            <dt>{t('data.snapshot.restoreTime')}</dt>
-            <dd>{new Date(backup.createdAt).toLocaleString()}</dd>
-            <dt>{t('data.snapshot.restoreKind')}</dt>
-            <dd>{t(KIND_LABELS[backup.kind])}</dd>
-            <dt>{t('data.snapshot.restoreSchema')}</dt>
-            <dd>{backup.schemaVersion}</dd>
-          </dl>
-          {counts ? (
-            <>
-              <p className={styles.countsTitle}>{t('data.snapshot.restoreCounts')}</p>
-              <ul className={styles.counts}>
-                {BACKUP_COUNT_KEYS.map((key) => (
-                  <li key={key}>
-                    <span>{t(COUNT_LABELS[key])}</span>
-                    <strong>{counts[key]}</strong>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : null}
-        </div>
-
-        {restorable ? (
-          <div className={styles.warningBox}>
-            <p>{t('data.snapshot.restoreWarningReplace')}</p>
-            <p>{t('data.snapshot.restoreWarningBackup')}</p>
-            <p>{t('data.snapshot.restoreWarningReload')}</p>
-          </div>
-        ) : (
-          <p className={styles.error} role="alert">
-            {isBackupRestorable(backup.schemaVersion)
-              ? t('data.snapshot.restoreInvalid')
-              : t('data.snapshot.versionMismatch')}
-          </p>
-        )}
-
-        {failure ? (
-          <p className={styles.error} role="alert">
-            {t(failure)}
-          </p>
+      <div className={styles.summary}>
+        <dl className={styles.meta}>
+          <dt>{t('data.snapshot.restoreTime')}</dt>
+          <dd>{new Date(backup.createdAt).toLocaleString()}</dd>
+          <dt>{t('data.snapshot.restoreKind')}</dt>
+          <dd>{t(KIND_LABELS[backup.kind])}</dd>
+          <dt>{t('data.snapshot.restoreSchema')}</dt>
+          <dd>{backup.schemaVersion}</dd>
+        </dl>
+        {counts ? (
+          <>
+            <p className={styles.countsTitle}>{t('data.snapshot.restoreCounts')}</p>
+            <ul className={styles.counts}>
+              {BACKUP_COUNT_KEYS.map((key) => (
+                <li key={key}>
+                  <span>{t(COUNT_LABELS[key])}</span>
+                  <strong>{counts[key]}</strong>
+                </li>
+              ))}
+            </ul>
+          </>
         ) : null}
+      </div>
 
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.ghost}
-            onClick={onClose}
+      {restorable ? (
+        <div className={styles.warningBox}>
+          <p>{t('data.snapshot.restoreWarningReplace')}</p>
+          <p>{t('data.snapshot.restoreWarningBackup')}</p>
+          <p>{t('data.snapshot.restoreWarningReload')}</p>
+        </div>
+      ) : (
+        <p className={styles.error} role="alert">
+          {isBackupRestorable(backup.schemaVersion)
+            ? t('data.snapshot.restoreInvalid')
+            : t('data.snapshot.versionMismatch')}
+        </p>
+      )}
+
+      {failure ? (
+        <p className={styles.error} role="alert">
+          {t(failure)}
+        </p>
+      ) : null}
+
+      <DialogActions>
+        <Button onClick={onClose} disabled={state === 'busy'}>
+          {t('shell.cancel')}
+        </Button>
+        {restorable ? (
+          <Button
+            variant="primary"
+            onClick={() => void handleRestore()}
             disabled={state === 'busy'}
           >
-            {t('shell.cancel')}
-          </button>
-          {restorable ? (
-            <button
-              type="button"
-              className={styles.primary}
-              onClick={() => void handleRestore()}
-              disabled={state === 'busy'}
-            >
-              {state === 'busy'
-                ? t('data.snapshot.restoreBusy')
-                : t('data.snapshot.restoreConfirm')}
-            </button>
-          ) : null}
-        </div>
-      </div>
-    </div>
+            {state === 'busy' ? t('data.snapshot.restoreBusy') : t('data.snapshot.restoreConfirm')}
+          </Button>
+        ) : null}
+      </DialogActions>
+    </Dialog>
   );
 }

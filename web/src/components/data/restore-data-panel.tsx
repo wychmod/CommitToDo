@@ -1,10 +1,12 @@
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import type { AppError } from '@/core/errors';
 import { validateImportFile, type ImportFileData } from '@/core/rules/import-validate';
 import { markBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
 import { importData } from '@/data/import-data';
 import { t, type MessageKey } from '@/i18n';
 import { useOnboardingStore } from '@/stores/onboarding.store';
+import { Button } from '@/ui/button';
+import { Dialog, DialogActions, DialogHeader } from '@/ui/dialog';
 import styles from './restore-data-panel.module.css';
 
 const COUNT_KEYS: ReadonlyArray<{
@@ -60,14 +62,6 @@ export function RestoreDataPanel({
   const [failed, setFailed] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [busy, onClose]);
-
   const blockedByExport = hasData && !exportedInSession;
 
   const pick = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -121,113 +115,90 @@ export function RestoreDataPanel({
   };
 
   return (
-    <div className={styles.backdrop} role="presentation" onClick={busy ? undefined : onClose}>
-      <section
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('data.restore.title')}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className={styles.head}>
-          <h2 className={styles.title}>{t('data.restore.title')}</h2>
-          <button type="button" className={styles.close} onClick={onClose} disabled={busy}>
-            {t('shell.close')}
-          </button>
-        </header>
+    <Dialog onClose={onClose} busy={busy} size="md">
+      <DialogHeader title={t('data.restore.title')} />
 
-        <p className={styles.hint}>{t('data.restore.hint')}</p>
+      <p className={styles.hint}>{t('data.restore.hint')}</p>
 
-        <label className={styles.pick}>
-          {t('data.restore.action')}
-          <input
-            type="file"
-            accept="application/json,.json"
-            className={styles.fileInput}
-            onChange={pick}
-            disabled={busy || reading}
-          />
-        </label>
+      <label className={styles.pick}>
+        {t('data.restore.action')}
+        <input
+          type="file"
+          accept="application/json,.json"
+          className={styles.fileInput}
+          onChange={pick}
+          disabled={busy || reading}
+        />
+      </label>
 
-        {reading ? (
-          <p className={styles.state} role="status">
-            {t('data.restore.reading')}
-          </p>
-        ) : null}
+      {reading ? (
+        <p className={styles.state} role="status">
+          {t('data.restore.reading')}
+        </p>
+      ) : null}
 
-        {error ? (
-          <p className={styles.error} role="alert">
-            {t(error)}
-          </p>
-        ) : null}
+      {error ? (
+        <p className={styles.error} role="alert">
+          {t(error)}
+        </p>
+      ) : null}
 
-        {data ? (
-          <div className={styles.summary}>
-            <dl className={styles.meta}>
-              <dt>{t('data.restore.file')}</dt>
-              <dd>{fileName}</dd>
-              <dt>{t('data.restore.exportedAt')}</dt>
-              <dd>{formatMoment(data.summary.exportedAt)}</dd>
-              <dt>{t('data.restore.schema')}</dt>
-              <dd>{data.summary.schemaVersion}</dd>
-            </dl>
-            <p className={styles.countsTitle}>{t('data.restore.counts')}</p>
-            <ul className={styles.counts}>
-              {COUNT_KEYS.map((item) => (
-                <li key={item.key}>
-                  <span>{t(item.label)}</span>
-                  <strong>{data.summary.counts[item.key]}</strong>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+      {data ? (
+        <div className={styles.summary}>
+          <dl className={styles.meta}>
+            <dt>{t('data.restore.file')}</dt>
+            <dd>{fileName}</dd>
+            <dt>{t('data.restore.exportedAt')}</dt>
+            <dd>{formatMoment(data.summary.exportedAt)}</dd>
+            <dt>{t('data.restore.schema')}</dt>
+            <dd>{data.summary.schemaVersion}</dd>
+          </dl>
+          <p className={styles.countsTitle}>{t('data.restore.counts')}</p>
+          <ul className={styles.counts}>
+            {COUNT_KEYS.map((item) => (
+              <li key={item.key}>
+                <span>{t(item.label)}</span>
+                <strong>{data.summary.counts[item.key]}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
-        {data && blockedByExport ? (
-          <div className={styles.gate}>
-            <p>{t('data.restore.needExport')}</p>
-            <button
-              type="button"
-              className={styles.ghost}
-              onClick={exportCurrent}
-              disabled={exporting || busy}
-            >
-              {exporting ? t('data.export.busy') : t('data.restore.exportFirst')}
-            </button>
-          </div>
-        ) : null}
+      {data && blockedByExport ? (
+        <div className={styles.gate}>
+          <p>{t('data.restore.needExport')}</p>
+          <Button onClick={exportCurrent} disabled={exporting || busy}>
+            {exporting ? t('data.export.busy') : t('data.restore.exportFirst')}
+          </Button>
+        </div>
+      ) : null}
 
-        {data && !blockedByExport ? (
-          <div className={styles.warningBox}>
-            <p>{t('data.restore.warning')}</p>
-            {exportedInSession ? (
-              <p className={styles.gateDone}>{t('data.restore.exported')}</p>
-            ) : null}
-          </div>
-        ) : null}
-
-        {failed ? (
-          <p className={styles.error} role="alert">
-            {t('data.restore.failed')}
-          </p>
-        ) : null}
-
-        <footer className={styles.actions}>
-          <button type="button" className={styles.ghost} onClick={onClose} disabled={busy}>
-            {t('shell.cancel')}
-          </button>
-          {data ? (
-            <button
-              type="button"
-              className={styles.primary}
-              onClick={submit}
-              disabled={busy || blockedByExport}
-            >
-              {busy ? t('data.restore.busy') : t('data.restore.confirm')}
-            </button>
+      {data && !blockedByExport ? (
+        <div className={styles.warningBox}>
+          <p>{t('data.restore.warning')}</p>
+          {exportedInSession ? (
+            <p className={styles.gateDone}>{t('data.restore.exported')}</p>
           ) : null}
-        </footer>
-      </section>
-    </div>
+        </div>
+      ) : null}
+
+      {failed ? (
+        <p className={styles.error} role="alert">
+          {t('data.restore.failed')}
+        </p>
+      ) : null}
+
+      <DialogActions>
+        <Button onClick={onClose} disabled={busy}>
+          {t('shell.cancel')}
+        </Button>
+        {data ? (
+          <Button variant="primary" onClick={submit} disabled={busy || blockedByExport}>
+            {busy ? t('data.restore.busy') : t('data.restore.confirm')}
+          </Button>
+        ) : null}
+      </DialogActions>
+    </Dialog>
   );
 }
