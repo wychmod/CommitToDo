@@ -86,9 +86,12 @@
   --home-hero-top: 96px;
   --home-hero-bottom: 80px;
   --home-hero-gap: 72px;
-  --home-hero-action-height: 56px;
+  --home-hero-action-height: 60px;
+  --home-hero-action-radius: 22px;
+  --home-hero-action-padding: 32px;
+  --home-hero-action-gap: 20px;
   --home-title-size: 100px;
-  --home-title-highlight-inset: 10% -6% 4%;
+  --home-title-highlight-inset: 0 -21% 0;
   --home-title-line-height: 1.18;
   --home-feature-icon-size: 48px;
   --home-section-title-size: 52px;
