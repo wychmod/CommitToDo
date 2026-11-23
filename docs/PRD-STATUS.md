@@ -69,12 +69,12 @@
 | OP | 要求摘要 | 状态 | 证据 |
 | --- | --- | --- | --- |
 | OP-01 | 首屏自动演示按时序出现 | 已实现 | `web/src/pages/home-page.tsx`、`web/src/components/home/use-home-demo.ts`、`home-demo.test.ts`；时序属人工验收项 |
-| OP-02 | 暂停 / 继续不倒退 | 已实现 | `components/home/use-home-demo.ts`（播放状态机）、`home-demo.test.ts` |
-| OP-03 | 重播不跳滚动与焦点 | 已实现 | `components/home/use-home-demo.ts`、`home-hero.tsx` |
+| OP-02 | 离屏冻结、返回续播 | 已实现 | `components/home/use-home-demo.ts`（示例时钟） |
+| OP-03 | 悬停或点击重播 | 已实现 | `components/home/use-home-demo.ts`、`home-hero.tsx` |
 | OP-04 | 示例勾选与回执联动 | 已实现 | `components/home/home-desk.tsx`、`home-timeline.tsx` 共用演示状态 |
 | OP-05 | 反复勾选只保留一个节点 | 已实现 | `core/rules/home-demo.ts`、`home-demo.test.ts` |
 | OP-06 | 减少动效降级 | 已实现 | `use-home-demo.ts#L113`、`components/home/*.module.css` 的 `prefers-reduced-motion` 共 6 处 |
-| OP-07 | 入口固定到 `/today` | 已实现 | `pages/home-page.tsx` 两个入口链接 |
+| OP-07 | 登录与工作区入口 | 已实现 | `home-hero.tsx` 登录链接到 `/auth/login`，工作区入口到 `/today` |
 | OP-08 | 明暗主题跟随 | 已实现 | `design/tokens.css` 双主题 + `core/rules/theme-preference.ts` |
 | OP-09 | 390 px 窄屏布局 | 已实现 | `components/home/*.module.css` 响应式规则；人工验收项 |
 
