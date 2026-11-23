@@ -9,12 +9,19 @@ import {
 } from '@/components/badges/badge-presentation';
 import { BadgeToken } from '@/components/badges/badge-token';
 import { isBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
-import { BackupIcon, HelpIcon, SunIcon, TuneIcon } from '@/components/me/me-icons';
 import { createManualBackup } from '@/data/create-manual-backup';
 import { grantBadge } from '@/data/grant-badge';
 import { useBadgeRows, useBackupListView, type BadgeListViewRow } from '@/data/hooks';
 import { t } from '@/i18n';
-import { ArrowIcon, ChevronRightIcon, DeviceIcon } from '@/ui/icons';
+import {
+  ArrowIcon,
+  BackupIcon,
+  ChevronRightIcon,
+  DeviceIcon,
+  HelpIcon,
+  SunIcon,
+  TuneIcon,
+} from '@/ui/icons';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
 import styles from './me-page.module.css';

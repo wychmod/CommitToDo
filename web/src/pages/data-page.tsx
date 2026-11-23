@@ -15,7 +15,7 @@ import { useBackupListView, useDataOverview } from '@/data/hooks';
 import type { Backup, BackupKind } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { ONBOARDING_STORAGE_KEY, useOnboardingStore } from '@/stores/onboarding.store';
-import { DeviceIcon, SvgIcon, type SvgIconProps } from '@/ui/icons';
+import { CloudIcon, DeviceIcon, DownloadIcon, FileIcon, UploadIcon } from '@/ui/icons';
 import { PageShell } from '@/ui/page-shell';
 import styles from './data-page.module.css';
 
@@ -25,44 +25,6 @@ const KIND_LABELS: Readonly<Record<BackupKind, MessageKey>> = {
   'pre-restore': 'data.snapshot.kind.pre-restore',
   remote: 'data.snapshot.kind.remote',
 };
-
-/** 画稿里的文件行图标，自绘内联，不引图标库。 */
-function DownloadGlyph(props: SvgIconProps) {
-  return (
-    <SvgIcon {...props}>
-      <path d="M12 4v10" />
-      <path d="m8 10 4 4 4-4" />
-      <path d="M5 19h14" />
-    </SvgIcon>
-  );
-}
-
-function UploadGlyph(props: SvgIconProps) {
-  return (
-    <SvgIcon {...props}>
-      <path d="M12 16V6" />
-      <path d="m8 9 4-4 4 4" />
-      <path d="M5 19h14" />
-    </SvgIcon>
-  );
-}
-
-function FileGlyph(props: SvgIconProps) {
-  return (
-    <SvgIcon {...props}>
-      <path d="M6 3h8l4 4v14H6z" />
-      <path d="M14 3v4h4" />
-    </SvgIcon>
-  );
-}
-
-function CloudGlyph(props: SvgIconProps) {
-  return (
-    <SvgIcon {...props}>
-      <path d="M7 18a4 4 0 0 1 .6-8 5.5 5.5 0 0 1 10.6 1.6A3.4 3.4 0 0 1 17.5 18Z" />
-    </SvgIcon>
-  );
-}
 
 /** 清空或恢复后要一起丢掉的本机 UI 状态（筛选、展开、注解已看、滚动位置与引导）。 */
 function clearLocalUiState(): void {
@@ -345,7 +307,7 @@ export function DataPage() {
               </header>
               <div className={styles.fileRow}>
                 <span className={styles.rowIcon}>
-                  <DownloadGlyph size={18} />
+                  <DownloadIcon size={18} />
                 </span>
                 <div className={styles.fileText}>
                   <strong>{t('data.file.exportTitle')}</strong>
@@ -372,7 +334,7 @@ export function DataPage() {
               ) : null}
               <div className={styles.fileRow}>
                 <span className={styles.rowIcon}>
-                  <UploadGlyph size={18} />
+                  <UploadIcon size={18} />
                 </span>
                 <div className={styles.fileText}>
                   <strong>{t('data.restore.title')}</strong>
@@ -402,7 +364,7 @@ export function DataPage() {
               {preRestore ? (
                 <div className={styles.fileRow}>
                   <span className={styles.rowIcon}>
-                    <FileGlyph size={17} />
+                    <FileIcon size={17} />
                   </span>
                   <div className={styles.fileText}>
                     <strong>{copyTimeLabel(preRestore.createdAt)}</strong>
@@ -439,7 +401,7 @@ export function DataPage() {
               </header>
               <div className={styles.fileRow}>
                 <span className={styles.rowIcon}>
-                  <CloudGlyph size={17} />
+                  <CloudIcon size={17} />
                 </span>
                 <div className={styles.fileText}>
                   <strong>
@@ -464,7 +426,7 @@ export function DataPage() {
               {remoteBackup ? (
                 <div className={styles.fileRow}>
                   <span className={styles.rowIcon}>
-                    <DownloadGlyph size={16} />
+                    <DownloadIcon size={16} />
                   </span>
                   <div className={styles.fileText}>
                     <strong>{t('data.remote.latestFile')}</strong>

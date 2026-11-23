@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { t } from '@/i18n';
 import type { MessageKey } from '@/i18n';
+import { CheckIcon } from '@/ui/icons';
 import { useInView } from './use-in-view';
 import styles from './home-desk.module.css';
 
@@ -17,20 +18,6 @@ const trails: Array<{ label: MessageKey; tone: string }> = [
   { label: 'home.desk.branchHealth', tone: 'sky' },
   { label: 'home.desk.branchLife', tone: 'honey' },
 ];
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" fill="none">
-      <path
-        d="m3.5 8.5 3 3 6-7"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 /** 第 4 段：一处放下，沿路找回。两张清单窗与一个分支树窗。 */
 export function HomeDesk() {
@@ -65,7 +52,7 @@ export function HomeDesk() {
                         className={`${styles.checkBox} ${done[index] ? styles.checkBoxDone : ''}`}
                         aria-hidden="true"
                       >
-                        {done[index] ? <CheckIcon /> : null}
+                        {done[index] ? <CheckIcon size={12} /> : null}
                       </span>
                       <span className={done[index] ? styles.doneText : styles.taskText}>
                         {t(task.label)}

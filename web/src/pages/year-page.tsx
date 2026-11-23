@@ -9,40 +9,13 @@ import { trackOpsEvent } from '@/data/ops-events';
 import { saveYearReview } from '@/data/save-year-review';
 import { t } from '@/i18n';
 import { useHistoryFilterStore } from '@/stores/history.store';
-import { SvgIcon } from '@/ui/icons/svg-icon';
+import { ChevronLeftIcon, ChevronRightIcon, PencilIcon, ShareIcon } from '@/ui/icons';
 import { PageShell } from '@/ui/page-shell';
 import { YearSharePreview } from '@/components/year/year-share-preview';
 import styles from './year-page.module.css';
 
 const FOUR_DIGITS = /^\d{4}$/;
 const TOP_BRANCHES = 3;
-
-const PENCIL_ICON = (
-  <SvgIcon size={16}>
-    <path d="m5 16-.6 3.6L8 19l10-10-3-3L5 16Zm8-8 3 3" />
-  </SvgIcon>
-);
-
-const SHARE_ICON = (
-  <SvgIcon size={16}>
-    <path d="m8.5 12 7-4.5m-7 4.5 7 4.5" />
-    <circle cx="6" cy="12" r="2.1" />
-    <circle cx="18" cy="6" r="2.1" />
-    <circle cx="18" cy="18" r="2.1" />
-  </SvgIcon>
-);
-
-const PREV_ICON = (
-  <SvgIcon size={16}>
-    <path d="m14 6-6 6 6 6" />
-  </SvgIcon>
-);
-
-const NEXT_ICON = (
-  <SvgIcon size={16}>
-    <path d="m10 6 6 6-6 6" />
-  </SvgIcon>
-);
 
 interface MonthSegment {
   key: string | null;
@@ -403,7 +376,7 @@ export function YearPage() {
               if (prevYear !== null) switchYear(prevYear);
             }}
           >
-            {PREV_ICON}
+            <ChevronLeftIcon size={16} />
           </button>
           <span className={styles.pickerYear}>
             {requestedYear}
@@ -418,7 +391,7 @@ export function YearPage() {
               if (nextYear !== null) switchYear(nextYear);
             }}
           >
-            {NEXT_ICON}
+            <ChevronRightIcon size={16} />
           </button>
         </div>
       }
@@ -603,7 +576,7 @@ export function YearPage() {
                     disabled={saving}
                     onClick={startEdit}
                   >
-                    {PENCIL_ICON}
+                    <PencilIcon size={16} />
                   </button>
                 </div>
 
@@ -671,7 +644,7 @@ export function YearPage() {
                         }
                         onClick={() => setShareOpen(true)}
                       >
-                        {SHARE_ICON}
+                        <ShareIcon size={16} />
                         {t('year.share.generate')}
                       </button>
                     </div>

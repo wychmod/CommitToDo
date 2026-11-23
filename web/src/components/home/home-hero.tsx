@@ -2,57 +2,13 @@ import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { t } from '@/i18n';
+import { ArrowIcon, CheckIcon, PlusIcon, SearchIcon } from '@/ui/icons';
 import type { HomeDemo } from './use-home-demo';
 import styles from './home-hero.module.css';
 
 interface HomeHeroProps {
   demo: HomeDemo;
   onOpenReceipt: () => void;
-}
-
-function ArrowIcon() {
-  return (
-    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none">
-      <path
-        d="M3 8h9m-3.5-3.5L12 8l-3.5 3.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none">
-      <path
-        d="m3.5 8.5 3 3 6-7"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none">
-      <circle cx="7" cy="7" r="4" stroke="currentColor" strokeWidth="1.4" />
-      <path d="m10 10 3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none">
-      <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
 }
 
 function SidebarMarker({ kind }: { kind: 'today' | 'branches' | 'history' }) {
@@ -141,7 +97,7 @@ export function HomeHero({ demo, onOpenReceipt }: HomeHeroProps) {
             </Link>
             <Link className={styles.headerAction} to="/today">
               {t('home.header.open')}
-              <ArrowIcon />
+              <ArrowIcon size={16} />
             </Link>
           </div>
         </div>
@@ -186,8 +142,8 @@ export function HomeHero({ demo, onOpenReceipt }: HomeHeroProps) {
                 {t('home.hero.windowTitle')} / {t('home.hero.windowCrumb')}
               </button>
               <span className={styles.windowControls} aria-hidden="true">
-                <SearchIcon />
-                <PlusIcon />
+                <SearchIcon size={12} />
+                <PlusIcon size={12} />
               </span>
             </div>
             <div className={styles.windowBody}>
@@ -229,13 +185,13 @@ export function HomeHero({ demo, onOpenReceipt }: HomeHeroProps) {
                       className={styles.check}
                       onClick={demo.toggleCheck}
                     >
-                      {demo.checked ? <CheckIcon /> : null}
+                      {demo.checked ? <CheckIcon size={12} /> : null}
                     </button>
                     {t('home.hero.taskWireframe')}
                   </li>
                   <li className={`${styles.task} ${styles.taskDone}`}>
                     <span className={`${styles.box} ${styles.boxChecked}`} aria-hidden="true">
-                      <CheckIcon />
+                      <CheckIcon size={12} />
                     </span>
                     {t('home.hero.taskChapter')}
                   </li>
@@ -255,7 +211,7 @@ export function HomeHero({ demo, onOpenReceipt }: HomeHeroProps) {
           >
             <span className={styles.receiptHead}>
               <span className={styles.receiptCheck} aria-hidden="true">
-                <CheckIcon />
+                <CheckIcon size={12} />
               </span>
               {t('home.hero.receiptTitle')}
             </span>

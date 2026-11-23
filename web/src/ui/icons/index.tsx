@@ -48,6 +48,14 @@ export function ChevronRightIcon(props: SvgIconProps) {
   );
 }
 
+export function ChevronLeftIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="m14 6-6 6 6 6" />
+    </SvgIcon>
+  );
+}
+
 /** 行尾「更多」操作。 */
 export function MoreIcon(props: SvgIconProps) {
   return (
@@ -369,6 +377,78 @@ export function HelpIcon(props: SvgIconProps) {
       <circle cx="12" cy="12" r="8" />
       <path d="M9.8 9.4a2.3 2.3 0 0 1 4.4.8c0 1.5-2.2 1.9-2.2 3.3" />
       <path d="M12 17h.01" />
+    </SvgIcon>
+  );
+}
+
+/** 数据与备份：本机备份状态。 */
+export function BackupIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M5 16h14a2 2 0 0 1 2 2v2H3v-2a2 2 0 0 1 2-2Z" />
+      <path d="M12 4v9m-4-4 4 4 4-4" />
+    </SvgIcon>
+  );
+}
+
+/** 导出与下载。 */
+export function DownloadIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M12 4v10" />
+      <path d="m8 10 4 4 4-4" />
+      <path d="M5 19h14" />
+    </SvgIcon>
+  );
+}
+
+/** 上传与备份。 */
+export function UploadIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M12 16V6" />
+      <path d="m8 9 4-4 4 4" />
+      <path d="M5 19h14" />
+    </SvgIcon>
+  );
+}
+
+/** 文件导入。 */
+export function FileIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M6 3h8l4 4v14H6z" />
+      <path d="M14 3v4h4" />
+    </SvgIcon>
+  );
+}
+
+/** 云端与异地备份。 */
+export function CloudIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M7 18a4 4 0 0 1 .6-8 5.5 5.5 0 0 1 10.6 1.6A3.4 3.4 0 0 1 17.5 18Z" />
+    </SvgIcon>
+  );
+}
+
+/** 编辑与撰写。 */
+export function PencilIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="m5 16-.6 3.6L8 19l10-10-3-3L5 16Zm8-8 3 3" />
+    </SvgIcon>
+  );
+}
+
+/** 分享预览。 */
+export function ShareIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="m8.5 12 7-4.5m-7 4.5 7 4.5" />
+      <circle cx="6" cy="12" r="2.1" />
+      <circle cx="18" cy="6" r="2.1" />
+      <circle cx="18" cy="18" r="2.1" />
     </SvgIcon>
   );
 }

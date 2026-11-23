@@ -1,20 +1,7 @@
 import { Link } from 'react-router-dom';
 import { t } from '@/i18n';
+import { ArrowIcon } from '@/ui/icons';
 import styles from './home-footer.module.css';
-
-function ArrowIcon() {
-  return (
-    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none">
-      <path
-        d="M3 8h9m-3.5-3.5L12 8l-3.5 3.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 /** 第 7 段：全页唯一实心 CTA 与页脚。 */
 export function HomeFooter() {
@@ -25,7 +12,7 @@ export function HomeFooter() {
           <h2 className={styles.ctaTitle}>{t('home.cta.title')}</h2>
           <Link className={styles.ctaAction} to="/today">
             {t('home.cta.action')}
-            <ArrowIcon />
+            <ArrowIcon size={16} />
           </Link>
         </div>
       </section>
