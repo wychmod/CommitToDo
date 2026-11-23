@@ -47,7 +47,7 @@
   gap: 6px;
   min-height: var(--s7);
   padding: 0 var(--s2);
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--accent);
@@ -57,7 +57,7 @@
 }
 
 .add:hover:not(:disabled) {
-  border-color: var(--accent);
+  border-color: var(--line);
   background: var(--accent-soft);
 }
 

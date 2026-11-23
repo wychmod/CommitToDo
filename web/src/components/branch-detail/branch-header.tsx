@@ -161,7 +161,7 @@ export function BranchHeader({ branch, branches, readonlyReason }: BranchHeaderP
       ? `${branch.pinnedAt !== null ? t('today.header.separator') : ''}${t('branchDetail.status.archived')}`
       : ''
   }`;
-  const ancestors = chain.slice(0, -1);
+  const ancestors = chain.slice(0, -1).filter((item) => item.depth > 0);
 
   return (
     <div className={styles.head}>

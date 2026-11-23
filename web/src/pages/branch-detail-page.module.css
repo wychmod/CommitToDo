@@ -3,6 +3,12 @@
   margin-bottom: 19px;
 }
 
+.pageHead.pageHead h1 {
+  font-size: var(--type-heading);
+  line-height: 1.25;
+  letter-spacing: -0.045em;
+}
+
 .headActions {
   display: flex;
   flex-wrap: wrap;
@@ -135,7 +141,8 @@
 
 .sectionNav a[aria-current='location'] {
   border-bottom-color: var(--accent);
-  color: var(--text);
+  color: var(--accent);
+  font-weight: 550;
 }
 
 .sectionNav a:focus-visible {

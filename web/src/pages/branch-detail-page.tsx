@@ -309,8 +309,7 @@ export function BranchDetailPage() {
                 {progress.done}
                 <small className={styles.progressDone}>
                   {' / '}
-                  {progress.total}
-                  {t('branchDetail.progress.done')}
+                  {progress.total} {t('branchDetail.progress.done')}
                 </small>
               </>
             ) : null}

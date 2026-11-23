@@ -84,7 +84,7 @@
 }
 
 .readonly {
-  margin: 0 0 var(--s1);
+  margin: var(--s2) 0 var(--s1);
   padding: var(--s2) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
