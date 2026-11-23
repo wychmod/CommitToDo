@@ -78,9 +78,9 @@ const SIZE_CLASS: Record<BadgeTokenSize, string> = {
   lg: styles.large,
 };
 
-const ICON_SIZE: Record<BadgeTokenSize, 18 | 20 | 24> = {
+const ICON_SIZE: Record<BadgeTokenSize, 18 | 24> = {
   sm: 18,
-  md: 20,
+  md: 24,
   lg: 24,
 };
 

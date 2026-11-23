@@ -211,7 +211,7 @@ export function MePage() {
               </button>
               <Link className={styles.arrowLink} to="/data">
                 {t('me.data.open')}
-                <ArrowIcon size={16} />
+                <ArrowIcon size={15} />
               </Link>
             </div>
           </section>
@@ -225,43 +225,43 @@ export function MePage() {
             <nav className={styles.nav} aria-label={t('me.preference.title')}>
               <Link className={styles.navRow} to="/settings#appearance">
                 <span className={styles.rowIcon}>
-                  <SunIcon size={16} />
+                  <SunIcon size={17} />
                 </span>
                 <span className={styles.navCopy}>
                   <strong>{t('me.preference.appearance')}</strong>
                   <small>{t('me.preference.appearanceHint')}</small>
                 </span>
-                <ChevronRightIcon size={16} />
+                <ChevronRightIcon size={15} />
               </Link>
               <Link className={styles.navRow} to="/settings#notes">
                 <span className={styles.rowIcon}>
-                  <HelpIcon size={16} />
+                  <HelpIcon size={17} />
                 </span>
                 <span className={styles.navCopy}>
                   <strong>{t('me.preference.notes')}</strong>
                   <small>{t('me.preference.notesHint')}</small>
                 </span>
-                <ChevronRightIcon size={16} />
+                <ChevronRightIcon size={15} />
               </Link>
               <Link className={styles.navRow} to="/me/help">
                 <span className={styles.rowIcon}>
-                  <HelpIcon size={16} />
+                  <HelpIcon size={17} />
                 </span>
                 <span className={styles.navCopy}>
                   <strong>{t('page.help.title')}</strong>
                   <small>{t('help.entry.hint')}</small>
                 </span>
-                <ChevronRightIcon size={16} />
+                <ChevronRightIcon size={15} />
               </Link>
               <Link className={styles.navRow} to="/settings#about">
                 <span className={styles.rowIcon}>
-                  <TuneIcon size={16} />
+                  <TuneIcon size={17} />
                 </span>
                 <span className={styles.navCopy}>
                   <strong>{t('me.preference.about')}</strong>
                   <small>{t('me.preference.aboutHint')}</small>
                 </span>
-                <ChevronRightIcon size={16} />
+                <ChevronRightIcon size={15} />
               </Link>
             </nav>
           </section>

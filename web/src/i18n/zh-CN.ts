@@ -1037,6 +1037,7 @@ export const zhCN = {
 
   'page.help.title': '帮助',
   'page.help.body': '使用规则和常见问题。',
+  'help.section.title': '分支与历程',
   'help.entry.hint': '使用规则与常见问题',
   'help.q1': '为什么不建第 4 层',
   'help.a1':
@@ -1537,7 +1538,7 @@ export const zhCN = {
   'me.preference.about': '关于',
   'me.preference.aboutHint': '应用信息与隐私',
   'badge.wall.back': '‹ 返回我的',
-  'badge.wall.body': '拿起过的分支，留下过的证据。',
+  'badge.wall.body': '每枚徽章都对应一段可回看的历程。',
   'badge.wall.recent': '已获得',
   'badge.wall.recentOrder': '按获得时间排列',
   'badge.wall.locked': '待获得',

@@ -69,6 +69,9 @@ export function HelpPage() {
       }
     >
       <div className={styles.topics}>
+        <header className={styles.topicsHead}>
+          <h2>{t('help.section.title')}</h2>
+        </header>
         {TOPICS.map((topic) => (
           <details key={topic.id} className={styles.topic}>
             <summary className={styles.question}>{t(topic.questionKey)}</summary>
