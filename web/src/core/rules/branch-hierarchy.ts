@@ -4,6 +4,9 @@
  * 单根、最多 3 层；根不可被移动；分支只能移到自己的父分支；不能移到自身或后代下。
  */
 
+import { isDescendantPath } from './branch-path';
+
+export { isDescendantPath };
 export const MAX_BRANCH_DEPTH = 3;
 
 export interface HierarchyPoint {
@@ -25,11 +28,6 @@ export interface MoveAssessment {
 /** 是否还能在指定层级下新建子分支。 */
 export function canCreateChild(parentDepth: number): boolean {
   return parentDepth + 1 <= MAX_BRANCH_DEPTH;
-}
-
-/** 路径前缀判定：`/a/` 是 `/a/b/` 的祖先，但不是 `/a/bc/` 的祖先。 */
-export function isDescendantPath(path: string, ancestorPath: string): boolean {
-  return path !== ancestorPath && path.startsWith(ancestorPath);
 }
 
 /**

@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { localClockTime, localDate, systemClock, today } from '@/core/clock';
 import { isBranchAccepting } from '@/core/rules/branch-state';
+import { displayBranchTrail } from '@/core/rules/branch-path';
 import { visibleDefaultTree } from '@/core/rules/branch-visibility';
-import { branchTrail, parseQuickAdd, resolveBranchQuery } from '@/core/rules/quick-add';
+import { parseQuickAdd, resolveBranchQuery } from '@/core/rules/quick-add';
 import { deriveOnboardingStep, needsOnboarding } from '@/core/rules/onboarding-state';
 import { reorderIds, type DragPosition } from '@/core/rules/drag-order';
 import { groupTodayTasks, sortByManualOrder, type TodayGroupKey } from '@/core/rules/today-groups';
@@ -65,14 +66,6 @@ function dateLabelOf(date: string): string {
 function monthDayLabel(date: string): string {
   const [, month, day] = date.split('-').map(Number);
   return `${month}${t('milestone.date.monthSuffix')} ${day}${t('milestone.date.daySuffix')}`;
-}
-
-/** 列表与回执用的分支路径：省略根分支「我 / 」，直挂根分支时保留「我」。 */
-function displayBranchTrail(branch: Branch | undefined, byId: Map<string, Branch>): string {
-  if (!branch) return '';
-  if (branch.depth === 0) return branch.title;
-  const parts = branchTrail(branch, byId).split(' / ');
-  return parts.length > 1 ? parts.slice(1).join(' / ') : branch.title;
 }
 
 /**

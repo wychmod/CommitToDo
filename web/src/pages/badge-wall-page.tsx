@@ -8,7 +8,12 @@ import {
   type BadgeWallGroup,
   type BadgeWallItem,
 } from '@/core/rules/badge-catalog';
-import { badgeHref, badgeNameKey, badgeSourceKey } from '@/components/badges/badge-presentation';
+import {
+  badgeHref,
+  badgeNameKey,
+  badgeSourceKey,
+  formatBadgeDate,
+} from '@/components/badges/badge-presentation';
 import { BadgeToken } from '@/components/badges/badge-token';
 import { useBadgeRows, type BadgeListViewRow } from '@/data/hooks';
 import { t, type MessageKey } from '@/i18n';
@@ -26,11 +31,6 @@ type EarnedItem = BadgeWallItem & { earned: { id: string; grantedAt: number } };
 
 function categoryKey(category: BadgeCategory): MessageKey {
   return `badge.category.${category}` as MessageKey;
-}
-
-/** 徽章日期按画稿显示为「MM.DD」。 */
-function formatBadgeDate(at: number): string {
-  return localDate(at).slice(5).replace('-', '.');
 }
 
 function hasEarned(item: BadgeWallItem): item is EarnedItem {

@@ -1,3 +1,4 @@
+import { localDate } from '@/core/clock';
 import { canonicalBadgeId } from '@/core/rules/badge-catalog';
 import type { BadgeJumpTarget } from '@/core/rules/badge-view';
 import type { MessageKey } from '@/i18n';
@@ -162,4 +163,9 @@ export function badgeHref(jump: BadgeJumpTarget): string {
     params.set('date', jump.date);
   }
   return `/history?${params.toString()}`;
+}
+
+/** 徽章日期按画稿显示为「MM.DD」。 */
+export function formatBadgeDate(at: number): string {
+  return localDate(at).slice(5).replace('-', '.');
 }

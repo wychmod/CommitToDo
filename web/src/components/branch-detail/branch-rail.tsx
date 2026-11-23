@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
+import { displayBranchTrail } from '@/core/rules/branch-path';
 import { branchCommitFeed } from '@/core/rules/commit-feed';
-import { branchTrail } from '@/core/rules/quick-add';
 import type { BranchColor } from '@/core/rules/branch-color';
 import { formatMilestoneDate } from '@/core/rules/milestone-date';
 import { currentTzOffset, localClockTime } from '@/core/clock';
@@ -34,13 +34,6 @@ function shortDate(at: number): string {
   return formatMilestoneDate(at, 'day', currentTzOffset(at));
 }
 
-/** 列表与回执用的分支路径：省略根分支「我 / 」，直挂根分支时保留「我」。 */
-function displayTrail(branch: Branch, byId: ReadonlyMap<string, Branch>): string {
-  if (branch.depth === 0) return branch.title;
-  const parts = branchTrail(branch, new Map(byId)).split(' / ');
-  return parts.length > 1 ? parts.slice(1).join(' / ') : branch.title;
-}
-
 /**
  * 分支详情 · 右栏（P03-2）。
  *
@@ -58,7 +51,7 @@ export function BranchRail({ branch, branches, commits }: BranchRailProps) {
   const parent = branch.parentId ? byId.get(branch.parentId) : undefined;
   const color = branch.depth === 0 ? 'neutral' : normalizeBranchColor(branch.color);
   const shade = branchShadeForDepth(branch.depth);
-  const trail = displayTrail(branch, byId);
+  const trail = displayBranchTrail(branch, byId);
 
   return (
     <aside className={styles.rail} aria-label={t('branchDetail.rail.label')}>

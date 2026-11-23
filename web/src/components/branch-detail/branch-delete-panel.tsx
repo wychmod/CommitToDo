@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { branchTrail } from '@/core/rules/branch-path';
 import type { DeleteBlockReason } from '@/core/rules/delete-guard';
 import { deleteEmptyBranch } from '@/data/delete-empty-branch';
 import { useBranchDeleteGuard } from '@/data/hooks';
@@ -28,18 +29,6 @@ interface BranchDeletePanelProps {
   onDeleted: (parentId: string | null) => void;
 }
 
-function trailOf(target: Branch, byId: ReadonlyMap<string, Branch>): string {
-  const titles: string[] = [];
-  let current: Branch | undefined = target;
-  let guard = 0;
-  while (current && guard < 32) {
-    titles.unshift(current.title);
-    current = current.parentId ? byId.get(current.parentId) : undefined;
-    guard += 1;
-  }
-  return titles.join(' / ');
-}
-
 /**
  * 删除空分支确认（B10，M08 OP-06）。
  *
@@ -58,7 +47,7 @@ export function BranchDeletePanel({
 
   const byId = new Map(branches.map((row) => [row.id, row]));
   const guard = view.guard;
-  const trail = trailOf(branch, byId);
+  const trail = branchTrail(branch, byId);
 
   const submit = async () => {
     if (busy) return;

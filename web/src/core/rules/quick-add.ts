@@ -7,6 +7,9 @@
  */
 
 import { addDays } from '@/core/clock';
+import { branchTrail } from './branch-path';
+
+export { branchTrail };
 
 export interface QuickAddParse {
   /** 去掉已识别日期与分支标记后的标题；可能为空，调用方负责校验。 */
@@ -94,19 +97,6 @@ export function parseQuickAdd(input: string, todayDate: string): QuickAddParse {
     dateToken: date.hit?.token ?? null,
     branchToken: branch?.token ?? null,
   };
-}
-
-/** 分支的完整路径，如「工作 / 产品设计」；用于匹配与展示。 */
-export function branchTrail<T extends BranchLabel>(branch: T, byId: Map<string, T>): string {
-  const titles: string[] = [];
-  let current: T | undefined = branch;
-  let guard = 0;
-  while (current && guard < 8) {
-    titles.unshift(current.title);
-    current = current.parentId ? byId.get(current.parentId) : undefined;
-    guard += 1;
-  }
-  return titles.join(' / ');
 }
 
 /**

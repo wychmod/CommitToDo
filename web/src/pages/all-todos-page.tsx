@@ -1,6 +1,7 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { systemClock, today } from '@/core/clock';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
+import { displayBranchTrail } from '@/core/rules/branch-path';
 import { groupAllTodoTasks, sortByManualOrder } from '@/core/rules/today-groups';
 import { completeTask } from '@/data/complete-task';
 import { useAllTodosData } from '@/data/hooks';
@@ -32,19 +33,6 @@ function isInDefaultTree(branchId: string, byId: Map<string, Branch>): boolean {
     guard += 1;
   }
   return byId.has(branchId);
-}
-
-function displayBranchTrail(branch: Branch, byId: Map<string, Branch>): string {
-  if (branch.depth === 0) return branch.title;
-  const parts: string[] = [];
-  let cursor: Branch | undefined = branch;
-  let guard = 0;
-  while (cursor && cursor.depth > 0 && guard < 8) {
-    parts.unshift(cursor.title);
-    cursor = cursor.parentId ? byId.get(cursor.parentId) : undefined;
-    guard += 1;
-  }
-  return parts.join(' / ');
 }
 
 function dueLabel(task: Task, todayDate: string): string {

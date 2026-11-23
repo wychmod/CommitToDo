@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { branchTrail } from '@/core/rules/branch-path';
 import type { FinishBlockReason } from '@/core/rules/finish-precheck';
 import { finishBranch } from '@/data/finish-branch';
 import { useBranchFinishPlan } from '@/data/hooks';
@@ -26,18 +27,6 @@ interface BranchFinishPanelProps {
   onFinished: (branch: Branch) => void;
 }
 
-function trailOf(target: Branch, byId: ReadonlyMap<string, Branch>): string {
-  const titles: string[] = [];
-  let current: Branch | undefined = target;
-  let guard = 0;
-  while (current && guard < 32) {
-    titles.unshift(current.title);
-    current = current.parentId ? byId.get(current.parentId) : undefined;
-    guard += 1;
-  }
-  return titles.join(' / ');
-}
-
 /**
  * 收尾确认（B06 / B07，M08 OP-01–OP-05）。
  *
@@ -59,7 +48,7 @@ export function BranchFinishPanel({
   const byId = new Map(branches.map((row) => [row.id, row]));
   const precheck = view.precheck;
   const parent = precheck?.parent ? (byId.get(precheck.parent.id) ?? null) : null;
-  const parentTrail = parent ? trailOf(parent, byId) : null;
+  const parentTrail = parent ? branchTrail(parent, byId) : null;
 
   const submit = async () => {
     if (busy) return;

@@ -5,7 +5,7 @@ import { downloadTextFile } from '@/components/data/export-download';
 import { RestoreDataPanel } from '@/components/data/restore-data-panel';
 import { RemoteBackupPanel } from '@/components/data/remote-backup-panel';
 import { SnapshotRestorePanel } from '@/components/data/snapshot-restore-panel';
-import { currentTzOffset, systemClock, toLocalDate } from '@/core/clock';
+import { currentTzOffset, localDate, systemClock, toLocalDate, today } from '@/core/clock';
 import { backupFreshness, isBackupRestorable } from '@/core/rules/backup-manifest';
 import { anonymousDeviceName } from '@/data/cloud/device';
 import { createManualBackup } from '@/data/create-manual-backup';
@@ -98,7 +98,7 @@ function backupDayClock(at: number): { day: string; clock: string } {
 }
 
 function isTodayAt(at: number): boolean {
-  return new Date(at).toDateString() === new Date().toDateString();
+  return localDate(at) === today(systemClock);
 }
 
 /** 恢复前副本的时间：「M 月 D 日 HH:mm」。 */
@@ -200,7 +200,7 @@ export function DataPage() {
   const preRestore = rows.find((row) => row.kind === 'pre-restore') ?? null;
   const remoteBackup = rows.find((row) => row.kind === 'remote') ?? null;
   const restoreTarget = localBackups.find((row) => isBackupRestorable(row.schemaVersion)) ?? null;
-  const freshness = backupFreshness(rows[0]?.createdAt ?? null, Date.now());
+  const freshness = backupFreshness(rows[0]?.createdAt ?? null, systemClock.now());
 
   return (
     <PageShell

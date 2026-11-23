@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { localDate } from '@/core/clock';
-import { badgeHref, badgeNameKey, badgeSourceKey } from '@/components/badges/badge-presentation';
+import {
+  badgeHref,
+  badgeNameKey,
+  badgeSourceKey,
+  formatBadgeDate,
+} from '@/components/badges/badge-presentation';
 import { BadgeToken } from '@/components/badges/badge-token';
 import { isBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
 import { BackupIcon, HelpIcon, SunIcon, TuneIcon } from '@/components/me/me-icons';
@@ -17,11 +22,6 @@ import styles from './me-page.module.css';
 const RECENT_BADGE_LIMIT = 4;
 
 type BackupState = 'idle' | 'busy' | 'failed';
-
-/** 徽章日期按画稿显示为「MM.DD」。 */
-function formatBadgeDate(at: number): string {
-  return localDate(at).slice(5).replace('-', '.');
-}
 
 /** 备份时间显示为「MM.DD HH:mm」。 */
 function formatBackupTime(at: number): string {

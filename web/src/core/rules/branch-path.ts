@@ -37,3 +37,37 @@ export function movedPath(nodePath: string, oldRootPath: string, newParentPath: 
   const base = newParentPath.endsWith('/') ? newParentPath : `${newParentPath}/`;
   return `${base}${suffix}`;
 }
+
+export interface BranchTrailNode {
+  id: string;
+  title: string;
+  parentId: string | null;
+  depth?: number;
+}
+
+/** 分支的完整路径，如「我 / 工作 / 产品设计」；用于匹配与展示。 */
+export function branchTrail<T extends BranchTrailNode>(
+  branch: T,
+  byId: ReadonlyMap<string, T>,
+): string {
+  const titles: string[] = [];
+  let current: T | undefined = branch;
+  let guard = 0;
+  while (current && guard < 32) {
+    titles.unshift(current.title);
+    current = current.parentId ? byId.get(current.parentId) : undefined;
+    guard += 1;
+  }
+  return titles.join(' / ');
+}
+
+/** 列表与回执用的分支路径：省略根分支前缀，直挂根分支时保留根名称。 */
+export function displayBranchTrail<T extends BranchTrailNode>(
+  branch: T | undefined,
+  byId: ReadonlyMap<string, T>,
+): string {
+  if (!branch) return '';
+  if (branch.depth === 0) return branch.title;
+  const parts = branchTrail(branch, byId).split(' / ');
+  return parts.length > 1 ? parts.slice(1).join(' / ') : branch.title;
+}

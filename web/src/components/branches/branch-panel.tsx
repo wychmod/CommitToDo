@@ -8,7 +8,7 @@ import {
 } from '@/core/rules/branch-color';
 import { assessMove } from '@/core/rules/branch-hierarchy';
 import { validateBranchTitle } from '@/core/rules/branch-name';
-import { collectSubtree } from '@/core/rules/branch-path';
+import { branchTrail, collectSubtree } from '@/core/rules/branch-path';
 import {
   BRANCH_CHILD_LIMITS,
   assessCreateQuota,
@@ -110,16 +110,6 @@ function buildMoveCandidates(subject: Branch, live: readonly Branch[]): MoveCand
       return { branch: target, reason, remaining };
     })
     .sort((a, b) => a.branch.depth - b.branch.depth || a.branch.path.localeCompare(b.branch.path));
-}
-
-function trailOf(target: Branch, byId: Map<string, Branch>): string {
-  const titles: string[] = [];
-  let current: Branch | undefined = target;
-  while (current) {
-    titles.unshift(current.title);
-    current = current.parentId ? byId.get(current.parentId) : undefined;
-  }
-  return titles.join(' / ');
 }
 
 function errorKeyFor(code: ErrorCode, mode: BranchPanelState['mode']): MessageKey {
@@ -364,7 +354,7 @@ export function BranchPanel({ state, branches, onClose, onSaved }: BranchPanelPr
           <p className={styles.meta}>
             {t('branches.move.newPath')}
             {': '}
-            {trailOf(selectedCandidate.branch, byId)} / {state.branch.title}
+            {branchTrail(selectedCandidate.branch, byId)} / {state.branch.title}
           </p>
         ) : null}
 

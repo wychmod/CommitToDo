@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { assessUnarchive, isDropReasonValid } from '@/core/rules/branch-lifecycle';
+import { branchTrail } from '@/core/rules/branch-path';
 import { assessRestoreQuota } from '@/core/rules/branch-quota';
 import { archiveBranch } from '@/data/archive-branch';
 import { pauseBranch } from '@/data/pause-branch';
@@ -26,18 +27,6 @@ interface BranchLifecyclePanelProps {
   onDone: (branch: Branch) => void;
 }
 
-function trailOf(target: Branch, byId: ReadonlyMap<string, Branch>): string {
-  const titles: string[] = [];
-  let current: Branch | undefined = target;
-  let guard = 0;
-  while (current && guard < 32) {
-    titles.unshift(current.title);
-    current = current.parentId ? byId.get(current.parentId) : undefined;
-    guard += 1;
-  }
-  return titles.join(' / ');
-}
-
 function titleKey(mode: BranchLifecycleMode): MessageKey {
   if (mode === 'pause') return 'branchDetail.lifecycle.pauseTitle';
   if (mode === 'archive') return 'branchDetail.lifecycle.archiveTitle';
@@ -62,7 +51,7 @@ export function BranchLifecyclePanel({
   const [failed, setFailed] = useState(false);
 
   const byId = new Map(branches.map((row) => [row.id, row]));
-  const trail = trailOf(branch, byId);
+  const trail = branchTrail(branch, byId);
   const parent = branch.parentId ? byId.get(branch.parentId) : undefined;
   const unarchiveAssessment = mode === 'unarchive' ? assessUnarchive(branch, byId) : null;
   const quota =
