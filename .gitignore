@@ -32,3 +32,4 @@ tsconfig.*.tsbuildinfo
 /2026-11-22/
 /.qoder-credits/
 /.trae-html-share-packages/
+/output/
