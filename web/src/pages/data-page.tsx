@@ -402,7 +402,7 @@ export function DataPage() {
               {preRestore ? (
                 <div className={styles.fileRow}>
                   <span className={styles.rowIcon}>
-                    <FileGlyph size={16} />
+                    <FileGlyph size={17} />
                   </span>
                   <div className={styles.fileText}>
                     <strong>{copyTimeLabel(preRestore.createdAt)}</strong>
@@ -434,12 +434,12 @@ export function DataPage() {
                   <h2 id="data-remote" className={styles.sectionTitle}>
                     {t('data.remote.title')}
                   </h2>
-                  <p className={styles.panelHint}>{t('data.remote.hint')}</p>
+                  <p className={styles.panelHint}>{t('data.remote.subtitle')}</p>
                 </div>
               </header>
               <div className={styles.fileRow}>
                 <span className={styles.rowIcon}>
-                  <CloudGlyph size={18} />
+                  <CloudGlyph size={17} />
                 </span>
                 <div className={styles.fileText}>
                   <strong>

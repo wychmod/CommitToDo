@@ -1177,6 +1177,7 @@ export const zhCN = {
   'data.snapshot.restoreInvalid': '快照内容不完整，无法恢复，现有数据未改变。',
 
   'data.remote.title': '异地备份',
+  'data.remote.subtitle': '手动上传一份 JSON 备份，用于另行下载恢复。',
   'data.remote.hint':
     '明文 JSON，包含全部分支、待办、提交、里程碑、徽章与设置；服务端只存文件，不加密、不要求账号。',
   'data.remote.upload': '上传当前备份',
