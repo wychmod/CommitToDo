@@ -347,6 +347,7 @@ export const zhCN = {
   'today.readonly.merged': '所在分支已合并，待办只读',
   'today.readonly.deleted': '所在分支已删除，待办只读',
 
+  'today.all.eyebrow': '今天 / 全部待办',
   'today.all.title': '全部待办',
   'today.all.body': '逾期、未来到期与无截止日期；可叠加筛选。',
   'today.all.back': '回今天',
@@ -430,11 +431,13 @@ export const zhCN = {
 
   'page.branches.title': '分支',
   'page.branches.body': '从一个根分支出发，看清每条路径的归属与进度。',
+  'page.branches.archivedTitle': '已归档分支',
   'page.branches.archivedBody': '已经收起的分支按一级分支归档，需要时可恢复或回到历程查看。',
   'page.branches.empty': '还没有分支。',
   'page.branches.action': '新建分支',
 
   'branches.eyebrow': '个人工作区 / 分支',
+  'branches.archived.eyebrow': '分支 / 已归档',
   'branches.treeLabel': '分支树',
   'branches.rootLabel': '根分支',
   'branches.toolsLabel': '分支视图与筛选',

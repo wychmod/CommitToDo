@@ -1,7 +1,6 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { systemClock, today } from '@/core/clock';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
-import { branchTrail } from '@/core/rules/quick-add';
 import { groupAllTodoTasks, sortByManualOrder } from '@/core/rules/today-groups';
 import { completeTask } from '@/data/complete-task';
 import { useAllTodosData } from '@/data/hooks';
@@ -33,6 +32,19 @@ function isInDefaultTree(branchId: string, byId: Map<string, Branch>): boolean {
     guard += 1;
   }
   return byId.has(branchId);
+}
+
+function displayBranchTrail(branch: Branch, byId: Map<string, Branch>): string {
+  if (branch.depth === 0) return branch.title;
+  const parts: string[] = [];
+  let cursor: Branch | undefined = branch;
+  let guard = 0;
+  while (cursor && cursor.depth > 0 && guard < 8) {
+    parts.unshift(cursor.title);
+    cursor = cursor.parentId ? byId.get(cursor.parentId) : undefined;
+    guard += 1;
+  }
+  return parts.join(' / ');
 }
 
 function dueLabel(task: Task, todayDate: string): string {
@@ -106,7 +118,7 @@ export function AllTodosPage() {
     const readonlyReason = readonlyReasonKey(branch);
     const color = branch ? normalizeBranchColor(branch.color) : 'sky';
     const shade = branch ? branchShadeForDepth(branch.depth) : 1;
-    const path = branch ? branchTrail(branch, byId) : '';
+    const path = branch ? displayBranchTrail(branch, byId) : '';
     const busy = busyId === task.id;
 
     return (
@@ -171,6 +183,7 @@ export function AllTodosPage() {
   return (
     <PageShell
       titleKey="today.all.title"
+      eyebrow={<span className={styles.eyebrow}>{t('today.all.eyebrow')}</span>}
       bodyKey="today.all.body"
       action={
         <button type="button" className={styles.add} onClick={() => openOverlay('quick-add')}>

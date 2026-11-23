@@ -268,7 +268,11 @@ export function BranchesPage() {
   const action = root ? (
     <span className={styles.headerActions}>
       {archivedView ? (
-        <button type="button" className={styles.action} onClick={() => switchView(false)}>
+        <button
+          type="button"
+          className={styles.quietHeaderAction}
+          onClick={() => switchView(false)}
+        >
           {t('branches.archived.back')}
         </button>
       ) : (
@@ -294,8 +298,12 @@ export function BranchesPage() {
 
   return (
     <PageShell
-      titleKey="page.branches.title"
-      eyebrow={<span className={styles.branchesEyebrow}>{t('branches.eyebrow')}</span>}
+      titleKey={archivedView ? 'page.branches.archivedTitle' : 'page.branches.title'}
+      eyebrow={
+        <span className={styles.branchesEyebrow}>
+          {t(archivedView ? 'branches.archived.eyebrow' : 'branches.eyebrow')}
+        </span>
+      }
       bodyKey={archivedView ? 'page.branches.archivedBody' : undefined}
       action={ready ? action : undefined}
       headClassName={styles.branchesHead}
@@ -441,14 +449,7 @@ export function BranchesPage() {
         <>
           <ArchivedBranches branches={live} onUnarchive={openUnarchive} />
           {live.every((branch) => branch.archivedAt === null) ? (
-            <EmptyState
-              messageKey="branches.archived.empty"
-              action={
-                <button type="button" className={styles.action} onClick={() => switchView(false)}>
-                  {t('branches.archived.back')}
-                </button>
-              }
-            />
+            <EmptyState messageKey="branches.archived.empty" />
           ) : null}
         </>
       ) : (
