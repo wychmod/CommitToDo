@@ -10,6 +10,7 @@ import { updateTask } from '@/data/update-task';
 import type { Branch, EventRecord, Task } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
+import { Dialog } from '@/ui/dialog';
 import { ConfirmDialog } from './confirm-dialog';
 import styles from './task-detail-panel.module.css';
 
@@ -302,34 +303,38 @@ export function TaskDetailPanel() {
   const view = useTaskDetail(taskId);
 
   return (
-    <div className={styles.backdrop} role="presentation" onPointerDown={closeOverlay}>
-      <div className={styles.shell} onPointerDown={(event) => event.stopPropagation()}>
-        {view.status === 'loading' ? <p className={styles.state}>{t('today.loading')}</p> : null}
-        {view.status === 'error' ? (
-          <div className={styles.state}>
-            <p>{t('taskDetail.error.loadFailed')}</p>
-            <button type="button" className={styles.ghost} onClick={view.retry}>
-              {t('today.retry')}
-            </button>
-          </div>
-        ) : null}
-        {view.status === 'ready' && !view.task ? (
-          <div className={styles.state}>
-            <p>{t('taskDetail.notFound')}</p>
-            <button type="button" className={styles.ghost} onClick={closeOverlay}>
-              {t('shell.close')}
-            </button>
-          </div>
-        ) : null}
-        {view.status === 'ready' && view.task ? (
-          <TaskDetailBody
-            key={view.task.id}
-            task={view.task}
-            branches={view.branches}
-            events={view.events}
-          />
-        ) : null}
-      </div>
-    </div>
+    <Dialog
+      bare
+      onClose={closeOverlay}
+      label={t('overlay.task-detail.title')}
+      backdropClassName={styles.backdrop}
+      className={styles.shell}
+    >
+      {view.status === 'loading' ? <p className={styles.state}>{t('today.loading')}</p> : null}
+      {view.status === 'error' ? (
+        <div className={styles.state}>
+          <p>{t('taskDetail.error.loadFailed')}</p>
+          <button type="button" className={styles.ghost} onClick={view.retry}>
+            {t('today.retry')}
+          </button>
+        </div>
+      ) : null}
+      {view.status === 'ready' && !view.task ? (
+        <div className={styles.state}>
+          <p>{t('taskDetail.notFound')}</p>
+          <button type="button" className={styles.ghost} onClick={closeOverlay}>
+            {t('shell.close')}
+          </button>
+        </div>
+      ) : null}
+      {view.status === 'ready' && view.task ? (
+        <TaskDetailBody
+          key={view.task.id}
+          task={view.task}
+          branches={view.branches}
+          events={view.events}
+        />
+      ) : null}
+    </Dialog>
   );
 }

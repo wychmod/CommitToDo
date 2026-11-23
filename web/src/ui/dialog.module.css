@@ -1,5 +1,10 @@
 /* 居中对话框基座；数值与迁移前各面板的重复样式逐项一致。 */
 
+/* 程序化聚焦的面板不画焦点环。 */
+.root {
+  outline: none;
+}
+
 .backdrop {
   position: fixed;
   inset: 0;
@@ -22,7 +27,6 @@
   border-radius: var(--radius-panel);
   background: var(--panel);
   box-shadow: var(--shadow);
-  outline: none;
 }
 
 .sizeMd {

@@ -10,6 +10,7 @@ import { undoCommit } from '@/data/undo-commit';
 import { updateCommit } from '@/data/update-commit';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
+import { Dialog } from '@/ui/dialog';
 import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import styles from './commit-detail-panel.module.css';
 
@@ -52,14 +53,6 @@ export function CommitDetailPanel() {
   useEffect(() => {
     if (commit && !editing) setDraft(commit.summary);
   }, [commit, editing]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !confirming) closeOverlay();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [closeOverlay, confirming]);
 
   const closeConfirm = () => {
     setConfirming(false);
@@ -333,22 +326,20 @@ export function CommitDetailPanel() {
   };
 
   return (
-    <div className={styles.backdrop} role="presentation" onPointerDown={closeOverlay}>
-      <div
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('overlay.commit-detail.title')}
-        onPointerDown={(event) => event.stopPropagation()}
-      >
-        <header className={styles.header}>
-          <h2 className={styles.title}>{t('overlay.commit-detail.title')}</h2>
-          <button type="button" className={styles.close} onClick={closeOverlay}>
-            {t('shell.close')}
-          </button>
-        </header>
-        {renderBody()}
-      </div>
-    </div>
+    <Dialog
+      bare
+      onClose={closeOverlay}
+      label={t('overlay.commit-detail.title')}
+      backdropClassName={styles.backdrop}
+      className={styles.panel}
+    >
+      <header className={styles.header}>
+        <h2 className={styles.title}>{t('overlay.commit-detail.title')}</h2>
+        <button type="button" className={styles.close} onClick={closeOverlay}>
+          {t('shell.close')}
+        </button>
+      </header>
+      {renderBody()}
+    </Dialog>
   );
 }

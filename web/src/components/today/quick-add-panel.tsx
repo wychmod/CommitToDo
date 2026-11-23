@@ -9,6 +9,7 @@ import { useBranches } from '@/data/hooks';
 import { createTask } from '@/data/create-task';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
+import { Dialog } from '@/ui/dialog';
 import styles from './quick-add-panel.module.css';
 
 const DATE_HINT = /(下周|周[一二三四五六日天]|\d{1,2}\s*[月日号])/;
@@ -140,135 +141,99 @@ export function QuickAddPanel() {
   };
 
   return (
-    <div className={styles.backdrop} role="presentation" onPointerDown={closeOverlay}>
-      <form
-        className={styles.panel}
-        aria-label={t('quickAdd.title')}
-        onPointerDown={(event) => event.stopPropagation()}
-        onSubmit={save}
-      >
-        <div className={styles.header}>
-          <h2 className={styles.title}>{t('quickAdd.title')}</h2>
-          <button type="button" className={styles.close} onClick={closeOverlay}>
-            {t('shell.close')}
-          </button>
-        </div>
+    <Dialog
+      bare
+      as="form"
+      onSubmit={save}
+      onClose={closeOverlay}
+      label={t('quickAdd.title')}
+      busy={busy}
+      backdropClassName={styles.backdrop}
+      className={styles.panel}
+    >
+      <div className={styles.header}>
+        <h2 className={styles.title}>{t('quickAdd.title')}</h2>
+        <button type="button" className={styles.close} onClick={closeOverlay}>
+          {t('shell.close')}
+        </button>
+      </div>
 
-        <div className={styles.modes} role="tablist" aria-label={t('quickAdd.title')}>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'single'}
-            className={styles.mode}
-            data-active={mode === 'single' || undefined}
-            onClick={() => switchMode('single')}
-          >
-            {t('quickAdd.mode.single')}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'batch'}
-            className={styles.mode}
-            data-active={mode === 'batch' || undefined}
-            onClick={() => switchMode('batch')}
-          >
-            {t('quickAdd.mode.batch')}
-          </button>
-        </div>
+      <div className={styles.modes} role="tablist" aria-label={t('quickAdd.title')}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'single'}
+          className={styles.mode}
+          data-active={mode === 'single' || undefined}
+          onClick={() => switchMode('single')}
+        >
+          {t('quickAdd.mode.single')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'batch'}
+          className={styles.mode}
+          data-active={mode === 'batch' || undefined}
+          onClick={() => switchMode('batch')}
+        >
+          {t('quickAdd.mode.batch')}
+        </button>
+      </div>
 
-        {mode === 'single' ? (
-          <div className={styles.pane} role="tabpanel">
-            <label className={styles.field}>
-              <span className={styles.label}>{t('quickAdd.field.text')}</span>
-              <input
-                className={styles.input}
-                value={text}
-                autoFocus
-                placeholder={t('quickAdd.field.textPlaceholder')}
-                onChange={(event) => {
-                  setText(event.target.value);
-                  setError(null);
-                }}
-              />
-            </label>
-            <p className={styles.hint}>{t('quickAdd.hint')}</p>
+      {mode === 'single' ? (
+        <div className={styles.pane} role="tabpanel">
+          <label className={styles.field}>
+            <span className={styles.label}>{t('quickAdd.field.text')}</span>
+            <input
+              className={styles.input}
+              value={text}
+              autoFocus
+              placeholder={t('quickAdd.field.textPlaceholder')}
+              onChange={(event) => {
+                setText(event.target.value);
+                setError(null);
+              }}
+            />
+          </label>
+          <p className={styles.hint}>{t('quickAdd.hint')}</p>
 
-            <div className={styles.preview}>
-              <span className={styles.previewItem}>
-                <span className={styles.previewLabel}>{t('quickAdd.preview.date')}</span>
-                <span className={styles.previewValue} data-warn={dateUnrecognized || undefined}>
-                  {dateUnrecognized
-                    ? t('quickAdd.unrecognizedDate')
-                    : due || t('quickAdd.noneDate')}
-                </span>
+          <div className={styles.preview}>
+            <span className={styles.previewItem}>
+              <span className={styles.previewLabel}>{t('quickAdd.preview.date')}</span>
+              <span className={styles.previewValue} data-warn={dateUnrecognized || undefined}>
+                {dateUnrecognized ? t('quickAdd.unrecognizedDate') : due || t('quickAdd.noneDate')}
               </span>
-              <span className={styles.previewItem}>
-                <span className={styles.previewLabel}>{t('quickAdd.preview.branch')}</span>
-                <span className={styles.previewValue} data-warn={branchUnrecognized || undefined}>
-                  {branchUnrecognized ? t('quickAdd.unrecognizedBranch') : effectiveBranchTrail}
-                </span>
+            </span>
+            <span className={styles.previewItem}>
+              <span className={styles.previewLabel}>{t('quickAdd.preview.branch')}</span>
+              <span className={styles.previewValue} data-warn={branchUnrecognized || undefined}>
+                {branchUnrecognized ? t('quickAdd.unrecognizedBranch') : effectiveBranchTrail}
               </span>
-            </div>
-
-            <div className={styles.row}>
-              <label className={styles.field}>
-                <span className={styles.label}>{t('quickAdd.field.due')}</span>
-                <input
-                  type="date"
-                  className={styles.input}
-                  value={due}
-                  onChange={(event) => {
-                    setDateTouched(true);
-                    setDue(event.target.value);
-                  }}
-                />
-              </label>
-              <label className={styles.field}>
-                <span className={styles.label}>{t('quickAdd.field.branch')}</span>
-                <select
-                  className={styles.input}
-                  value={effectiveBranch}
-                  onChange={(event) => {
-                    setBranchTouched(true);
-                    setBranchId(event.target.value);
-                  }}
-                >
-                  {accepting.map((branch) => (
-                    <option key={branch.id} value={branch.id}>
-                      {branchTrail(branch, byId)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            </span>
           </div>
-        ) : (
-          <div className={styles.pane} role="tabpanel">
+
+          <div className={styles.row}>
             <label className={styles.field}>
-              <span className={styles.label}>{t('quickAdd.batch.text')}</span>
-              <textarea
-                className={styles.textarea}
-                value={bulkText}
-                rows={5}
-                autoFocus
-                placeholder={t('quickAdd.batch.placeholder')}
+              <span className={styles.label}>{t('quickAdd.field.due')}</span>
+              <input
+                type="date"
+                className={styles.input}
+                value={due}
                 onChange={(event) => {
-                  setBulkText(event.target.value);
-                  setBulkRemoved([]);
-                  setError(null);
+                  setDateTouched(true);
+                  setDue(event.target.value);
                 }}
               />
             </label>
-
             <label className={styles.field}>
-              <span className={styles.label}>{t('quickAdd.batch.target')}</span>
+              <span className={styles.label}>{t('quickAdd.field.branch')}</span>
               <select
                 className={styles.input}
-                value={effectiveBulkBranch}
+                value={effectiveBranch}
                 onChange={(event) => {
-                  setBulkBranchId(event.target.value);
-                  setError(null);
+                  setBranchTouched(true);
+                  setBranchId(event.target.value);
                 }}
               >
                 {accepting.map((branch) => (
@@ -278,68 +243,103 @@ export function QuickAddPanel() {
                 ))}
               </select>
             </label>
-
-            <p className={styles.summary}>
-              {t('quickAdd.batch.summaryPrefix')}
-              {bulkCount}
-              {t('quickAdd.batch.summaryMiddle')}
-              {bulkBranchTrail}
-              {t('quickAdd.batch.summarySuffix')}
-            </p>
-
-            {bulkOverLimit ? (
-              <p className={styles.error} role="alert">
-                {t('quickAdd.batch.overLimit')}
-              </p>
-            ) : null}
-
-            {bulkCount === 0 ? (
-              <p className={styles.hint}>{t('quickAdd.batch.empty')}</p>
-            ) : (
-              <ul className={styles.bulkList}>
-                {bulkEntries.map((entry) => (
-                  <li key={entry.line} className={styles.bulkItem}>
-                    <span className={styles.bulkTitle}>{entry.title}</span>
-                    <button
-                      type="button"
-                      className={styles.bulkRemove}
-                      aria-label={`${t('quickAdd.batch.remove')}：${entry.title}`}
-                      onClick={() => removeBulkLine(entry.line)}
-                    >
-                      {t('quickAdd.batch.remove')}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
-        )}
-
-        {error ? (
-          <p className={styles.error} role="alert">
-            {error}
-          </p>
-        ) : null}
-
-        <div className={styles.actions}>
-          <button
-            type="submit"
-            className={styles.save}
-            disabled={
-              busy ||
-              (mode === 'batch' && (bulkCount === 0 || bulkOverLimit || !effectiveBulkBranch))
-            }
-          >
-            {busy
-              ? mode === 'batch'
-                ? t('quickAdd.batch.importing')
-                : t('quickAdd.saving')
-              : mode === 'batch'
-                ? `${t('quickAdd.batch.importPrefix')}${bulkCount}${t('quickAdd.batch.importSuffix')}`
-                : t('quickAdd.save')}
-          </button>
         </div>
-      </form>
-    </div>
+      ) : (
+        <div className={styles.pane} role="tabpanel">
+          <label className={styles.field}>
+            <span className={styles.label}>{t('quickAdd.batch.text')}</span>
+            <textarea
+              className={styles.textarea}
+              value={bulkText}
+              rows={5}
+              autoFocus
+              placeholder={t('quickAdd.batch.placeholder')}
+              onChange={(event) => {
+                setBulkText(event.target.value);
+                setBulkRemoved([]);
+                setError(null);
+              }}
+            />
+          </label>
+
+          <label className={styles.field}>
+            <span className={styles.label}>{t('quickAdd.batch.target')}</span>
+            <select
+              className={styles.input}
+              value={effectiveBulkBranch}
+              onChange={(event) => {
+                setBulkBranchId(event.target.value);
+                setError(null);
+              }}
+            >
+              {accepting.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branchTrail(branch, byId)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <p className={styles.summary}>
+            {t('quickAdd.batch.summaryPrefix')}
+            {bulkCount}
+            {t('quickAdd.batch.summaryMiddle')}
+            {bulkBranchTrail}
+            {t('quickAdd.batch.summarySuffix')}
+          </p>
+
+          {bulkOverLimit ? (
+            <p className={styles.error} role="alert">
+              {t('quickAdd.batch.overLimit')}
+            </p>
+          ) : null}
+
+          {bulkCount === 0 ? (
+            <p className={styles.hint}>{t('quickAdd.batch.empty')}</p>
+          ) : (
+            <ul className={styles.bulkList}>
+              {bulkEntries.map((entry) => (
+                <li key={entry.line} className={styles.bulkItem}>
+                  <span className={styles.bulkTitle}>{entry.title}</span>
+                  <button
+                    type="button"
+                    className={styles.bulkRemove}
+                    aria-label={`${t('quickAdd.batch.remove')}：${entry.title}`}
+                    onClick={() => removeBulkLine(entry.line)}
+                  >
+                    {t('quickAdd.batch.remove')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {error ? (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      <div className={styles.actions}>
+        <button
+          type="submit"
+          className={styles.save}
+          disabled={
+            busy || (mode === 'batch' && (bulkCount === 0 || bulkOverLimit || !effectiveBulkBranch))
+          }
+        >
+          {busy
+            ? mode === 'batch'
+              ? t('quickAdd.batch.importing')
+              : t('quickAdd.saving')
+            : mode === 'batch'
+              ? `${t('quickAdd.batch.importPrefix')}${bulkCount}${t('quickAdd.batch.importSuffix')}`
+              : t('quickAdd.save')}
+        </button>
+      </div>
+    </Dialog>
   );
 }

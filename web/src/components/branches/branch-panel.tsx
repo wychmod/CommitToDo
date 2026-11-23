@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { ErrorCode, Result } from '@/core/errors';
 import {
   BRANCH_COLORS,
@@ -19,6 +19,7 @@ import { moveBranch } from '@/data/move-branch';
 import { renameBranch } from '@/data/rename-branch';
 import type { Branch } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
+import { Dialog } from '@/ui/dialog';
 import styles from './branch-panel.module.css';
 
 export type BranchPanelState =
@@ -170,14 +171,6 @@ export function BranchPanel({ state, branches, onClose, onSaved }: BranchPanelPr
     }
   }, [state.mode]);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
-
   const siblings = live.filter((branch) => branch.parentId === parentId);
   const nameCheck = validateBranchTitle({ title, siblings, selfId });
   const quota =
@@ -233,8 +226,6 @@ export function BranchPanel({ state, branches, onClose, onSaved }: BranchPanelPr
     setErrorKey(errorKeyFor(result.error.code, state.mode));
   };
 
-  const stop = (event: MouseEvent<HTMLElement>) => event.stopPropagation();
-
   const nameHint = !touched
     ? null
     : nameCheck.reason === 'empty'
@@ -244,155 +235,154 @@ export function BranchPanel({ state, branches, onClose, onSaved }: BranchPanelPr
         : null;
 
   return (
-    <div className={styles.backdrop} role="presentation" onClick={onClose}>
-      <section
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t(titleKey)}
-        onClick={stop}
-      >
-        <header className={styles.head}>
-          <h2>{t(titleKey)}</h2>
-          <button type="button" className={styles.close} onClick={onClose}>
-            {t('shell.close')}
-          </button>
-        </header>
+    <Dialog
+      bare
+      onClose={onClose}
+      busy={busy}
+      label={t(titleKey)}
+      backdropClassName={styles.backdrop}
+      className={styles.panel}
+    >
+      <header className={styles.head}>
+        <h2>{t(titleKey)}</h2>
+        <button type="button" className={styles.close} onClick={onClose}>
+          {t('shell.close')}
+        </button>
+      </header>
 
-        <form className={styles.form} onSubmit={onSubmit}>
-          {state.mode === 'move' ? null : (
-            <label className={styles.field}>
-              <span className={styles.label}>{t('branches.field.title')}</span>
-              <input
-                ref={inputRef}
-                className={styles.input}
-                value={title}
-                placeholder={t('branches.field.titlePlaceholder')}
-                onChange={(event) => {
-                  setTitle(event.target.value);
-                  setTouched(true);
-                }}
-                aria-invalid={nameHint ? true : undefined}
-              />
-            </label>
-          )}
+      <form className={styles.form} onSubmit={onSubmit}>
+        {state.mode === 'move' ? null : (
+          <label className={styles.field}>
+            <span className={styles.label}>{t('branches.field.title')}</span>
+            <input
+              ref={inputRef}
+              className={styles.input}
+              value={title}
+              placeholder={t('branches.field.titlePlaceholder')}
+              onChange={(event) => {
+                setTitle(event.target.value);
+                setTouched(true);
+              }}
+              aria-invalid={nameHint ? true : undefined}
+            />
+          </label>
+        )}
 
-          {nameHint ? (
-            <p className={styles.hint} role="alert">
-              {nameHint}
-            </p>
-          ) : null}
+        {nameHint ? (
+          <p className={styles.hint} role="alert">
+            {nameHint}
+          </p>
+        ) : null}
 
-          {state.mode === 'create' ? (
-            <div className={styles.field}>
-              <span className={styles.label}>{t('branches.field.parent')}</span>
-              <p className={styles.value}>{state.parent.title}</p>
-            </div>
-          ) : null}
-
-          {state.mode === 'create' && state.parent.depth === 0 ? (
-            <fieldset className={styles.field}>
-              <legend className={styles.label}>{t('branches.field.color')}</legend>
-              <div className={styles.colors}>
-                {BRANCH_COLORS.map((preset) => (
-                  <label key={preset} className={styles.colorOption}>
-                    <input
-                      type="radio"
-                      name="branch-color"
-                      value={preset}
-                      checked={color === preset}
-                      onChange={() => setColor(preset)}
-                    />
-                    <span className={styles.swatch} data-color={preset} aria-hidden="true" />
-                    <span className={styles.colorName}>{t(COLOR_KEYS[preset])}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          ) : null}
-
-          {state.mode === 'create' && state.parent.depth > 0 ? (
-            <div className={styles.field}>
-              <span className={styles.label}>{t('branches.field.color')}</span>
-              <p className={styles.inherited}>
-                <span
-                  className={styles.swatch}
-                  data-color={inheritedBranchColor(state.parent.color)}
-                  aria-hidden="true"
-                />
-                {t('branches.colorInherited')}
-              </p>
-            </div>
-          ) : null}
-
-          {quota ? (
-            <p className={styles.meta}>
-              {quota.allowed
-                ? `${t('branches.quota.prefix')} ${quota.used} / ${quota.limit} ${t('branches.slots.suffix')}`
-                : quota.reason === 'tree-full'
-                  ? t('branches.error.treeFull')
-                  : quota.reason === 'depth-limit'
-                    ? t('branches.error.depth')
-                    : t('branches.error.parentFull')}
-            </p>
-          ) : null}
-
-          {state.mode === 'move' ? (
-            <fieldset ref={listRef} className={styles.field}>
-              <legend className={styles.label}>{t('branches.field.targetParent')}</legend>
-              <div className={styles.candidates}>
-                {candidates.map((candidate) => (
-                  <label
-                    key={candidate.branch.id}
-                    className={styles.candidate}
-                    data-disabled={candidate.reason ? '' : undefined}
-                  >
-                    <input
-                      type="radio"
-                      name="move-target"
-                      value={candidate.branch.id}
-                      checked={selectedId === candidate.branch.id}
-                      disabled={Boolean(candidate.reason)}
-                      onChange={() => setSelectedId(candidate.branch.id)}
-                    />
-                    <span className={styles.candidateBody}>
-                      <span className={styles.candidateTitle}>{candidate.branch.title}</span>
-                      <span className={styles.candidateMeta}>
-                        {candidate.reason
-                          ? t(MOVE_REASON_KEYS[candidate.reason])
-                          : `${t('branches.remaining.prefix')} ${candidate.remaining} ${t('branches.slots.suffix')}`}
-                      </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          ) : null}
-
-          {state.mode === 'move' && selectedCandidate ? (
-            <p className={styles.meta}>
-              {t('branches.move.newPath')}
-              {': '}
-              {trailOf(selectedCandidate.branch, byId)} / {state.branch.title}
-            </p>
-          ) : null}
-
-          {errorKey ? (
-            <p className={styles.error} role="alert">
-              {t(errorKey)}
-            </p>
-          ) : null}
-
-          <div className={styles.actions}>
-            <button type="button" className={styles.cancel} onClick={onClose} disabled={busy}>
-              {t('shell.cancel')}
-            </button>
-            <button type="submit" className={styles.submit} disabled={!canSubmit}>
-              {busy ? t('branches.saving') : t('branches.save')}
-            </button>
+        {state.mode === 'create' ? (
+          <div className={styles.field}>
+            <span className={styles.label}>{t('branches.field.parent')}</span>
+            <p className={styles.value}>{state.parent.title}</p>
           </div>
-        </form>
-      </section>
-    </div>
+        ) : null}
+
+        {state.mode === 'create' && state.parent.depth === 0 ? (
+          <fieldset className={styles.field}>
+            <legend className={styles.label}>{t('branches.field.color')}</legend>
+            <div className={styles.colors}>
+              {BRANCH_COLORS.map((preset) => (
+                <label key={preset} className={styles.colorOption}>
+                  <input
+                    type="radio"
+                    name="branch-color"
+                    value={preset}
+                    checked={color === preset}
+                    onChange={() => setColor(preset)}
+                  />
+                  <span className={styles.swatch} data-color={preset} aria-hidden="true" />
+                  <span className={styles.colorName}>{t(COLOR_KEYS[preset])}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
+
+        {state.mode === 'create' && state.parent.depth > 0 ? (
+          <div className={styles.field}>
+            <span className={styles.label}>{t('branches.field.color')}</span>
+            <p className={styles.inherited}>
+              <span
+                className={styles.swatch}
+                data-color={inheritedBranchColor(state.parent.color)}
+                aria-hidden="true"
+              />
+              {t('branches.colorInherited')}
+            </p>
+          </div>
+        ) : null}
+
+        {quota ? (
+          <p className={styles.meta}>
+            {quota.allowed
+              ? `${t('branches.quota.prefix')} ${quota.used} / ${quota.limit} ${t('branches.slots.suffix')}`
+              : quota.reason === 'tree-full'
+                ? t('branches.error.treeFull')
+                : quota.reason === 'depth-limit'
+                  ? t('branches.error.depth')
+                  : t('branches.error.parentFull')}
+          </p>
+        ) : null}
+
+        {state.mode === 'move' ? (
+          <fieldset ref={listRef} className={styles.field}>
+            <legend className={styles.label}>{t('branches.field.targetParent')}</legend>
+            <div className={styles.candidates}>
+              {candidates.map((candidate) => (
+                <label
+                  key={candidate.branch.id}
+                  className={styles.candidate}
+                  data-disabled={candidate.reason ? '' : undefined}
+                >
+                  <input
+                    type="radio"
+                    name="move-target"
+                    value={candidate.branch.id}
+                    checked={selectedId === candidate.branch.id}
+                    disabled={Boolean(candidate.reason)}
+                    onChange={() => setSelectedId(candidate.branch.id)}
+                  />
+                  <span className={styles.candidateBody}>
+                    <span className={styles.candidateTitle}>{candidate.branch.title}</span>
+                    <span className={styles.candidateMeta}>
+                      {candidate.reason
+                        ? t(MOVE_REASON_KEYS[candidate.reason])
+                        : `${t('branches.remaining.prefix')} ${candidate.remaining} ${t('branches.slots.suffix')}`}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
+
+        {state.mode === 'move' && selectedCandidate ? (
+          <p className={styles.meta}>
+            {t('branches.move.newPath')}
+            {': '}
+            {trailOf(selectedCandidate.branch, byId)} / {state.branch.title}
+          </p>
+        ) : null}
+
+        {errorKey ? (
+          <p className={styles.error} role="alert">
+            {t(errorKey)}
+          </p>
+        ) : null}
+
+        <div className={styles.actions}>
+          <button type="button" className={styles.cancel} onClick={onClose} disabled={busy}>
+            {t('shell.cancel')}
+          </button>
+          <button type="submit" className={styles.submit} disabled={!canSubmit}>
+            {busy ? t('branches.saving') : t('branches.save')}
+          </button>
+        </div>
+      </form>
+    </Dialog>
   );
 }

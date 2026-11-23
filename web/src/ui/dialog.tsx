@@ -4,6 +4,7 @@ import {
   useEffect,
   useId,
   useRef,
+  type FormEventHandler,
   type ReactNode,
   type RefObject,
 } from 'react';
@@ -29,10 +30,15 @@ interface DialogProps {
   label?: string;
   /** 标题元素 id；缺省时由 `DialogHeader` 自动关联。 */
   labelledBy?: string;
+  /** 补充说明元素 id（aria-describedby）。 */
+  describedBy?: string;
   /** 宽度档位：sm 480 / md 520 / lg 560 px。 */
   size?: DialogSize;
   /** 只要行为，不要内置外观。 */
   bare?: boolean;
+  /** 面板元素：默认 section；需要原生表单提交时用 form。 */
+  as?: 'section' | 'form';
+  onSubmit?: FormEventHandler<HTMLElement>;
   backdropClassName?: string;
   className?: string;
   /** 打开时优先聚焦的元素；缺省聚焦面板本身（内部已有 autoFocus 时不抢焦点）。 */
@@ -70,15 +76,18 @@ export function Dialog({
   busy = false,
   label,
   labelledBy,
+  describedBy,
   size = 'sm',
   bare = false,
+  as: Panel = 'section',
+  onSubmit,
   backdropClassName,
   className,
   initialFocusRef,
 }: DialogProps) {
   const autoId = useId();
   const titleId = labelledBy ?? autoId;
-  const panelRef = useRef<HTMLElement>(null);
+  const panelRef = useRef<HTMLFormElement>(null);
   const pressedOnBackdrop = useRef(false);
   const latest = useRef({ onClose, busy, initialFocusRef });
 
@@ -103,7 +112,8 @@ export function Dialog({
       if (openDialogs[openDialogs.length - 1] !== token) return;
 
       if (event.key === 'Escape') {
-        // 捕获阶段拦截，避免仍自带 Esc 监听的下层面板同时关闭。
+        // 面板内部输入框等自己处理 Esc 时会先 stopPropagation，到不了这里；
+        // 走到这里说明该由对话框处理，同时拦住 window 上残留的 Esc 监听。
         event.stopPropagation();
         if (!latest.current.busy) latest.current.onClose();
         return;
@@ -131,9 +141,9 @@ export function Dialog({
       }
     };
 
-    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('keydown', onKeyDown);
     return () => {
-      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('keydown', onKeyDown);
       const index = openDialogs.indexOf(token);
       if (index >= 0) openDialogs.splice(index, 1);
       if (previous?.isConnected) previous.focus();
@@ -156,17 +166,19 @@ export function Dialog({
           if (closable && !busy) onClose();
         }}
       >
-        <section
+        <Panel
           ref={panelRef}
-          className={join(!bare && styles.panel, !bare && sizeClass, className)}
+          onSubmit={onSubmit}
+          className={join(styles.root, !bare && styles.panel, !bare && sizeClass, className)}
           role="dialog"
           aria-modal="true"
           aria-label={label}
           aria-labelledby={label ? undefined : titleId}
+          aria-describedby={describedBy}
           tabIndex={-1}
         >
           {children}
-        </section>
+        </Panel>
       </div>
     </DialogContext.Provider>
   );

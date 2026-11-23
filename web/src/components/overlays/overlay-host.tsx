@@ -7,6 +7,7 @@ import { BackfillPanel } from '@/components/milestone/backfill-panel';
 import { QuickAddPanel } from '@/components/today/quick-add-panel';
 import { SearchPanel } from '@/components/search/search-panel';
 import { TaskDetailPanel } from '@/components/today/task-detail-panel';
+import { Dialog } from '@/ui/dialog';
 import styles from './overlay-host.module.css';
 
 type PlaceholderOverlay = Exclude<
@@ -46,22 +47,20 @@ export function OverlayHost() {
   const copy = COPY[overlay];
 
   return (
-    <div className={styles.backdrop} role="presentation" onClick={closeOverlay}>
-      <section
-        className={styles.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t(copy.title)}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className={styles.head}>
-          <h2>{t(copy.title)}</h2>
-          <button type="button" className={styles.close} onClick={closeOverlay}>
-            {t('shell.close')}
-          </button>
-        </header>
-        <p className={styles.body}>{t(copy.body)}</p>
-      </section>
-    </div>
+    <Dialog
+      bare
+      onClose={closeOverlay}
+      label={t(copy.title)}
+      backdropClassName={styles.backdrop}
+      className={styles.dialog}
+    >
+      <header className={styles.head}>
+        <h2>{t(copy.title)}</h2>
+        <button type="button" className={styles.close} onClick={closeOverlay}>
+          {t('shell.close')}
+        </button>
+      </header>
+      <p className={styles.body}>{t(copy.body)}</p>
+    </Dialog>
   );
 }

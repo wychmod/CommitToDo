@@ -14,6 +14,7 @@ import type { Branch } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useOnboardingStore } from '@/stores/onboarding.store';
 import { useShellStore } from '@/stores/shell.store';
+import { Dialog } from '@/ui/dialog';
 import styles from './backfill-panel.module.css';
 
 const REASON_KEYS: Record<Exclude<MilestoneTargetReason, null>, MessageKey> = {
@@ -72,17 +73,6 @@ export function BackfillPanel() {
     if (!rootId) return;
     setRows([{ key: nextKey.value++, title: '', month: '', branchId: rootId }]);
   }, [view.status, rows.length, liveBranches, nextKey]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        dismissBackfillPrompt();
-        closeOverlay();
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [closeOverlay, dismissBackfillPrompt]);
 
   const validation = useMemo(
     () => validateBackfill(rows, liveBranches, todayDate),
@@ -166,174 +156,174 @@ export function BackfillPanel() {
   };
 
   return (
-    <div className={styles.backdrop} role="presentation" onPointerDown={closeAll}>
-      <form
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('overlay.backfill.title')}
-        onPointerDown={(event) => event.stopPropagation()}
-        onSubmit={save}
-      >
-        <header className={styles.header}>
-          <h2 className={styles.title}>{t('overlay.backfill.title')}</h2>
-          <button type="button" className={styles.close} onClick={closeAll}>
-            {t('shell.close')}
+    <Dialog
+      bare
+      as="form"
+      onSubmit={save}
+      onClose={closeAll}
+      busy={busy}
+      label={t('overlay.backfill.title')}
+      backdropClassName={styles.backdrop}
+      className={styles.panel}
+    >
+      <header className={styles.header}>
+        <h2 className={styles.title}>{t('overlay.backfill.title')}</h2>
+        <button type="button" className={styles.close} onClick={closeAll}>
+          {t('shell.close')}
+        </button>
+      </header>
+
+      {view.status === 'loading' ? (
+        <p className={styles.state} role="status">
+          {t('state.loading')}
+        </p>
+      ) : null}
+
+      {view.status === 'error' ? (
+        <div className={styles.errorBox} role="alert">
+          <p>{t('backfill.loadFailed')}</p>
+          <button type="button" className={styles.ghost} onClick={view.retry}>
+            {t('backfill.retry')}
           </button>
-        </header>
+        </div>
+      ) : null}
 
-        {view.status === 'loading' ? (
-          <p className={styles.state} role="status">
-            {t('state.loading')}
-          </p>
-        ) : null}
+      {view.status === 'ready' ? (
+        <>
+          <p className={styles.intro}>{t('backfill.intro')}</p>
 
-        {view.status === 'error' ? (
-          <div className={styles.errorBox} role="alert">
-            <p>{t('backfill.loadFailed')}</p>
-            <button type="button" className={styles.ghost} onClick={view.retry}>
-              {t('backfill.retry')}
-            </button>
-          </div>
-        ) : null}
-
-        {view.status === 'ready' ? (
-          <>
-            <p className={styles.intro}>{t('backfill.intro')}</p>
-
-            <div className={styles.examples}>
-              <span className={styles.examplesLabel}>{t('backfill.examples')}</span>
-              <div className={styles.chips}>
-                {EXAMPLES.map((key) => (
-                  <button
-                    key={key}
-                    type="button"
-                    className={styles.chip}
-                    onClick={() => addExample(key)}
-                    disabled={rows.length >= BACKFILL_MAX}
-                  >
-                    {t(key)}
-                  </button>
-                ))}
-              </div>
+          <div className={styles.examples}>
+            <span className={styles.examplesLabel}>{t('backfill.examples')}</span>
+            <div className={styles.chips}>
+              {EXAMPLES.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={styles.chip}
+                  onClick={() => addExample(key)}
+                  disabled={rows.length >= BACKFILL_MAX}
+                >
+                  {t(key)}
+                </button>
+              ))}
             </div>
+          </div>
 
-            <ol className={styles.rows}>
-              {rows.map((row, index) => {
-                const dirty = row.title.trim() !== '' || row.month !== '';
-                const titleIssue = dirty ? issueFor(index, 'title') : undefined;
-                const monthIssue = issueFor(index, 'month');
-                const branchIssue = issueFor(index, 'branch');
-                return (
-                  <li key={row.key} className={styles.row}>
-                    <div className={styles.rowHead}>
-                      <span className={styles.rowIndex}>{index + 1}</span>
-                      <button
-                        type="button"
-                        className={styles.remove}
-                        onClick={() => removeRow(row.key)}
-                        disabled={rows.length <= 1}
-                      >
-                        {t('backfill.remove')}
-                      </button>
-                    </div>
+          <ol className={styles.rows}>
+            {rows.map((row, index) => {
+              const dirty = row.title.trim() !== '' || row.month !== '';
+              const titleIssue = dirty ? issueFor(index, 'title') : undefined;
+              const monthIssue = issueFor(index, 'month');
+              const branchIssue = issueFor(index, 'branch');
+              return (
+                <li key={row.key} className={styles.row}>
+                  <div className={styles.rowHead}>
+                    <span className={styles.rowIndex}>{index + 1}</span>
+                    <button
+                      type="button"
+                      className={styles.remove}
+                      onClick={() => removeRow(row.key)}
+                      disabled={rows.length <= 1}
+                    >
+                      {t('backfill.remove')}
+                    </button>
+                  </div>
 
+                  <label className={styles.field}>
+                    <span className={styles.label}>{t('backfill.field.title')}</span>
+                    <input
+                      className={styles.input}
+                      value={row.title}
+                      autoFocus={index === 0}
+                      placeholder={t('backfill.field.titlePlaceholder')}
+                      onChange={(event) => updateRow(row.key, { title: event.target.value })}
+                    />
+                  </label>
+                  {titleIssue ? (
+                    <p className={styles.fieldError} role="alert">
+                      {t('backfill.error.title')}
+                    </p>
+                  ) : null}
+
+                  <div className={styles.pair}>
                     <label className={styles.field}>
-                      <span className={styles.label}>{t('backfill.field.title')}</span>
+                      <span className={styles.label}>{t('backfill.field.month')}</span>
                       <input
+                        type="month"
                         className={styles.input}
-                        value={row.title}
-                        autoFocus={index === 0}
-                        placeholder={t('backfill.field.titlePlaceholder')}
-                        onChange={(event) => updateRow(row.key, { title: event.target.value })}
+                        value={row.month}
+                        max={currentMonth}
+                        onChange={(event) => updateRow(row.key, { month: event.target.value })}
                       />
                     </label>
-                    {titleIssue ? (
-                      <p className={styles.fieldError} role="alert">
-                        {t('backfill.error.title')}
-                      </p>
-                    ) : null}
 
-                    <div className={styles.pair}>
-                      <label className={styles.field}>
-                        <span className={styles.label}>{t('backfill.field.month')}</span>
-                        <input
-                          type="month"
-                          className={styles.input}
-                          value={row.month}
-                          max={currentMonth}
-                          onChange={(event) => updateRow(row.key, { month: event.target.value })}
-                        />
-                      </label>
+                    <label className={styles.field}>
+                      <span className={styles.label}>{t('backfill.field.branch')}</span>
+                      <select
+                        className={styles.input}
+                        value={row.branchId ?? ''}
+                        onChange={(event) =>
+                          updateRow(row.key, { branchId: event.target.value || null })
+                        }
+                      >
+                        {options.map(({ branch, reason }) => (
+                          <option key={branch.id} value={branch.id} disabled={reason !== null}>
+                            {branchTrail(branch, byId)}
+                            {reason === null ? '' : ` · ${t(REASON_KEYS[reason])}`}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  {monthIssue || branchIssue ? (
+                    <p className={styles.fieldError} role="alert">
+                      {t(
+                        monthIssue?.reason === 'future'
+                          ? 'backfill.error.future'
+                          : monthIssue
+                            ? 'backfill.error.month'
+                            : 'backfill.error.branch',
+                      )}
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ol>
 
-                      <label className={styles.field}>
-                        <span className={styles.label}>{t('backfill.field.branch')}</span>
-                        <select
-                          className={styles.input}
-                          value={row.branchId ?? ''}
-                          onChange={(event) =>
-                            updateRow(row.key, { branchId: event.target.value || null })
-                          }
-                        >
-                          {options.map(({ branch, reason }) => (
-                            <option key={branch.id} value={branch.id} disabled={reason !== null}>
-                              {branchTrail(branch, byId)}
-                              {reason === null ? '' : ` · ${t(REASON_KEYS[reason])}`}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                    {monthIssue || branchIssue ? (
-                      <p className={styles.fieldError} role="alert">
-                        {t(
-                          monthIssue?.reason === 'future'
-                            ? 'backfill.error.future'
-                            : monthIssue
-                              ? 'backfill.error.month'
-                              : 'backfill.error.branch',
-                        )}
-                      </p>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ol>
+          <div className={styles.addRow}>
+            <button
+              type="button"
+              className={styles.ghost}
+              onClick={() => addRow()}
+              disabled={rows.length >= BACKFILL_MAX}
+            >
+              {t('backfill.add')}
+            </button>
+            <span className={styles.limit}>{t('backfill.limit')}</span>
+          </div>
 
-            <div className={styles.addRow}>
-              <button
-                type="button"
-                className={styles.ghost}
-                onClick={() => addRow()}
-                disabled={rows.length >= BACKFILL_MAX}
-              >
-                {t('backfill.add')}
-              </button>
-              <span className={styles.limit}>{t('backfill.limit')}</span>
-            </div>
-
-            {saveFailed ? (
-              <div className={styles.errorBox} role="alert">
-                <p>{t('backfill.error.save')}</p>
-                <button type="button" className={styles.ghost} onClick={clearFailure}>
-                  {t('milestone.form.retry')}
-                </button>
-              </div>
-            ) : null}
-
-            <div className={styles.actions}>
-              <button type="button" className={styles.ghost} onClick={closeAll}>
-                {t('backfill.later')}
-              </button>
-              <button type="submit" className={styles.save} disabled={busy || !validation.canSave}>
-                {busy
-                  ? t('backfill.saving')
-                  : `${t('backfill.savePrefix')}${rows.length}${t('backfill.saveSuffix')}`}
+          {saveFailed ? (
+            <div className={styles.errorBox} role="alert">
+              <p>{t('backfill.error.save')}</p>
+              <button type="button" className={styles.ghost} onClick={clearFailure}>
+                {t('milestone.form.retry')}
               </button>
             </div>
-          </>
-        ) : null}
-      </form>
-    </div>
+          ) : null}
+
+          <div className={styles.actions}>
+            <button type="button" className={styles.ghost} onClick={closeAll}>
+              {t('backfill.later')}
+            </button>
+            <button type="submit" className={styles.save} disabled={busy || !validation.canSave}>
+              {busy
+                ? t('backfill.saving')
+                : `${t('backfill.savePrefix')}${rows.length}${t('backfill.saveSuffix')}`}
+            </button>
+          </div>
+        </>
+      ) : null}
+    </Dialog>
   );
 }

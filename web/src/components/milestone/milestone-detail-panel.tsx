@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { currentTzOffset } from '@/core/clock';
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
@@ -8,6 +8,7 @@ import { branchTrail } from '@/core/rules/quick-add';
 import { useMilestoneDetail } from '@/data/hooks';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
+import { Dialog } from '@/ui/dialog';
 import { CloseIcon } from '@/ui/icons';
 import styles from './milestone-detail-panel.module.css';
 
@@ -23,14 +24,6 @@ export function MilestoneDetailPanel() {
   const navigate = useNavigate();
   const detail = useMilestoneDetail(milestoneId);
   const milestone = detail.status === 'ready' ? detail.milestone : null;
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeOverlay();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [closeOverlay]);
 
   const byId =
     detail.status === 'ready'
@@ -116,51 +109,49 @@ export function MilestoneDetailPanel() {
   };
 
   return (
-    <div className={styles.backdrop} role="presentation" onPointerDown={closeOverlay}>
-      <div
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('overlay.milestone-detail.title')}
-        onPointerDown={(event) => event.stopPropagation()}
-      >
-        <header className={styles.header}>
-          <div className={styles.headText}>
-            <span className={styles.kicker}>{t('overlay.milestone-detail.kicker')}</span>
-            <h2 className={styles.title}>
-              {milestone ? milestone.title : t('overlay.milestone-detail.title')}
-            </h2>
-            {milestone ? (
-              <p className={styles.date}>
-                {formatMilestoneDate(
-                  milestone.achievedAt,
-                  milestone.datePrecision,
-                  currentTzOffset(milestone.achievedAt),
-                )}
-              </p>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            className={styles.close}
-            aria-label={t('shell.close')}
-            onClick={closeOverlay}
-          >
-            <CloseIcon size={16} />
-          </button>
-        </header>
+    <Dialog
+      bare
+      onClose={closeOverlay}
+      label={t('overlay.milestone-detail.title')}
+      backdropClassName={styles.backdrop}
+      className={styles.panel}
+    >
+      <header className={styles.header}>
+        <div className={styles.headText}>
+          <span className={styles.kicker}>{t('overlay.milestone-detail.kicker')}</span>
+          <h2 className={styles.title}>
+            {milestone ? milestone.title : t('overlay.milestone-detail.title')}
+          </h2>
+          {milestone ? (
+            <p className={styles.date}>
+              {formatMilestoneDate(
+                milestone.achievedAt,
+                milestone.datePrecision,
+                currentTzOffset(milestone.achievedAt),
+              )}
+            </p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className={styles.close}
+          aria-label={t('shell.close')}
+          onClick={closeOverlay}
+        >
+          <CloseIcon size={16} />
+        </button>
+      </header>
 
-        <div className={styles.body}>{renderBody()}</div>
+      <div className={styles.body}>{renderBody()}</div>
 
-        <footer className={styles.actions}>
-          <button type="button" className={styles.ghost} onClick={closeOverlay}>
-            {t('shell.close')}
-          </button>
-          <button type="button" className={styles.primary} disabled={!milestone} onClick={locate}>
-            {t('milestone.detail.locate')}
-          </button>
-        </footer>
-      </div>
-    </div>
+      <footer className={styles.actions}>
+        <button type="button" className={styles.ghost} onClick={closeOverlay}>
+          {t('shell.close')}
+        </button>
+        <button type="button" className={styles.primary} disabled={!milestone} onClick={locate}>
+          {t('milestone.detail.locate')}
+        </button>
+      </footer>
+    </Dialog>
   );
 }

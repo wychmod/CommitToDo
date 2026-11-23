@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { localDate } from '@/core/clock';
 import {
@@ -12,6 +12,7 @@ import { badgeHref, badgeNameKey, badgeSourceKey } from '@/components/badges/bad
 import { BadgeToken } from '@/components/badges/badge-token';
 import { useBadgeRows, type BadgeListViewRow } from '@/data/hooks';
 import { t, type MessageKey } from '@/i18n';
+import { Dialog } from '@/ui/dialog';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
 import styles from './badge-wall-page.module.css';
@@ -185,80 +186,70 @@ function CategoryPanel({ group, onOpen }: { group: BadgeWallGroup; onOpen: (id: 
 }
 
 function BadgeDetail({ row, onClose }: { row: BadgeListViewRow; onClose: () => void }) {
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
-
   const details = useMemo(() => snapshotRows(row.badge.snapshot), [row.badge.snapshot]);
   const eventDate = row.jump?.date ?? null;
 
   return (
-    <div className={styles.overlay} role="presentation" onClick={onClose}>
-      <section
-        className={styles.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('badge.detail.title')}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <header className={styles.dialogHead}>
-          <div className={styles.dialogFeature}>
-            <BadgeToken catalogId={row.badge.catalogId} size="lg" />
-            <div>
-              <h2 className={styles.dialogTitle}>{t(badgeNameKey(row.badge.catalogId))}</h2>
-              <p className={styles.dialogCategory}>
-                {t(categoryKey(row.badge.category))} · {t('badge.grantedAt')}{' '}
-                {localDate(row.badge.grantedAt)}
-              </p>
-            </div>
+    <Dialog
+      bare
+      onClose={onClose}
+      label={t('badge.detail.title')}
+      backdropClassName={styles.overlay}
+      className={styles.dialog}
+    >
+      <header className={styles.dialogHead}>
+        <div className={styles.dialogFeature}>
+          <BadgeToken catalogId={row.badge.catalogId} size="lg" />
+          <div>
+            <h2 className={styles.dialogTitle}>{t(badgeNameKey(row.badge.catalogId))}</h2>
+            <p className={styles.dialogCategory}>
+              {t(categoryKey(row.badge.category))} · {t('badge.grantedAt')}{' '}
+              {localDate(row.badge.grantedAt)}
+            </p>
           </div>
-          <button type="button" className={styles.dialogClose} onClick={onClose}>
-            {t('badge.detail.close')}
-          </button>
-        </header>
+        </div>
+        <button type="button" className={styles.dialogClose} onClick={onClose}>
+          {t('badge.detail.close')}
+        </button>
+      </header>
 
-        <section className={styles.dialogSection}>
-          <h3 className={styles.dialogLabel}>{t('badge.detail.why')}</h3>
-          <p className={styles.dialogValue}>{t(badgeSourceKey(row.badge.catalogId))}</p>
-        </section>
-
-        {row.state !== 'ok' ? (
-          <p className={styles.dialogState} role="status">
-            {t(row.state === 'revoked' ? 'badge.revoked' : 'badge.missing')}
-          </p>
-        ) : null}
-
-        <section className={styles.dialogSection}>
-          <h3 className={styles.dialogLabel}>{t('badge.detail.snapshot')}</h3>
-          {details.length > 0 ? (
-            <dl className={styles.dialogList}>
-              {details.map((detail, index) => (
-                <div key={`${detail.key}-${index}`} className={styles.dialogItem}>
-                  <dt>{t(detail.key)}</dt>
-                  <dd>{detail.value}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
-        </section>
-
-        <section className={styles.dialogSection}>
-          <h3 className={styles.dialogLabel}>{t('badge.detail.eventDate')}</h3>
-          <p className={styles.dialogValue}>{eventDate ?? t('badge.missing')}</p>
-          {row.state === 'ok' && row.jump ? (
-            <Link className={styles.dialogLink} to={badgeHref(row.jump)} onClick={onClose}>
-              {t('badge.viewHistory')}
-            </Link>
-          ) : (
-            <span className={styles.dialogDisabled}>{t('badge.viewHistory')}</span>
-          )}
-        </section>
+      <section className={styles.dialogSection}>
+        <h3 className={styles.dialogLabel}>{t('badge.detail.why')}</h3>
+        <p className={styles.dialogValue}>{t(badgeSourceKey(row.badge.catalogId))}</p>
       </section>
-    </div>
+
+      {row.state !== 'ok' ? (
+        <p className={styles.dialogState} role="status">
+          {t(row.state === 'revoked' ? 'badge.revoked' : 'badge.missing')}
+        </p>
+      ) : null}
+
+      <section className={styles.dialogSection}>
+        <h3 className={styles.dialogLabel}>{t('badge.detail.snapshot')}</h3>
+        {details.length > 0 ? (
+          <dl className={styles.dialogList}>
+            {details.map((detail, index) => (
+              <div key={`${detail.key}-${index}`} className={styles.dialogItem}>
+                <dt>{t(detail.key)}</dt>
+                <dd>{detail.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+      </section>
+
+      <section className={styles.dialogSection}>
+        <h3 className={styles.dialogLabel}>{t('badge.detail.eventDate')}</h3>
+        <p className={styles.dialogValue}>{eventDate ?? t('badge.missing')}</p>
+        {row.state === 'ok' && row.jump ? (
+          <Link className={styles.dialogLink} to={badgeHref(row.jump)} onClick={onClose}>
+            {t('badge.viewHistory')}
+          </Link>
+        ) : (
+          <span className={styles.dialogDisabled}>{t('badge.viewHistory')}</span>
+        )}
+      </section>
+    </Dialog>
   );
 }
 

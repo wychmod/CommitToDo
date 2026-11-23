@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { YearShareModel } from '@/core/rules/year-share';
 import { t } from '@/i18n';
+import { Dialog } from '@/ui/dialog';
 import styles from './year-share-preview.module.css';
 
 const CANVAS_WIDTH = 1200;
@@ -128,14 +129,6 @@ export function YearSharePreview({
     }
   }, [model, showNames]);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
-
   const save = async (): Promise<void> => {
     const canvas = canvasRef.current;
     if (!canvas || saving) return;
@@ -170,53 +163,51 @@ export function YearSharePreview({
   };
 
   return (
-    <div className={styles.backdrop} role="presentation" onPointerDown={onClose}>
-      <section
-        className={styles.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('year.share.title')}
-        onPointerDown={(event) => event.stopPropagation()}
-      >
-        <header className={styles.header}>
-          <h2 className={styles.title}>{t('year.share.title')}</h2>
-          <button type="button" className={styles.close} onClick={onClose} autoFocus>
-            {t('year.share.close')}
-          </button>
-        </header>
+    <Dialog
+      bare
+      onClose={onClose}
+      label={t('year.share.title')}
+      backdropClassName={styles.backdrop}
+      className={styles.panel}
+    >
+      <header className={styles.header}>
+        <h2 className={styles.title}>{t('year.share.title')}</h2>
+        <button type="button" className={styles.close} onClick={onClose} autoFocus>
+          {t('year.share.close')}
+        </button>
+      </header>
 
-        <div className={styles.body}>
-          <canvas
-            ref={canvasRef}
-            className={styles.canvas}
-            aria-label={`${model.year}${t('year.share.previewSuffix')}`}
+      <div className={styles.body}>
+        <canvas
+          ref={canvasRef}
+          className={styles.canvas}
+          aria-label={`${model.year}${t('year.share.previewSuffix')}`}
+        />
+        {error ? (
+          <p className={styles.error} role="alert">
+            {t('year.share.failed')}
+          </p>
+        ) : null}
+      </div>
+
+      <footer className={styles.footer}>
+        <label className={styles.names}>
+          <input
+            type="checkbox"
+            checked={showNames}
+            onChange={(event) => setShowNames(event.target.checked)}
           />
-          {error ? (
-            <p className={styles.error} role="alert">
-              {t('year.share.failed')}
-            </p>
-          ) : null}
-        </div>
-
-        <footer className={styles.footer}>
-          <label className={styles.names}>
-            <input
-              type="checkbox"
-              checked={showNames}
-              onChange={(event) => setShowNames(event.target.checked)}
-            />
-            <span>{t('year.share.showNames')}</span>
-          </label>
-          <button
-            type="button"
-            className={styles.save}
-            disabled={saving || !model.available}
-            onClick={() => void save()}
-          >
-            {saving ? t('year.share.saving') : t('year.share.save')}
-          </button>
-        </footer>
-      </section>
-    </div>
+          <span>{t('year.share.showNames')}</span>
+        </label>
+        <button
+          type="button"
+          className={styles.save}
+          disabled={saving || !model.available}
+          onClick={() => void save()}
+        >
+          {saving ? t('year.share.saving') : t('year.share.save')}
+        </button>
+      </footer>
+    </Dialog>
   );
 }
