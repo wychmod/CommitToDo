@@ -1,0 +1,86 @@
+/* 居中对话框基座；数值与迁移前各面板的重复样式逐项一致。 */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s4);
+  background: color-mix(in srgb, var(--text) 35%, transparent);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dialog-gap, var(--s3));
+  width: min(480px, 100%);
+  max-height: 100%;
+  padding: var(--s5);
+  overflow-y: auto;
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  outline: none;
+}
+
+.sizeMd {
+  width: min(520px, 100%);
+}
+
+.sizeLg {
+  width: min(560px, 100%);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--type-heading-small);
+}
+
+.close {
+  padding: var(--s1) var(--s2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s2);
+}
+
+@media (max-width: 390px) {
+  .backdrop {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .panel {
+    width: 100%;
+    max-height: none;
+    height: 100%;
+    border-radius: 0;
+    padding: var(--s4);
+  }
+
+  .actions {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding-top: var(--s3);
+    background: var(--panel);
+  }
+}

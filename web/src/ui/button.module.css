@@ -1,0 +1,45 @@
+.button {
+  min-height: var(--s9);
+  padding: 0 var(--s4);
+  border-radius: var(--radius-control);
+  font-size: var(--type-secondary);
+  cursor: pointer;
+}
+
+.ghost {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.primary {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.danger {
+  border: 1px solid var(--danger);
+  background: var(--danger);
+  color: var(--accent-ink);
+}
+
+.dangerOutline {
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+}
+
+.button:disabled {
+  border-color: var(--disabled-bg);
+  background: var(--disabled-bg);
+  color: var(--disabled);
+  cursor: not-allowed;
+}
+
+@media (max-width: 390px) {
+  .button {
+    min-height: var(--s10);
+    min-width: 44px;
+  }
+}
