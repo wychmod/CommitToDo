@@ -25,39 +25,6 @@ function ArrowIcon() {
   );
 }
 
-function ControlIcon({ kind }: { kind: 'pause' | 'play' | 'replay' }) {
-  if (kind === 'play') {
-    return (
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none">
-        <path d="M5 3.5v9l7-4.5-7-4.5Z" fill="currentColor" />
-      </svg>
-    );
-  }
-  if (kind === 'replay') {
-    return (
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none">
-        <path
-          d="M3.5 8a4.5 4.5 0 1 0 1.4-3.3M3.5 3v2.6h2.6"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none">
-      <path
-        d="M5.5 3.5v9M10.5 3.5v9"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function CheckIcon() {
   return (
     <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none">
@@ -124,6 +91,15 @@ export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroPro
   const workbenchRef = useRef<HTMLDivElement>(null);
   const { start, setVisible } = demo;
 
+  const replayWhenDone = () => {
+    if (demo.status === 'done') demo.replay();
+  };
+
+  const locateWorkbench = () => {
+    replayWhenDone();
+    onLocateWorkbench();
+  };
+
   useEffect(() => {
     const element = workbenchRef.current;
     if (!element || typeof IntersectionObserver === 'undefined') {
@@ -141,15 +117,6 @@ export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroPro
     observer.observe(element);
     return () => observer.disconnect();
   }, [start, setVisible]);
-
-  const control =
-    demo.status === 'paused'
-      ? { label: t('home.hero.resume'), kind: 'play' as const, action: demo.resume }
-      : demo.status === 'done'
-        ? { label: t('home.hero.replay'), kind: 'replay' as const, action: demo.replay }
-        : demo.status === 'waiting'
-          ? { label: t('home.hero.pause'), kind: 'pause' as const, action: demo.start }
-          : { label: t('home.hero.pause'), kind: 'pause' as const, action: demo.pause };
 
   const heroStyle = { '--bezel-scale': demo.frame.bezel } as CSSProperties;
   const receiptStyle: CSSProperties = demo.checked
@@ -174,15 +141,20 @@ export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroPro
             <a href="#home-scenes">{t('home.header.scenes')}</a>
             <a href="#home-today">{t('home.header.guide')}</a>
           </nav>
-          <Link className={styles.headerAction} to="/today">
-            {t('home.header.open')}
-            <ArrowIcon />
-          </Link>
+          <div className={styles.headerActions}>
+            <Link className={styles.headerLogin} to="/auth/login">
+              {t('home.header.login')}
+            </Link>
+            <Link className={styles.headerAction} to="/today">
+              {t('home.header.open')}
+              <ArrowIcon />
+            </Link>
+          </div>
         </div>
       </header>
 
       <div className={styles.heroInner}>
-        <h1 className={styles.title}>
+        <h1 className={styles.title} onPointerEnter={replayWhenDone}>
           <span className={styles.titleLine}>{t('home.hero.titleLead')}</span>
           <span className={styles.titleLine}>
             <span className={styles.highlight}>{t('home.hero.titleHighlight')}</span>
@@ -190,26 +162,20 @@ export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroPro
         </h1>
         <p className={styles.subtitle}>{t('home.hero.subtitle')}</p>
         <div className={styles.actions}>
-          <button type="button" className={styles.look} onClick={onLocateWorkbench}>
+          <button type="button" className={styles.look} onClick={locateWorkbench}>
             {t('home.hero.look')}
             <ArrowIcon />
-          </button>
-          <button
-            type="button"
-            className={styles.control}
-            aria-label={t('home.hero.demoLabel')}
-            onClick={control.action}
-          >
-            <ControlIcon kind={control.kind} />
-            {control.label}
           </button>
         </div>
 
         <div className={styles.stage}>
           <div className={styles.sticky} data-checked={demo.checked} aria-hidden="true">
-            <span className={styles.stickyCheck}>
-              <CheckIcon />
-            </span>
+            <svg className={styles.stickyArtwork} viewBox="0 0 128 128" fill="none">
+              <path className={styles.stickyPaper} d="M4 18 111 2l15 108-108 16L4 18Z" />
+            </svg>
+            <svg className={styles.stickyCheck} viewBox="0 0 24 24" fill="none">
+              <path className={styles.stickyTick} d="m6 13 4 4 8-10" />
+            </svg>
             <span className={styles.stickyStroke} />
             <span className={styles.stickyStrokeAlt} />
           </div>
@@ -222,7 +188,7 @@ export function HomeHero({ demo, onOpenReceipt, onLocateWorkbench }: HomeHeroPro
           >
             <div className={styles.titlebar}>
               <span className={styles.windowBrand}>{t('app.name')}</span>
-              <span className={styles.windowCrumb}>
+              <span className={styles.windowCrumb} onPointerEnter={replayWhenDone}>
                 {t('home.hero.windowTitle')} / {t('home.hero.windowCrumb')}
               </span>
               <span className={styles.windowControls} aria-hidden="true">

@@ -341,7 +341,7 @@
       "taskCheckSize": 12,
       "stickySize": 128,
       "stickyOffset": 160,
-      "receiptWidth": 272,
+      "receiptWidth": 224,
       "receiptInset": 48,
       "receiptTop": "52%",
       "chartHeight": 128,

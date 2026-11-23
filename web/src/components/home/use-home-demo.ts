@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { HOME_DEMO_CHECK_AT, HOME_DEMO_END, homeDemoFrameAt } from '@/core/rules/home-demo';
 import type { HomeDemoFrame } from '@/core/rules/home-demo';
 
-export type HomeDemoStatus = 'waiting' | 'playing' | 'paused' | 'done';
+export type HomeDemoStatus = 'waiting' | 'playing' | 'done';
 
 export interface HomeDemo {
   status: HomeDemoStatus;
@@ -10,8 +10,6 @@ export interface HomeDemo {
   /** 示例待办当前是否已勾选；用户手动撤销时为 false。 */
   checked: boolean;
   start: () => void;
-  pause: () => void;
-  resume: () => void;
   replay: () => void;
   toggleCheck: () => void;
   showStaticResult: () => void;
@@ -21,8 +19,7 @@ export interface HomeDemo {
 /**
  * 首屏示例的播放控制。
  *
- * 只改前端演示状态，不碰业务库；进入视口后才开始，离开视口冻结计时，
- * 用户主动暂停后返回仍保持暂停（HOMEPAGE-MOTION.md）。
+ * 只改前端演示状态，不碰业务库；进入视口后才开始，离开视口冻结计时。
  */
 export function useHomeDemo(reducedMotion: boolean): HomeDemo {
   const [status, setStatus] = useState<HomeDemoStatus>(reducedMotion ? 'done' : 'waiting');
@@ -66,14 +63,6 @@ export function useHomeDemo(reducedMotion: boolean): HomeDemo {
     setStatus((current) => (current === 'waiting' ? 'playing' : current));
   }, []);
 
-  const pause = useCallback(() => {
-    setStatus((current) => (current === 'playing' ? 'paused' : current));
-  }, []);
-
-  const resume = useCallback(() => {
-    setStatus((current) => (current === 'paused' ? 'playing' : current));
-  }, []);
-
   const replay = useCallback(() => {
     elapsedRef.current = 0;
     setElapsed(reducedMotion ? HOME_DEMO_END : 0);
@@ -106,8 +95,6 @@ export function useHomeDemo(reducedMotion: boolean): HomeDemo {
     frame: homeDemoFrameAt(elapsed),
     checked,
     start,
-    pause,
-    resume,
     replay,
     toggleCheck,
     showStaticResult,
