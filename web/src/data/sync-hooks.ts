@@ -50,6 +50,11 @@ export function useSyncSnapshot() {
   };
 }
 
+/** 冲突记录列表（按冲突时间倒序）。 */
+export function useSyncConflicts() {
+  return useLiveQuery(() => db.conflicts.orderBy('at').reverse().toArray(), [], []);
+}
+
 /** 外壳挂载一次：在线且有排队时自动补推；失败按 attempts 指数退避重试。 */
 export function useSyncRunner(principalId: string | null): void {
   const pending = useLiveQuery(() => db.outbox.count(), [], 0);

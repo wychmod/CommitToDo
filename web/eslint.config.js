@@ -111,7 +111,11 @@ export default [
   },
   {
     files: ['src/components/**/*.{ts,tsx}'],
-    rules: forbidImports(['**/pages/**']),
+    rules: forbidImports(['**/pages/**', '**/data/db', '**/data/db.*']),
+  },
+  {
+    files: ['src/pages/**/*.{ts,tsx}'],
+    rules: forbidImports(['**/data/db', '**/data/db.*']),
   },
   {
     files: ['src/{pages,components,ui}/**/*.{ts,tsx}'],

@@ -1,10 +1,8 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BackButton } from '@/components/back-button';
 import { currentTzOffset, toLocalDate } from '@/core/clock';
-import { db } from '@/data/db';
-import { useSyncSnapshot } from '@/data/sync-hooks';
+import { useSyncConflicts, useSyncSnapshot } from '@/data/sync-hooks';
 import type { SyncConflict } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { PageShell } from '@/ui/page-shell';
@@ -82,7 +80,7 @@ function payloadEntries(
 
 /** 冲突记录与两版对照（PRD V2-02 §4.3 / O08-sync-conflict），只读。 */
 export function SyncConflictsPage() {
-  const conflicts = useLiveQuery(() => db.conflicts.orderBy('at').reverse().toArray(), [], []);
+  const conflicts = useSyncConflicts();
   const { devices } = useSyncSnapshot();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
