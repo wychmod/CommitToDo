@@ -34,6 +34,11 @@
       "home-band": "#F1F6FB",
       "home-band-strong": "#EBF4FA",
       "home-timeline-shell": "#E8F2F9",
+      "home-timeline-work": "#E48A48",
+      "home-timeline-work-soft": "#F4C5A8",
+      "home-timeline-health": "#77A9D0",
+      "home-timeline-life": "#CBA745",
+      "home-chart-bar": "#6FAAD0",
       "home-cta-band": "#F8F5F2",
       "home-note": "#F9E9B3",
       "home-note-ink": "#111111",
@@ -81,6 +86,11 @@
       "home-band": "#263244",
       "home-band-strong": "#2B3848",
       "home-timeline-shell": "#253244",
+      "home-timeline-work": "#F2A56F",
+      "home-timeline-work-soft": "#D98C68",
+      "home-timeline-health": "#78B7EF",
+      "home-timeline-life": "#EABF58",
+      "home-chart-bar": "#6B98C0",
       "home-cta-band": "#263242",
       "home-note": "#FEE7AC",
       "home-scene-coral": "#2C394B",
@@ -100,129 +110,48 @@
     "coral": {
       "label": "珊瑚橙",
       "example": "工作",
-      "light": [
-        "#A84427",
-        "#B95639",
-        "#BA6248",
-        "#F9EDE8"
-      ],
-      "dark": [
-        "#FF946D",
-        "#F7AF98",
-        "#FFCDBB",
-        "#432E31"
-      ]
+      "light": ["#A84427", "#B95639", "#BA6248", "#F9EDE8"],
+      "dark": ["#FF946D", "#F7AF98", "#FFCDBB", "#432E31"]
     },
     "sky": {
       "label": "晴蓝",
       "example": "健康",
-      "light": [
-        "#286BA3",
-        "#3979AA",
-        "#4C83B2",
-        "#E8F2FB"
-      ],
-      "dark": [
-        "#78B7EF",
-        "#A0C9F4",
-        "#BDDFFA",
-        "#2B415A"
-      ]
+      "light": ["#286BA3", "#3979AA", "#4C83B2", "#E8F2FB"],
+      "dark": ["#78B7EF", "#A0C9F4", "#BDDFFA", "#2B415A"]
     },
     "honey": {
       "label": "蜂蜜金",
       "example": "生活",
-      "light": [
-        "#906511",
-        "#9C721F",
-        "#A37826",
-        "#F8F0D9"
-      ],
-      "dark": [
-        "#EABF58",
-        "#F2D080",
-        "#F6E0AB",
-        "#443A2C"
-      ]
+      "light": ["#906511", "#9C721F", "#A37826", "#F8F0D9"],
+      "dark": ["#EABF58", "#F2D080", "#F6E0AB", "#443A2C"]
     },
     "mint": {
       "label": "薄荷绿",
       "example": "学习",
-      "light": [
-        "#23725A",
-        "#367E64",
-        "#468768",
-        "#E7F4ED"
-      ],
-      "dark": [
-        "#76D5B4",
-        "#9FE4C9",
-        "#C0EEDB",
-        "#25443C"
-      ]
+      "light": ["#23725A", "#367E64", "#468768", "#E7F4ED"],
+      "dark": ["#76D5B4", "#9FE4C9", "#C0EEDB", "#25443C"]
     },
     "iris": {
       "label": "鸢尾紫",
       "example": "创作",
-      "light": [
-        "#6451A8",
-        "#745FB4",
-        "#8068B8",
-        "#F0ECFA"
-      ],
-      "dark": [
-        "#B9A5F0",
-        "#D1BCFA",
-        "#E4D7FB",
-        "#3A3355"
-      ]
+      "light": ["#6451A8", "#745FB4", "#8068B8", "#F0ECFA"],
+      "dark": ["#B9A5F0", "#D1BCFA", "#E4D7FB", "#3A3355"]
     },
     "rose": {
       "label": "玫瑰红",
       "example": "家人",
-      "light": [
-        "#A23862",
-        "#AC4F74",
-        "#B3547B",
-        "#F8E9EF"
-      ],
-      "dark": [
-        "#EE91B5",
-        "#F7AFCB",
-        "#FAD0E1",
-        "#492F42"
-      ]
+      "light": ["#A23862", "#AC4F74", "#B3547B", "#F8E9EF"],
+      "dark": ["#EE91B5", "#F7AFCB", "#FAD0E1", "#492F42"]
     },
     "teal": {
       "label": "深湖青",
       "example": "旅行",
-      "light": [
-        "#156E75",
-        "#2E7A80",
-        "#39868B",
-        "#E5F2F2"
-      ],
-      "dark": [
-        "#65C7DB",
-        "#99DEEA",
-        "#C3EBF1",
-        "#244350"
-      ]
+      "light": ["#156E75", "#2E7A80", "#39868B", "#E5F2F2"],
+      "dark": ["#65C7DB", "#99DEEA", "#C3EBF1", "#244350"]
     }
   },
   "metrics": {
-    "spacing": [
-      4,
-      8,
-      12,
-      16,
-      20,
-      24,
-      32,
-      40,
-      48,
-      64
-    ],
+    "spacing": [4, 8, 12, 16, 20, 24, 32, 40, 48, 64],
     "radius": {
       "marker": 2,
       "nav": 5,
@@ -281,10 +210,7 @@
       "milestoneDiagonal": 10,
       "mergeDiameter": 8,
       "stallStroke": 1.5,
-      "stallPattern": [
-        4,
-        4
-      ]
+      "stallPattern": [4, 4]
     },
     "stroke": {
       "brandMark": 1.7,
@@ -327,6 +253,7 @@
       "titleLineHeight": "1.18",
       "featureIconSize": 48,
       "sectionTitleSize": 52,
+      "deskTitleSize": 28,
       "sectionNavGap": 120,
       "sectionNavPairGap": 52,
       "sectionNavLabelSize": 21,
@@ -348,11 +275,11 @@
       "branchCardHeight": 248,
       "featureCardPaddingBlock": 28,
       "timelineSectionTop": 32,
-      "timelineSectionPadding": 12,
+      "timelineSectionPadding": 32,
       "timelineHeight": 300,
-      "timelineLabelWidth": 264,
-      "timelinePlotRightInset": 84,
-      "timelineMiddlePosition": "52.5%",
+      "timelineLabelWidth": 232,
+      "timelinePlotRightInset": 24,
+      "timelineMiddlePosition": "51.2%",
       "timelineMinWidth": 560,
       "sceneNode": 10,
       "sceneArcDiameter": 250,
