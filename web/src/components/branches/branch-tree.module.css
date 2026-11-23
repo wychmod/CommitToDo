@@ -53,9 +53,10 @@
 }
 
 .flat {
+  margin-top: calc(var(--s3) + 1px);
   padding: var(--s2);
   border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
+  border-radius: var(--radius-card);
   background: var(--panel);
 }
 

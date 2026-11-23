@@ -93,9 +93,10 @@ export function BranchesPage() {
   const root = live.find((branch) => branch.depth === 0);
   const used = countActiveBranches(live);
   const totals = {
-    active: treeBranches.filter((branch) => branch.status === 'active').length,
-    merged: treeBranches.filter((branch) => branch.status === 'merged').length,
-    dropped: treeBranches.filter((branch) => branch.status === 'dropped').length,
+    active: treeBranches.filter((branch) => branch.depth > 0 && branch.status === 'active').length,
+    merged: treeBranches.filter((branch) => branch.depth > 0 && branch.status === 'merged').length,
+    dropped: treeBranches.filter((branch) => branch.depth > 0 && branch.status === 'dropped')
+      .length,
   };
   const filterLabel = t(
     STATUS_FILTERS.find((option) => option.value === statusFilter)?.labelKey ??
