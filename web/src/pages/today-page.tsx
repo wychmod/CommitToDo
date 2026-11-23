@@ -67,6 +67,14 @@ function monthDayLabel(date: string): string {
   return `${month}${t('milestone.date.monthSuffix')} ${day}${t('milestone.date.daySuffix')}`;
 }
 
+/** 列表与回执用的分支路径：省略根分支「我 / 」，直挂根分支时保留「我」。 */
+function displayBranchTrail(branch: Branch | undefined, byId: Map<string, Branch>): string {
+  if (!branch) return '';
+  if (branch.depth === 0) return branch.title;
+  const parts = branchTrail(branch, byId).split(' / ');
+  return parts.length > 1 ? parts.slice(1).join(' / ') : branch.title;
+}
+
 /**
  * P01 今天（PRD M03）。
  *
@@ -291,7 +299,7 @@ export function TodayPage() {
         key={task.id}
         task={task}
         branch={branch}
-        branchTrail={branch ? branchTrail(branch, byId) : task.branchId}
+        branchTrail={branch ? displayBranchTrail(branch, byId) : task.branchId}
         todayDate={todayDate}
         readonlyReason={trailing(task)}
         busy={busyId === task.id}
@@ -364,12 +372,16 @@ export function TodayPage() {
       action={
         data.status === 'ready' && total > 0 ? (
           <p className={styles.headSummary}>
-            <strong>{groups.dueCount}</strong>
-            {t('today.header.dueSuffix')}
+            <span>
+              <strong>{groups.dueCount}</strong>
+              {t('today.header.dueSuffix')}
+            </span>
             <span className={styles.headDot} aria-hidden="true" />
-            {t('today.header.noDuePrefix')}
-            <strong>{groups.noDueCount}</strong>
-            {t('today.header.noDueSuffix')}
+            <span>
+              {t('today.header.noDuePrefix')}
+              {groups.noDueCount}
+              {t('today.header.noDueSuffix')}
+            </span>
           </p>
         ) : undefined
       }
@@ -502,6 +514,10 @@ export function TodayPage() {
                 ) : null}
 
                 <div className={styles.listFooter}>
+                  <Link className={styles.allLink} to="/today/all">
+                    {t('today.allLink')}
+                    <ArrowIcon size={16} />
+                  </Link>
                   <button
                     type="button"
                     className={styles.collapseButton}
@@ -513,10 +529,12 @@ export function TodayPage() {
               </>
             )}
 
-            <Link className={styles.allLink} to="/today/all">
-              {t('today.allLink')}
-              <ArrowIcon size={16} />
-            </Link>
+            {listCollapsed ? (
+              <Link className={styles.allLink} to="/today/all">
+                {t('today.allLink')}
+                <ArrowIcon size={16} />
+              </Link>
+            ) : null}
           </div>
 
           <aside className={styles.rail} aria-label={t('today.rail.label')}>
@@ -528,7 +546,7 @@ export function TodayPage() {
                 branch={byId.get(receipt.commit.branchId)}
                 branchTrail={
                   byId.get(receipt.commit.branchId)
-                    ? branchTrail(byId.get(receipt.commit.branchId)!, byId)
+                    ? displayBranchTrail(byId.get(receipt.commit.branchId), byId)
                     : receipt.commit.branchId
                 }
                 onSaveNote={saveReceiptNote}
@@ -554,7 +572,7 @@ export function TodayPage() {
                     branch={byId.get(latestCommit.branchId)}
                     trail={
                       byId.get(latestCommit.branchId)
-                        ? branchTrail(byId.get(latestCommit.branchId)!, byId)
+                        ? displayBranchTrail(byId.get(latestCommit.branchId), byId)
                         : latestCommit.branchId
                     }
                   />
@@ -599,7 +617,7 @@ export function TodayPage() {
                           branch={byId.get(commit.branchId)}
                           trail={
                             byId.get(commit.branchId)
-                              ? branchTrail(byId.get(commit.branchId)!, byId)
+                              ? displayBranchTrail(byId.get(commit.branchId), byId)
                               : commit.branchId
                           }
                         />
@@ -651,7 +669,11 @@ export function TodayPage() {
         </div>
       ) : null}
 
-      {data.status === 'ready' && total === 0 ? <WeekReviewCard /> : null}
+      {data.status === 'ready' && total === 0 ? (
+        <div className={styles.emptyReview}>
+          <WeekReviewCard />
+        </div>
+      ) : null}
       {data.status === 'ready' && monthOpen ? <MonthReviewPanel /> : null}
       {data.status === 'ready' ? <BadgeToast /> : null}
 

@@ -1,6 +1,7 @@
 .page {
   display: flex;
   flex-direction: column;
+  width: calc(100% - var(--s9) - var(--s6));
   max-width: var(--layout-content-max);
   margin: 0 auto;
   padding: calc(var(--s7) + 1px) 0 calc(var(--s9) + 1px);
@@ -12,7 +13,6 @@
 
 .pageCompact {
   max-width: 850px;
-  margin-inline: 0;
 }
 
 .back {
@@ -71,6 +71,7 @@
 
 @media (max-width: 760px) {
   .page {
+    width: 100%;
     padding: var(--s6) var(--s4) calc(var(--s7) - 2px);
   }
 

@@ -1,7 +1,6 @@
 /* S01-week-review：今天页底部的本周摘要与周回顾。 */
 
 .card {
-  margin-top: var(--s5);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
@@ -10,19 +9,21 @@
 
 .head {
   display: flex;
-  align-items: center;
-  gap: var(--s2);
-  background: var(--inset);
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) 15px;
+  background: var(--panel);
 }
 
 .toggle {
   display: flex;
   flex: 1;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s3);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s1);
   min-width: 0;
-  padding: var(--s3) var(--s4);
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--text);
@@ -35,33 +36,41 @@
 .monthLink:focus-visible,
 .retry:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
 }
 
 .monthLink {
   flex: none;
-  margin-right: var(--s3);
   padding: var(--s1) var(--s3);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
-  background: var(--panel);
+  background: var(--surface);
   color: var(--accent);
-  font-size: var(--type-secondary);
+  font-size: var(--type-label);
+  font-weight: 650;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.monthLink:hover {
+  border-color: var(--line-strong);
 }
 
 .title {
   flex: none;
-  font-size: var(--type-secondary);
-  font-weight: 600;
+  font-size: var(--type-body-large);
+  font-weight: 680;
+  line-height: 1.35;
 }
 
 .collapsed,
 .hint {
   min-width: 0;
   color: var(--muted);
-  font-size: var(--type-secondary);
+  font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
+  line-height: 1.45;
   overflow-wrap: anywhere;
 }
 

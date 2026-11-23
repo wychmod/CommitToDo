@@ -217,7 +217,13 @@ section.group > .groupHead {
 
 .listFooter {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.emptyReview {
+  margin-top: var(--s5);
 }
 
 .collapseButton {
@@ -329,7 +335,7 @@ section.group > .groupHead {
 
 .receiptTime {
   margin-left: auto;
-  color: var(--accent);
+  color: var(--muted);
   font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
 }

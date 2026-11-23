@@ -25,7 +25,7 @@
 
 .time {
   margin-left: auto;
-  color: var(--accent);
+  color: var(--muted);
   font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
 }
