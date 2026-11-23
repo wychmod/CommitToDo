@@ -7,7 +7,7 @@
 
 .nav {
   position: sticky;
-  top: var(--s6);
+  top: calc(var(--layout-topbar) + var(--s6));
   display: flex;
   flex-direction: column;
   gap: calc(var(--s1) - 1px);
@@ -74,11 +74,12 @@
   margin: 0;
   padding: 0;
   border: 0;
-  scroll-margin-top: var(--s6);
+  scroll-margin-top: calc(var(--layout-topbar) + var(--s6));
 }
 
 .panelSection {
-  padding: 0 0 calc(var(--s4) - 2px);
+  gap: 0;
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
@@ -205,6 +206,9 @@
 }
 
 .aboutRow .entry {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -365,33 +369,22 @@
   gap: var(--s3);
 }
 
-.accountCard {
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-  background: var(--panel);
-}
-
-.accountTitle {
-  margin: 0;
-  padding: var(--s4) var(--s5);
-  border-bottom: 1px solid var(--line);
-  color: var(--text);
-  font-size: var(--type-heading-small);
-  font-weight: 600;
-}
-
-.accountRow {
+.accountRow,
+.syncRowOut {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--s4);
-  padding: var(--s4) var(--s5);
+  min-height: calc(var(--s10) + 5px);
+  margin: 0 var(--s5);
+  padding: calc(var(--s2) + 1px) 0;
+  border-top: 1px solid var(--line);
 }
 
 .accountText {
   display: grid;
   flex: 1;
-  gap: var(--s1);
+  gap: calc(var(--s1) - 1px);
   min-width: 0;
 }
 
@@ -409,21 +402,21 @@
 
 .accountHeadline {
   color: var(--text);
-  font-size: var(--type-body);
+  font-size: calc(var(--type-secondary) + 1px);
   font-weight: 600;
 }
 
 .accountHint {
   color: var(--muted);
-  font-size: var(--type-secondary);
+  font-size: var(--type-label);
 }
 
 .accountIcon {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--s9);
-  height: var(--s9);
+  width: calc(var(--s7) + 1px);
+  height: calc(var(--s7) + 1px);
   border-radius: var(--radius-control);
   background: var(--accent-soft);
   color: var(--accent);
@@ -538,6 +531,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--s4);
+  margin: 0 var(--s5);
+  padding: var(--s3) 0 var(--s4);
+  border-top: 1px solid var(--line);
 }
 
 .syncStatus {
@@ -617,6 +613,10 @@
   font-size: var(--type-secondary);
 }
 
+.panelSection > .notice {
+  margin: var(--s2) var(--s5) var(--s4);
+}
+
 .migration {
   display: flex;
   flex-direction: column;
@@ -691,8 +691,10 @@
     margin-inline: var(--s3);
   }
 
-  .accountRow {
+  .accountRow,
+  .syncRowOut {
     flex-wrap: wrap;
+    margin-inline: var(--s3);
   }
 
   .accountActions {

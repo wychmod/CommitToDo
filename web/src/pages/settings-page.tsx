@@ -16,7 +16,15 @@ import { t, type MessageKey } from '@/i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { LoadingShell } from '@/ui/loading-shell';
 import { PageShell } from '@/ui/page-shell';
-import { ArchiveIcon, BranchIcon, HelpIcon, SunIcon, TuneIcon, UserIcon } from '@/ui/icons';
+import {
+  ArchiveIcon,
+  ArrowIcon,
+  BranchIcon,
+  HelpIcon,
+  SunIcon,
+  TuneIcon,
+  UserIcon,
+} from '@/ui/icons';
 import styles from './settings-page.module.css';
 
 const COLLECTION_KEYS: Record<string, MessageKey> = {
@@ -186,6 +194,8 @@ export function SettingsPage() {
 
   const accountNext = `${location.pathname}#account`;
   const syncNext = `${location.pathname}#sync`;
+  const activeNav =
+    location.hash === '#notes' ? 'notes' : location.hash === '#about' ? 'about' : 'appearance';
 
   return (
     <PageShell narrow titleKey="page.settings.title" bodyKey="page.settings.body">
@@ -194,20 +204,32 @@ export function SettingsPage() {
       ) : (
         <div className={styles.layout}>
           <nav className={styles.nav} aria-label={t('settings.nav.label')}>
-            <a className={styles.navLink} href="#appearance" aria-current="page">
-              <SunIcon size={18} />
+            <a
+              className={styles.navLink}
+              href="#appearance"
+              aria-current={activeNav === 'appearance' ? 'page' : undefined}
+            >
+              <SunIcon size={17} />
               {t('settings.appearance')}
             </a>
-            <a className={styles.navLink} href="#notes">
-              <HelpIcon size={18} />
+            <a
+              className={styles.navLink}
+              href="#notes"
+              aria-current={activeNav === 'notes' ? 'page' : undefined}
+            >
+              <HelpIcon size={17} />
               {t('settings.annotations')}
             </a>
             <Link className={styles.navLink} to="/data">
-              <ArchiveIcon size={18} />
+              <ArchiveIcon size={17} />
               {t('settings.data')}
             </Link>
-            <a className={styles.navLink} href="#about">
-              <TuneIcon size={18} />
+            <a
+              className={styles.navLink}
+              href="#about"
+              aria-current={activeNav === 'about' ? 'page' : undefined}
+            >
+              <TuneIcon size={17} />
               {t('settings.about')}
             </a>
           </nav>
@@ -304,84 +326,95 @@ export function SettingsPage() {
               />
             </section>
 
-            <section id="account" className={styles.section} aria-labelledby="settings-account">
-              <div className={styles.accountCard}>
-                <h2 id="settings-account" className={styles.accountTitle}>
-                  {t('settings.account')}
-                </h2>
-                {principalId ? (
-                  <>
-                    <div className={styles.accountRow}>
-                      <div className={styles.accountText}>
-                        <span className={styles.accountLabel}>{t('auth.email')}</span>
-                        <span className={styles.accountEmail}>{email}</span>
-                      </div>
-                      <span className={styles.accountStatus}>{t('settings.account.status')}</span>
-                    </div>
-                    <div className={styles.accountFoot}>
-                      <button
-                        type="button"
-                        className={styles.dangerButton}
-                        onClick={() => setConfirmingSignOut(true)}
-                      >
-                        {t('settings.account.signOut')}
-                      </button>
-                    </div>
-                  </>
-                ) : (
+            <section
+              id="account"
+              className={`${styles.section} ${styles.panelSection}`}
+              aria-labelledby="settings-account"
+            >
+              <h2 id="settings-account" className={styles.heading}>
+                {t('settings.account')}
+              </h2>
+              {principalId ? (
+                <>
                   <div className={styles.accountRow}>
-                    <span className={styles.accountIcon} aria-hidden="true">
-                      <UserIcon size={20} />
-                    </span>
                     <div className={styles.accountText}>
-                      <span className={styles.accountHeadline}>
-                        {t('settings.account.signedOutTitle')}
-                      </span>
-                      <span className={styles.accountHint}>{t('settings.account.hint')}</span>
+                      <span className={styles.accountLabel}>{t('auth.email')}</span>
+                      <span className={styles.accountEmail}>{email}</span>
                     </div>
-                    <div className={styles.accountActions}>
-                      <Link
-                        className={styles.primaryButton}
-                        to={`/auth/login?next=${encodeURIComponent(accountNext)}`}
-                      >
-                        {t('settings.account.login')}
-                      </Link>
-                      <Link
-                        className={styles.secondaryButton}
-                        to={`/auth/signup?next=${encodeURIComponent(accountNext)}`}
-                      >
-                        {t('settings.account.register')}
-                      </Link>
-                    </div>
+                    <span className={styles.accountStatus}>{t('settings.account.status')}</span>
                   </div>
-                )}
-              </div>
+                  <div className={styles.accountFoot}>
+                    <button
+                      type="button"
+                      className={styles.dangerButton}
+                      onClick={() => setConfirmingSignOut(true)}
+                    >
+                      {t('settings.account.signOut')}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className={styles.accountRow}>
+                  <span className={styles.accountIcon} aria-hidden="true">
+                    <UserIcon size={18} />
+                  </span>
+                  <div className={styles.accountText}>
+                    <span className={styles.accountHeadline}>
+                      {t('settings.account.signedOutTitle')}
+                    </span>
+                    <span className={styles.accountHint}>{t('settings.account.hint')}</span>
+                  </div>
+                  <div className={styles.accountActions}>
+                    <Link
+                      className={styles.primaryButton}
+                      to={`/auth/login?next=${encodeURIComponent(accountNext)}`}
+                    >
+                      {t('settings.account.login')}
+                    </Link>
+                    <Link
+                      className={styles.secondaryButton}
+                      to={`/auth/signup?next=${encodeURIComponent(accountNext)}`}
+                    >
+                      {t('settings.account.register')}
+                    </Link>
+                  </div>
+                </div>
+              )}
               {principalId && takeoverNotice ? (
                 <p className={styles.notice}>{t('auth.takeover.notice')}</p>
               ) : null}
             </section>
 
-            <section id="sync" className={styles.section} aria-labelledby="settings-sync">
+            <section
+              id="sync"
+              className={`${styles.section} ${styles.panelSection}`}
+              aria-labelledby="settings-sync"
+            >
               <h2 id="settings-sync" className={styles.heading}>
                 {t('settings.sync')}
               </h2>
-              <p className={styles.hint}>{t('settings.sync.hint')}</p>
               {principalId ? (
-                <SyncPanel principalId={principalId} />
+                <>
+                  <p className={styles.hint}>{t('settings.sync.hint')}</p>
+                  <SyncPanel principalId={principalId} />
+                </>
               ) : (
-                <div className={styles.actions}>
-                  <Link
-                    className={styles.entry}
-                    to={`/auth/login?next=${encodeURIComponent(syncNext)}`}
-                  >
-                    {t('settings.account.login')}
-                  </Link>
-                  <Link
-                    className={styles.entry}
-                    to={`/auth/signup?next=${encodeURIComponent(syncNext)}`}
-                  >
-                    {t('settings.account.register')}
-                  </Link>
+                <div className={styles.syncRowOut}>
+                  <span className={styles.rowHint}>{t('settings.sync.hint')}</span>
+                  <div className={styles.accountActions}>
+                    <Link
+                      className={styles.secondaryButton}
+                      to={`/auth/login?next=${encodeURIComponent(syncNext)}`}
+                    >
+                      {t('settings.account.login')}
+                    </Link>
+                    <Link
+                      className={styles.secondaryButton}
+                      to={`/auth/signup?next=${encodeURIComponent(syncNext)}`}
+                    >
+                      {t('settings.account.register')}
+                    </Link>
+                  </div>
                 </div>
               )}
             </section>
@@ -401,6 +434,7 @@ export function SettingsPage() {
                 </div>
                 <Link className={styles.entry} to="/data">
                   {t('settings.about.dataLink')}
+                  <ArrowIcon size={15} />
                 </Link>
               </div>
             </section>
