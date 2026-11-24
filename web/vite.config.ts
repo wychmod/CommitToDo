@@ -9,6 +9,11 @@ export default defineConfig({
     },
   },
   plugins: [react()],
+  build: {
+    // CloudBase SDK 是独立 chunk（925 kB / gzip 232 kB），按需加载、不进首屏；
+    // 把阈值调到它的体积之上，避免每次构建都被同一条警告淹没而失去意义。
+    chunkSizeWarningLimit: 1000,
+  },
   server: {
     // design/ 在 web/ 之外，令牌与画稿要能被 dev server 读取。
     fs: { allow: ['..'] },
