@@ -11,9 +11,10 @@
 
 import { fail, ok, type Result } from '@/core/errors';
 import {
-  EXPORT_SCHEMA_VERSION,
   EXPORT_TABLES,
   isExampleRecord,
+  isReadableSchemaVersion,
+  requiresYearReviews,
   type ExportCounts,
   type ExportTable,
 } from './export-file';
@@ -25,6 +26,12 @@ export interface ImportRow {
 }
 
 export type ImportTables = Record<ExportTable, ImportRow[]>;
+
+/** 年度总结行的最小形状（与 `YearReview` 对齐，导入侧只做结构校验）。 */
+export interface ImportYearReviewRow extends ImportRow {
+  year: number;
+  note: string;
+}
 
 export interface ImportSummary {
   schemaVersion: number;
@@ -50,6 +57,7 @@ function emptyTables(): ImportTables {
     badges: [],
     settings: [],
     events: [],
+    year_reviews: [],
   };
 }
 
@@ -74,13 +82,21 @@ export function validateImportFile(text: string): Result<ImportFileData> {
   ) {
     return fail('backup.invalid_file', { field: 'schemaVersion', cause: 'invalid-schema-version' });
   }
-  if (parsed.schemaVersion !== EXPORT_SCHEMA_VERSION) {
+  if (!isReadableSchemaVersion(parsed.schemaVersion)) {
     return fail('backup.version_unsupported', { field: 'schemaVersion' });
   }
 
   const tables = emptyTables();
   for (const table of EXPORT_TABLES) {
     const raw = parsed[table];
+    // schemaVersion 1 的文件没有 year_reviews，按空表处理；其余表始终必须存在。
+    if (
+      table === 'year_reviews' &&
+      raw === undefined &&
+      !requiresYearReviews(parsed.schemaVersion)
+    ) {
+      continue;
+    }
     if (!Array.isArray(raw)) {
       return fail('backup.invalid_file', { field: 'data', cause: `missing-table:${table}` });
     }

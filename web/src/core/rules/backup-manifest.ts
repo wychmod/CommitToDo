@@ -5,7 +5,7 @@
  * 不计入。版本缺失或不等于当前导出格式时判定不可恢复，不做迁移。
  */
 
-import { EXPORT_SCHEMA_VERSION, isExampleRecord, type ExportRecord } from './export-file';
+import { isExampleRecord, isReadableSchemaVersion, type ExportRecord } from './export-file';
 
 export type BackupCountKey = 'branches' | 'tasks' | 'commits' | 'milestones' | 'badges';
 
@@ -65,16 +65,18 @@ export function readBackupManifest(payload: string | null | undefined): BackupMa
   return { schemaVersion, counts };
 }
 
-/** 快照或异地备份能否被当前应用恢复。 */
-export function isBackupRestorable(
-  schemaVersion: number | null | undefined,
-  current: number = EXPORT_SCHEMA_VERSION,
-): boolean {
+/**
+ * 快照或异地备份能否被当前应用恢复。
+ *
+ * 与导入同口径：结构化版本（1 起）都可读，`schemaVersion 1` 的快照没有
+ * `year_reviews`，恢复时按空表处理；未来版本一律拒绝，不做猜测式迁移。
+ */
+export function isBackupRestorable(schemaVersion: number | null | undefined): boolean {
   return (
     typeof schemaVersion === 'number' &&
     Number.isInteger(schemaVersion) &&
     schemaVersion > 0 &&
-    schemaVersion === current
+    isReadableSchemaVersion(schemaVersion)
   );
 }
 

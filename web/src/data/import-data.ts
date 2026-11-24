@@ -1,11 +1,10 @@
 import { fail, ok, type Result } from '@/core/errors';
-import { recountBranch } from '@/core/rules/counters';
 import { validateImportFile, type ImportSummary } from '@/core/rules/import-validate';
 import type { ExportCounts } from '@/core/rules/export-file';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
-import type { Badge, Branch, Commit, EventRecord, Milestone, Settings, Task } from './types';
+import { BUSINESS_TABLE_NAMES, replaceBusinessTables } from './restore-tables';
 
 export interface ImportDataInput {
   text: string;
@@ -19,7 +18,8 @@ export interface ImportDataResult {
 /**
  * 从文件整体替换（PRD M10 OP-05 / OP-07）。
  *
- * 先做纯函数校验，不写库；校验通过后单事务内清空七张表再写入文件数据：
+ * 先做纯函数校验，不写库；校验通过后单事务内清空八张业务表再写入文件数据：
+ * 行的 `ownerId` 一律改写成当前归属（登录后导入本机导出文件不会变成空白库），
  * 分支四计数按文件内的待办与有效提交全量重算（R7），已撤销提交保留 `voidedAt`（R3）。
  * 任一步失败整体回滚，导入前的数据完整保留。
  */
@@ -43,33 +43,13 @@ export async function importData(
         db.badges,
         db.settings,
         db.events,
+        db.yearReviews,
         db.outbox,
       ],
       async (tx) => {
-        await Promise.all([
-          db.branches.clear(),
-          db.tasks.clear(),
-          db.commits.clear(),
-          db.milestones.clear(),
-          db.badges.clear(),
-          db.settings.clear(),
-          db.events.clear(),
-        ]);
-
-        const tasks = tables.tasks as unknown as Task[];
-        const commits = tables.commits as unknown as Commit[];
-        const branches = (tables.branches as unknown as Branch[]).map((branch) => ({
-          ...branch,
-          ...recountBranch(branch.id, tasks, commits),
-        }));
-
-        await db.branches.bulkPut(branches);
-        await db.tasks.bulkPut(tasks);
-        await db.commits.bulkPut(commits);
-        await db.milestones.bulkPut(tables.milestones as unknown as Milestone[]);
-        await db.badges.bulkPut(tables.badges as unknown as Badge[]);
-        await db.settings.bulkPut(tables.settings as unknown as Settings[]);
-        await db.events.bulkPut(tables.events as unknown as EventRecord[]);
+        await replaceBusinessTables(tables);
+        // 换代后的数据与本机残留的待推送行无关，继续推送会把旧行复活。
+        await db.outbox.clear();
 
         await writeEvent(
           tx,
@@ -86,3 +66,6 @@ export async function importData(
     return fail('storage.write_failed', { retriable: true, cause });
   }
 }
+
+/** 表清单的单点引用，供测试断言「替换覆盖了全部业务表」。 */
+export const IMPORTED_TABLE_NAMES = BUSINESS_TABLE_NAMES;

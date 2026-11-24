@@ -19,6 +19,7 @@ const tables = () => ({
   badges: [{ id: 'bb1', ownerId: 'local', catalogId: 'first' }],
   settings: [{ id: 'app', ownerId: 'local', theme: 'light' }],
   events: [{ id: 'e1', ownerId: 'local', action: 'branch.create' }],
+  yearReviews: [{ id: 'y1', ownerId: 'local', year: 2026, note: '一年一句话' }],
 });
 
 type TestRow = { id: string } & Record<string, unknown>;
@@ -32,7 +33,7 @@ const build = (over: Partial<ReturnType<typeof tables>> = {}) =>
   });
 
 describe('导出文件（OP-01 / §8.2）', () => {
-  it('顶层只有版本、时间、应用版本与七张表，业务行原样保留', () => {
+  it('顶层只有版本、时间、应用版本与八张表，业务行原样保留', () => {
     const file = build();
 
     expect(Object.keys(file.payload).sort()).toEqual(
@@ -47,6 +48,7 @@ describe('导出文件（OP-01 / §8.2）', () => {
         'schemaVersion',
         'settings',
         'tasks',
+        'year_reviews',
       ].sort(),
     );
     expect(file.payload).toMatchObject({
@@ -58,7 +60,7 @@ describe('导出文件（OP-01 / §8.2）', () => {
     expect(file.payload.milestones[0].note).toBe('一件小事');
   });
 
-  it('七个计数字段齐全且与数组长度一致', () => {
+  it('八个计数字段齐全且与数组长度一致', () => {
     expect(build().counts).toEqual({
       branches: 1,
       tasks: 1,
@@ -67,6 +69,7 @@ describe('导出文件（OP-01 / §8.2）', () => {
       badges: 1,
       settings: 1,
       events: 1,
+      year_reviews: 1,
     });
   });
 

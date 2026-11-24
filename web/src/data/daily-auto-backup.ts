@@ -35,6 +35,7 @@ export async function runDailyAutoBackup(
         db.badges,
         db.settings,
         db.events,
+        db.yearReviews,
         db.backups,
         db.outbox,
       ],

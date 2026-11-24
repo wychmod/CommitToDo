@@ -27,6 +27,7 @@ export async function createManualBackup(
         db.badges,
         db.settings,
         db.events,
+        db.yearReviews,
         db.backups,
         db.outbox,
       ],

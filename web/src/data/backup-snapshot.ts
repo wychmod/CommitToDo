@@ -16,6 +16,7 @@ import {
   milestoneRepository,
   settingsRepository,
   taskRepository,
+  yearReviewRepository,
 } from './repositories';
 import type { Backup, BackupKind } from './types';
 
@@ -40,15 +41,17 @@ export async function buildBackupSnapshot(
   now: number,
   tzOffsetMinutes: number,
 ): Promise<BackupSnapshot> {
-  const [branches, tasks, commits, milestones, badges, settings, events] = await Promise.all([
-    branchRepository.listByOwner(LOCAL_OWNER_ID),
-    taskRepository.listByOwner(LOCAL_OWNER_ID),
-    commitRepository.listByOwner(LOCAL_OWNER_ID),
-    milestoneRepository.listByOwner(LOCAL_OWNER_ID),
-    badgeRepository.listByOwner(LOCAL_OWNER_ID),
-    settingsRepository.listByOwner(LOCAL_OWNER_ID),
-    eventRepository.listRecent(LOCAL_OWNER_ID, Number.MAX_SAFE_INTEGER),
-  ]);
+  const [branches, tasks, commits, milestones, badges, settings, events, yearReviews] =
+    await Promise.all([
+      branchRepository.listByOwner(LOCAL_OWNER_ID),
+      taskRepository.listByOwner(LOCAL_OWNER_ID),
+      commitRepository.listByOwner(LOCAL_OWNER_ID),
+      milestoneRepository.listByOwner(LOCAL_OWNER_ID),
+      badgeRepository.listByOwner(LOCAL_OWNER_ID),
+      settingsRepository.listByOwner(LOCAL_OWNER_ID),
+      eventRepository.listRecent(LOCAL_OWNER_ID, Number.MAX_SAFE_INTEGER),
+      yearReviewRepository.listByOwner(LOCAL_OWNER_ID),
+    ]);
 
   const file = buildExportFile<ExportRecord>({
     exportedAt: toIsoString(now),
@@ -60,6 +63,7 @@ export async function buildBackupSnapshot(
     badges,
     settings,
     events,
+    yearReviews,
   });
 
   return {
@@ -80,7 +84,16 @@ export async function readBackupSnapshot(
   try {
     return await db.transaction(
       'r',
-      [db.branches, db.tasks, db.commits, db.milestones, db.badges, db.settings, db.events],
+      [
+        db.branches,
+        db.tasks,
+        db.commits,
+        db.milestones,
+        db.badges,
+        db.settings,
+        db.events,
+        db.yearReviews,
+      ],
       async () => {
         const now = deps.clock.now();
         return ok(await buildBackupSnapshot(now, deps.tzOffset(now)));

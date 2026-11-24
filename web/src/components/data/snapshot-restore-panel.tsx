@@ -5,6 +5,7 @@ import {
   readBackupManifest,
   type BackupCountKey,
 } from '@/core/rules/backup-manifest';
+import { markBadgeBackfillSkipped } from '@/components/badges/backfill-guard';
 import { restoreSnapshot } from '@/data/snapshot-restore';
 import type { Backup, BackupKind } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
@@ -55,6 +56,8 @@ export function SnapshotRestorePanel({ backup, onClose, onRestored }: SnapshotRe
     setFailure(null);
     const result = await restoreSnapshot({ backupId: backup.id });
     if (result.ok) {
+      // 快照里的徽章原样恢复；本次会话不再按数据补发，与「从文件恢复」同口径（M11 OP-08）。
+      markBadgeBackfillSkipped();
       onRestored();
       return;
     }

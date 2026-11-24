@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { toLocalDate } from '@/core/clock';
+import { EXPORT_SCHEMA_VERSION } from '@/core/rules/export-file';
 import type { WriteDeps } from './deps';
 import { runDailyAutoBackup } from './daily-auto-backup';
 import { db, LOCAL_OWNER_ID } from './db';
@@ -99,7 +100,11 @@ describe('runDailyAutoBackup（OP-01）', () => {
     expect(result.ok).toBe(true);
     const rows = await db.backups.toArray();
     expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ kind: 'auto', branchCount: 1, schemaVersion: 1 });
+    expect(rows[0]).toMatchObject({
+      kind: 'auto',
+      branchCount: 1,
+      schemaVersion: EXPORT_SCHEMA_VERSION,
+    });
     expect(rows[0].payload.length).toBeGreaterThan(0);
 
     const settings = await db.settings.get('app');

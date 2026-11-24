@@ -10,6 +10,7 @@ const tables = () => ({
   badges: [{ id: 'bb1', ownerId: 'local' }],
   settings: [{ id: 'app', ownerId: 'local', theme: 'light' }],
   events: [{ id: 'e1', ownerId: 'local', action: 'branch.create' }],
+  year_reviews: [{ id: 'y1', ownerId: 'local', year: 2026, note: '一年一句话' }],
 });
 
 const file = (over: Record<string, unknown> = {}) =>
@@ -46,6 +47,7 @@ describe('导入文件校验（OP-04 / §4.2）', () => {
         badges: 1,
         settings: 1,
         events: 1,
+        year_reviews: 1,
       },
     });
     expect(result.value.tables.commits[0].voidedAt).toBe(123);
@@ -65,6 +67,25 @@ describe('导入文件校验（OP-04 / §4.2）', () => {
     expect(expectFail(file({ schemaVersion: '1' })).field).toBe('schemaVersion');
     expect(expectFail(file({ schemaVersion: 0 })).field).toBe('schemaVersion');
     expect(expectFail(file({ schemaVersion: 1.5 })).field).toBe('schemaVersion');
+  });
+
+  it('schemaVersion 1 的旧文件缺 year_reviews 也能读入', () => {
+    const legacy = JSON.parse(file({ schemaVersion: 1 })) as Record<string, unknown>;
+    delete legacy.year_reviews;
+    const result = validateImportFile(JSON.stringify(legacy));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.tables.year_reviews).toEqual([]);
+    expect(result.value.summary.schemaVersion).toBe(1);
+  });
+
+  it('schemaVersion 2 缺 year_reviews 时拒绝', () => {
+    const missing = JSON.parse(file()) as Record<string, unknown>;
+    delete missing.year_reviews;
+    expect(expectFail(JSON.stringify(missing))).toMatchObject({
+      code: 'backup.invalid_file',
+      field: 'data',
+    });
   });
 
   it('版本不是当前版本时给出不支持', () => {
@@ -109,11 +130,12 @@ describe('导入文件校验（OP-04 / §4.2）', () => {
       badges: [],
       settings: [],
       events: [],
+      year_reviews: [],
     };
     const result = validateImportFile(file(empty));
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(Object.values(result.value.summary.counts)).toEqual([0, 0, 0, 0, 0, 0, 0]);
+    expect(Object.values(result.value.summary.counts)).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
   });
 
   it('示例命名空间记录被剔除，不参与条数', () => {

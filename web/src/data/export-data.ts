@@ -17,6 +17,7 @@ import {
   milestoneRepository,
   settingsRepository,
   taskRepository,
+  yearReviewRepository,
 } from './repositories';
 
 export interface ExportDataResult {
@@ -31,7 +32,7 @@ export interface ExportDataResult {
 /**
  * 导出完整数据（PRD M10 OP-01）。
  *
- * 只读业务表，同一事务内取七个表的快照并写一条 `data.export` 事件；
+ * 只读业务表，同一事务内取八个表的快照并写一条 `data.export` 事件；
  * 示例命名空间的行在组装时剔除。读失败按 `storage.write_failed` 返回，
  * 不生成半份文件。
  */
@@ -49,18 +50,21 @@ export async function exportData(
         db.badges,
         db.settings,
         db.events,
+        db.yearReviews,
         db.outbox,
       ],
       async (tx) => {
-        const [branches, tasks, commits, milestones, badges, settings, events] = await Promise.all([
-          branchRepository.listByOwner(LOCAL_OWNER_ID),
-          taskRepository.listByOwner(LOCAL_OWNER_ID),
-          commitRepository.listByOwner(LOCAL_OWNER_ID),
-          milestoneRepository.listByOwner(LOCAL_OWNER_ID),
-          badgeRepository.listByOwner(LOCAL_OWNER_ID),
-          settingsRepository.listByOwner(LOCAL_OWNER_ID),
-          eventRepository.listRecent(LOCAL_OWNER_ID, Number.MAX_SAFE_INTEGER),
-        ]);
+        const [branches, tasks, commits, milestones, badges, settings, events, yearReviews] =
+          await Promise.all([
+            branchRepository.listByOwner(LOCAL_OWNER_ID),
+            taskRepository.listByOwner(LOCAL_OWNER_ID),
+            commitRepository.listByOwner(LOCAL_OWNER_ID),
+            milestoneRepository.listByOwner(LOCAL_OWNER_ID),
+            badgeRepository.listByOwner(LOCAL_OWNER_ID),
+            settingsRepository.listByOwner(LOCAL_OWNER_ID),
+            eventRepository.listRecent(LOCAL_OWNER_ID, Number.MAX_SAFE_INTEGER),
+            yearReviewRepository.listByOwner(LOCAL_OWNER_ID),
+          ]);
 
         const now = deps.clock.now();
         const file = buildExportFile<ExportRecord>({
@@ -73,6 +77,7 @@ export async function exportData(
           badges,
           settings,
           events,
+          yearReviews,
         });
 
         await writeEvent(tx, 'data.export', LOCAL_OWNER_ID, { counts: file.counts }, deps);

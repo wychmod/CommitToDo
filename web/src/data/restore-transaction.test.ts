@@ -159,6 +159,7 @@ interface FileInput {
   badges?: ImportTablesInput['badges'];
   settings?: ImportTablesInput['settings'];
   events?: ImportTablesInput['events'];
+  year_reviews?: ImportTablesInput['year_reviews'];
 }
 
 interface ImportTablesInput {
@@ -169,6 +170,7 @@ interface ImportTablesInput {
   badges: unknown[];
   settings: unknown[];
   events: unknown[];
+  year_reviews: unknown[];
 }
 
 function fileText(over: FileInput = {}): string {
@@ -183,6 +185,7 @@ function fileText(over: FileInput = {}): string {
     badges: [],
     settings: [],
     events: [],
+    year_reviews: [],
     ...over,
   });
 }
@@ -196,6 +199,7 @@ async function snapshot() {
     badges: await db.badges.toArray(),
     settings: await db.settings.toArray(),
     events: await db.events.toArray(),
+    year_reviews: await db.yearReviews.toArray(),
   };
 }
 
@@ -264,6 +268,7 @@ describe('importData（OP-05 / OP-07）', () => {
       badges: 1,
       settings: 1,
       events: 1,
+      year_reviews: 0,
     });
 
     // 旧数据全部消失，只剩文件内容。
@@ -406,6 +411,7 @@ describe('exportData（OP-01）', () => {
       badges: 1,
       settings: 1,
       events: 1,
+      year_reviews: 0,
     });
 
     const exported = (await db.events.toArray()).filter((event) => event.action === 'data.export');
@@ -424,6 +430,7 @@ describe('exportData（OP-01）', () => {
       badges: 0,
       settings: 0,
       events: 0,
+      year_reviews: 0,
     });
   });
 });
@@ -443,6 +450,7 @@ describe('clearAllData（OP-06）', () => {
       badges: 1,
       settings: 1,
       events: 1,
+      year_reviews: 0,
     });
 
     const after = await snapshot();

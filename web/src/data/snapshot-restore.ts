@@ -1,15 +1,13 @@
 import { fail, ok, type Result } from '@/core/errors';
-import { recountBranch } from '@/core/rules/counters';
-import { EXPORT_SCHEMA_VERSION } from '@/core/rules/export-file';
 import { isBackupRestorable } from '@/core/rules/backup-manifest';
 import { selectExpiredBackupIds } from '@/core/rules/backup-retention';
-import { validateImportFile, type ImportTables } from '@/core/rules/import-validate';
+import { validateImportFile } from '@/core/rules/import-validate';
 import { backupRowFromSnapshot, buildBackupSnapshot } from './backup-snapshot';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
 import { backupRepository } from './repositories';
-import type { Badge, Branch, Commit, EventRecord, Milestone, Settings, Task } from './types';
+import { replaceBusinessTables } from './restore-tables';
 
 export interface RestoreSnapshotInput {
   backupId: string;
@@ -35,33 +33,6 @@ class RestoreStepError extends Error {
   }
 }
 
-async function replaceBusinessTables(tables: ImportTables): Promise<void> {
-  const tasks = tables.tasks as unknown as Task[];
-  const commits = tables.commits as unknown as Commit[];
-  const branches = (tables.branches as unknown as Branch[]).map((branch) => ({
-    ...branch,
-    ...recountBranch(branch.id, tasks, commits),
-  }));
-
-  await Promise.all([
-    db.branches.clear(),
-    db.tasks.clear(),
-    db.commits.clear(),
-    db.milestones.clear(),
-    db.badges.clear(),
-    db.settings.clear(),
-    db.events.clear(),
-  ]);
-
-  await db.branches.bulkPut(branches);
-  await db.tasks.bulkPut(tasks);
-  await db.commits.bulkPut(commits);
-  await db.milestones.bulkPut(tables.milestones as unknown as Milestone[]);
-  await db.badges.bulkPut(tables.badges as unknown as Badge[]);
-  await db.settings.bulkPut(tables.settings as unknown as Settings[]);
-  await db.events.bulkPut(tables.events as unknown as EventRecord[]);
-}
-
 /**
  * 从快照整体恢复（PRD V1-06 OP-04 / OP-05）。
  *
@@ -77,7 +48,7 @@ export async function restoreSnapshot(
   const target = await backupRepository.getById(input.backupId);
   if (!target) return fail('domain.not_found');
   if (target.kind === 'remote') return fail('validation.invalid_input', { field: 'kind' });
-  if (!isBackupRestorable(target.schemaVersion, EXPORT_SCHEMA_VERSION)) {
+  if (!isBackupRestorable(target.schemaVersion)) {
     return fail('backup.version_unsupported', { field: 'schemaVersion' });
   }
 
@@ -97,6 +68,7 @@ export async function restoreSnapshot(
         db.badges,
         db.settings,
         db.events,
+        db.yearReviews,
         db.backups,
         db.outbox,
       ],
@@ -115,6 +87,8 @@ export async function restoreSnapshot(
 
         try {
           await replaceBusinessTables(tables);
+          // 恢复后旧队列指向的版本已不存在，留着会在下次同步里把旧行推回云端。
+          await db.outbox.clear();
           await backupRepository.update(target.id, { restoredAt: now });
           await writeEvent(
             tx,

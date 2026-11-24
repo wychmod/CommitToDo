@@ -25,10 +25,6 @@ export interface BackupRetentionRow {
 
 const KINDS = Object.keys(BACKUP_RETENTION_LIMIT) as BackupRetentionKind[];
 
-function isRetentionKind(kind: string): kind is BackupRetentionKind {
-  return (KINDS as readonly string[]).includes(kind);
-}
-
 /** 备份列表统一按 `createdAt` 倒序；同毫秒时 id 大者视为更新（ULID 字典序即时间序）。 */
 export function sortBackupsNewestFirst<T extends { createdAt: number; id: string }>(
   rows: readonly T[],
@@ -53,9 +49,4 @@ export function selectExpiredBackupIds(rows: readonly BackupRetentionRow[]): str
   }
 
   return expired;
-}
-
-/** 校验类目是否属于保留策略；仅测试与调用方断言使用。 */
-export function isBackupRetentionKind(kind: string): kind is BackupRetentionKind {
-  return isRetentionKind(kind);
 }
