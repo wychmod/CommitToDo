@@ -15,22 +15,14 @@ export function normalizeMilestoneAchievedAt(
   precision: MilestonePrecision,
   tzOffsetMinutes: number,
 ): number {
-  if (!isCalendarDate(date)) {
+  // `isDateString` 已经校验真实日历（含闰年与月份天数），无需二次判断。
+  if (!isDateString(date)) {
     throw new Error(`里程碑日期必须是真实日历日：${date}`);
   }
   const [year, month, day] = date.split('-').map(Number);
   const targetMonth = precision === 'year' ? 1 : month!;
   const targetDay = precision === 'day' ? day! : 1;
   return Date.UTC(year!, targetMonth - 1, targetDay) - tzOffsetMinutes * 60_000;
-}
-
-function isCalendarDate(value: string): boolean {
-  if (!isDateString(value)) return false;
-  const [year, month, day] = value.split('-').map(Number);
-  const date = new Date(Date.UTC(year!, month! - 1, day!));
-  return (
-    date.getUTCFullYear() === year && date.getUTCMonth() === month! - 1 && date.getUTCDate() === day
-  );
 }
 
 export function formatMilestoneDate(

@@ -1,10 +1,10 @@
 import { useMemo, useState, type CSSProperties } from 'react';
-import { systemClock, today } from '@/core/clock';
+
 import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import { displayBranchTrail } from '@/core/rules/branch-path';
 import { groupAllTodoTasks, sortByManualOrder } from '@/core/rules/today-groups';
 import { completeTask } from '@/data/complete-task';
-import { useAllTodosData } from '@/data/hooks';
+import { useAllTodosData, useTodayDate } from '@/data/hooks';
 import type { Branch, Task } from '@/data/types';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
@@ -53,7 +53,7 @@ export function AllTodosPage() {
   const openTaskDetail = useShellStore((state) => state.openTaskDetail);
   const openOverlay = useShellStore((state) => state.openOverlay);
   const manualGroups = useTodayStore((state) => state.manualGroups);
-  const todayDate = today(systemClock);
+  const todayDate = useTodayDate();
   const [filters, setFilters] = useState<Filters>({ root: false, dropped: false, archived: false });
   const [pageError, setPageError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);

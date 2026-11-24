@@ -62,6 +62,56 @@ import type { Badge, Backup, Branch, Commit, EventRecord, Milestone, Task } from
  * 空库时返回空数组，不用假数据填充。
  */
 
+/**
+ * 当前本地自然日（R8 的「今天」）。
+ *
+ * 直接 `today(systemClock)` 只在渲染时取一次，页面开着过零点后分组边界、
+ * 逾期判定与备份新鲜度都不会变。这里在下一个本地零点主动换值，
+ * 并在页面重新可见时补一次，保证跨零点后界面立即按新的一天分组。
+ */
+export function useTodayDate(): string {
+  const [date, setDate] = useState(() => today(systemClock));
+
+  useEffect(() => {
+    let timer: number | null = null;
+
+    const schedule = (): void => {
+      const current = today(systemClock);
+      setDate(current);
+
+      const now = systemClock.now();
+      const shifted = new Date(now + currentTzOffset(now) * 60_000);
+      const nextMidnight =
+        Date.UTC(
+          shifted.getUTCFullYear(),
+          shifted.getUTCMonth(),
+          shifted.getUTCDate() + 1,
+          0,
+          0,
+          0,
+          0,
+        ) -
+        currentTzOffset(now) * 60_000;
+      // 至少 1 秒，避免恰好卡在零点时的空转。
+      const delay = Math.max(1_000, nextMidnight - now + 1_000);
+      timer = window.setTimeout(schedule, delay);
+    };
+
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') schedule();
+    };
+
+    schedule();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      if (timer !== null) window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, []);
+
+  return date;
+}
+
 export function useBranches(ownerId = LOCAL_OWNER_ID) {
   return useLiveQuery(() => branchRepository.listByOwner(ownerId), [ownerId]);
 }
@@ -295,14 +345,6 @@ export function useOpenTasks(ownerId = LOCAL_OWNER_ID) {
   return useLiveQuery(() => taskRepository.listOpenByOwner(ownerId), [ownerId]);
 }
 
-export function useRecentCommits(ownerId = LOCAL_OWNER_ID, limit = 3) {
-  return useLiveQuery(() => commitRepository.listRecent(ownerId, limit), [ownerId, limit]);
-}
-
-export function useMilestones(ownerId = LOCAL_OWNER_ID) {
-  return useLiveQuery(() => milestoneRepository.listByOwner(ownerId), [ownerId]);
-}
-
 export interface TodayDataView {
   status: 'loading' | 'ready' | 'error';
   tasks: Task[];
@@ -333,7 +375,7 @@ export function useTodayData(ownerId = LOCAL_OWNER_ID, commitLimit = 3): TodayDa
     }
   }, [ownerId, commitLimit, attempt]);
   const retry = useCallback(() => setAttempt((value) => value + 1), []);
-  const todayDate = today(systemClock);
+  const todayDate = useTodayDate();
 
   if (result === undefined) {
     return { status: 'loading', tasks: [], branches: [], commits: [], todayDate, retry };
@@ -374,7 +416,7 @@ export function useAllTodosData(ownerId = LOCAL_OWNER_ID): AllTodosView {
     }
   }, [ownerId, attempt]);
   const retry = useCallback(() => setAttempt((value) => value + 1), []);
-  const todayDate = today(systemClock);
+  const todayDate = useTodayDate();
 
   if (result === undefined) {
     return { status: 'loading', tasks: [], branches: [], todayDate, retry };
@@ -533,10 +575,6 @@ export function useSettingsState(ownerId = LOCAL_OWNER_ID) {
   };
 
   return { loaded: row !== undefined, settings };
-}
-
-export function useRecentEvents(ownerId = LOCAL_OWNER_ID, limit = 20) {
-  return useLiveQuery(() => eventRepository.listRecent(ownerId, limit), [ownerId, limit]);
 }
 
 export type StorageStatus = 'checking' | 'ready' | 'error';
@@ -1265,7 +1303,7 @@ export interface WeekReviewView {
  */
 export function useWeekReview(): WeekReviewView {
   const [attempt, setAttempt] = useState(0);
-  const todayDate = today(systemClock);
+  const todayDate = useTodayDate();
   const reviewDate = weekDayOf(todayDate) === 1 ? addDays(todayDate, -1) : todayDate;
   const formalReview = isWeekReviewDay(reviewDate);
   const tzOffsetMinutes = currentTzOffset(systemClock.now());

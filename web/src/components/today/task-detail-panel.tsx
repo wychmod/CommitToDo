@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { localClockTime, localDate, systemClock, today } from '@/core/clock';
+import { localClockTime, localDate } from '@/core/clock';
 import { branchReadonlyReason, isBranchAccepting } from '@/core/rules/branch-state';
 import { branchTrail } from '@/core/rules/quick-add';
 import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
-import { useTaskDetail } from '@/data/hooks';
+import { useTaskDetail, useTodayDate } from '@/data/hooks';
 import { planTask } from '@/data/plan-task';
 import { updateTask } from '@/data/update-task';
 import type { Branch, EventRecord, Task } from '@/data/types';
@@ -43,7 +43,7 @@ interface TaskDetailBodyProps {
 function TaskDetailBody({ task, branches, events }: TaskDetailBodyProps) {
   const closeOverlay = useShellStore((state) => state.closeOverlay);
   const openCommitDetail = useShellStore((state) => state.openCommitDetail);
-  const todayDate = today(systemClock);
+  const todayDate = useTodayDate();
 
   const [title, setTitle] = useState(task.title);
   const [note, setNote] = useState(task.note ?? '');

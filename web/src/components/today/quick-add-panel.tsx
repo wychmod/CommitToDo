@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { systemClock, today } from '@/core/clock';
+
 import { isBranchAccepting } from '@/core/rules/branch-state';
 import { visibleDefaultTree } from '@/core/rules/branch-visibility';
 import { BULK_IMPORT_MAX, parseBulkImport } from '@/core/rules/bulk-import';
 import { branchTrail, parseQuickAdd, resolveBranchQuery } from '@/core/rules/quick-add';
 import { bulkImportTasks } from '@/data/bulk-import';
-import { useBranches } from '@/data/hooks';
+import { useBranches, useTodayDate } from '@/data/hooks';
 import { createTask } from '@/data/create-task';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
@@ -28,7 +28,7 @@ export function QuickAddPanel() {
   const overlayBranchId = useShellStore((state) => state.overlayBranchId);
   const rawBranches = useBranches();
   const branches = useMemo(() => rawBranches ?? [], [rawBranches]);
-  const todayDate = today(systemClock);
+  const todayDate = useTodayDate();
 
   const [mode, setMode] = useState<QuickAddMode>('single');
   const [text, setText] = useState('');

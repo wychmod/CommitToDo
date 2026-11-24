@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { systemClock, today } from '@/core/clock';
+
 import {
   assessArchive,
   assessPause,
@@ -25,6 +25,7 @@ import {
   useBranchHeader,
   useBranchMilestones,
   useBranchTasks,
+  useTodayDate,
 } from '@/data/hooks';
 import { resumeBranch } from '@/data/resume-branch';
 import type { Branch } from '@/data/types';
@@ -140,7 +141,7 @@ export function BranchDetailPage() {
     return () => window.clearTimeout(timer);
   }, [milestoneFocusId, setMilestoneFocus]);
 
-  const todayDate = today(systemClock);
+  const todayDate = useTodayDate();
   const byId = useMemo(
     () => new Map(header.branches.map((branch) => [branch.id, branch])),
     [header.branches],

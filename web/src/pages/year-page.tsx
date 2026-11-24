@@ -1,10 +1,10 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { currentTzOffset, systemClock, today, toLocalDate } from '@/core/clock';
+import { currentTzOffset, systemClock, toLocalDate } from '@/core/clock';
 import type { YearBranchShare, YearMonthBucket } from '@/core/rules/year-distribution';
 import { createLevelOneResolver, isYearCommit } from '@/core/rules/year-metrics';
 import { listSelectableYears, resolveYearParam } from '@/core/rules/year-param';
-import { useYearReviewData } from '@/data/hooks';
+import { useYearReviewData, useTodayDate } from '@/data/hooks';
 import { trackOpsEvent } from '@/data/ops-events';
 import { saveYearReview } from '@/data/save-year-review';
 import { t } from '@/i18n';
@@ -155,7 +155,7 @@ export function YearPage() {
   const navigate = useNavigate();
   const setRange = useHistoryFilterStore((state) => state.setRange);
 
-  const todayDate = today(systemClock);
+  const todayDate = useTodayDate();
   const currentYear = Number(todayDate.slice(0, 4));
   const shapedYear = year !== undefined && FOUR_DIGITS.test(year);
   const requestedYear = shapedYear ? Number(year) : currentYear;

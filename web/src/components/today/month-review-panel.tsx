@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { systemClock, today } from '@/core/clock';
 import { shiftMonthKey, type MonthReview } from '@/core/rules/month-review';
-import { useMonthReview } from '@/data/hooks';
+import { useMonthReview, useTodayDate } from '@/data/hooks';
 import { trackOpsEvent } from '@/data/ops-events';
 import { t } from '@/i18n';
 import { useReviewStore } from '@/stores/review.store';
@@ -44,7 +43,8 @@ function observationText(review: MonthReview): string {
 /** S01-month-review：固定五区块，只读；窄屏全屏并可返回今天页。 */
 export function MonthReviewPanel() {
   const closeMonth = useReviewStore((state) => state.closeMonth);
-  const defaultMonth = shiftMonthKey(today(systemClock).slice(0, 7), -1);
+  const todayDate = useTodayDate();
+  const defaultMonth = shiftMonthKey(todayDate.slice(0, 7), -1);
   const [monthKey, setMonthKey] = useState(defaultMonth);
   const view = useMonthReview(monthKey);
   const review = view.review;

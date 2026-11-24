@@ -78,7 +78,7 @@ export function validateMilestoneDraft(input: MilestoneDraftInput): MilestoneDra
   if (input.title.trim().length === 0) {
     issues.push({ field: 'title', reason: 'empty' });
   }
-  if (!isRealDate(input.date)) {
+  if (!isDateString(input.date)) {
     issues.push({ field: 'date', reason: 'invalid' });
   } else {
     const future =
@@ -88,14 +88,4 @@ export function validateMilestoneDraft(input: MilestoneDraftInput): MilestoneDra
     if (future) issues.push({ field: 'date', reason: 'future' });
   }
   return issues;
-}
-
-/** 形状之外再校验真实日历日，避免 2 月 30 日滚到下个月。 */
-function isRealDate(value: string): boolean {
-  if (!isDateString(value)) return false;
-  const [year, month, day] = value.split('-').map(Number);
-  const date = new Date(Date.UTC(year!, month! - 1, day!));
-  return (
-    date.getUTCFullYear() === year && date.getUTCMonth() === month! - 1 && date.getUTCDate() === day
-  );
 }

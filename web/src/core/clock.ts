@@ -43,9 +43,23 @@ export function today(clock: Clock, tzOffsetMinutes?: number): string {
 
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-/** 是否为 `YYYY-MM-DD` 形状的日期串（不校验具体月份天数）。 */
+/**
+ * 是否为合法的 `YYYY-MM-DD` 日期串。
+ *
+ * 只测形状会把 `2026-02-30`、`2026-13-01` 放进库，之后在分组、时间线与
+ * `addDays()` 里二次出错，因此这里回写一次 UTC 日期来确认月份天数真实存在。
+ */
 export function isDateString(value: string): boolean {
-  return DATE_PATTERN.test(value);
+  const match = DATE_PATTERN.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
 }
 
 /** 在 `YYYY-MM-DD` 上加减自然日，跨月与闰年由 UTC 日期运算保证。 */
