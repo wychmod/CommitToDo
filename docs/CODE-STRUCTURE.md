@@ -163,8 +163,9 @@ export const fail: (code: ErrorCode, options?: Partial<AppError>) => Result<neve
 
 ### 4.2 action 命名与 payload 类型化
 
-- 格式 `entity.verb`，全小写、无驼峰。**完整清单（27 个，以此为准）**：
-  - `task`：`task.create`、`task.complete`、`task.cancel`、`task.reopen`、`task.plan`、`task.update`、`task.delete`
+- 格式 `entity.verb`，全小写、无驼峰。**完整清单（25 个，以此为准）**：
+  - `task`：`task.create`、`task.complete`、`task.cancel`、`task.plan`、`task.update`
+    （`task.reopen` / `task.delete` 未实现，2026-11-24 从清单移除：撤销完成只写 `commit.void`，MVP 也没有删除待办的动作）
   - `commit`：`commit.update`、`commit.void`
   - `branch`：`branch.create`、`branch.rename`、`branch.move`、`branch.update`、`branch.finish`、`branch.pause`、`branch.resume`、`branch.archive`、`branch.unarchive`
   - `milestone`：`milestone.create`

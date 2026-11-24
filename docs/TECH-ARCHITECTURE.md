@@ -409,7 +409,7 @@ V2 的业务写函数验证调用身份并解析 `ownerId`，校验参数、归�
 | `users` | 身份档案（V2 建） | `_id` = `principalId` | `email`、`nickname`、`createdAt`、`updatedAt` | `email` |
 | `branches` | 分支树 | `id` ULID | `ownerId`、`parentId`、`path`、`depth`、`title`、**`goal`**、**`color`**、`status`、`order`、**`pinnedAt`**、`archivedAt`、**`finishedAt`**、**`finishedIntoId`**、**`droppedAt`**、**`dropReason`**、`taskTotal`、`taskDone`、`commitCount`、`ownLastCommitAt`、`rev`、`createdAt`、`updatedAt`、`deletedAt` | `[ownerId+parentId]`、`[ownerId+status]`、`[ownerId+archivedAt]`、`path`、`[ownerId+updatedAt]` |
 | `tasks` | 待办 | `id` ULID | `ownerId`、`branchId`、`title`、`note`、`dueDate`、`plannedDate`、`status`、`order`、**`completedAt`**、**`completedCommitId`**、**`cancelledAt`**、`rev`、时间戳、`deletedAt` | `[ownerId+branchId+status]`、`[ownerId+status+dueDate]`、`[ownerId+status+plannedDate]`、`[ownerId+completedAt]` |
-| `commits` | 提交 | `id` ULID | `ownerId`、`branchId`、`sourceBranchId`、`taskId`、`date`、**`at`**、`summary`、`voidedAt`、`rev`、时间戳、`deletedAt` | `[ownerId+date]`、`[ownerId+branchId+date]`、`[ownerId+branchId+at]` |
+| `commits` | 提交 | `id` ULID | `ownerId`、`branchId`、`sourceBranchId`、`taskId`、`date`、**`at`**、`summary`、`voidedAt`、`rev`、时间戳、`deletedAt` | `[ownerId+date]`、`[ownerId+at]`、`[ownerId+branchId+date]`、`[ownerId+branchId+at]` |
 | `milestones` | 里程碑 | `id` ULID | `ownerId`、`branchId`、`title`、**`note`**、`achievedAt`、`datePrecision`、`rev`、时间戳、`deletedAt` | `[ownerId+achievedAt]`、`[ownerId+branchId]` |
 | `badges` | 徽章授予快照 | `id` ULID | `ownerId`、**`catalogId`**、**`category`**、**`periodKey`**、`grantedAt`、`snapshot`、`sourceEntityId`、`rev` | `[ownerId+grantedAt]`、`[ownerId+category]`、`[ownerId+catalogId+periodKey]`（唯一） |
 | `settings` | 单行偏好 | `id` = `'app'` | `ownerId`、`theme`、`treeDensity`、`annotations`、`reminderEnabled`、**`lastAutoBackupAt`**、`rev`、`updatedAt` | — |
@@ -476,6 +476,7 @@ Dexie 的复合索引用 `[a+b]` 声明。下面十一条各对应一个真实�
 | Q2 | 今天三组 | `ownerId` + `status='open'`；先按 `plannedDate = today` 取「显式安排到今天」的待办进今天组，再对剩余按 `dueDate` 分桶（逾期 / 今天 / 未来）与无截止 | `[ownerId+status+plannedDate]` 先查显式安排，`[ownerId+status+dueDate]` 再取日期窗口 | 当天窗口 |
 | Q3 | 分支详情提交流 | `ownerId` + `branchId`，按 `date` 倒序分页，过滤 `voidedAt === null` | `[ownerId+branchId+date]` | 每页 20 |
 | Q4 | 时间树泳道 | `ownerId` + 日期区间，按 `branchId` 归组 | `[ownerId+date]` | 90 天窗口 |
+| Q4b | 最近提交（今天页回执、详情相邻） | `ownerId` 按 `at` 倒序取 1–3 条，过滤 `voidedAt`/`deletedAt` | `[ownerId+at]` | 每次 1–3 行 |
 | Q5 | 提交详情的上下条 | 同一 `branchId` 下按 `date` 双向游标 | `[ownerId+branchId+date]` | 各取 1 条 |
 | Q6 | 已归档视图 | `ownerId` + `archivedAt != null`，按 `finishedAt` 倒序，再按一级分组成 `工作 / 1 条已归档` | `[ownerId+archivedAt]` | 归档区 ≤ 数十 |
 | Q7 | 徽章墙与详情 | `ownerId` + `category`，按 `grantedAt` 排序；未获得项与「还差 N」由常量目录现算 | `[ownerId+category]` | 目录固定 16 项 |
