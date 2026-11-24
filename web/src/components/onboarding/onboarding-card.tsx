@@ -1,18 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { localClockTime, localDate, systemClock } from '@/core/clock';
 import { BRANCH_COLORS, DEFAULT_BRANCH_COLOR, type BranchColor } from '@/core/rules/branch-color';
-import {
-  deriveOnboardingStep,
-  needsOnboarding,
-  shouldShowOnboarding,
-} from '@/core/rules/onboarding-state';
+import type { OnboardingStep } from '@/core/rules/onboarding-state';
 import { completeTask } from '@/data/complete-task';
 import { createBranch } from '@/data/create-branch';
 import { createTask } from '@/data/create-task';
-import { useOnboardingData } from '@/data/hooks';
+import type { OnboardingDataView } from '@/data/hooks';
 import { loadSampleTree } from '@/data/sample-namespace';
-import type { Commit } from '@/data/types';
+import { CheckIcon, HistoryIcon, ListIcon } from '@/ui/icons';
 import { t, type MessageKey } from '@/i18n';
 import { useOnboardingStore } from '@/stores/onboarding.store';
 import styles from './onboarding-card.module.css';
@@ -27,24 +23,15 @@ const COLOR_KEYS: Record<BranchColor, MessageKey> = {
   teal: 'branches.color.teal',
 };
 
-interface Receipt {
-  commit: Commit;
-  taskTitle: string;
-  branchTitle: string;
-}
-
 /**
- * 今天页顶部的三步引导卡（PRD M12 A-01 / OP-01–OP-04）。
+ * 今天页的三步引导（PRD M12 A-01 / OP-01–OP-04）。
  *
  * 步骤由真实数据推导，没有「下一步」假按钮；离开后已完成的步骤保留，
  * 未保存的输入不保留并在卡片底部说明。跳过后整卡收起，已建数据保留。
  */
-export function OnboardingCard() {
+export function OnboardingCard({ view, step }: { view: OnboardingDataView; step: OnboardingStep }) {
   const navigate = useNavigate();
-  const view = useOnboardingData();
   const started = useOnboardingStore((state) => state.started);
-  const skipped = useOnboardingStore((state) => state.skipped);
-  const finished = useOnboardingStore((state) => state.finished);
   const branchId = useOnboardingStore((state) => state.branchId);
   const markStarted = useOnboardingStore((state) => state.markStarted);
   const recordBranch = useOnboardingStore((state) => state.recordBranch);
@@ -58,22 +45,20 @@ export function OnboardingCard() {
   const [dueDate, setDueDate] = useState('');
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
-  const [receipt, setReceipt] = useState<Receipt | null>(null);
-
-  const state = { started, skipped, finished };
-  const step = deriveOnboardingStep(view.data);
-  const visible = view.status === 'ready' && shouldShowOnboarding(state, view.data);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    if (visible && !started) markStarted();
-  }, [visible, started, markStarted]);
-
-  if (!visible) return null;
+    if (!started) markStarted();
+  }, [started, markStarted]);
 
   const branch = branchId ? view.branches.find((item) => item.id === branchId) : undefined;
-  const rootBranch = view.branches.find((item) => item.id === view.rootId);
   const targetBranchId = branch?.id ?? view.rootId;
-  const targetBranchTitle = branch?.title ?? rootBranch?.title ?? '';
+  const completed = step === 'done';
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    headingRef.current?.focus({ preventScroll: true });
+  }, [step]);
 
   const saveBranch = async () => {
     if (busy) return;
@@ -130,12 +115,6 @@ export function OnboardingCard() {
       setErrorKey('onboarding.error.failed');
       return;
     }
-    setReceipt({
-      commit: result.value.commit,
-      taskTitle: target.title,
-      branchTitle:
-        view.branches.find((item) => item.id === target.branchId)?.title ?? targetBranchTitle,
-    });
   };
 
   const openSample = async () => {
@@ -152,66 +131,109 @@ export function OnboardingCard() {
   };
 
   const completedCount = step === 'done' ? 3 : step - 1;
-  const doneCommit = receipt?.commit ?? view.firstCommit;
+  const doneCommit = view.firstCommit;
+  const receiptBranch = doneCommit
+    ? (view.branches.find((item) => item.id === doneCommit.sourceBranchId) ??
+      view.branches.find((item) => item.id === doneCommit.branchId))
+    : undefined;
 
   return (
-    <section className={styles.card} aria-label={t('onboarding.title')}>
+    <section
+      className={styles.card}
+      data-onboarding-active={!completed ? '' : undefined}
+      data-onboarding-complete={completed ? '' : undefined}
+      aria-labelledby="onboarding-heading"
+    >
       <header className={styles.head}>
-        <div>
-          <span className={styles.kicker}>{t('onboarding.kicker')}</span>
-          <h2 className={styles.title}>{t('onboarding.title')}</h2>
-        </div>
-        <button type="button" className={styles.skip} onClick={skip}>
-          {t('onboarding.skip')}
-        </button>
+        <h1 className={styles.title} id="onboarding-heading" ref={headingRef} tabIndex={-1}>
+          <svg
+            className={styles.ornament}
+            viewBox="0 0 400 40"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path d="m14 6 14 11M3 27l15 5M386 6l-14 11m25 10-15 5" />
+          </svg>
+          {t('onboarding.kicker')}
+        </h1>
+        {completed ? null : (
+          <button type="button" className={styles.skip} onClick={skip} disabled={busy}>
+            {t('onboarding.skip')}
+          </button>
+        )}
       </header>
 
-      <ol className={styles.steps}>
+      <ol className={styles.steps} aria-label={t('onboarding.title')}>
         {(['branch', 'task', 'commit'] as const).map((key, index) => (
           <li
             key={key}
             className={styles.step}
-            data-current={index + 1 === (step === 'done' ? 4 : step)}
+            aria-current={index + 1 === step ? 'step' : undefined}
             data-done={index < completedCount}
           >
-            <span className={styles.stepIndex}>{index + 1}</span>
-            <span className={styles.stepLabel}>{t(`onboarding.step.${key}` as MessageKey)}</span>
+            <span className={styles.stepIndex} aria-hidden="true">
+              {index < completedCount ? <CheckIcon size={24} /> : index + 1}
+            </span>
+            <span>{t(`onboarding.step.${key}`)}</span>
           </li>
         ))}
       </ol>
 
       {step === 1 ? (
-        <div className={styles.body}>
-          <p className={styles.prompt}>{t('onboarding.step.branchPrompt')}</p>
-          <label className={styles.field}>
-            <span className={styles.label}>{t('onboarding.field.name')}</span>
-            <input
-              className={styles.input}
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder={t('onboarding.field.namePlaceholder')}
-              disabled={busy}
-            />
-          </label>
-          <fieldset className={styles.colors}>
-            <legend className={styles.label}>{t('onboarding.field.color')}</legend>
-            <div className={styles.swatches}>
-              {BRANCH_COLORS.map((preset) => (
-                <label key={preset} className={styles.swatchLabel}>
-                  <input
-                    type="radio"
-                    name="onboarding-color"
-                    value={preset}
-                    checked={color === preset}
-                    onChange={() => setColor(preset)}
-                  />
-                  <span className={styles.swatch} data-color={preset} aria-hidden="true" />
-                  <span className={styles.colorName}>{t(COLOR_KEYS[preset])}</span>
-                </label>
-              ))}
+        <>
+          <div className={styles.body}>
+            <div className={styles.stepIllustration} aria-hidden="true">
+              <svg className={styles.illustrationRays} viewBox="0 0 48 48">
+                <path d="m4 32 8 2M14 15l9 9m9-19 1 10" />
+              </svg>
+              <span className={styles.illustrationCheck}>
+                <svg viewBox="0 0 48 48">
+                  <circle cx="24" cy="8" r="3.5" />
+                  <circle cx="14" cy="38" r="3.5" />
+                  <circle cx="34" cy="38" r="3.5" />
+                  <path d="M24 12v9m-10 0h20m-20 0v13m20-13v13" />
+                </svg>
+              </span>
             </div>
-          </fieldset>
-          <div className={styles.actions}>
+            <div className={styles.formColumn}>
+              <h2 className={styles.formTitle}>{t('onboarding.step.branch')}</h2>
+              <label className={styles.field}>
+                <span className={styles.label}>{t('onboarding.field.name')}</span>
+                <input
+                  className={styles.input}
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder={t('onboarding.field.namePlaceholder')}
+                  disabled={busy}
+                />
+              </label>
+              <fieldset className={styles.colors}>
+                <legend className={styles.label}>{t('onboarding.field.color')}</legend>
+                <div className={styles.swatches}>
+                  {BRANCH_COLORS.map((preset) => (
+                    <label
+                      key={preset}
+                      className={styles.swatchLabel}
+                      title={t(COLOR_KEYS[preset])}
+                    >
+                      <input
+                        type="radio"
+                        name="onboarding-color"
+                        value={preset}
+                        aria-label={t(COLOR_KEYS[preset])}
+                        checked={color === preset}
+                        disabled={busy}
+                        onChange={() => setColor(preset)}
+                      />
+                      <span className={styles.swatch} data-color={preset} aria-hidden="true" />
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+          </div>
+          <p className={styles.setupMessage}>{t('onboarding.step.branchPrompt')}</p>
+          <div className={styles.setupActions}>
             <button type="button" className={styles.primary} onClick={saveBranch} disabled={busy}>
               {busy ? t('onboarding.saving') : t('onboarding.saveBranch')}
             </button>
@@ -219,48 +241,76 @@ export function OnboardingCard() {
               {t('onboarding.sample')}
             </button>
           </div>
-        </div>
+        </>
       ) : null}
 
       {step === 2 ? (
-        <div className={styles.body}>
-          <p className={styles.prompt}>
+        <>
+          <div className={styles.body}>
+            <div className={styles.stepIllustration} aria-hidden="true">
+              <span className={styles.illustrationCheck}>
+                <ListIcon size={24} />
+              </span>
+            </div>
+            <div className={styles.formColumn}>
+              <h2 className={styles.formTitle}>{t('onboarding.step.task')}</h2>
+              <label className={styles.field}>
+                <span className={styles.label}>{t('onboarding.field.task')}</span>
+                <input
+                  className={styles.input}
+                  value={taskTitle}
+                  onChange={(event) => setTaskTitle(event.target.value)}
+                  placeholder={t('onboarding.field.taskPlaceholder')}
+                  disabled={busy}
+                />
+              </label>
+              <label className={styles.field}>
+                <span className={styles.label}>{t('onboarding.field.date')}</span>
+                <input
+                  type="date"
+                  className={styles.input}
+                  value={dueDate}
+                  min={localDate(systemClock.now())}
+                  onChange={(event) => setDueDate(event.target.value)}
+                  disabled={busy}
+                />
+              </label>
+            </div>
+          </div>
+          <p className={styles.setupMessage}>
             {t('onboarding.step.taskPromptPrefix')}
             {t('onboarding.step.taskPromptMiddle')}
           </p>
-          <label className={styles.field}>
-            <span className={styles.label}>{t('onboarding.field.task')}</span>
-            <input
-              className={styles.input}
-              value={taskTitle}
-              onChange={(event) => setTaskTitle(event.target.value)}
-              placeholder={t('onboarding.field.taskPlaceholder')}
-              disabled={busy}
-            />
-          </label>
-          <label className={styles.field}>
-            <span className={styles.label}>{t('onboarding.field.date')}</span>
-            <input
-              type="date"
-              className={styles.input}
-              value={dueDate}
-              min={localDate(systemClock.now())}
-              onChange={(event) => setDueDate(event.target.value)}
-              disabled={busy}
-            />
-          </label>
-          <button type="button" className={styles.primary} onClick={saveTask} disabled={busy}>
-            {busy ? t('onboarding.saving') : t('onboarding.saveTask')}
-          </button>
-        </div>
+          <div className={styles.setupActions}>
+            <button type="button" className={styles.primary} onClick={saveTask} disabled={busy}>
+              {busy ? t('onboarding.saving') : t('onboarding.saveTask')}
+            </button>
+          </div>
+        </>
       ) : null}
 
       {step === 3 ? (
-        <div className={styles.body}>
-          <p className={styles.prompt}>{t('onboarding.step.commitPrompt')}</p>
+        <>
+          <div className={styles.body}>
+            <div className={styles.stepIllustration} aria-hidden="true">
+              <span className={styles.illustrationCheck}>
+                <CheckIcon size={24} />
+              </span>
+            </div>
+            <div className={styles.formColumn}>
+              <h2 className={styles.formTitle}>{t('onboarding.step.commit')}</h2>
+              {view.firstOpenTask ? (
+                <div className={styles.target}>
+                  <span className={styles.targetTitle}>{view.firstOpenTask.title}</span>
+                </div>
+              ) : (
+                <p className={styles.prompt}>{t('onboarding.step.noOpenTask')}</p>
+              )}
+            </div>
+          </div>
+          <p className={styles.setupMessage}>{t('onboarding.step.commitPrompt')}</p>
           {view.firstOpenTask ? (
-            <div className={styles.target}>
-              <span className={styles.targetTitle}>{view.firstOpenTask.title}</span>
+            <div className={styles.setupActions}>
               <button
                 type="button"
                 className={styles.primary}
@@ -270,27 +320,46 @@ export function OnboardingCard() {
                 {busy ? t('onboarding.saving') : t('onboarding.completeTask')}
               </button>
             </div>
-          ) : (
-            <p className={styles.prompt}>{t('onboarding.step.noOpenTask')}</p>
-          )}
-        </div>
+          ) : null}
+        </>
       ) : null}
 
       {step === 'done' ? (
         <div className={styles.receipt}>
-          <p className={styles.receiptTitle}>{t('onboarding.receipt.title')}</p>
-          {receipt ? (
-            <>
-              <p className={styles.receiptLine}>
-                {receipt.taskTitle} · {receipt.branchTitle}
-              </p>
-              <p className={styles.receiptTime}>
-                {t('onboarding.receipt.submitted')} {localClockTime(receipt.commit.at)}
-              </p>
-            </>
-          ) : (
-            <p className={styles.receiptLine}>{t('onboarding.receipt.done')}</p>
-          )}
+          <div className={styles.receiptHero}>
+            <div className={styles.receiptArt} aria-hidden="true">
+              <svg className={styles.receiptRays} viewBox="0 0 64 64">
+                <path d="m7 54 15 3M21 21l15 15M55 5l2 16" />
+              </svg>
+              <span className={styles.receiptBadge}>
+                <CheckIcon size={24} />
+              </span>
+            </div>
+            <div className={styles.receiptContent}>
+              <h2 className={styles.receiptTitle}>{t('onboarding.receipt.title')}</h2>
+              {doneCommit ? (
+                <div className={styles.receiptData}>
+                  <p className={styles.receiptLine}>
+                    <span className={styles.receiptTaskCheck} aria-hidden="true">
+                      <CheckIcon size={14} />
+                    </span>
+                    <span>
+                      {doneCommit.summary}
+                      {receiptBranch ? ` · ${receiptBranch.title}` : ''}
+                    </span>
+                  </p>
+                  <p className={styles.receiptTime}>
+                    <HistoryIcon size={24} />
+                    <span>
+                      {t('onboarding.receipt.submitted')}{' '}
+                      <time>{localClockTime(doneCommit.at)}</time>
+                    </span>
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <p className={styles.receiptMessage}>{t('onboarding.receipt.done')}</p>
           <div className={styles.actions}>
             {doneCommit ? (
               <Link
@@ -307,6 +376,17 @@ export function OnboardingCard() {
           </div>
         </div>
       ) : null}
+      <svg
+        className={styles.receiptTrail}
+        viewBox="0 0 1360 175"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path d="M-8 91C210 44 256 111 434 146S974 212 1368 12" />
+      </svg>
+      <div className={styles.receiptNote} aria-hidden="true">
+        <CheckIcon size={24} />
+      </div>
 
       {errorKey ? (
         <p className={styles.error} role="alert">
@@ -314,10 +394,10 @@ export function OnboardingCard() {
         </p>
       ) : null}
 
-      <p className={styles.hint}>{t('onboarding.inputHint')}</p>
-
-      {needsOnboarding(view.data) && (step === 1 || step === 2) ? (
-        <p className={styles.skipHint}>{t('onboarding.skipHint')}</p>
+      {step === 1 || step === 2 ? (
+        <p className={styles.hint}>
+          {t('onboarding.inputHint')} {t('onboarding.skipHint')}
+        </p>
       ) : null}
     </section>
   );

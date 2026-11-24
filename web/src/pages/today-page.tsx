@@ -1,18 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { localClockTime, localDate, systemClock, today } from '@/core/clock';
+import { localClockTime, localDate } from '@/core/clock';
 import { isBranchAccepting } from '@/core/rules/branch-state';
 import { displayBranchTrail } from '@/core/rules/branch-path';
 import { visibleDefaultTree } from '@/core/rules/branch-visibility';
 import { parseQuickAdd, resolveBranchQuery } from '@/core/rules/quick-add';
-import { deriveOnboardingStep, needsOnboarding } from '@/core/rules/onboarding-state';
+import {
+  deriveOnboardingStep,
+  needsOnboarding,
+  shouldShowOnboarding,
+} from '@/core/rules/onboarding-state';
 import { reorderIds, type DragPosition } from '@/core/rules/drag-order';
 import { groupTodayTasks, sortByManualOrder, type TodayGroupKey } from '@/core/rules/today-groups';
 import { weekDayOf } from '@/core/rules/week-review';
 import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
 import { createTask } from '@/data/create-task';
-import { useOnboardingData, useTodayData, useStallReminders } from '@/data/hooks';
+import { useOnboardingData, useTodayData, useStallReminders, useTodayDate } from '@/data/hooks';
 import { planTask } from '@/data/plan-task';
 import { reorderTasks } from '@/data/reorder';
 import { updateCommit } from '@/data/update-commit';
@@ -33,7 +37,6 @@ import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { OnboardingCard } from '@/components/onboarding/onboarding-card';
 import { readonlyReasonKey } from '@/components/today/readonly';
 import { TaskRow } from '@/components/today/task-row';
-import { BadgeToast } from '@/components/today/badge-toast';
 import { WeekReviewCard } from '@/components/today/week-review-card';
 import { MonthReviewPanel } from '@/components/today/month-review-panel';
 import { ReviewReminder } from '@/components/today/review-reminder';
@@ -85,6 +88,7 @@ export function TodayPage() {
   const manualGroups = useTodayStore((state) => state.manualGroups);
   const markManualGroup = useTodayStore((state) => state.markManualGroup);
   const onboarding = useOnboardingData();
+  const onboardingStarted = useOnboardingStore((state) => state.started);
   const onboardingSkipped = useOnboardingStore((state) => state.skipped);
   const onboardingFinished = useOnboardingStore((state) => state.finished);
   const backfillPromptSeen = useOnboardingStore((state) => state.backfillPromptSeen);
@@ -92,14 +96,21 @@ export function TodayPage() {
   const reopenOnboarding = useOnboardingStore((state) => state.reopen);
   const canReopen =
     onboarding.status === 'ready' && onboardingSkipped && needsOnboarding(onboarding.data);
+  const showOnboarding =
+    onboarding.status === 'ready' &&
+    shouldShowOnboarding(
+      { started: onboardingStarted, skipped: onboardingSkipped, finished: onboardingFinished },
+      onboarding.data,
+    );
+  const onboardingStep = deriveOnboardingStep(onboarding.data);
   const showBackfillGuide =
     onboarding.status === 'ready' &&
     onboardingFinished &&
     !onboardingSkipped &&
-    deriveOnboardingStep(onboarding.data) === 'done' &&
+    onboardingStep === 'done' &&
     onboarding.data.milestoneCount === 0 &&
     !backfillPromptSeen;
-  const todayDate = today(systemClock);
+  const todayDate = useTodayDate();
   const stalls = useStallReminders(todayDate);
   const compact = useIsCompact();
 
@@ -352,6 +363,10 @@ export function TodayPage() {
       </form>
     ) : null;
 
+  if (data.status === 'ready' && showOnboarding) {
+    return <OnboardingCard view={onboarding} step={onboardingStep} />;
+  }
+
   return (
     <PageShell
       eyebrow={<p className={styles.date}>{dateLabelOf(todayDate)}</p>}
@@ -391,7 +406,6 @@ export function TodayPage() {
       ) : null}
 
       {data.status === 'ready' ? <ReviewReminder /> : null}
-      {data.status === 'ready' ? <OnboardingCard /> : null}
 
       {data.status === 'ready' && total === 0 ? (
         <div className={styles.main}>
@@ -668,7 +682,6 @@ export function TodayPage() {
         </div>
       ) : null}
       {data.status === 'ready' && monthOpen ? <MonthReviewPanel /> : null}
-      {data.status === 'ready' ? <BadgeToast /> : null}
 
       {data.status === 'ready' && showBackfillGuide ? (
         <section className={styles.backfillCard} aria-labelledby="backfill-guide-title">
