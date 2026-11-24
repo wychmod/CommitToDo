@@ -250,7 +250,7 @@
   cursor: pointer;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 760px) {
   .sort {
     margin-left: 0;
   }

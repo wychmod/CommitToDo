@@ -224,7 +224,7 @@
   cursor: default;
 }
 
-@media (max-width: 650px) {
+@media (max-width: 760px) {
   .header,
   .body,
   .actions {
