@@ -160,11 +160,38 @@ describe('finishBranch（R12 / OP-04 / OP-05）', () => {
       finishedIntoId: parent.id,
       archived: true,
       movedTaskCount: 2,
+      cancelledTaskCount: 0,
     });
-    const nonBadgeEvents = (await db.events.toArray()).filter(
-      (event) => event.action !== 'badge.grant',
+    // 收尾只写一条事件：迁移 4 条待办、4 条提交都不额外记事件。
+    const nonBadge = (await db.events.toArray()).filter((event) => event.action !== 'badge.grant');
+    expect(nonBadge).toHaveLength(eventsBefore + 1);
+  });
+
+  it('选「取消掉」时未完成待办就地取消，不进入父分支（R12 另一条去向）', async () => {
+    const deps = makeDeps();
+    const { parent, child } = await buildTree(deps);
+    await db.tasks.bulkAdd([
+      taskRow({ id: 't-open', branchId: child.id, status: 'open' }),
+      taskRow({ id: 't-done', branchId: child.id, status: 'done' }),
+    ]);
+
+    const result = await finishBranch(
+      { branchId: child.id, archived: false, openTasks: 'cancel' },
+      deps,
     );
-    expect(nonBadgeEvents).toHaveLength(eventsBefore + 1);
+    expect(result.ok).toBe(true);
+
+    const cancelled = await db.tasks.get('t-open');
+    expect(cancelled).toMatchObject({ status: 'cancelled', branchId: child.id });
+    expect(cancelled?.cancelledAt).toBe(AT);
+    expect(await db.tasks.where('branchId').equals(parent.id).count()).toBe(0);
+
+    const finish = (await db.events.toArray()).filter((row) => row.action === 'branch.finish');
+    expect(finish[0].payload).toMatchObject({ movedTaskCount: 0, cancelledTaskCount: 1 });
+    // 取消是独立事件，收尾仍只有一条 branch.finish。
+    const cancel = (await db.events.toArray()).filter((row) => row.action === 'task.cancel');
+    expect(cancel).toHaveLength(1);
+    expect(cancel[0].payload).toMatchObject({ taskId: 't-open', branchId: child.id });
   });
 
   it('选择留在树上时不写 archivedAt，仍为已合并', async () => {

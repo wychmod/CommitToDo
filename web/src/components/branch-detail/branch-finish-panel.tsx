@@ -42,6 +42,8 @@ export function BranchFinishPanel({
   const view = useBranchFinishPlan(branch.id);
   const [step, setStep] = useState<Step>(1);
   const [destination, setDestination] = useState<Destination>('archive');
+  // R12：未完成待办的去向，默认移入父分支。
+  const [openTasks, setOpenTasks] = useState<'move' | 'cancel'>('move');
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -57,6 +59,7 @@ export function BranchFinishPanel({
     const result = await finishBranch({
       branchId: branch.id,
       archived: destination === 'archive',
+      openTasks,
     });
     if (result.ok) {
       onFinished(result.value);
@@ -142,6 +145,43 @@ export function BranchFinishPanel({
 
           {step === 1 ? (
             <p className={styles.warning}>{t('branchDetail.finish.irreversible')}</p>
+          ) : null}
+
+          {step === 2 ? (
+            <fieldset className={styles.destinations}>
+              <legend className={styles.legend}>{t('branchDetail.finish.tasksChoice')}</legend>
+              {(['move', 'cancel'] as const).map((value) => (
+                <label
+                  key={value}
+                  className={styles.destination}
+                  data-selected={openTasks === value ? '' : undefined}
+                >
+                  <input
+                    type="radio"
+                    name="finish-open-tasks"
+                    value={value}
+                    checked={openTasks === value}
+                    onChange={() => setOpenTasks(value)}
+                  />
+                  <span className={styles.destinationBody}>
+                    <span className={styles.destinationName}>
+                      {t(
+                        value === 'move'
+                          ? 'branchDetail.finish.tasksMove'
+                          : 'branchDetail.finish.tasksCancel',
+                      )}
+                    </span>
+                    <span className={styles.destinationNote}>
+                      {t(
+                        value === 'move'
+                          ? 'branchDetail.finish.tasksMoveNote'
+                          : 'branchDetail.finish.tasksCancelNote',
+                      )}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
           ) : null}
 
           {step === 2 ? (
