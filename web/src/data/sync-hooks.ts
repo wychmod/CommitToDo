@@ -7,7 +7,7 @@ import { getDeviceId } from './devices';
 import type { MigrationProgress } from './migrate';
 import { readMigrationProgress, startMigration } from './migrate';
 import { startOpsReporting } from './ops-events';
-import { isOnline, maxAttempts, runSync } from './sync';
+import { isOnline, isSyncing, maxAttempts, runSync, subscribeSyncState } from './sync';
 import { startSyncPull } from './sync-pull';
 
 /**
@@ -23,6 +23,9 @@ export function useSyncSnapshot() {
   const attempts = useLiveQuery(() => maxAttempts(), [], 0);
   const devices = useLiveQuery(() => db.devices.toArray(), [], []);
   const [online, setOnline] = useState(isOnline());
+  const [syncing, setSyncing] = useState(isSyncing);
+
+  useEffect(() => subscribeSyncState(setSyncing), []);
 
   useEffect(() => {
     const up = () => setOnline(true);
@@ -46,6 +49,7 @@ export function useSyncSnapshot() {
     currentDeviceId,
     lastSyncAt: currentDevice?.lastSyncAt ?? null,
     online,
+    syncing,
     now: systemClock.now(),
   };
 }

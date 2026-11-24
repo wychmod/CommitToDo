@@ -1,5 +1,5 @@
-import { systemClock } from '@/core/clock';
 import { db } from './db';
+import { defaultWriteDeps, type WriteDeps } from './deps';
 import type { Device } from './types';
 
 /**
@@ -39,11 +39,19 @@ export function detectPlatform(): string {
   return 'Web';
 }
 
-/** 当前设备始终可见：登录取代 `ownerId` 后保留原 `createdAt`。 */
-export async function ensureCurrentDevice(ownerId: string): Promise<Device> {
+/**
+ * 当前设备始终可见：登录取代 `ownerId` 后保留原 `createdAt`。
+ *
+ * 时间从注入的 `clock` 取（而不是直接 `Date.now()`），与其它用例保持同一套
+ * 可复现时钟；不传时走系统时钟。
+ */
+export async function ensureCurrentDevice(
+  ownerId: string,
+  deps: WriteDeps = defaultWriteDeps,
+): Promise<Device> {
   const id = getDeviceId();
   const existing = await db.devices.get(id);
-  const at = systemClock.now();
+  const at = deps.clock.now();
   if (existing) {
     if (existing.ownerId !== ownerId) {
       const next: Device = { ...existing, ownerId };
@@ -66,11 +74,15 @@ export async function ensureCurrentDevice(ownerId: string): Promise<Device> {
   return created;
 }
 
-export async function markDeviceSynced(ownerId: string, at: number): Promise<void> {
+export async function markDeviceSynced(
+  ownerId: string,
+  at: number,
+  deps: WriteDeps = defaultWriteDeps,
+): Promise<void> {
   const id = getDeviceId();
   const existing = await db.devices.get(id);
   if (!existing) {
-    await ensureCurrentDevice(ownerId);
+    await ensureCurrentDevice(ownerId, deps);
   }
   await db.devices.update(id, { ownerId, lastSyncAt: at });
 }

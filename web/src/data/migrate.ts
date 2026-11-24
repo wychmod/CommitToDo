@@ -1,4 +1,3 @@
-import { systemClock } from '@/core/clock';
 import { fail, ok, type Result } from '@/core/errors';
 import {
   completedCollections,
@@ -8,6 +7,7 @@ import {
 } from '@/core/rules/migration-plan';
 import { pushMigrationPage } from './cloud/sync';
 import { db } from './db';
+import { defaultWriteDeps, type WriteDeps } from './deps';
 import { ensureCurrentDevice } from './devices';
 import type { MigrationState } from './types';
 
@@ -83,6 +83,7 @@ export async function readMigrationProgress(): Promise<MigrationProgress> {
 
 export async function startMigration(
   principalId: string,
+  deps: WriteDeps = defaultWriteDeps,
 ): Promise<Result<{ completed: number; total: number }>> {
   if (principalId.length === 0) {
     return fail('validation.invalid_input', { field: 'principalId' });
@@ -93,7 +94,7 @@ export async function startMigration(
 
   running = true;
   try {
-    await ensureCurrentDevice(principalId);
+    await ensureCurrentDevice(principalId, deps);
     for (;;) {
       const cursors = await db.migrationState.toArray();
       const step = nextMigrationStep(cursors.map(toCursor));
@@ -102,7 +103,7 @@ export async function startMigration(
       const existing = cursors.find((row) => row.id === step.collection);
       const rows = await loadCollection(step.collection, principalId);
       const page = pageAfter(rows, step.lastId, PAGE_SIZE);
-      const at = systemClock.now();
+      const at = deps.clock.now();
 
       if (page.length === 0) {
         await saveCursor({

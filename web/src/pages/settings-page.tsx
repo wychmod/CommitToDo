@@ -477,9 +477,9 @@ export function SettingsPage() {
 
 /** 同步分区（PRD V2-02 §4.1 / O08 入口），未登录时由外层显示 O07 提示。 */
 function SyncPanel({ principalId }: { principalId: string }) {
-  const { pending, conflicts, attempts, devices, online, lastSyncAt } = useSyncSnapshot();
+  const { pending, conflicts, attempts, devices, online, syncing, lastSyncAt } = useSyncSnapshot();
   const { progress, error, running, start } = useMigration(principalId);
-  const [syncing, setSyncing] = useState(false);
+  const [manualSyncing, setManualSyncing] = useState(false);
   const [statsOn, setStatsOn] = useState(isStatsEnabled);
   const [lastReported, setLastReported] = useState(getLastReportedDate);
   const [showNotice, setShowNotice] = useState(false);
@@ -508,14 +508,20 @@ function SyncPanel({ principalId }: { principalId: string }) {
     void start();
   }, [progress, running, error, start]);
 
-  const status = resolveSyncStatus({ online, syncing, pending, attempts });
+  // 「同步中」同时反映自动补推 / 轮询与手动点击，避免状态显示与实际行为不一致。
+  const status = resolveSyncStatus({
+    online,
+    syncing: syncing || manualSyncing,
+    pending,
+    attempts,
+  });
   const liveDevices = devices.filter((device) => device.removedAt === null);
 
   const syncNow = async () => {
-    if (!online || syncing) return;
-    setSyncing(true);
+    if (!online || manualSyncing) return;
+    setManualSyncing(true);
     await runSync(principalId);
-    setSyncing(false);
+    setManualSyncing(false);
   };
 
   const toggleStats = (next: boolean) => {
@@ -542,7 +548,7 @@ function SyncPanel({ principalId }: { principalId: string }) {
           <button
             type="button"
             className={styles.entryButton}
-            disabled={!online || syncing}
+            disabled={!online || manualSyncing}
             onClick={() => void syncNow()}
           >
             {t('sync.action.syncNow')}

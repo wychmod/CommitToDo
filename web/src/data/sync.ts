@@ -36,10 +36,6 @@ export function isOnline(): boolean {
   return typeof navigator === 'undefined' || navigator.onLine !== false;
 }
 
-export async function pendingCount(): Promise<number> {
-  return db.outbox.count();
-}
-
 async function recordConflict(
   op: OutboxOp,
   serverRev: number | null,
@@ -100,13 +96,45 @@ async function recordConflict(
   });
 }
 
+/**
+ * 同步进行中的订阅（PRD V2-02 OP-07）。
+ *
+ * `runSync` 内部有 `inFlight` 去重，但界面过去只在自己点「立即同步」时置状态，
+ * 自动补推与拉取轮询期间一直显示「已同步」。这里把真实执行状态广播出去，
+ * 让设置页的同步徽标与真实行为一致。
+ */
+type SyncListener = (syncing: boolean) => void;
+
+const syncListeners = new Set<SyncListener>();
+let syncingCount = 0;
+
+export function isSyncing(): boolean {
+  return syncingCount > 0;
+}
+
+/** 订阅执行状态；返回取消订阅函数。 */
+export function subscribeSyncState(listener: SyncListener): () => void {
+  syncListeners.add(listener);
+  listener(isSyncing());
+  return () => {
+    syncListeners.delete(listener);
+  };
+}
+
+function setSyncing(delta: number): void {
+  syncingCount = Math.max(0, syncingCount + delta);
+  for (const listener of syncListeners) listener(isSyncing());
+}
+
 export async function runSync(
   principalId: string,
   options: { force?: boolean } = {},
 ): Promise<Result<SyncRunSummary>> {
   if (inFlight) return inFlight;
+  setSyncing(1);
   inFlight = executeSync(principalId, options).finally(() => {
     inFlight = null;
+    setSyncing(-1);
   });
   return inFlight;
 }
