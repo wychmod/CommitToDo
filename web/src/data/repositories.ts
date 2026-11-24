@@ -128,8 +128,21 @@ export const taskRepository: TaskRepository = {
 export const commitRepository: CommitRepository = {
   listByOwner: (ownerId) => db.commits.where('ownerId').equals(ownerId).toArray(),
   listRecent: async (ownerId, limit) => {
-    const rows = await db.commits.where('ownerId').equals(ownerId).toArray();
-    return rows
+    // 走 [ownerId+at] 复合索引倒序取数：全表 toArray 后再排序会把整表读进内存，
+    // 提交越积越多时每个 liveQuery 都要重跑一遍，属于可避免的全表扫描。
+    // 软删与撤销在索引上取不到，按「多取一段再过滤」处理：命中率低时才回退全量。
+    const take = Math.max(limit * 4, 20);
+    const rows = await db.commits
+      .where('[ownerId+at]')
+      .between([ownerId, -Infinity], [ownerId, Infinity])
+      .reverse()
+      .limit(take)
+      .toArray();
+    const live = rows.filter((row) => row.deletedAt === null && row.voidedAt === null);
+    if (live.length >= limit) return live.slice(0, limit);
+
+    const all = await db.commits.where('ownerId').equals(ownerId).toArray();
+    return all
       .filter((row) => row.deletedAt === null && row.voidedAt === null)
       .sort((a, b) => b.at - a.at)
       .slice(0, limit);
@@ -179,10 +192,17 @@ export const settingsRepository: SettingsRepository = {
 export const eventRepository: EventRepository = {
   listByOwner: (ownerId) => db.events.where('ownerId').equals(ownerId).toArray(),
   listRecent: async (ownerId, limit) => {
-    const rows = await db.events.where('ownerId').equals(ownerId).toArray();
-    return rows.sort((a, b) => b.at - a.at).slice(0, limit);
+    // 走 [ownerId+at] 复合索引倒序取数，避免把整张 events 表读进内存。
+    // 备份与导出会传 `Number.MAX_SAFE_INTEGER` 表示「全部」：IndexedDB 的 count
+    // 参数上限是 2^32-1，超出会抛 TypeError，这里按无上限处理。
+    const query = db.events
+      .where('[ownerId+at]')
+      .between([ownerId, -Infinity], [ownerId, Infinity])
+      .reverse();
+    return limit >= Number.MAX_SAFE_INTEGER ? query.toArray() : query.limit(limit).toArray();
   },
   listByEntity: async (entityId) => {
+    // `entityId` 单列索引已存在；时间升序在内存里排，单实体事件量很小。
     const rows = await db.events.where('entityId').equals(entityId).toArray();
     return rows.sort((a, b) => a.at - b.at);
   },

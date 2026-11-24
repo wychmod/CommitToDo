@@ -79,7 +79,7 @@ export async function undoCommit(
 
         const affected = new Set<string>([commit.branchId, task.branchId, targetBranchId]);
         for (const branchId of affected) {
-          await syncBranchCounts(branchId, deps);
+          await syncBranchCounts(tx, branchId, deps);
         }
 
         await writeEvent(

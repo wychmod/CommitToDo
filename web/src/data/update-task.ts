@@ -1,12 +1,12 @@
 import { isDateString } from '@/core/clock';
 import { fail, ok, type Result } from '@/core/errors';
-import { isBranchAccepting } from '@/core/rules/branch-state';
 import { syncBranchCounts } from './branch-counts';
 import { db } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
-import { branchRepository, taskRepository } from './repositories';
+import { taskRepository } from './repositories';
 import type { Task } from './types';
+import { requireWritableBranch } from './write-guard';
 
 export interface UpdateTaskInput {
   taskId: string;
@@ -53,18 +53,13 @@ export async function updateTask(
           return fail('validation.invalid_input', { field: 'status' });
         }
 
-        const currentBranch = await branchRepository.getById(task.branchId);
-        if (!currentBranch || !isBranchAccepting(currentBranch)) {
-          return fail('domain.readonly_branch', { field: 'branchId' });
-        }
+        // 原分支与新分支都要过树级准入：任一侧被祖先归档都不可写。
+        const currentBranch = await requireWritableBranch(task.branchId);
+        if (!currentBranch.ok) return fail(currentBranch.error.code, { field: 'branchId' });
 
-        const targetBranch = await branchRepository.getById(input.branchId);
-        if (!targetBranch || targetBranch.deletedAt !== null) {
-          return fail('domain.not_found', { field: 'branchId' });
-        }
-        if (!isBranchAccepting(targetBranch)) {
-          return fail('domain.readonly_branch', { field: 'branchId' });
-        }
+        const writableTarget = await requireWritableBranch(input.branchId);
+        if (!writableTarget.ok) return fail(writableTarget.error.code, { field: 'branchId' });
+        const targetBranch = writableTarget.value;
 
         const note = input.note?.trim() || null;
         const fields: string[] = [];
@@ -103,8 +98,8 @@ export async function updateTask(
         );
 
         if (task.branchId !== targetBranch.id) {
-          await syncBranchCounts(task.branchId, deps);
-          await syncBranchCounts(targetBranch.id, deps);
+          await syncBranchCounts(tx, task.branchId, deps);
+          await syncBranchCounts(tx, targetBranch.id, deps);
         }
 
         await writeEvent(

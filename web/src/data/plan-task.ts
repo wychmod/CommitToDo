@@ -1,11 +1,11 @@
 import { isDateString } from '@/core/clock';
 import { fail, ok, type Result } from '@/core/errors';
-import { isBranchAccepting } from '@/core/rules/branch-state';
 import { db } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
-import { branchRepository, taskRepository } from './repositories';
+import { taskRepository } from './repositories';
 import type { Task } from './types';
+import { requireWritableBranch } from './write-guard';
 
 export interface PlanTaskInput {
   taskId: string;
@@ -38,10 +38,8 @@ export async function planTask(
         return fail('validation.invalid_input', { field: 'status' });
       }
 
-      const branch = await branchRepository.getById(task.branchId);
-      if (!branch || !isBranchAccepting(branch)) {
-        return fail('domain.readonly_branch', { field: 'branchId' });
-      }
+      const branch = await requireWritableBranch(task.branchId);
+      if (!branch.ok) return fail(branch.error.code, { field: 'branchId' });
 
       if (task.plannedDate === plannedDate) {
         return ok(task);

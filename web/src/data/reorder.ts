@@ -3,6 +3,7 @@ import { sequentialOrders } from '@/core/rules/drag-order';
 import { todayGroupKey, type TodayGroupKey } from '@/core/rules/today-groups';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
+import { enqueueEntityWrite } from './outbox';
 import { branchRepository, taskRepository } from './repositories';
 import type { Branch } from './types';
 
@@ -41,7 +42,7 @@ export async function reorderTasks(
   }
 
   try {
-    return await db.transaction('rw', [db.tasks, db.outbox], async () => {
+    return await db.transaction('rw', [db.tasks, db.outbox], async (tx) => {
       const rows = await db.tasks.bulkGet(input.orderedIds);
       let written = 0;
       for (const row of rows) {
@@ -58,6 +59,8 @@ export async function reorderTasks(
         const row = rows.find((item) => item?.id === id);
         if (!row) return fail('domain.not_found', { field: 'taskId' });
         await taskRepository.update(id, { order, updatedAt: at }, row.rev);
+        // 排序不写 events，但 rev 变了，必须单独入队，否则同步基线错位。
+        await enqueueEntityWrite(tx, 'task', id, 'task.reorder', { taskId: id }, deps);
         written += 1;
         if (deps.failAfterWrites !== undefined && written === deps.failAfterWrites) {
           throw new Error('reorder failure');
@@ -84,7 +87,7 @@ export async function reorderBranches(
   }
 
   try {
-    return await db.transaction('rw', [db.branches, db.outbox], async () => {
+    return await db.transaction('rw', [db.branches, db.outbox], async (tx) => {
       const rows = await db.branches.bulkGet(input.orderedIds);
       for (const row of rows) {
         if (!row || row.ownerId !== LOCAL_OWNER_ID) {
@@ -106,6 +109,8 @@ export async function reorderBranches(
         const row = rows.find((item) => item?.id === id);
         if (!row) return fail('domain.not_found', { field: 'branchId' });
         await branchRepository.put({ ...row, order, updatedAt: at, rev: row.rev + 1 });
+        // 排序不写 events，但 rev 变了，必须单独入队，否则同步基线错位。
+        await enqueueEntityWrite(tx, 'branch', id, 'branch.reorder', { branchId: id }, deps);
         written += 1;
         if (deps.failAfterWrites !== undefined && written === deps.failAfterWrites) {
           throw new Error('reorder failure');
@@ -128,7 +133,7 @@ export async function setBranchPinned(
   deps: WriteDeps = defaultWriteDeps,
 ): Promise<Result<Branch>> {
   try {
-    return await db.transaction('rw', [db.branches, db.outbox], async () => {
+    return await db.transaction('rw', [db.branches, db.outbox], async (tx) => {
       const row = await branchRepository.getById(input.branchId);
       if (!row || row.ownerId !== LOCAL_OWNER_ID) {
         return fail('domain.not_found', { field: 'branchId' });
@@ -145,6 +150,8 @@ export async function setBranchPinned(
         rev: row.rev + 1,
       };
       await branchRepository.put(next);
+      // 置顶不写 events，但 rev 变了，必须单独入队，否则同步基线错位。
+      await enqueueEntityWrite(tx, 'branch', row.id, 'branch.pin', { branchId: row.id }, deps);
       return ok(next);
     });
   } catch (cause) {

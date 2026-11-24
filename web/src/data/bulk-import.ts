@@ -1,12 +1,12 @@
 import { fail, ok, type Result } from '@/core/errors';
 import { BULK_IMPORT_MAX } from '@/core/rules/bulk-import';
-import { isBranchAccepting } from '@/core/rules/branch-state';
 import { syncBranchCounts } from './branch-counts';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
 import { branchRepository, taskRepository } from './repositories';
 import type { Task } from './types';
+import { requireWritableBranch } from './write-guard';
 
 export interface BulkImportInput {
   /** 已按行拆好的标题；调用方负责预览与删除。 */
@@ -52,9 +52,9 @@ export async function bulkImportTasks(
         if (!target) {
           return fail('domain.not_found', { field: 'branchId' });
         }
-        if (!isBranchAccepting(target)) {
-          return fail('domain.readonly_branch', { field: 'branchId' });
-        }
+        // 祖先归档 / 合并 / 删除时整棵子树只读，统一走用例侧准入。
+        const writable = await requireWritableBranch(target.id);
+        if (!writable.ok) return fail(writable.error.code, { field: 'branchId' });
 
         const at = deps.clock.now();
         const siblings = await taskRepository.listByBranch(target.id);
@@ -92,7 +92,7 @@ export async function bulkImportTasks(
           created.push(row);
         }
 
-        await syncBranchCounts(target.id, deps);
+        await syncBranchCounts(tx, target.id, deps);
         return ok({ branchId: target.id, tasks: created });
       },
     );

@@ -1,14 +1,15 @@
 import { toLocalDate } from '@/core/clock';
 import { fail, ok, type Result } from '@/core/errors';
-import { isBranchAccepting } from '@/core/rules/branch-state';
 import { syncBranchCounts } from './branch-counts';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
+import { enqueueEntityWrite } from './outbox';
 import { trackOpsEvent } from './ops-events';
 import { grantBadge } from './grant-badge';
-import { branchRepository, commitRepository, taskRepository } from './repositories';
+import { commitRepository, taskRepository } from './repositories';
 import type { Commit, Task } from './types';
+import { requireWritableBranch } from './write-guard';
 
 export interface CompleteTaskValue {
   task: Task;
@@ -50,13 +51,9 @@ export async function completeTask(
           return fail('validation.invalid_input', { field: 'status' });
         }
 
-        const branch = await branchRepository.getById(task.branchId);
-        if (!branch || branch.deletedAt !== null) {
-          return fail('domain.not_found', { field: 'branchId' });
-        }
-        if (!isBranchAccepting(branch)) {
-          return fail('domain.readonly_branch', { field: 'branchId' });
-        }
+        // 祖先归档 / 合并 / 删除时整棵子树只读，统一走用例侧准入。
+        const branch = await requireWritableBranch(task.branchId);
+        if (!branch.ok) return fail(branch.error.code, { field: 'branchId' });
 
         const at = deps.clock.now();
         const updatedAt = at;
@@ -95,7 +92,16 @@ export async function completeTask(
           task.rev,
         );
         await commitRepository.create(commit);
-        await syncBranchCounts(task.branchId, deps);
+        // 新提交本身也要入队：`task.complete` 的事件只覆盖待办行。
+        await enqueueEntityWrite(
+          tx,
+          'commit',
+          commit.id,
+          'commit.create',
+          { commitId: commit.id, taskId: task.id, branchId: task.branchId },
+          deps,
+        );
+        await syncBranchCounts(tx, task.branchId, deps);
         await writeEvent(
           tx,
           'task.complete',

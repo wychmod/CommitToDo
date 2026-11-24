@@ -8,7 +8,6 @@ export type EventPayloads = {
   'task.create': { taskId: string; branchId: string; source?: 'bulk' };
   'task.complete': { taskId: string; commitId: string; branchId: string };
   'task.cancel': { taskId: string; branchId: string };
-  'task.reopen': { taskId: string; branchId: string; voidedCommitId: string | null };
   'task.plan': { taskId: string; from: string | null; to: string | null };
   'task.update': {
     taskId: string;
@@ -16,7 +15,6 @@ export type EventPayloads = {
     fromBranchId?: string;
     toBranchId?: string;
   };
-  'task.delete': { taskId: string; branchId: string };
 
   'commit.void': { commitId: string; taskId: string | null };
   'commit.update': { commitId: string; fields: string[] };
@@ -29,7 +27,10 @@ export type EventPayloads = {
     branchId: string;
     finishedIntoId: string;
     archived: boolean;
+    /** 改属父分支的未完成待办条数（R12「移到父分支」）。 */
     movedTaskCount: number;
+    /** 就地取消的未完成待办条数（R12「取消掉」）。 */
+    cancelledTaskCount?: number;
   };
   'branch.pause': { branchId: string; reason: string };
   'branch.resume': { branchId: string };

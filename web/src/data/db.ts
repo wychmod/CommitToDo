@@ -17,13 +17,15 @@ import type {
 } from './types';
 
 /** 当前库版本；只有增删表、索引或主键才 bump（CODE-STRUCTURE §5）。 */
-export const DB_VERSION = 4;
+export const DB_VERSION = 5;
 
 /**
  * 本机权威库（TECH-ARCHITECTURE.md §5.3）。
  *
  * MVP 的 7 张业务表在 version 1；`year_reviews` 随 P05 年轮在 version 2 启用。
  * 索引改动必须同步 §5.3.2 的查询清单，不允许为临时查询随手加索引。
+ *
+ * v5：`commits` 增 `[ownerId+at]`，最近提交列表不再全表读（Q4b）。
  */
 export class CommitToDoDatabase extends Dexie {
   branches!: EntityTable<Branch, 'id'>;
@@ -81,6 +83,13 @@ export class CommitToDoDatabase extends Dexie {
       devices: 'id, lastSyncAt',
       migration_state: 'id',
       counters: 'id',
+    });
+
+    // 最近提交列表改走 [ownerId+at] 复合索引，不再全表读出后在内存排序（Q4b）。
+    this.version(5).stores({
+      commits:
+        'id, ownerId, branchId, sourceBranchId, taskId, date, at, ' +
+        '[ownerId+date], [ownerId+at], [ownerId+branchId+date], [ownerId+branchId+at]',
     });
     // 表名与属性名不一致时手动映射，避免 `db.yearReviews` 为 undefined。
     this.yearReviews = this.table<YearReview, string>('year_reviews');

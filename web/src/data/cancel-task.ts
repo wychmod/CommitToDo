@@ -1,11 +1,11 @@
 import { fail, ok, type Result } from '@/core/errors';
-import { isBranchAccepting } from '@/core/rules/branch-state';
 import { syncBranchCounts } from './branch-counts';
 import { db } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
-import { branchRepository, taskRepository } from './repositories';
+import { taskRepository } from './repositories';
 import type { Task } from './types';
+import { requireWritableBranch } from './write-guard';
 
 /**
  * 取消待办（PRD M03 OP-06 / R7）。
@@ -33,10 +33,8 @@ export async function cancelTask(
           return fail('domain.conflict', { field: 'status' });
         }
 
-        const branch = await branchRepository.getById(task.branchId);
-        if (!branch || !isBranchAccepting(branch)) {
-          return fail('domain.readonly_branch', { field: 'branchId' });
-        }
+        const branch = await requireWritableBranch(task.branchId);
+        if (!branch.ok) return fail(branch.error.code, { field: 'branchId' });
 
         const at = deps.clock.now();
         const nextTask: Task = {
@@ -51,7 +49,7 @@ export async function cancelTask(
           { status: 'cancelled', cancelledAt: at, updatedAt: at },
           task.rev,
         );
-        await syncBranchCounts(task.branchId, deps);
+        await syncBranchCounts(tx, task.branchId, deps);
         await writeEvent(
           tx,
           'task.cancel',

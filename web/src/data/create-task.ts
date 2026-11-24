@@ -1,12 +1,12 @@
 import { isDateString } from '@/core/clock';
 import { fail, ok, type Result } from '@/core/errors';
-import { isBranchAccepting } from '@/core/rules/branch-state';
 import { syncBranchCounts } from './branch-counts';
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
 import { branchRepository, taskRepository } from './repositories';
 import type { Task } from './types';
+import { requireWritableBranch } from './write-guard';
 
 export interface CreateTaskInput {
   title: string;
@@ -54,9 +54,9 @@ export async function createTask(
         if (!target) {
           return fail('domain.not_found', { field: 'branchId' });
         }
-        if (!isBranchAccepting(target)) {
-          return fail('domain.readonly_branch', { field: 'branchId' });
-        }
+        // 祖先归档 / 合并 / 删除时整棵子树只读，统一走用例侧准入。
+        const writable = await requireWritableBranch(target.id);
+        if (!writable.ok) return fail(writable.error.code, { field: 'branchId' });
 
         const at = deps.clock.now();
         const siblings = await taskRepository.listByBranch(target.id);
@@ -82,7 +82,7 @@ export async function createTask(
         };
 
         await taskRepository.create(row);
-        await syncBranchCounts(target.id, deps);
+        await syncBranchCounts(tx, target.id, deps);
         await writeEvent(
           tx,
           'task.create',

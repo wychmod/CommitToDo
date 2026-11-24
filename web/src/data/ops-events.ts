@@ -201,10 +201,6 @@ function keyOf(item: QueueItem): string {
   return `${item.event}:${item.eventId || item.localDate}`;
 }
 
-export function isOpsReportingActive(): boolean {
-  return active;
-}
-
 /**
  * 登录后启动：上报一次 `app.open`，并在可见/联网时补发队列。
  * 退出登录或卸载时停止，队列保留到下次登录。

@@ -5,6 +5,7 @@ import { collectSubtree, childPath, depthFromPath, movedPath } from '@/core/rule
 import { db, LOCAL_OWNER_ID } from './db';
 import { defaultWriteDeps, type WriteDeps } from './deps';
 import { writeEvent } from './events';
+import { enqueueEntityWrite } from './outbox';
 import { branchRepository } from './repositories';
 import type { Branch } from './types';
 
@@ -43,7 +44,7 @@ export async function moveBranch(
       if (!target) {
         return fail('domain.not_found', { field: 'parentId' });
       }
-      if (target.archivedAt !== null) {
+      if (target.archivedAt !== null || target.status !== 'active') {
         return fail('domain.readonly_branch', { field: 'parentId' });
       }
       if (target.id === subject.parentId) {
@@ -94,6 +95,17 @@ export async function moveBranch(
           updatedAt: at,
         };
         await branchRepository.put(next);
+        // 子树逐行 rev+1，但只写一条 event；其余行必须单独入队，否则同步基线错位。
+        if (branch.id !== subject.id) {
+          await enqueueEntityWrite(
+            tx,
+            'branch',
+            branch.id,
+            'branch.move',
+            { branchId: branch.id, parentId: next.parentId ?? '' },
+            deps,
+          );
+        }
         if (branch.id === subject.id) moved = next;
       }
 
