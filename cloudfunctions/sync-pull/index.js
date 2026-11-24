@@ -76,24 +76,50 @@ function atOf(row) {
   return Number.isFinite(value) ? value : 0;
 }
 
+/**
+ * 取一页待同步行。
+ *
+ * 正常路径按 `updatedAt` 游标增量取；集合缺 `updatedAt` 索引时退回全表扫描，
+ * 但**扫到的行数触到上限就报错**——静默截断会让超过上限的用户永远拉不到
+ * 后面的增量，客户端还以为「已经同步完了」。
+ */
 async function fetchRows(collection, ownerId, cursor, limit) {
   try {
     const where = cursor ? { ownerId, updatedAt: _.gte(cursor.at) } : { ownerId };
-    const result = await db.collection(collection).where(where).orderBy('updatedAt', 'asc').limit(limit).get();
+    const result = await db
+      .collection(collection)
+      .where(where)
+      .orderBy('updatedAt', 'asc')
+      .limit(limit)
+      .get();
     return result.data || [];
   } catch (error) {
     if (isEmptyCollectionError(error)) throw collectionMissing(collection);
-    // 部分集合没有 updatedAt 索引：退回按 ownerId 取一页，在函数内过滤与排序。
-    const result = await db.collection(collection).where({ ownerId }).limit(MAX_SCAN).get();
-    return result.data || [];
   }
+
+  // 没有索引：按 ownerId 扫一页，超过上限就要求补索引，不返回半份结果。
+  const result = await db.collection(collection).where({ ownerId }).limit(MAX_SCAN + 1).get();
+  const rows = result.data || [];
+  if (rows.length > MAX_SCAN) {
+    const error = new Error(`scan_overflow:${collection}`);
+    error.code = 'scan_overflow';
+    error.collection = collection;
+    throw error;
+  }
+  return rows;
+}
+
+/** 与游标同口径的字节序比较，避免 `localeCompare` 与服务端的 `>` 判定不一致。 */
+function compareId(left, right) {
+  if (left === right) return 0;
+  return left < right ? -1 : 1;
 }
 
 function isAfterCursor(at, id, cursor) {
   if (!cursor) return true;
   if (at > cursor.at) return true;
   if (at < cursor.at) return false;
-  return id > cursor.id;
+  return compareId(id, cursor.id) > 0;
 }
 
 exports.main = async (event) => {
@@ -136,7 +162,7 @@ exports.main = async (event) => {
         merged.push(item);
       }
     }
-    merged.sort((a, b) => a.at - b.at || a.id.localeCompare(b.id));
+    merged.sort((a, b) => a.at - b.at || compareId(a.id, b.id));
 
     const changes = [];
     let nextCursor = cursor === null ? null : formatCursor(cursor.at, cursor.id);
@@ -156,12 +182,19 @@ exports.main = async (event) => {
 
     return { ok: true, changes, cursor: nextCursor, serverTime };
   } catch (error) {
-    const code = error && error.code === 'collection_missing' ? 'collection_missing' : 'sync_failed';
+    // `scan_overflow` 不可重试：重试多少次都是同一批行，必须补索引后重新部署。
+    const code =
+      error && error.code === 'collection_missing'
+        ? 'collection_missing'
+        : error && error.code === 'scan_overflow'
+          ? 'scan_overflow'
+          : 'sync_failed';
     return {
       ok: false,
       code,
+      collection: (error && error.collection) || '',
       message: error && error.message ? String(error.message) : 'sync pull failed',
-      retriable: true,
+      retriable: code !== 'scan_overflow',
     };
   }
 };

@@ -14,6 +14,7 @@ import { exportData } from '@/data/export-data';
 import { useBackupListView, useDataOverview } from '@/data/hooks';
 import type { Backup, BackupKind } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
+import { useAuthStore } from '@/stores/auth.store';
 import { ONBOARDING_STORAGE_KEY, useOnboardingStore } from '@/stores/onboarding.store';
 import { CloudIcon, DeviceIcon, DownloadIcon, FileIcon, UploadIcon } from '@/ui/icons';
 import { PageShell } from '@/ui/page-shell';
@@ -109,6 +110,9 @@ export function DataPage() {
   const [manualState, setManualState] = useState<BusyState>('idle');
   const [remoteState, setRemoteState] = useState<BusyState>('idle');
   const [copyFailed, setCopyFailed] = useState(false);
+  // 异地备份按账号隔离，未登录时不给入口，避免上传到匿名路径后再也取不回。
+  const principalId = useAuthStore((state) => state.principalId);
+  const signedIn = principalId !== null;
 
   const runExport = useCallback(async (): Promise<boolean> => {
     setExportState('busy');
@@ -128,15 +132,22 @@ export function DataPage() {
     setManualState(result.ok ? 'done' : 'failed');
   }, []);
 
-  const handleDownload = useCallback(async (backupId: string): Promise<void> => {
-    setRemoteState('busy');
-    const result = await downloadRemoteBackup({ backupId });
-    if (!result.ok || !downloadTextFile(result.value.text, result.value.fileName)) {
-      setRemoteState('failed');
-      return;
-    }
-    setRemoteState('done');
-  }, []);
+  const handleDownload = useCallback(
+    async (backupId: string): Promise<void> => {
+      if (!signedIn) {
+        setRemoteState('failed');
+        return;
+      }
+      setRemoteState('busy');
+      const result = await downloadRemoteBackup({ backupId });
+      if (!result.ok || !downloadTextFile(result.value.text, result.value.fileName)) {
+        setRemoteState('failed');
+        return;
+      }
+      setRemoteState('done');
+    },
+    [signedIn],
+  );
 
   const handleDownloadCopy = useCallback((backup: Backup): void => {
     const localDate = toLocalDate(backup.createdAt, currentTzOffset(systemClock.now()));
@@ -418,7 +429,15 @@ export function DataPage() {
                 <button
                   type="button"
                   className={`${styles.quietAction} ${styles.fileButton}`}
-                  onClick={() => setPanel({ type: 'remote-upload' })}
+                  onClick={() => {
+                    if (!signedIn) {
+                      setRemoteState('failed');
+                      return;
+                    }
+                    setPanel({ type: 'remote-upload' });
+                  }}
+                  disabled={!signedIn}
+                  title={signedIn ? undefined : t('data.remote.needSignIn')}
                 >
                   {t('data.remote.upload')}
                 </button>
@@ -437,7 +456,7 @@ export function DataPage() {
                       type="button"
                       className={`${styles.quietAction} ${styles.fileButton}`}
                       onClick={() => void handleDownload(remoteBackup.id)}
-                      disabled={remoteState === 'busy'}
+                      disabled={remoteState === 'busy' || !signedIn}
                     >
                       {t('data.remote.download')}
                     </button>
@@ -451,7 +470,11 @@ export function DataPage() {
                   </div>
                 </div>
               ) : null}
-              {remoteState === 'failed' ? (
+              {!signedIn ? (
+                <p className={styles.noteError} role="alert">
+                  {t('data.remote.needSignIn')}
+                </p>
+              ) : remoteState === 'failed' ? (
                 <p className={styles.noteError} role="alert">
                   {t('data.snapshot.downloadFailed')}
                 </p>

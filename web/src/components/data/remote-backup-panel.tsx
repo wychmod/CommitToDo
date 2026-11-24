@@ -95,7 +95,7 @@ export function RemoteBackupPanel({
       {isUpload ? (
         <>
           <p className={styles.hint}>{t('data.remote.confirmBody')}</p>
-          <p className={styles.hint}>{t('data.remote.loginFree')}</p>
+          <p className={styles.hint}>{t('data.remote.loginRequired')}</p>
           <ul className={styles.counts}>
             {(Object.keys(COUNT_LABELS) as Array<keyof DataOverviewCounts>).map((key) => (
               <li key={key}>

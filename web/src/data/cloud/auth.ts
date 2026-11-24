@@ -148,17 +148,6 @@ export async function completePasswordReset(input: ResetPasswordInput): Promise<
   }
 }
 
-/** 读取云端现有会话；没有会话或云环境不可用时返回 null。 */
-export async function readCloudSession(): Promise<AuthSession | null> {
-  try {
-    const auth = await getAuth();
-    const state = (await auth.getLoginState()) as { user?: unknown } | null;
-    return toSession(state?.user);
-  } catch {
-    return null;
-  }
-}
-
 /** 云端会话的三种校验结果：`none` 只表示确定没有会话。 */
 export type CloudSessionState = 'active' | 'none' | 'unknown';
 

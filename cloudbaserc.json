@@ -1,5 +1,5 @@
 {
-  "envId": "",
+  "envId": "committodo-d6gmapg0j6397889f",
   "functionRoot": "./cloudfunctions",
   "functions": [
     {
@@ -15,42 +15,49 @@
     {
       "name": "workspace-read",
       "timeout": 20,
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs20.19",
       "handler": "index.main",
       "installDependency": true
     },
     {
       "name": "sync-push",
       "timeout": 20,
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs20.19",
       "handler": "index.main",
       "installDependency": true
     },
     {
       "name": "sync-pull",
       "timeout": 20,
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs20.19",
       "handler": "index.main",
       "installDependency": true
     },
     {
       "name": "sync-devices",
       "timeout": 20,
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs20.19",
       "handler": "index.main",
       "installDependency": true
     },
     {
       "name": "migrate-push",
       "timeout": 20,
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs20.19",
       "handler": "index.main",
       "installDependency": true
     },
     {
       "name": "counter-inc",
       "timeout": 20,
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs20.19",
+      "handler": "index.main",
+      "installDependency": true
+    },
+    {
+      "name": "ops-event",
+      "timeout": 20,
+      "runtime": "Nodejs20.19",
       "handler": "index.main",
       "installDependency": true
     }
