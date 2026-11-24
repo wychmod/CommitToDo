@@ -11,14 +11,17 @@ import { languageBoard } from './visual-language.mjs';
 
 const branchVariantsOnly = process.argv.includes('--branch-variants');
 const allPages = process.argv.includes('--all-pages');
+const onboardingOnly = process.argv.includes('--onboarding');
 const branchVariantFiles = ['branches-grouped', 'branches-inspect', 'branches-map'];
 const allPageFiles = ['auth-pages', 'me-data', 'branch-layers', 'support-views'];
-if (branchVariantsOnly && allPages) throw new Error('Choose one render group.');
-const pages = branchVariantsOnly
-  ? await Promise.all(branchVariantFiles.map(async (file) => (await import('./' + file + '.mjs')).page))
-  : allPages
-    ? (await Promise.all(allPageFiles.map(async (file) => (await import('./' + file + '.mjs')).pages))).flat()
-    : [...todayDetail, ...treeHistory, ...year].sort((a, b) => a.id.localeCompare(b.id));
+if ([branchVariantsOnly, allPages, onboardingOnly].filter(Boolean).length > 1) throw new Error('Choose one render group.');
+const pages = onboardingOnly
+  ? (await import('./support-views.mjs')).pages.filter((page) => page.id === 'O06')
+  : branchVariantsOnly
+    ? await Promise.all(branchVariantFiles.map(async (file) => (await import('./' + file + '.mjs')).page))
+    : allPages
+      ? (await Promise.all(allPageFiles.map(async (file) => (await import('./' + file + '.mjs')).pages))).flat()
+      : [...todayDetail, ...treeHistory, ...year].sort((a, b) => a.id.localeCompare(b.id));
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const imagePath = join(directory, 'images');
 
@@ -92,7 +95,7 @@ async function render(client, page, theme, styles) {
   const isBoard = page.board;
   const stem = fileStem(page, theme);
   const width = 1440;
-  const height = isBoard ? 850 : page.id === 'P01' ? 960 : 1040;
+  const height = page.height ?? (isBoard ? 850 : page.id === 'P01' ? 960 : 1040);
   await viewport(client, width, height);
   const markup = makePage(page, theme, styles);
   await client.send('Page.navigate', { url: 'data:text/html;base64,' + Buffer.from(markup, 'utf8').toString('base64') });
@@ -126,14 +129,18 @@ async function render(client, page, theme, styles) {
 
 const browserPath = await findBrowser();
 await mkdir(imagePath, { recursive: true });
-const styleFiles = branchVariantsOnly
-  ? ['shared', ...branchVariantFiles]
-  : allPages
-    ? ['shared', 'today-detail', 'tree-history', 'year', 'branches-grouped', 'layers', ...allPageFiles]
-    : ['shared', 'today-detail', 'tree-history', 'year', 'visual-language'];
+const styleFiles = onboardingOnly
+  ? ['shared', 'layers', 'support-views']
+  : branchVariantsOnly
+    ? ['shared', ...branchVariantFiles]
+    : allPages
+      ? ['shared', 'today-detail', 'tree-history', 'year', 'branches-grouped', 'layers', ...allPageFiles]
+      : ['shared', 'today-detail', 'tree-history', 'year', 'visual-language'];
 const cssParts = await Promise.all(styleFiles.map((file) => readFile(new URL('./' + file + '.css', import.meta.url), 'utf8')));
 const tokenCss = makeTokensCss();
-if (!branchVariantsOnly && !allPages) await writeFile(join(directory, 'tokens.css'), tokenCss, 'utf8');
+if (!branchVariantsOnly && !allPages && !onboardingOnly) {
+  await writeFile(join(directory, 'tokens.css'), tokenCss, 'utf8');
+}
 const styles = tokenCss + '\n' + cssParts.join('\n');
 const tempBase = await realpath(tmpdir());
 const profile = await mkdtemp(join(tempBase, 'commit-design-capture-'));
@@ -160,7 +167,7 @@ try {
   tab = await connect(opened.webSocketDebuggerUrl);
   await tab.send('Page.enable');
   for (const theme of ['light', 'dark']) {
-    const themedPages = branchVariantsOnly || allPages ? pages : [...pages, languageBoard(theme)];
+    const themedPages = branchVariantsOnly || allPages || onboardingOnly ? pages : [...pages, languageBoard(theme)];
     for (const page of themedPages) {
       await render(tab, page, theme, styles);
     }

@@ -159,11 +159,11 @@ const styles = '<style>' +
   '.geometry{margin-top:36px}@media(max-width:720px){.bar>div,.catalog{padding-inline:15px}.hero{padding-top:30px}.pair{grid-template-columns:1fr}.scene-body{padding-inline:8px}.home-preview img{height:auto}}' +
   '</style>';
 const script = '<script>function reveal(){const id=location.hash.slice(1);const el=document.getElementById(id);if(el&&el.tagName==="DETAILS"){el.open=true;el.scrollIntoView({block:"start"});}}window.addEventListener("hashchange",reveal);reveal();</script>';
-const body = '<div class="bar"><div><strong>CommitToDo</strong><a href="../../../../docs/DESIGN.md">设计交接</a></div></div>' +
+const body = '<div class="bar"><div><strong>CommitToDo</strong><a href="../docs/DESIGN.md">设计交接</a></div></div>' +
   '<main class="catalog"><header class="hero"><h1>全部页面设计稿</h1><p>' + coreCount + ' 个独立页面与 ' + (sceneCount-coreCount) +
   ' 个补充视图和操作状态，每组都有浅色和深色。展开后点击图片查看原图。</p>' +
-  '<nav class="reference" aria-label="设计资料"><a href="branch-variants.html">分支树方案对照</a><a href="../../../../docs/UI-VISUAL.md">视觉规范</a>' +
-  '<a href="../../../../docs/UI-COMPONENTS.md">组件清单</a><a href="../../../../docs/UI-PAGES.md">页面设计</a><a href="../../../../docs/HOMEPAGE-MOTION.md">首页动效</a></nav></header>' +
+  '<nav class="reference" aria-label="设计资料"><a href="branch-variants.html">分支树方案对照</a><a href="../docs/UI-VISUAL.md">视觉规范</a>' +
+  '<a href="../docs/UI-COMPONENTS.md">组件清单</a><a href="../docs/UI-PAGES.md">页面设计</a><a href="../docs/HOMEPAGE-MOTION.md">首页动效</a></nav></header>' +
   '<nav class="jump" aria-label="画稿分类">' + groups.map(group => '<a href="#' + group.id + '">' + group.title + '</a>').join('') +
   '<a href="#visual-language">配色与图形样板</a></nav>' + sections.join('\n') + '<div class="geometry">' + geometry + '</div></main>';
 const html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +

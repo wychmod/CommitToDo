@@ -63,7 +63,13 @@
       "auth-local-hover-bg": "#E7F1FB",
       "auth-sticky-border": "#1B2432",
       "auth-receipt-bg": "#E4F2FD",
-      "auth-receipt-border": "#9EC6EA"
+      "auth-receipt-border": "#9EC6EA",
+      "onboarding-blue": "#2689F7",
+      "onboarding-action": "#0869E8",
+      "onboarding-ink": "#FFFFFF",
+      "onboarding-mark": "#99CAFC",
+      "onboarding-receipt": "#ECF5FE",
+      "onboarding-edge": "#BFDBFF"
     },
     "dark": {
       "page": "#192230",
@@ -127,7 +133,13 @@
       "auth-local-hover-bg": "#B7D4FA",
       "auth-sticky-border": "transparent",
       "auth-receipt-bg": "#2A3F58",
-      "auth-receipt-border": "#7699C4"
+      "auth-receipt-border": "#7699C4",
+      "onboarding-blue": "#85B9FF",
+      "onboarding-action": "#A4C8F8",
+      "onboarding-ink": "#11233E",
+      "onboarding-mark": "#779FCB",
+      "onboarding-receipt": "#2A3F58",
+      "onboarding-edge": "#536D8B"
     }
   },
   "branches": {
@@ -337,6 +349,22 @@
       "stickySize": 88,
       "receiptWidth": 256,
       "artTitleSize": 48
+    },
+    "onboarding": {
+      "receiptMax": 1084,
+      "stepsMax": 772,
+      "titleSize": 56,
+      "receiptTitleSize": 52,
+      "receiptBodySize": 28,
+      "stepSize": 40,
+      "badgeSize": 108,
+      "articleHeight": 240,
+      "articleRadius": 22,
+      "actionWidth": 228,
+      "actionHeight": 68,
+      "trailHeight": 175,
+      "setupHeight": 864,
+      "minHeight": 804
     },
     "legal": {
       "contentMax": 1160,

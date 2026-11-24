@@ -98,23 +98,90 @@ const search = layer('O04','search','搜索',today,'全局搜索','查找分支�
   '<div><span class="chip chip-warning">里程碑</span><strong>首页结构确认</strong><small>工作 / 产品设计</small></div></div>',
   '<span class="caption gx-shortcut">↑ ↓ 选择　↵ 打开　Esc 关闭</span>', 'wide');
 
-function firstRun(completed) {
-  return '<div class="gx-page"><header class="page-head"><div><span class="eyebrow">个人工作区 / 今天</span><h1>今天</h1>' +
-    '<p>从一件正在做的事开始。</p></div></header><section class="panel gx-start-card">' +
-    '<div class="gx-start-illustration" aria-hidden="true"><i></i><b>✓</b><span></span><em></em></div>' +
-    '<div><h2>' + (completed ? '第一条提交已留下。' : '写下第一条待办。') + '</h2><p>' +
-    (completed ? '「整理桌面」已记录在根分支「我」里。' : '这件事会先放在根分支「我」里，完成后就能在历程回看。') + '</p>' +
-    (completed ? '<span class="chip chip-success">✓ 整理桌面 · 已提交</span><div class="gx-start-actions">' + button('在历程查看','primary') + '</div>'
-      : '<div class="gx-start-actions"><div class="ds-input">整理桌面</div>' + button('添加待办','primary') + '</div><a href="#example">先看看示例</a>') +
-    '</div></section></div>';
-}
-const start = state('O06','first-task','首次引导','今天','/today',firstRun(false));
-const firstCommit = state('O06','first-commit','首次完成','今天','/today',firstRun(true));
+const o06Paths = {
+  check: '<path d="m5 12 4 4 10-10"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5h4"/>',
+  branch: '<circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M12 8v3m-7 4v-2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/>',
+  info: '<path d="M12 11v5m0-8h.01"/>',
+  trash: '<path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/>',
+  flag: '<path d="M5 22V3l14 4-14 5" fill="currentColor"/>',
+};
 
-const examples = layer('O06','sample-tree','先看看示例',start,'示例','用一棵小树看懂分支和提交。',
-  '<div class="gx-example">' + row('根分支','我') + row('　工作',ribbon('产品设计')) + row('　　准备首屏草图','✓ 已提交') +
-  row('　健康',ribbon('跑步','sky')) + row('　　完成一次晨跑','✓ 已提交') + row('　生活',ribbon('阅读','honey')) + '</div>',
-  button('返回工作区') + ' ' + button('开始我的第一条待办','primary'),'dialog');
+function o06Icon(name) {
+  return '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    o06Paths[name] + '</svg>';
+}
+
+const firstSteps = ['建一条分支', '记第一笔', '完成它'];
+function firstRun(completed) {
+  const steps = firstSteps.map((label, index) =>
+    '<li' + (completed || index === 0 ? ' class="o06-step-active"' : '') + '><span>' +
+    (completed ? o06Icon('check') : index + 1) + '</span>' + label + '</li>').join('');
+  const illustration = '<div class="o06-emblem" aria-hidden="true"><i></i><i></i><i></i><span>' +
+    o06Icon(completed ? 'check' : 'branch') + '</span></div>';
+  const palette = ['coral', 'sky', 'honey', 'mint', 'iris', 'rose', 'teal'].map((color, index) =>
+    '<span' + (index === 0 ? ' class="o06-swatch-selected"' : '') +
+    ' style="--swatch:var(--' + color + '-1)"></span>').join('');
+  const form = '<div class="o06-entry">' + field('分支名称', '例如：工作') +
+    '<p>颜色</p><div class="o06-swatches">' + palette + '</div></div>';
+  const receipt = '<div class="o06-receipt"><span><b>' + o06Icon('check') +
+    '</b>整理桌面 · 工作</span><span>' + o06Icon('clock') + '已提交 16:42</span></div>';
+  const description = completed ? '你已经完成第一条待办。' : '先给要做的事建一条线，之后都找得回来。';
+  const actions = completed
+    ? button('去历程看看', 'primary') + button('继续记录')
+    : button('保存分支', 'primary') + button('先看看示例');
+
+  return '<main class="o06-first' + (completed ? ' o06-completed' : '') + '"><header class="o06-title">' +
+    '<span aria-hidden="true"></span><h1>第一次记录</h1><span aria-hidden="true"></span></header>' +
+    (!completed ? '<button class="o06-skip" type="button">跳过</button>' : '') +
+    '<ol class="o06-steps">' + steps + '</ol><section class="o06-panel">' + illustration +
+    '<div class="o06-panel-content"><h2>' + (completed ? '第一条提交' : firstSteps[0]) + '</h2>' +
+    (completed ? receipt : form) + '</div></section><p class="o06-message">' + description +
+    '</p><div class="o06-actions">' + actions + '</div>' +
+    '<svg class="o06-trail" aria-hidden="true" viewBox="0 0 1359 165" preserveAspectRatio="none">' +
+    '<path d="M0 82C220 29 334 157 680 164S1190 105 1359 0" pathLength="1359"/></svg>' +
+    '<div class="o06-note" aria-hidden="true">' + o06Icon('check') + '</div></main>';
+}
+
+const start = { ...state('O06', 'first-task', '首次引导', '今天', '/today', firstRun(false)), layout: 'standalone', height: 864 };
+const firstCommit = { ...state('O06', 'first-commit', '首次完成', '今天', '/today', firstRun(true)), layout: 'standalone', height: 844 };
+
+function sampleRow(title, date, tone = 'muted') {
+  return '<li class="o06-sample-row" data-tone="' + tone + '"><i aria-hidden="true"></i><span>' +
+    title + '</span><time>' + date + '</time></li>';
+}
+
+function sampleBranch(name, tone, children) {
+  const label = '<i aria-hidden="true"></i><span>示例 · ' + name + '</span>';
+  return children
+    ? '<li data-tone="' + tone + '"><details open><summary>' + label + '</summary><ul>' + children + '</ul></details></li>'
+    : '<li data-tone="' + tone + '"><div>' + label + '</div></li>';
+}
+
+function sampleSection(title, icon, body, control = '') {
+  return '<section class="o06-sample-section"><header><h2><span class="o06-sample-' + icon + '">' + o06Icon(icon) +
+    '</span>' + title + '</h2>' + control + '</header>' + body + '</section>';
+}
+
+const sampleBranches = sampleBranch('工作', 'blue', sampleBranch('副业', 'orange', sampleBranch('读书计划', 'sky'))) +
+  sampleBranch('学习', 'green');
+const sampleCommits = [
+  ['整理本周要做的事', '11.20'], ['完成项目周报', '11.19'], ['读完第一章', '11.18'],
+  ['和同事对齐接口', '11.17'], ['搭好副业的第一版页面', '11.16'],
+];
+const sampleMilestones = [
+  ['示例 · 第一个里程碑', '11.15', 'blue'], ['示例 · 读完一本书', '11.01', 'orange'],
+];
+const sampleMarkup = '<main class="o06-sample"><header><h1>示例树</h1><p>先看看一棵长满的树是什么样，再回到今天。</p></header>' +
+  '<div class="o06-sample-banner"><span class="o06-sample-info">' + o06Icon('info') + '</span><strong>这是示例，不会进入你的数据</strong>' +
+  '<button type="button">' + o06Icon('trash') + '删除示例</button></div>' +
+  '<p class="o06-sample-readonly">示例只读，不能完成待办、编辑或收尾。</p>' +
+  sampleSection('分支', 'branch', '<ul class="o06-sample-tree">' + sampleBranches + '</ul>') +
+  sampleSection('提交', 'check', '<ul class="o06-sample-rows">' + sampleCommits.map(([title, date]) => sampleRow(title, date)).join('') + '</ul>',
+    '<button class="o06-sample-more" type="button">查看全部提交 <span aria-hidden="true"></span></button>') +
+  sampleSection('里程碑', 'flag', '<ul class="o06-sample-rows">' + sampleMilestones.map(([title, date, tone]) => sampleRow(title, date, tone)).join('') + '</ul>') +
+  '</main>';
+const examples = { ...state('O06', 'sample-tree', '示例树', '今天', '/sample', sampleMarkup), layout: 'standalone', height: 920 };
 
 const weekendToday = { ...today, markup: today.markup.replace('2026 年 11 月 20 日 · 周五', '2026 年 11 月 21 日 · 周六') };
 const week = layer('S01','week-review','周回顾',weekendToday,'今天 / 本周','11 月 16 日至 22 日 · 周末预览 · 已统计至 11 月 21 日',
