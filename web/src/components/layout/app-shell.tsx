@@ -92,6 +92,7 @@ function backupLabel(at: number | null): string {
  */
 export function AppShell() {
   const location = useLocation();
+  const isSample = location.pathname.replace(/\/+$/, '') === '/sample';
   const openOverlay = useShellStore((state) => state.openOverlay);
   const { status, retry } = useStorageReady();
   const { settings } = useSettingsState();
@@ -161,6 +162,7 @@ export function AppShell() {
 
   // 全局快捷键：Ctrl/Cmd + K 打开搜索（V1-04 OP-01）。
   useEffect(() => {
+    if (isSample) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k') return;
       event.preventDefault();
@@ -168,7 +170,7 @@ export function AppShell() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [openOverlay]);
+  }, [isSample, openOverlay]);
 
   const renderNav = () =>
     NAV_ITEMS.map((item) => {
@@ -191,7 +193,7 @@ export function AppShell() {
   };
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} data-sample={isSample}>
       <header className={styles.topbar}>
         <Link to="/" className={styles.brand}>
           <span className={styles.brandMark} aria-hidden="true">

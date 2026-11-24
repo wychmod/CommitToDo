@@ -323,3 +323,15 @@
     border-bottom-color: var(--accent);
   }
 }
+
+.shell:is([data-sample='true'], :has([data-onboarding-active]), :has([data-onboarding-complete])) {
+  grid-template-areas: 'content';
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  background: var(--panel);
+}
+
+.shell:is([data-sample='true'], :has([data-onboarding-active]), :has([data-onboarding-complete]))
+  > :is(.topbar, .sidebar, .bottomNav) {
+  display: none;
+}

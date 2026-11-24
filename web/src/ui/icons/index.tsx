@@ -318,6 +318,18 @@ export function ArchiveIcon(props: SvgIconProps) {
   );
 }
 
+/** 删除示例或其他不可逆内容。 */
+export function TrashIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon {...props}>
+      <path d="M5 7h14" />
+      <path d="M10 4h4l1 3H9l1-3Z" />
+      <path d="M7 7v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7" />
+      <path d="M10 11v6M14 11v6" />
+    </SvgIcon>
+  );
+}
+
 /** 一级分支图标（珊瑚橙，工作）。 */
 export function BriefcaseIcon(props: SvgIconProps) {
   return (
