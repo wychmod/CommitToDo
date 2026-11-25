@@ -1,86 +1,57 @@
 .receipt {
-  padding: 15px 16px 16px;
-  border: 1px solid var(--accent-line);
-  border-radius: var(--radius-panel);
+  display: grid;
+  gap: var(--s2);
+  margin: var(--s3) var(--s4);
+  padding: var(--s3) var(--s4);
+  border: var(--timeline-guide) solid var(--accent-line);
+  border-radius: var(--radius-control);
   background: var(--accent-soft);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
 }
 
 .heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--s2);
   color: var(--accent);
   font-size: var(--type-secondary);
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .check {
   display: grid;
   place-items: center;
-  width: 23px;
-  height: 23px;
+  padding: var(--s1);
   border-radius: var(--radius-control);
-  background: var(--accent-soft-strong);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .time {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: var(--type-label);
   font-variant-numeric: tabular-nums;
 }
 
-.title {
-  margin: 11px 0 var(--s2);
+.summary {
+  margin: 0;
   color: var(--text);
-  font-size: 19px;
-  font-weight: 660;
+  font-size: var(--type-body-compact);
+  font-weight: 700;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
-.foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px var(--s3);
-}
-
-.links {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s3);
-}
-
-.noteLink {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: var(--type-label);
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.noteLink:hover,
-.view:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.noteLink:focus-visible,
-.view:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-  border-radius: var(--radius-marker);
-}
-
 .view {
   display: inline-flex;
+  flex: none;
   align-items: center;
-  gap: calc(var(--s1) + 2px);
+  gap: var(--s1);
   color: var(--accent);
   font-size: var(--type-label);
   font-weight: 650;
@@ -88,28 +59,28 @@
   white-space: nowrap;
 }
 
-.noteForm {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s2);
-  margin-top: var(--s3);
-  padding-top: var(--s3);
-  border-top: 1px solid var(--accent-line);
+.view:hover {
+  text-decoration: underline;
+  text-underline-offset: var(--s1);
 }
 
-.noteLabel {
-  flex: 1 0 100%;
-  color: var(--muted);
-  font-size: var(--type-label);
+.view:focus-visible {
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: var(--timeline-selected-ring);
+  border-radius: var(--radius-marker);
+}
+
+.noteForm {
+  display: flex;
+  gap: var(--s2);
 }
 
 .input {
   flex: 1;
   min-width: 0;
-  height: var(--s7);
+  min-height: var(--s8);
   padding: 0 var(--s3);
-  border: 1px solid var(--line-strong);
+  border: var(--timeline-guide) solid var(--line-strong);
   border-radius: var(--radius-control);
   background: var(--panel);
   color: var(--text);
@@ -117,16 +88,20 @@
   font-size: var(--type-secondary);
 }
 
+.input::placeholder {
+  color: var(--muted);
+}
+
 .input:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 1px;
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: calc(var(--s1) / 4);
 }
 
 .save {
   flex: none;
-  height: var(--s7);
+  min-height: var(--s8);
   padding: 0 var(--s3);
-  border: 1px solid var(--accent);
+  border: var(--timeline-guide) solid var(--accent);
   border-radius: var(--radius-control);
   background: var(--accent);
   color: var(--accent-ink);
@@ -142,9 +117,21 @@
   cursor: not-allowed;
 }
 
+.save:focus-visible {
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: var(--timeline-selected-ring);
+}
+
+.saved,
 .error {
-  flex: 1 0 100%;
   margin: 0;
-  color: var(--danger);
   font-size: var(--type-label);
+}
+
+.saved {
+  color: var(--accent);
+}
+
+.error {
+  color: var(--danger);
 }

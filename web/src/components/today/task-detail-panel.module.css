@@ -16,7 +16,7 @@
   height: 100%;
   overflow-y: auto;
   background: var(--panel);
-  border-left: 1px solid var(--line);
+  border-left: var(--timeline-guide) solid var(--line);
   animation: panel-in var(--duration-entry) var(--ease-enter);
 }
 
@@ -39,6 +39,62 @@
   color: var(--text);
   font-size: var(--type-heading-small);
   font-weight: 600;
+}
+
+.subtitle {
+  margin: var(--s1) 0 0;
+  color: var(--muted);
+  font-size: var(--type-secondary);
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--radius-control);
+  background: var(--inset);
+  font-size: var(--type-secondary);
+}
+
+.statusLabel {
+  color: var(--muted);
+}
+
+.statusValue {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.statusValue[data-status='done'] {
+  color: var(--muted);
+}
+
+.statusValue[data-status='cancelled'] {
+  color: var(--danger);
+}
+
+.statusAction {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: var(--type-secondary);
+  font-weight: 650;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.statusAction:disabled {
+  color: var(--disabled);
+  cursor: default;
+}
+
+.statusAction:focus-visible {
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: var(--timeline-selected-ring);
+  border-radius: var(--radius-marker);
 }
 
 .close {
@@ -86,7 +142,7 @@
 .input {
   width: 100%;
   padding: var(--s2) var(--s3);
-  border: 1px solid var(--line);
+  border: var(--timeline-guide) solid var(--line);
   border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--text);
@@ -99,8 +155,8 @@
 }
 
 .input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: var(--timeline-selected-ring) solid var(--accent);
+  outline-offset: calc(var(--s1) / 4);
 }
 
 .textarea {
@@ -127,29 +183,44 @@
 }
 
 .actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-top: var(--s2);
+  padding-block: var(--s3);
+  border-top: var(--timeline-guide) solid var(--line);
+  background: var(--panel);
+}
+
+.actionGroup {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s2);
-  padding-top: var(--s2);
 }
 
 .primary,
 .ghost,
 .danger {
-  padding: var(--s2) var(--s4);
+  min-height: var(--s8);
+  padding: var(--s1) var(--s4);
   border-radius: var(--radius-control);
   font-size: var(--type-secondary);
   cursor: pointer;
 }
 
 .primary {
-  border: 1px solid var(--accent);
+  border: var(--timeline-guide) solid var(--accent);
   background: var(--accent);
-  color: var(--panel);
+  color: var(--accent-ink);
 }
 
 .ghost {
-  border: 1px solid var(--line);
+  border: var(--timeline-guide) solid var(--line);
   background: var(--panel);
   color: var(--text);
 }
@@ -159,7 +230,7 @@
 }
 
 .danger {
-  border: 1px solid var(--danger);
+  border: var(--timeline-guide) solid var(--danger);
   background: transparent;
   color: var(--danger);
 }
@@ -174,8 +245,8 @@
 .primary:focus-visible,
 .ghost:focus-visible,
 .danger:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: var(--timeline-selected-ring) solid var(--accent);
+  outline-offset: var(--timeline-selected-ring);
 }
 
 .history {
@@ -183,7 +254,7 @@
   flex-direction: column;
   gap: var(--s2);
   padding-top: var(--s3);
-  border-top: 1px solid var(--line);
+  border-top: var(--timeline-guide) solid var(--line);
 }
 
 .historyTitle {
