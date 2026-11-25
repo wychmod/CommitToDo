@@ -1,19 +1,21 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
-import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
 import { displayBranchTrail } from '@/core/rules/branch-path';
 import { groupAllTodoTasks, sortByManualOrder } from '@/core/rules/today-groups';
+import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
 import { useAllTodosData, useTodayDate } from '@/data/hooks';
+import { planTask } from '@/data/plan-task';
 import type { Branch, Task } from '@/data/types';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
 import { useTodayStore } from '@/stores/today.store';
-import { EmptyState } from '@/ui/empty-state';
-import { ChevronRightIcon, PlusIcon } from '@/ui/icons';
-import { LoadingShell } from '@/ui/loading-shell';
+import { ArrowLeftIcon, ChevronDownIcon } from '@/ui/icons';
 import { PageShell } from '@/ui/page-shell';
+import { ConfirmDialog } from '@/components/today/confirm-dialog';
 import { readonlyReasonKey } from '@/components/today/readonly';
+import { TaskRow } from '@/components/today/task-row';
 import styles from './all-todos-page.module.css';
 
 interface Filters {
@@ -21,6 +23,14 @@ interface Filters {
   dropped: boolean;
   archived: boolean;
 }
+
+type AllGroupKey = 'overdue' | 'upcoming' | 'noDue';
+
+const GROUP_LABEL = {
+  overdue: 'today.group.overdue',
+  upcoming: 'today.group.future',
+  noDue: 'today.group.noDue',
+} as const;
 
 function isInDefaultTree(branchId: string, byId: Map<string, Branch>): boolean {
   let current = byId.get(branchId);
@@ -35,13 +45,6 @@ function isInDefaultTree(branchId: string, byId: Map<string, Branch>): boolean {
   return byId.has(branchId);
 }
 
-function dueLabel(task: Task, todayDate: string): string {
-  if (!task.dueDate) return t('today.task.noDue');
-  if (task.dueDate === todayDate) return t('today.task.todayLabel');
-  const [, month, day] = task.dueDate.split('-').map(Number);
-  return `${month}${t('milestone.date.monthSuffix')} ${day}${t('milestone.date.daySuffix')}`;
-}
-
 /**
  * `/today/all` 全部待办（PRD M03 S01）。
  *
@@ -51,22 +54,27 @@ function dueLabel(task: Task, todayDate: string): string {
 export function AllTodosPage() {
   const data = useAllTodosData();
   const openTaskDetail = useShellStore((state) => state.openTaskDetail);
-  const openOverlay = useShellStore((state) => state.openOverlay);
   const manualGroups = useTodayStore((state) => state.manualGroups);
   const todayDate = useTodayDate();
   const [filters, setFilters] = useState<Filters>({ root: false, dropped: false, archived: false });
+  const [openGroups, setOpenGroups] = useState<Record<AllGroupKey, boolean>>({
+    overdue: false,
+    upcoming: true,
+    noDue: true,
+  });
   const [pageError, setPageError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [failedId, setFailedId] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Task | null>(null);
 
   const byId = useMemo(
     () => new Map(data.branches.map((branch) => [branch.id, branch])),
     [data.branches],
   );
   const root = data.branches.find((branch) => branch.depth === 0 && branch.deletedAt === null);
-  const anyFilter = filters.root || filters.dropped || filters.archived;
 
   const visibleTasks = useMemo(() => {
+    const anyFilter = filters.root || filters.dropped || filters.archived;
     return data.tasks.filter((task) => {
       const branch = byId.get(task.branchId);
       if (!branch) return false;
@@ -76,7 +84,7 @@ export function AllTodosPage() {
       if (filters.archived && branch.archivedAt === null) return false;
       return true;
     });
-  }, [anyFilter, byId, data.tasks, filters, root?.id]);
+  }, [byId, data.tasks, filters, root?.id]);
 
   const groups = useMemo(() => {
     const base = groupAllTodoTasks(visibleTasks, todayDate);
@@ -98,89 +106,101 @@ export function AllTodosPage() {
     else setFailedId(task.id);
   };
 
+  const plan = async (task: Task, plannedDate: string | null) => {
+    const result = await planTask({ taskId: task.id, plannedDate });
+    setPageError(result.ok ? null : t('today.writeFailed'));
+  };
+
+  const confirmCancel = async () => {
+    if (!cancelTarget) return;
+    setBusyId(cancelTarget.id);
+    const result = await cancelTask({ taskId: cancelTarget.id });
+    setBusyId(null);
+    setCancelTarget(null);
+    setPageError(result.ok ? null : t('today.writeFailed'));
+  };
+
   const toggle = (key: keyof Filters) =>
     setFilters((current) => ({ ...current, [key]: !current[key] }));
 
   const renderRow = (task: Task) => {
     const branch = byId.get(task.branchId);
-    const readonlyReason = readonlyReasonKey(branch);
-    const color = branch ? normalizeBranchColor(branch.color) : 'sky';
-    const shade = branch ? branchShadeForDepth(branch.depth) : 1;
-    const path = branch ? displayBranchTrail(branch, byId) : '';
-    const busy = busyId === task.id;
-
     return (
-      <div
+      <TaskRow
         key={task.id}
-        className={failedId === task.id ? `${styles.row} ${styles.rowError}` : styles.row}
-      >
-        <span className={styles.rowMain}>
-          <button
-            type="button"
-            className={styles.check}
-            aria-label={t('today.task.complete')}
-            disabled={busy || readonlyReason !== null}
-            onClick={() => void complete(task)}
-          />
-          {readonlyReason ? (
-            <span className={styles.nameText}>{task.title}</span>
-          ) : (
-            <button type="button" className={styles.name} onClick={() => openTaskDetail(task.id)}>
-              {task.title}
-            </button>
-          )}
-          {readonlyReason ? <span className={styles.readonly}>{t(readonlyReason)}</span> : null}
-        </span>
-
-        {branch ? (
-          <span
-            className={styles.identity}
-            style={{ '--branch': `var(--${color}-${shade})` } as CSSProperties}
-          >
-            <i className={styles.branchDot} aria-hidden="true" />
-            {path}
-          </span>
-        ) : (
-          <span />
-        )}
-
-        <span className={styles.due}>{dueLabel(task, todayDate)}</span>
-
-        <button
-          type="button"
-          className={styles.chevron}
-          aria-label={t('today.task.open')}
-          onClick={() => openTaskDetail(task.id)}
-        >
-          <ChevronRightIcon size={16} />
-        </button>
-      </div>
+        task={task}
+        branch={branch}
+        branchTrail={branch ? displayBranchTrail(branch, byId) : task.branchId}
+        todayDate={todayDate}
+        readonlyReason={readonlyReasonKey(branch)}
+        busy={busyId === task.id}
+        error={failedId === task.id}
+        showReorder={false}
+        dragEnabled={false}
+        onComplete={(row) => void complete(row)}
+        onOpen={(row) => openTaskDetail(row.id)}
+        onPlan={(row) => void plan(row, todayDate)}
+        onUnplan={(row) => void plan(row, null)}
+        onCancel={setCancelTarget}
+      />
     );
   };
 
-  const renderGroup = (titleKey: Parameters<typeof t>[0], tasks: Task[]) => (
-    <section className={styles.group}>
-      <h2 className={styles.groupTitle}>
-        {t(titleKey)}
-        <small>{tasks.length}</small>
-      </h2>
-      {tasks.map((task) => renderRow(task))}
-    </section>
-  );
+  const renderGroup = (key: AllGroupKey, tasks: Task[]) => {
+    const open = openGroups[key];
+    return (
+      <section className={styles.group} key={key}>
+        <div className={styles.groupHead}>
+          <h2>
+            <span>{t(GROUP_LABEL[key])}</span>
+            <span className={styles.count}>{tasks.length}</span>
+          </h2>
+          <button
+            type="button"
+            className={styles.expander}
+            aria-expanded={open}
+            onClick={() => setOpenGroups((current) => ({ ...current, [key]: !current[key] }))}
+          >
+            {open ? t('today.group.collapse') : t('today.group.expand')}
+            <ChevronDownIcon size={16} className={open ? styles.chevronOpen : styles.chevron} />
+          </button>
+        </div>
+        {open && tasks.length > 0 ? <ul className={styles.list}>{tasks.map(renderRow)}</ul> : null}
+        {tasks.length === 0 ? (
+          <p className={styles.groupEmpty}>{t('today.all.groupEmpty')}</p>
+        ) : null}
+      </section>
+    );
+  };
 
   return (
     <PageShell
-      titleKey="today.all.title"
-      eyebrow={<span className={styles.eyebrow}>{t('today.all.eyebrow')}</span>}
-      bodyKey="today.all.body"
-      action={
-        <button type="button" className={styles.add} onClick={() => openOverlay('quick-add')}>
-          <PlusIcon size={16} />
-          {t('today.all.add')}
-        </button>
+      back={
+        <Link className={styles.back} to="/today">
+          <ArrowLeftIcon size={16} />
+          {t('today.all.back')}
+        </Link>
       }
+      titleKey="today.all.title"
     >
-      {data.status === 'loading' ? <LoadingShell /> : null}
+      {data.status === 'loading' ? (
+        <div className={styles.table} aria-hidden="true">
+          <div className={styles.groupHead}>
+            <h2>
+              <span>{t('today.group.overdue')}</span>
+              <span className={styles.count}>—</span>
+            </h2>
+          </div>
+          <div className={styles.skeletonRow}>
+            <span className={styles.skeletonCheck} />
+            <span className={styles.skeletonLine} />
+          </div>
+          <div className={styles.skeletonRow}>
+            <span className={styles.skeletonCheck} />
+            <span className={styles.skeletonLong} />
+          </div>
+        </div>
+      ) : null}
 
       {data.status === 'error' ? (
         <div className={styles.errorBox} role="alert">
@@ -194,10 +214,7 @@ export function AllTodosPage() {
       {data.status === 'ready' ? (
         <>
           <div className={styles.toolbar}>
-            <span className={styles.chipInfo}>
-              {t('today.all.summaryPrefix')}
-              {total}
-            </span>
+            <span className={styles.filterLabel}>{t('today.all.filter')}</span>
             <label className={styles.chip}>
               <input type="checkbox" checked={filters.root} onChange={() => toggle('root')} />
               <span>{t('today.all.filter.root')}</span>
@@ -214,7 +231,10 @@ export function AllTodosPage() {
               />
               <span>{t('today.all.filter.archived')}</span>
             </label>
-            <span className={styles.sort}>{t('today.all.sort')}</span>
+            <span className={styles.summary}>
+              {t('today.all.summaryPrefix')}
+              {total}
+            </span>
           </div>
 
           {pageError ? (
@@ -224,19 +244,29 @@ export function AllTodosPage() {
           ) : null}
 
           {total === 0 ? (
-            <EmptyState messageKey="today.all.empty" />
+            <div className={styles.empty}>
+              <p>{t('today.all.empty')}</p>
+              <Link to="/today">{t('today.all.back')}</Link>
+            </div>
           ) : (
             <div className={styles.table}>
-              {groups.overdue.length > 0
-                ? renderGroup('today.group.overdue', groups.overdue)
-                : null}
-              {groups.upcoming.length > 0
-                ? renderGroup('today.group.future', groups.upcoming)
-                : null}
-              {groups.noDue.length > 0 ? renderGroup('today.group.noDue', groups.noDue) : null}
+              {renderGroup('overdue', groups.overdue)}
+              {renderGroup('upcoming', groups.upcoming)}
+              {renderGroup('noDue', groups.noDue)}
             </div>
           )}
         </>
+      ) : null}
+
+      {cancelTarget ? (
+        <ConfirmDialog
+          titleKey="taskDetail.cancelTitle"
+          bodyKey="taskDetail.cancelBody"
+          confirmKey="taskDetail.confirmCancel"
+          busy={busyId === cancelTarget.id}
+          onConfirm={() => void confirmCancel()}
+          onClose={() => setCancelTarget(null)}
+        />
       ) : null}
     </PageShell>
   );

@@ -70,6 +70,16 @@ function TaskDetailBody({ task, branches, events }: TaskDetailBodyProps) {
         .sort((a, b) => a.depth - b.depth || a.order - b.order),
     [branches],
   );
+  const unavailable = useMemo(
+    () =>
+      branches
+        .filter(
+          (branch) =>
+            branch.deletedAt === null && !isBranchAccepting(branch) && branch.id !== task.branchId,
+        )
+        .sort((a, b) => a.depth - b.depth || a.order - b.order),
+    [branches, task.branchId],
+  );
   const currentBranch = byId.get(task.branchId);
   const branchReason = currentBranch ? branchReadonlyReason(currentBranch) : 'deleted';
   const taskLocked: MessageKey | null =
@@ -139,16 +149,32 @@ function TaskDetailBody({ task, branches, events }: TaskDetailBodyProps) {
     <>
       <form className={styles.panel} onSubmit={save} aria-label={t('overlay.task-detail.title')}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{t('overlay.task-detail.title')}</h2>
+          <div>
+            <h2 className={styles.title}>{t('overlay.task-detail.title')}</h2>
+            <p className={styles.subtitle}>{t('taskDetail.subtitle')}</p>
+          </div>
           <button type="button" className={styles.close} onClick={closeOverlay}>
             {t('shell.close')}
           </button>
         </div>
 
         {taskLocked ? <p className={styles.locked}>{t(taskLocked)}</p> : null}
-        {task.status !== 'open' ? (
-          <p className={styles.status}>{t(`taskDetail.status.${task.status}` as MessageKey)}</p>
-        ) : null}
+        <div className={styles.statusBar}>
+          <span className={styles.statusLabel}>{t('taskDetail.field.status')}</span>
+          <span className={styles.statusValue} data-status={task.status}>
+            {t(`taskDetail.status.${task.status}` as MessageKey)}
+          </span>
+          {!readonly ? (
+            <button
+              type="button"
+              className={styles.statusAction}
+              disabled={busy}
+              onClick={togglePlan}
+            >
+              {task.plannedDate === todayDate ? t('taskDetail.unplan') : t('taskDetail.planToday')}
+            </button>
+          ) : null}
+        </div>
 
         <label className={styles.field}>
           <span className={styles.label}>{t('taskDetail.field.title')}</span>
@@ -213,6 +239,15 @@ function TaskDetailBody({ task, branches, events }: TaskDetailBodyProps) {
                 {branchTrail(branch, byId)}
               </option>
             ))}
+            {unavailable.map((branch) => {
+              const reason = branchReadonlyReason(branch);
+              return (
+                <option key={branch.id} value={branch.id} disabled>
+                  {branchTrail(branch, byId)}
+                  {reason ? ` · ${t(READONLY_KEYS[reason] ?? 'today.readonly.archived')}` : null}
+                </option>
+              );
+            })}
           </select>
           {accepting.length === 0 ? (
             <span className={styles.hint}>{t('taskDetail.branchUnavailable')}</span>
@@ -228,25 +263,24 @@ function TaskDetailBody({ task, branches, events }: TaskDetailBodyProps) {
         <div className={styles.actions}>
           {!readonly ? (
             <>
-              <button type="submit" className={styles.primary} disabled={busy}>
-                {busy ? t('taskDetail.saving') : t('taskDetail.save')}
-              </button>
-              <button type="button" className={styles.ghost} disabled={busy} onClick={complete}>
-                {t('taskDetail.complete')}
-              </button>
-              <button type="button" className={styles.ghost} disabled={busy} onClick={togglePlan}>
-                {task.plannedDate === todayDate
-                  ? t('taskDetail.unplan')
-                  : t('taskDetail.planToday')}
-              </button>
-              <button
-                type="button"
-                className={styles.danger}
-                disabled={busy}
-                onClick={() => setConfirmCancel(true)}
-              >
-                {t('taskDetail.cancel')}
-              </button>
+              <div className={styles.actionGroup}>
+                <button
+                  type="button"
+                  className={styles.danger}
+                  disabled={busy}
+                  onClick={() => setConfirmCancel(true)}
+                >
+                  {t('taskDetail.cancel')}
+                </button>
+              </div>
+              <div className={styles.actionGroup}>
+                <button type="button" className={styles.ghost} disabled={busy} onClick={complete}>
+                  {t('taskDetail.complete')}
+                </button>
+                <button type="submit" className={styles.primary} disabled={busy}>
+                  {busy ? t('taskDetail.saving') : t('taskDetail.save')}
+                </button>
+              </div>
             </>
           ) : null}
         </div>

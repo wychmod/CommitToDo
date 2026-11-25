@@ -10,6 +10,7 @@ import { createTask } from '@/data/create-task';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
 import { Dialog } from '@/ui/dialog';
+import { InfoIcon } from '@/ui/icons';
 import styles from './quick-add-panel.module.css';
 
 const DATE_HINT = /(下周|周[一二三四五六日天]|\d{1,2}\s*[月日号])/;
@@ -82,6 +83,15 @@ export function QuickAddPanel() {
   const effectiveBranchTrail = selectedBranch ? branchTrail(selectedBranch, byId) : '';
   const branchUnrecognized = parsed.branchQuery !== null && matched === null;
   const dateUnrecognized = !due && parsed.dateToken === null && DATE_HINT.test(text);
+  const recognized = text.trim().length > 0 && !dateUnrecognized && !branchUnrecognized;
+  const dueLabel = due
+    ? due === todayDate
+      ? t('today.task.todayLabel')
+      : (() => {
+          const [, month, day] = due.split('-').map(Number);
+          return `${month}${t('milestone.date.monthSuffix')} ${day}${t('milestone.date.daySuffix')}`;
+        })()
+    : t('quickAdd.noneDate');
 
   const bulkBranch = byId.get(bulkBranchId) ?? root;
   const effectiveBulkBranch = bulkBranch?.id ?? '';
@@ -152,9 +162,12 @@ export function QuickAddPanel() {
       className={styles.panel}
     >
       <div className={styles.header}>
-        <h2 className={styles.title}>{t('quickAdd.title')}</h2>
+        <div>
+          <h2 className={styles.title}>{t('quickAdd.title')}</h2>
+          <p className={styles.subtitle}>{t('quickAdd.subtitle')}</p>
+        </div>
         <button type="button" className={styles.close} onClick={closeOverlay}>
-          {t('shell.close')}
+          {t('quickAdd.back')}
         </button>
       </div>
 
@@ -198,20 +211,33 @@ export function QuickAddPanel() {
           </label>
           <p className={styles.hint}>{t('quickAdd.hint')}</p>
 
-          <div className={styles.preview}>
-            <span className={styles.previewItem}>
-              <span className={styles.previewLabel}>{t('quickAdd.preview.date')}</span>
-              <span className={styles.previewValue} data-warn={dateUnrecognized || undefined}>
-                {dateUnrecognized ? t('quickAdd.unrecognizedDate') : due || t('quickAdd.noneDate')}
-              </span>
-            </span>
-            <span className={styles.previewItem}>
-              <span className={styles.previewLabel}>{t('quickAdd.preview.branch')}</span>
-              <span className={styles.previewValue} data-warn={branchUnrecognized || undefined}>
-                {branchUnrecognized ? t('quickAdd.unrecognizedBranch') : effectiveBranchTrail}
-              </span>
-            </span>
-          </div>
+          {text.trim().length > 0 ? (
+            <div className={styles.feedback} data-tone={recognized ? 'info' : 'warning'}>
+              <InfoIcon size={16} />
+              <div>
+                {recognized ? (
+                  <>
+                    <p>
+                      <b>{t('quickAdd.feedback.recognized')}</b> {dueLabel} · {effectiveBranchTrail}
+                    </p>
+                    <p>
+                      {t('quickAdd.feedback.titlePrefix')}
+                      {parsed.title}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      {dateUnrecognized ? t('quickAdd.unrecognizedDate') : null}
+                      {dateUnrecognized && branchUnrecognized ? t('today.recent.separator') : null}
+                      {branchUnrecognized ? t('quickAdd.unrecognizedBranch') : null}
+                    </p>
+                    <p>{t('quickAdd.feedback.keepHint')}</p>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : null}
 
           <div className={styles.row}>
             <label className={styles.field}>

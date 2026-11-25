@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { localClockTime, localDate } from '@/core/clock';
-import { isBranchAccepting } from '@/core/rules/branch-state';
+import { localDate } from '@/core/clock';
 import { displayBranchTrail } from '@/core/rules/branch-path';
-import { visibleDefaultTree } from '@/core/rules/branch-visibility';
-import { parseQuickAdd, resolveBranchQuery } from '@/core/rules/quick-add';
+import { branchShadeForDepth, normalizeBranchColor } from '@/core/rules/branch-color';
+import { weekDayOf } from '@/core/rules/week-review';
 import {
   deriveOnboardingStep,
   needsOnboarding,
@@ -12,23 +11,19 @@ import {
 } from '@/core/rules/onboarding-state';
 import { reorderIds, type DragPosition } from '@/core/rules/drag-order';
 import { groupTodayTasks, sortByManualOrder, type TodayGroupKey } from '@/core/rules/today-groups';
-import { weekDayOf } from '@/core/rules/week-review';
 import { cancelTask } from '@/data/cancel-task';
 import { completeTask } from '@/data/complete-task';
-import { createTask } from '@/data/create-task';
 import { useOnboardingData, useTodayData, useStallReminders, useTodayDate } from '@/data/hooks';
 import { planTask } from '@/data/plan-task';
 import { reorderTasks } from '@/data/reorder';
 import { updateCommit } from '@/data/update-commit';
-import type { Branch, Commit, Task } from '@/data/types';
+import type { Commit, Task } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useOnboardingStore } from '@/stores/onboarding.store';
 import { useReviewStore } from '@/stores/review.store';
 import { useShellStore } from '@/stores/shell.store';
 import { useTodayStore } from '@/stores/today.store';
-import { EmptyState } from '@/ui/empty-state';
-import { ArrowIcon, CheckIcon, ChevronRightIcon, PlusIcon } from '@/ui/icons';
-import { LoadingShell } from '@/ui/loading-shell';
+import { ArrowIcon, ChevronDownIcon, ChevronRightIcon, PlusIcon, TodayIcon } from '@/ui/icons';
 import { PageShell } from '@/ui/page-shell';
 import { useIsCompact } from '@/ui/use-compact';
 import { BranchTag } from '@/components/today/branch-tag';
@@ -45,9 +40,9 @@ import styles from './today-page.module.css';
 interface ReceiptState {
   taskTitle: string;
   commit: Commit;
+  groupKey: TodayGroupKey;
+  index: number;
 }
-
-const EMPTY_BRANCHES: readonly Branch[] = [];
 
 const WEEKDAY_KEYS = [
   'today.date.weekday.1',
@@ -58,6 +53,20 @@ const WEEKDAY_KEYS = [
   'today.date.weekday.6',
   'today.date.weekday.7',
 ] as const;
+
+const GROUP_KEYS: readonly TodayGroupKey[] = ['overdue', 'today', 'noDue'];
+
+const GROUP_LABEL: Record<TodayGroupKey, MessageKey> = {
+  overdue: 'today.group.overdue',
+  today: 'today.group.today',
+  noDue: 'today.group.noDue',
+};
+
+const GROUP_EMPTY: Record<TodayGroupKey, MessageKey> = {
+  overdue: 'today.group.empty.overdue',
+  today: 'today.group.empty.today',
+  noDue: 'today.group.empty.noDue',
+};
 
 /** 画稿页头：2026 年 11 月 20 日 · 周五。 */
 function dateLabelOf(date: string): string {
@@ -71,10 +80,36 @@ function monthDayLabel(date: string): string {
   return `${month}${t('milestone.date.monthSuffix')} ${day}${t('milestone.date.daySuffix')}`;
 }
 
+/** 页头的次要装饰：纸张与分支线；窄屏隐藏。 */
+function HeroArt() {
+  return (
+    <svg
+      className={styles.heroArt}
+      viewBox="0 0 220 140"
+      fill="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M42 18h92a8 8 0 0 1 8 8v92a8 8 0 0 1-8 8H42a8 8 0 0 1-8-8V26a8 8 0 0 1 8-8Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path d="M112 18v22h22" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M54 52h52M54 64h66M54 76h40" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M158 134V96a12 12 0 0 1 12-12h32" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M158 134V70a12 12 0 0 0-12-12h-16" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="170" cy="84" r="4" fill="currentColor" />
+      <circle cx="130" cy="58" r="4" fill="currentColor" />
+      <circle cx="158" cy="118" r="4" fill="currentColor" />
+    </svg>
+  );
+}
+
 /**
  * P01 今天（PRD M03）。
  *
- * 三组来自 R8 纯函数；完成走 `completeTask` 单事务，成功后行位置显示回执；
+ * 三组来自 R8 纯函数；完成走 `completeTask` 单事务，成功后原行位置显示回执；
  * 收起清单是纯 UI 状态，完成后自动露出下一条。
  */
 export function TodayPage() {
@@ -119,46 +154,11 @@ export function TodayPage() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<ReceiptState | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Task | null>(null);
+  const [groupOpen, setGroupOpen] = useState<Partial<Record<TodayGroupKey, boolean>>>({});
   const [dragging, setDragging] = useState<{ id: string; group: TodayGroupKey } | null>(null);
   const [dropTarget, setDropTarget] = useState<{ id: string; position: DragPosition } | null>(null);
   const [dragRejected, setDragRejected] = useState(false);
-  const [quickText, setQuickText] = useState('');
-  const [quickBusy, setQuickBusy] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
-
-  const branches = data.status === 'ready' ? data.branches : EMPTY_BRANCHES;
-
-  const accepting = useMemo(
-    () =>
-      visibleDefaultTree(branches)
-        .filter(isBranchAccepting)
-        .sort((a, b) => a.depth - b.depth || a.order - b.order),
-    [branches],
-  );
-
-  const submitQuick = async () => {
-    const parsed = parseQuickAdd(quickText, todayDate);
-    if (!parsed.title.trim() || quickBusy) return;
-    const matched = parsed.branchQuery ? resolveBranchQuery(accepting, parsed.branchQuery) : null;
-    const branchId = matched?.id ?? accepting.find((branch) => branch.depth === 0)?.id;
-    if (!branchId) {
-      setPageError(t('today.quickAdd.failed'));
-      return;
-    }
-    setQuickBusy(true);
-    const result = await createTask({
-      title: parsed.title,
-      branchId,
-      dueDate: parsed.dueDate ?? null,
-    });
-    setQuickBusy(false);
-    if (result.ok) {
-      setQuickText('');
-      setPageError(null);
-    } else {
-      setPageError(t('today.quickAdd.failed'));
-    }
-  };
 
   useEffect(() => {
     if (!dragRejected) return;
@@ -181,8 +181,15 @@ export function TodayPage() {
   );
 
   const total = groups.overdue.length + groups.today.length + groups.noDue.length;
-  const flattened = [...groups.overdue, ...groups.today, ...groups.noDue];
-  const latestCommit = data.status === 'ready' ? (data.commits[0] ?? null) : null;
+  const ready = data.status === 'ready';
+  const firstTask = groups.overdue[0] ?? groups.today[0] ?? groups.noDue[0] ?? null;
+  const firstGroupKey: TodayGroupKey | null = groups.overdue.length
+    ? 'overdue'
+    : groups.today.length
+      ? 'today'
+      : groups.noDue.length
+        ? 'noDue'
+        : null;
 
   const focusNext = () => {
     requestAnimationFrame(() => {
@@ -194,14 +201,15 @@ export function TodayPage() {
     });
   };
 
-  const complete = async (task: Task) => {
+  const complete = async (task: Task, groupKey: TodayGroupKey) => {
     if (busyId) return;
+    const index = rowsOf(groupKey).findIndex((row) => row.id === task.id);
     setBusyId(task.id);
     setFailedId(null);
     const result = await completeTask({ taskId: task.id });
     setBusyId(null);
     if (result.ok) {
-      setReceipt({ taskTitle: task.title, commit: result.value.commit });
+      setReceipt({ taskTitle: task.title, commit: result.value.commit, groupKey, index });
       setPageError(null);
       focusNext();
     } else {
@@ -295,9 +303,8 @@ export function TodayPage() {
     await commitOrder(groupKey, result.ids);
   };
 
-  const renderRow = (task: Task, groupKey: TodayGroupKey, rows: Task[]) => {
+  const renderRow = (task: Task, groupKey: TodayGroupKey, index: number, rows: Task[]) => {
     const branch = byId.get(task.branchId);
-    const index = rows.findIndex((row) => row.id === task.id);
     return (
       <TaskRow
         key={task.id}
@@ -308,16 +315,16 @@ export function TodayPage() {
         readonlyReason={trailing(task)}
         busy={busyId === task.id}
         error={failedId === task.id}
-        onComplete={complete}
+        onComplete={(row) => void complete(row, groupKey)}
         onOpen={(row) => openTaskDetail(row.id)}
-        onPlan={(row) => plan(row, todayDate)}
-        onUnplan={(row) => plan(row, null)}
+        onPlan={(row) => void plan(row, todayDate)}
+        onUnplan={(row) => void plan(row, null)}
         onCancel={setCancelTarget}
         canMoveUp={index > 0}
         canMoveDown={index >= 0 && index < rows.length - 1}
-        onMoveUp={() => moveTask(groupKey, task, -1)}
-        onMoveDown={() => moveTask(groupKey, task, 1)}
-        dragEnabled={!compact && rows.length > 1}
+        onMoveUp={() => void moveTask(groupKey, task, -1)}
+        onMoveDown={() => void moveTask(groupKey, task, 1)}
+        dragEnabled={!compact && rows.length > 1 && !listCollapsed}
         dragging={dragging?.id === task.id}
         dropPosition={dropTarget?.id === task.id ? dropTarget.position : null}
         onDragStartTask={() => {
@@ -326,7 +333,7 @@ export function TodayPage() {
           setDragRejected(false);
         }}
         onDragOverTask={(target, position) => handleDragOver(groupKey, target, position)}
-        onDropOnTask={(target) => handleDrop(groupKey, target.id)}
+        onDropOnTask={(target) => void handleDrop(groupKey, target.id)}
         onDragEndTask={() => {
           setDragging(null);
           setDropTarget(null);
@@ -335,69 +342,168 @@ export function TodayPage() {
     );
   };
 
-  const quickAddForm =
-    data.status === 'ready' ? (
-      <form
-        className={styles.quickAdd}
-        onSubmit={(event) => {
-          event.preventDefault();
-          void submitQuick();
-        }}
-      >
-        <label className={styles.quickField}>
-          <span className={styles.quickIcon} aria-hidden="true">
-            <PlusIcon size={16} />
-          </span>
-          <input
-            className={styles.quickInput}
-            value={quickText}
-            onChange={(event) => setQuickText(event.target.value)}
-            placeholder={t('today.quickAdd.placeholder')}
-            aria-label={t('today.quickAdd.label')}
-            disabled={quickBusy}
-          />
-        </label>
-        <button type="submit" className={styles.quickButton} disabled={quickBusy}>
-          {t('today.quickAdd.submit')}
-        </button>
-      </form>
-    ) : null;
+  const receiptNode = receipt ? (
+    <li key={`receipt-${receipt.commit.id}`} className={styles.receiptItem}>
+      <CompletionReceipt
+        commit={receipt.commit}
+        taskTitle={receipt.taskTitle}
+        onSaveNote={saveReceiptNote}
+      />
+    </li>
+  ) : null;
 
-  if (data.status === 'ready' && showOnboarding) {
+  const renderGroup = (groupKey: TodayGroupKey, tasks: Task[]) => {
+    const hasReceipt = receipt?.groupKey === groupKey;
+    const defaultOpen = groupKey === 'today' || (groupKey === 'overdue' && tasks.length <= 5);
+    const open = groupOpen[groupKey] ?? defaultOpen;
+    const effectiveOpen = listCollapsed
+      ? groupKey === firstGroupKey || hasReceipt
+      : open || hasReceipt;
+    // 全局收起状态由面板头部的“展开清单”控制，分组按钮在此状态下隐藏，
+    // 避免出现点击后仍不会改变内容的无效控件。
+    const showExpander = !listCollapsed && (tasks.length > 0 || hasReceipt);
+
+    const nodes: ReactNode[] = [];
+    tasks.forEach((task, index) => {
+      if (hasReceipt && receipt && receipt.index === index) nodes.push(receiptNode);
+      if (listCollapsed && task.id !== firstTask?.id) return;
+      nodes.push(renderRow(task, groupKey, index, tasks));
+    });
+    if (hasReceipt && receipt && receipt.index >= tasks.length) nodes.push(receiptNode);
+
+    return (
+      <section className={styles.group} key={groupKey}>
+        <div
+          className={
+            groupKey === 'today' ? `${styles.groupHead} ${styles.groupHeadToday}` : styles.groupHead
+          }
+        >
+          <h3>
+            <span>{t(GROUP_LABEL[groupKey])}</span>
+            <span className={styles.count}>{tasks.length}</span>
+          </h3>
+          {showExpander ? (
+            <button
+              type="button"
+              className={styles.expander}
+              aria-expanded={effectiveOpen}
+              onClick={() =>
+                setGroupOpen((current) => ({ ...current, [groupKey]: !effectiveOpen }))
+              }
+            >
+              {effectiveOpen ? t('today.group.collapse') : t('today.group.expand')}
+              <ChevronDownIcon
+                size={16}
+                className={effectiveOpen ? styles.chevronOpen : styles.chevron}
+              />
+            </button>
+          ) : null}
+        </div>
+
+        {effectiveOpen && nodes.length > 0 ? <ul className={styles.list}>{nodes}</ul> : null}
+        {tasks.length === 0 && !hasReceipt ? (
+          <p className={styles.groupEmpty}>{t(GROUP_EMPTY[groupKey])}</p>
+        ) : null}
+      </section>
+    );
+  };
+
+  if (ready && showOnboarding) {
     return <OnboardingCard view={onboarding} step={onboardingStep} />;
   }
 
+  const recentSection = (
+    <section className={styles.recent} aria-label={t('today.recent.title')}>
+      <div className={styles.recentHead}>
+        <h2>{t('today.recent.title')}</h2>
+        <Link className={styles.inlineLink} to="/history">
+          {t('today.recent.view')}
+          <ChevronRightIcon size={13} />
+        </Link>
+      </div>
+      {data.commits.length === 0 ? (
+        <p className={styles.blank}>{t('today.recent.empty')}</p>
+      ) : (
+        <ol className={styles.recentList}>
+          {data.commits.map((commit) => {
+            const branch = byId.get(commit.branchId);
+            const color = branch ? normalizeBranchColor(branch.color) : 'sky';
+            const shade = branch ? branchShadeForDepth(branch.depth) : 1;
+            return (
+              <li key={commit.id}>
+                <button
+                  type="button"
+                  className={styles.recentItem}
+                  style={{ '--node': `var(--${color}-${shade})` } as CSSProperties}
+                  onClick={() => openCommitDetail(commit.id)}
+                >
+                  <span className={styles.node} aria-hidden="true" />
+                  <span className={styles.commitCopy}>
+                    <strong>{commit.summary}</strong>
+                    {branch ? (
+                      <BranchTag branch={branch} trail={displayBranchTrail(branch, byId)} />
+                    ) : null}
+                  </span>
+                  <time>{monthDayLabel(localDate(commit.at))}</time>
+                  <ChevronRightIcon size={16} className={styles.recentChevron} />
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
+  );
+
   return (
     <PageShell
-      eyebrow={<p className={styles.date}>{dateLabelOf(todayDate)}</p>}
+      eyebrow={
+        <p className={styles.dateLine}>
+          <TodayIcon size={16} />
+          {dateLabelOf(todayDate)}
+        </p>
+      }
       title={
         <>
           <h1>{t('page.today.title')}</h1>
-          <p className={styles.description}>{t('page.today.body')}</p>
+          {ready ? (
+            <p className={styles.tally}>
+              <span>
+                <b>{groups.dueCount}</b>
+                {t('today.header.dueSuffix')}
+              </span>
+              <span className={styles.tallyDot} aria-hidden="true" />
+              <span>
+                {t('today.header.noDuePrefix')}
+                <b>{groups.noDueCount}</b>
+                {t('today.header.noDueSuffix')}
+              </span>
+            </p>
+          ) : null}
+          {ready && total === 0 ? (
+            <p className={styles.heroHint}>{t('today.hero.emptyHint')}</p>
+          ) : null}
         </>
       }
-      headClassName={styles.pageHead}
+      headClassName={styles.hero}
+      headArt={<HeroArt />}
       action={
-        data.status === 'ready' && total > 0 ? (
-          <p className={styles.headSummary}>
-            <span>
-              <strong>{groups.dueCount}</strong>
-              {t('today.header.dueSuffix')}
-            </span>
-            <span className={styles.headDot} aria-hidden="true" />
-            <span>
-              {t('today.header.noDuePrefix')}
-              {groups.noDueCount}
-              {t('today.header.noDueSuffix')}
-            </span>
-          </p>
-        ) : undefined
+        <button
+          type="button"
+          className={styles.cta}
+          disabled={!ready}
+          aria-busy={data.status === 'loading'}
+          onClick={() => openOverlay('quick-add')}
+        >
+          <PlusIcon size={18} />
+          {t('page.today.action')}
+        </button>
       }
     >
-      {data.status === 'loading' ? <LoadingShell /> : null}
+      {ready ? <ReviewReminder /> : null}
 
       {data.status === 'error' ? (
-        <div className={styles.errorBox} role="alert">
+        <div className={styles.errorBar} role="alert">
           <p>{t('today.loadFailed')}</p>
           <button type="button" className={styles.retry} onClick={data.retry}>
             {t('today.retry')}
@@ -405,285 +511,147 @@ export function TodayPage() {
         </div>
       ) : null}
 
-      {data.status === 'ready' ? <ReviewReminder /> : null}
+      <div className={styles.layout}>
+        <div className={styles.main} ref={listRef}>
+          {pageError ? (
+            <p className={styles.inlineError} role="alert">
+              {pageError}
+            </p>
+          ) : null}
 
-      {data.status === 'ready' && total === 0 ? (
-        <div className={styles.main}>
-          {quickAddForm}
-          <EmptyState
-            messageKey="page.today.empty"
-            action={
-              <div className={styles.emptyActions}>
+          {dragRejected ? (
+            <p className={styles.inlineError} role="alert">
+              {t('today.order.crossGroup')}
+            </p>
+          ) : null}
+
+          <section className={styles.panel} aria-label={t('today.list.title')}>
+            <div className={styles.panelHead}>
+              <div>
+                <h2>{t('today.list.title')}</h2>
+                <p>{t('today.list.subtitle')}</p>
+              </div>
+              {ready && total > 0 ? (
                 <button
                   type="button"
-                  className={styles.action}
-                  onClick={() => openOverlay('quick-add')}
+                  className={styles.quiet}
+                  onClick={toggleListCollapsed}
+                  aria-pressed={listCollapsed}
                 >
-                  {t('page.today.action')}
+                  {listCollapsed ? t('today.list.expand') : t('today.list.collapse')}
                 </button>
-                {canReopen ? (
-                  <button type="button" className={styles.reopenLink} onClick={reopenOnboarding}>
-                    {t('onboarding.reopen')}
-                  </button>
-                ) : null}
-              </div>
-            }
-          />
-        </div>
-      ) : null}
+              ) : null}
+            </div>
 
-      {data.status === 'ready' && total > 0 ? (
-        <div className={styles.layout}>
-          <div className={styles.main} ref={listRef}>
-            {quickAddForm}
-
-            {pageError ? (
-              <p className={styles.inlineError} role="alert">
-                {pageError}
-              </p>
-            ) : null}
-
-            {dragRejected ? (
-              <p className={styles.inlineError} role="alert">
-                {t('today.order.crossGroup')}
-              </p>
-            ) : null}
-
-            {listCollapsed ? (
-              <section className={styles.group}>
-                <div className={styles.groupHead}>
-                  <h2 className={styles.groupTitle}>{t('today.list.collapsedHint')}</h2>
-                  <button
-                    type="button"
-                    className={styles.collapseButton}
-                    onClick={toggleListCollapsed}
-                  >
-                    {t('today.list.expand')}
-                  </button>
-                </div>
-                <ul className={styles.list}>
-                  {renderRow(
-                    flattened[0]!,
-                    groups.overdue.length > 0
-                      ? 'overdue'
-                      : groups.today.length > 0
-                        ? 'today'
-                        : 'noDue',
-                    flattened.slice(0, 1),
-                  )}
-                </ul>
-              </section>
-            ) : (
+            {data.status === 'loading' ? (
               <>
-                {groups.overdue.length > 0 ? (
-                  <details className={styles.group} open={groups.overdue.length <= 5}>
-                    <summary className={styles.groupHead}>
-                      <span className={styles.groupLabel}>
-                        <ChevronRightIcon className={styles.groupChevron} size={16} />
-                        <span>{t('today.group.overdue')}</span>
-                        <span className={styles.groupCount}>{groups.overdue.length}</span>
-                      </span>
-                    </summary>
-                    <ul className={styles.list}>
-                      {groups.overdue.map((task) => renderRow(task, 'overdue', groups.overdue))}
-                    </ul>
-                  </details>
-                ) : null}
-
-                {groups.today.length > 0 ? (
-                  <details className={styles.group} open>
-                    <summary className={styles.groupHead}>
-                      <span className={styles.groupLabel}>
-                        <ChevronRightIcon className={styles.groupChevron} size={16} />
-                        <span>{t('today.group.today')}</span>
-                        <span className={styles.groupCount}>{groups.today.length}</span>
-                      </span>
-                    </summary>
-                    <ul className={styles.list}>
-                      {groups.today.map((task) => renderRow(task, 'today', groups.today))}
-                    </ul>
-                  </details>
-                ) : null}
-
-                {groups.noDue.length > 0 ? (
-                  <details className={styles.group}>
-                    <summary className={styles.groupHead}>
-                      <span className={styles.groupLabel}>
-                        <ChevronRightIcon className={styles.groupChevron} size={16} />
-                        <span>{t('today.group.noDue')}</span>
-                        <span className={styles.groupCount}>{groups.noDue.length}</span>
-                      </span>
-                    </summary>
-                    <ul className={styles.list}>
-                      {groups.noDue.map((task) => renderRow(task, 'noDue', groups.noDue))}
-                    </ul>
-                  </details>
-                ) : null}
-
-                <div className={styles.listFooter}>
-                  <Link className={styles.allLink} to="/today/all">
-                    {t('today.allLink')}
-                    <ArrowIcon size={16} />
-                  </Link>
-                  <button
-                    type="button"
-                    className={styles.collapseButton}
-                    onClick={toggleListCollapsed}
+                {GROUP_KEYS.map((key) => (
+                  <div
+                    key={key}
+                    className={
+                      key === 'today'
+                        ? `${styles.groupHead} ${styles.groupHeadToday}`
+                        : styles.groupHead
+                    }
                   >
-                    {t('today.list.collapse')}
-                  </button>
+                    <h3>
+                      <span>{t(GROUP_LABEL[key])}</span>
+                      <span className={styles.count}>—</span>
+                    </h3>
+                  </div>
+                ))}
+                <div className={styles.skeletonRow} aria-hidden="true">
+                  <span className={styles.skeletonCheck} />
+                  <span className={styles.skeletonLine} />
+                  <span className={styles.skeletonShort} />
+                </div>
+                <div className={styles.skeletonRow} aria-hidden="true">
+                  <span className={styles.skeletonCheck} />
+                  <span className={styles.skeletonLong} />
+                  <span className={styles.skeletonShort} />
                 </div>
               </>
-            )}
+            ) : null}
 
-            {listCollapsed ? (
+            {data.status === 'error' ? (
+              <>
+                {GROUP_KEYS.map((key) => (
+                  <div key={key} className={styles.groupHead}>
+                    <h3>
+                      <span>{t(GROUP_LABEL[key])}</span>
+                      <span className={styles.count}>—</span>
+                    </h3>
+                  </div>
+                ))}
+              </>
+            ) : null}
+
+            {ready ? (
+              <>
+                {renderGroup('overdue', groups.overdue)}
+                {renderGroup('today', groups.today)}
+                {renderGroup('noDue', groups.noDue)}
+              </>
+            ) : null}
+
+            <div className={styles.panelFoot}>
+              <span className={styles.footHint}>{t('today.list.footerHint')}</span>
               <Link className={styles.allLink} to="/today/all">
                 {t('today.allLink')}
                 <ArrowIcon size={16} />
               </Link>
-            ) : null}
-          </div>
+            </div>
+          </section>
 
-          <aside className={styles.rail} aria-label={t('today.rail.label')}>
-            {receipt ? (
-              <CompletionReceipt
-                key={receipt.commit.id}
-                commit={receipt.commit}
-                taskTitle={receipt.taskTitle}
-                branch={byId.get(receipt.commit.branchId)}
-                branchTrail={
-                  byId.get(receipt.commit.branchId)
-                    ? displayBranchTrail(byId.get(receipt.commit.branchId), byId)
-                    : receipt.commit.branchId
-                }
-                onSaveNote={saveReceiptNote}
-              />
-            ) : latestCommit ? (
-              <section className={styles.receiptCard} aria-label={t('today.receipt.latest')}>
-                <div className={styles.receiptHeading}>
-                  <span className={styles.receiptCheck} aria-hidden="true">
-                    <CheckIcon size={15} />
-                  </span>
-                  <span>{t('today.receipt.donePrefix')}</span>
-                  <time className={styles.receiptTime}>{localClockTime(latestCommit.at)}</time>
-                </div>
-                <button
-                  type="button"
-                  className={styles.receiptTitle}
-                  onClick={() => openCommitDetail(latestCommit.id)}
-                >
-                  {latestCommit.summary}
-                </button>
-                <div className={styles.receiptFoot}>
-                  <BranchTag
-                    branch={byId.get(latestCommit.branchId)}
-                    trail={
-                      byId.get(latestCommit.branchId)
-                        ? displayBranchTrail(byId.get(latestCommit.branchId), byId)
-                        : latestCommit.branchId
-                    }
-                  />
-                  <Link className={styles.receiptLink} to={`/history?commit=${latestCommit.id}`}>
-                    {t('today.receipt.view')}
-                    <ArrowIcon size={14} />
-                  </Link>
-                </div>
-              </section>
-            ) : (
-              <section className={styles.railCard}>
-                <p className={styles.railEmpty}>{t('today.receipt.empty')}</p>
-              </section>
-            )}
+          {ready && canReopen ? (
+            <button type="button" className={styles.reopenLink} onClick={reopenOnboarding}>
+              {t('onboarding.reopen')}
+            </button>
+          ) : null}
+        </div>
 
-            <section
-              className={`${styles.railCard} ${styles.railPanel}`}
-              aria-label={t('today.recent.title')}
-            >
+        <aside className={styles.rail} aria-label={t('today.rail.label')}>
+          {recentSection}
+
+          {ready && stalls.length > 0 ? (
+            <section className={styles.railCard} aria-label={t('today.stall.title')}>
               <div className={styles.panelTitle}>
-                <h2>{t('today.recent.title')}</h2>
-                <Link className={styles.inlineLink} to="/history">
-                  {t('today.recent.view')}
-                  <ChevronRightIcon size={13} />
-                </Link>
+                <h2>{t('today.stall.title')}</h2>
+                <span className={styles.count}>{stalls.length}</span>
               </div>
-              {data.commits.length === 0 ? (
-                <p className={styles.railEmpty}>{t('today.recent.empty')}</p>
-              ) : (
-                <ul className={styles.recentList}>
-                  {data.commits.slice(0, 3).map((commit) => (
-                    <li key={commit.id}>
-                      <div>
-                        <button
-                          type="button"
-                          className={styles.recentTitle}
-                          onClick={() => openCommitDetail(commit.id)}
-                        >
-                          {commit.summary}
-                        </button>
-                        <BranchTag
-                          branch={byId.get(commit.branchId)}
-                          trail={
-                            byId.get(commit.branchId)
-                              ? displayBranchTrail(byId.get(commit.branchId), byId)
-                              : commit.branchId
-                          }
-                        />
-                      </div>
-                      <time>{monthDayLabel(localDate(commit.at))}</time>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <ul className={styles.stallList}>
+                {stalls.map((item) => (
+                  <li key={item.branchId}>
+                    <Link
+                      className={styles.stallItem}
+                      to={`/history?branch=${item.branchId}&date=${item.lastDate}`}
+                    >
+                      <i className={styles.stallDot} aria-hidden="true" />
+                      <strong>{byId.get(item.branchId)?.title ?? item.branchId}</strong>
+                      <span className={styles.stallDays}>
+                        {t('today.stall.daysPrefix')}
+                        {item.days}
+                        {t('today.stall.daysSuffix')}
+                      </span>
+                      <ChevronRightIcon size={14} />
+                    </Link>
+                    <p className={styles.stallSince}>
+                      {t('today.stall.lastPrefix')}
+                      {monthDayLabel(item.lastDate)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
             </section>
+          ) : null}
 
-            {stalls.length > 0 ? (
-              <section
-                className={`${styles.railCard} ${styles.railPanel}`}
-                aria-label={t('today.stall.title')}
-              >
-                <div className={styles.panelTitle}>
-                  <h2>{t('today.stall.title')}</h2>
-                  <span className={styles.count}>{stalls.length}</span>
-                </div>
-                <ul className={styles.stallList}>
-                  {stalls.map((item) => (
-                    <li key={item.branchId}>
-                      <Link
-                        className={styles.stallItem}
-                        to={`/history?branch=${item.branchId}&date=${item.lastDate}`}
-                      >
-                        <i className={styles.stallDot} aria-hidden="true" />
-                        <strong>{byId.get(item.branchId)?.title ?? item.branchId}</strong>
-                        <span className={styles.stallDays}>
-                          {t('today.stall.daysPrefix')}
-                          {item.days}
-                          {t('today.stall.daysSuffix')}
-                        </span>
-                        <ChevronRightIcon size={14} />
-                      </Link>
-                      <p className={styles.stallSince}>
-                        {t('today.stall.lastPrefix')}
-                        {monthDayLabel(item.lastDate)}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
+          {ready ? <WeekReviewCard /> : null}
+        </aside>
+      </div>
 
-            <WeekReviewCard />
-          </aside>
-        </div>
-      ) : null}
+      {ready && monthOpen ? <MonthReviewPanel /> : null}
 
-      {data.status === 'ready' && total === 0 ? (
-        <div className={styles.emptyReview}>
-          <WeekReviewCard />
-        </div>
-      ) : null}
-      {data.status === 'ready' && monthOpen ? <MonthReviewPanel /> : null}
-
-      {data.status === 'ready' && showBackfillGuide ? (
+      {ready && showBackfillGuide ? (
         <section className={styles.backfillCard} aria-labelledby="backfill-guide-title">
           <div className={styles.backfillCopy}>
             <h2 id="backfill-guide-title" className={styles.backfillTitle}>
@@ -715,7 +683,7 @@ export function TodayPage() {
           bodyKey="taskDetail.cancelBody"
           confirmKey="taskDetail.confirmCancel"
           busy={busyId === cancelTarget.id}
-          onConfirm={confirmCancel}
+          onConfirm={() => void confirmCancel()}
           onClose={() => setCancelTarget(null)}
         />
       ) : null}

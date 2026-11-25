@@ -12,6 +12,8 @@ interface PageShellProps {
   action?: ReactNode;
   /** 单页页头间距与对齐覆盖。 */
   headClassName?: string;
+  /** 页头里的次要装饰（如今天的纸张与分支线），由调用方定位。 */
+  headArt?: ReactNode;
   /** 二级页的返回控件，放在页头之上。 */
   back?: ReactNode;
   /** 我的/设置/数据等页在画稿里收窄到 1000px。 */
@@ -29,6 +31,7 @@ export function PageShell({
   bodyKey,
   action,
   headClassName,
+  headArt,
   back,
   narrow,
   compact,
@@ -50,6 +53,7 @@ export function PageShell({
           {bodyKey ? <p className={styles.description}>{t(bodyKey)}</p> : null}
         </div>
         {action}
+        {headArt}
       </header>
       <div className={styles.body}>
         {children ?? <p className={styles.empty}>{t('state.empty')}</p>}
