@@ -1,4 +1,5 @@
 .field {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--s1);
@@ -10,73 +11,151 @@
   font-size: var(--type-label);
 }
 
-.control {
-  display: grid;
-  grid-template-columns: var(--s8) minmax(0, 1fr) var(--s8);
-  align-items: stretch;
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
   min-width: 0;
-  overflow: hidden;
+  min-height: var(--s8);
+  padding: var(--s2) var(--s3);
   border: var(--timeline-guide) solid var(--line);
   border-radius: var(--radius-control);
   background: var(--surface);
-}
-
-.input {
-  min-width: 0;
-  width: 100%;
-  padding: var(--s2) var(--s1);
-  border: 0;
-  background: transparent;
   color: var(--text);
   font: inherit;
-  text-align: center;
-}
-
-.stepper {
-  display: grid;
-  place-items: center;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: var(--inset);
-  color: var(--muted);
-  font-size: var(--type-heading-small);
-  line-height: 1;
+  text-align: left;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
-.stepper:first-child {
-  border-right: var(--timeline-guide) solid var(--line);
-}
-
-.stepper:last-child {
-  border-left: var(--timeline-guide) solid var(--line);
-}
-
-.stepper:hover:not(:disabled) {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.stepper:disabled {
+.trigger:disabled,
+.shortcut:disabled,
+.day:disabled {
   color: var(--disabled);
   cursor: default;
 }
 
-.input:focus-visible,
-.stepper:focus-visible {
-  position: relative;
-  z-index: 1;
+.trigger:disabled {
+  background: var(--inset);
+}
+
+.trigger:focus-visible,
+.shortcut:focus-visible,
+.nav:focus-visible,
+.day:focus-visible {
   outline: var(--timeline-selected-ring) solid var(--focus);
   outline-offset: calc(var(--s1) / 4);
 }
 
-.control:has(.input:disabled) {
+.shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.shortcut,
+.nav,
+.day {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.shortcut {
+  padding: var(--s1) var(--s2);
+  border: var(--timeline-guide) solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  font-size: var(--type-label);
+}
+
+.shortcut:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* 记一笔遮罩是 30。固定定位会逃出该层叠上下文，低于 30 会被挡住。 */
+.popover {
+  position: fixed;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  width: min(calc(100vw - var(--s8)), calc(var(--s7) * 7 + var(--s5)));
+  padding: var(--s3);
+  border: var(--timeline-guide) solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.navRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.nav {
+  display: grid;
+  place-items: center;
+  width: var(--s8);
+  height: var(--s8);
+  padding: 0;
+  border-radius: var(--radius-control);
+}
+
+.nav:hover {
   background: var(--inset);
 }
 
-@media (max-width: 390px) {
-  .control {
-    grid-template-columns: var(--s9) minmax(0, 1fr) var(--s9);
-  }
+.monthTitle {
+  color: var(--text);
+  font-size: var(--type-secondary);
+  font-weight: 600;
+}
+
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.weekday,
+.day {
+  display: grid;
+  place-items: center;
+  height: var(--s7);
+}
+
+.weekday {
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.day {
+  padding: 0;
+  border-radius: var(--radius-control);
+  font-size: var(--type-secondary);
+}
+
+.dayOutside {
+  color: var(--muted);
+}
+
+.dayToday {
+  box-shadow: inset 0 0 0 var(--timeline-guide) var(--accent);
+}
+
+.daySelected {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.day:hover:not(:disabled) {
+  background: var(--inset);
 }
