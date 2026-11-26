@@ -14,6 +14,7 @@
   justify-content: center;
   padding: var(--s4);
   background: color-mix(in srgb, var(--text) 35%, transparent);
+  overscroll-behavior: contain;
 }
 
 .panel {
@@ -27,6 +28,7 @@
   border-radius: var(--radius-panel);
   background: var(--panel);
   box-shadow: var(--shadow);
+  overscroll-behavior: contain;
 }
 
 .sizeMd {
@@ -58,6 +60,17 @@
   font: inherit;
   font-size: var(--type-secondary);
   cursor: pointer;
+  touch-action: manipulation;
+}
+
+.close:hover {
+  background: var(--inset);
+  color: var(--text);
+}
+
+.close:focus-visible {
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: calc(var(--s1) / 4);
 }
 
 .actions {
