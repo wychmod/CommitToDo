@@ -31,6 +31,11 @@ function parseMonth(month: string): { year: number; month: number } {
   return { year: Number(match[1]), month: monthNumber };
 }
 
+/** 只有已经写入的合法日期才算选中；空值不是回退日。 */
+export function committedDate(value: string): string | null {
+  return isDateString(value) ? value : null;
+}
+
 /** 周一为 0，周日为 6。 */
 export function weekdayIndex(date: string): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
   assertDate(date);

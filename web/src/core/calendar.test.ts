@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   addMonths,
+  committedDate,
   isSelectable,
   monthGrid,
   monthOf,
@@ -10,6 +11,13 @@ import {
   weekdayIndex,
 } from './calendar';
 
+describe('committedDate', () => {
+  it('does not treat an empty value as the fallback date', () => {
+    expect(committedDate('')).toBeNull();
+    expect(committedDate('2026-02-30')).toBeNull();
+    expect(committedDate('2026-11-27')).toBe('2026-11-27');
+  });
+});
 describe('nextWeekFriday', () => {
   it('Thursday skips this Friday so it does not collide with tomorrow', () => {
     expect(nextWeekFriday('2026-11-26')).toBe('2026-12-04');

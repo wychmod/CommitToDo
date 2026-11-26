@@ -31,7 +31,7 @@
 
 .trigger:disabled,
 .shortcut:disabled,
-.day:disabled {
+.day[aria-disabled='true'] {
   color: var(--disabled);
   cursor: default;
 }
@@ -156,6 +156,6 @@
   color: var(--accent);
 }
 
-.day:hover:not(:disabled) {
+.day:hover:not([aria-disabled='true']) {
   background: var(--inset);
 }

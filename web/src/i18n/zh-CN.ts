@@ -26,6 +26,7 @@ export const zhCN = {
   'date.tomorrow': '明天',
   'date.nextFriday': '下周五',
   'date.openCalendar': '打开日历',
+  'date.unset': '未选择',
   'date.previousMonth': '上个月',
   'date.nextMonth': '下个月',
   'app.name': 'CommitToDo',

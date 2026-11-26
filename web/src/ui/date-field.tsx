@@ -1,12 +1,13 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import {
+  addMonths,
+  committedDate,
   isSelectable,
   monthGrid,
   monthOf,
   moveDay,
   shortcutDate,
   weekdayIndex,
-  addMonths,
   type Shortcut,
 } from '@/core/calendar';
 import { isDateString } from '@/core/clock';
@@ -85,9 +86,8 @@ export function DateField({
   className,
   min,
 }: DateFieldProps) {
-  const resolved = isDateString(value) ? value : fallbackDate;
-  const ready = isDateString(resolved);
-  const anchorReady = isDateString(fallbackDate);
+  const committed = committedDate(value);
+  const anchor = committed ?? (isDateString(fallbackDate) ? fallbackDate : null);
   const popoverId = useId();
   const fieldRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -95,8 +95,8 @@ export function DateField({
   const justOpened = useRef(false);
   const moveFocus = useRef(false);
   const [open, setOpen] = useState(false);
-  const [visibleMonth, setVisibleMonth] = useState(() => (ready ? monthOf(resolved) : ''));
-  const [focused, setFocused] = useState(resolved);
+  const [visibleMonth, setVisibleMonth] = useState(() => (anchor ? monthOf(anchor) : ''));
+  const [focused, setFocused] = useState(anchor ?? '');
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const classes = [styles.field, className].filter(Boolean).join(' ');
 
@@ -112,9 +112,9 @@ export function DateField({
   };
 
   const openCalendar = () => {
-    if (disabled || !ready) return;
-    setVisibleMonth(monthOf(resolved));
-    setFocused(resolved);
+    if (disabled || !anchor) return;
+    setVisibleMonth(monthOf(anchor));
+    setFocused(anchor);
     justOpened.current = true;
     setOpen(true);
   };
@@ -175,8 +175,8 @@ export function DateField({
   useEffect(() => {
     if (!open || !justOpened.current) return;
     justOpened.current = false;
-    popoverRef.current?.querySelector<HTMLButtonElement>(`[data-date="${resolved}"]`)?.focus();
-  }, [open, resolved]);
+    popoverRef.current?.querySelector<HTMLButtonElement>(`[data-date="${anchor}"]`)?.focus();
+  }, [open, anchor]);
 
   useEffect(() => {
     if (!open || !moveFocus.current) return;
@@ -206,22 +206,23 @@ export function DateField({
         className={styles.trigger}
         ref={triggerRef}
         aria-label={
-          ready
-            ? `${label} ${formatDate(resolved)} ${t('date.openCalendar')}`
-            : t('date.openCalendar')
+          committed
+            ? `${label} ${formatDate(committed)} ${t('date.openCalendar')}`
+            : `${label} ${t('date.unset')} ${t('date.openCalendar')}`
         }
         aria-expanded={open}
         aria-controls={popoverId}
-        disabled={disabled || !ready}
+        disabled={disabled || !anchor}
         onClick={() => (open ? close() : openCalendar())}
       >
-        <span>{ready ? formatDate(resolved) : value}</span>
+        <span>{committed ? formatDate(committed) : t('date.unset')}</span>
         <ChevronDownIcon size={16} />
       </button>
       <div className={styles.shortcuts}>
         {SHORTCUTS.map(({ kind, key }) => {
-          const date = anchorReady ? shortcutDate(kind, fallbackDate) : '';
-          const shortcutDisabled = disabled || !anchorReady || !isSelectable(date, min);
+          const date = isDateString(fallbackDate) ? shortcutDate(kind, fallbackDate) : '';
+          const shortcutDisabled =
+            disabled || !isDateString(fallbackDate) || !isSelectable(date, min);
           return (
             <button
               key={kind}
@@ -275,8 +276,8 @@ export function DateField({
           <div className={styles.grid} role="grid">
             {cells.map((cell) => {
               const selectable = isSelectable(cell.date, min);
-              const selected = cell.date === resolved;
-              const today = anchorReady && cell.date === fallbackDate;
+              const selected = committed !== null && cell.date === committed;
+              const today = isDateString(fallbackDate) && cell.date === fallbackDate;
               const dayClass = [
                 styles.day,
                 !cell.inMonth ? styles.dayOutside : '',
@@ -295,8 +296,10 @@ export function DateField({
                   aria-label={formatDate(cell.date)}
                   aria-pressed={selected}
                   aria-current={today ? 'date' : undefined}
-                  disabled={!selectable}
-                  onClick={() => choose(cell.date)}
+                  aria-disabled={!selectable}
+                  onClick={() => {
+                    if (selectable) choose(cell.date);
+                  }}
                 >
                   {Number(cell.date.slice(8, 10))}
                 </button>
