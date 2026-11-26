@@ -7,16 +7,19 @@
   align-items: center;
   gap: var(--s3);
   min-height: var(--s10);
-  padding: var(--s2) var(--s5);
-  border-top: var(--timeline-guide) solid var(--line);
+  margin-inline: var(--s2);
+  padding: var(--s2) var(--s3);
+  border: var(--timeline-guide) solid transparent;
+  border-radius: var(--radius-control);
   background: var(--panel);
-}
-
-.row:first-child {
-  border-top-color: transparent;
+  transition:
+    background var(--duration-micro) var(--ease-enter),
+    border-color var(--duration-micro) var(--ease-enter),
+    transform var(--duration-micro) var(--ease-enter);
 }
 
 .row:hover {
+  border-color: var(--line);
   background: var(--surface);
 }
 
@@ -143,7 +146,7 @@
 .more {
   display: grid;
   place-items: center;
-  width: var(--s7);
+  width: var(--s8);
   height: var(--tree-list-default);
   padding: 0;
   border: 0;
@@ -151,6 +154,7 @@
   background: none;
   color: var(--muted);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .more:hover,
@@ -247,7 +251,8 @@
   .row {
     gap: var(--s2);
     min-height: calc(var(--s9) + var(--s1));
-    padding: var(--s2) var(--s4);
+    margin-inline: 0;
+    padding: var(--s2) var(--s3);
   }
 
   .date {
