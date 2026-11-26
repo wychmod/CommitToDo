@@ -9,6 +9,7 @@
   justify-content: center;
   padding: 8vh var(--s4) var(--s4);
   background: color-mix(in srgb, var(--text) 35%, transparent);
+  overscroll-behavior: contain;
 }
 
 .panel {
@@ -18,10 +19,11 @@
   width: min(720px, 100%);
   max-height: 84vh;
   padding: var(--s5);
-  border: 1px solid var(--line);
+  border: var(--timeline-guide) solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--panel);
   box-shadow: var(--shadow);
+  overscroll-behavior: contain;
 }
 
 .header {
@@ -53,10 +55,18 @@
   color: var(--text);
 }
 
+.close:focus-visible,
+.more:focus-visible,
+.menuLocate:focus-visible,
+.retry:focus-visible {
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: calc(var(--s1) / 4);
+}
+
 .input {
   width: 100%;
   padding: var(--s2) var(--s3);
-  border: 1px solid var(--line);
+  border: var(--timeline-guide) solid var(--line);
   border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--text);
@@ -64,8 +74,8 @@
 }
 
 .input:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 1px;
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: calc(var(--s1) / 4);
 }
 
 .toggle {
@@ -188,7 +198,8 @@
   gap: var(--s1) var(--s3);
   flex: 1;
   min-width: 0;
-  padding: var(--s2) var(--s1);
+  min-height: var(--s8);
+  padding: var(--s2);
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
@@ -196,10 +207,14 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition:
+    background var(--duration-micro) var(--ease-enter),
+    box-shadow var(--duration-micro) var(--ease-enter);
 }
 
 .row:hover {
-  background: var(--inset);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 var(--timeline-guide) var(--accent-line);
 }
 
 .row:focus-visible {
@@ -245,7 +260,7 @@
 
 .locate {
   padding: var(--s1) var(--s2);
-  border: 1px solid var(--line);
+  border: var(--timeline-guide) solid var(--line);
   border-radius: var(--radius-control);
   background: var(--panel);
   color: var(--muted);
@@ -283,6 +298,7 @@
     padding: var(--s4);
     border: 0;
     border-radius: 0;
+    overscroll-behavior: contain;
   }
 
   .row {
@@ -318,6 +334,7 @@
     color: var(--muted);
     font-size: var(--type-label);
     cursor: pointer;
+    touch-action: manipulation;
   }
 
   .menuLocate {
@@ -330,5 +347,6 @@
     font-size: var(--type-label);
     white-space: nowrap;
     cursor: pointer;
+    touch-action: manipulation;
   }
 }
