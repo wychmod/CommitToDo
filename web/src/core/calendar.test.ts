@@ -30,7 +30,7 @@ describe('monthGrid', () => {
   it('November 2026 starts on the previous Monday and keeps outside days', () => {
     const cells = monthGrid('2026-11');
     expect(cells[0]).toEqual({ date: '2026-10-26', inMonth: false });
-    expect(cells.at(-1)).toEqual({ date: '2026-12-06', inMonth: false });
+    expect(cells[cells.length - 1]).toEqual({ date: '2026-12-06', inMonth: false });
     expect(cells).toHaveLength(42);
     expect(cells.find((cell) => cell.date === '2026-11-27')).toEqual({
       date: '2026-11-27',
