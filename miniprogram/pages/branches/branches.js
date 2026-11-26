@@ -18,7 +18,8 @@ Page({
     updatedAt: '',
     usage: { used: 0, limit: 200 },
     archivedCount: 0,
-    tree: [],
+    root: null,
+    sections: [],
     empty: false,
     errorTitle: '',
     errorBody: ''
@@ -59,15 +60,17 @@ Page({
       }
 
       const data = result.data;
-      this.rawTree = data.tree;
+      this.rawTree = data.tree && data.tree[0] ? data.tree[0] : null;
+      const viewData = view.buildTreeView(this.rawTree, this.collapsed);
       this.setData({
         phase: 'ready',
         offline: result.cached,
         updatedAt: format.updatedLabel(result.serverTime),
         usage: data.usage,
         archivedCount: data.archivedCount,
-        tree: view.flattenTree(data.tree, this.collapsed, 0, []),
-        empty: !data.tree || data.tree.length === 0
+        root: viewData.root,
+        sections: viewData.sections,
+        empty: !this.rawTree
       });
     });
   },
@@ -76,7 +79,8 @@ Page({
     const id = event.currentTarget.dataset.id;
     this.collapsed = this.collapsed || {};
     this.collapsed[id] = !this.collapsed[id];
-    this.setData({ tree: view.flattenTree(this.rawTree, this.collapsed, 0, []) });
+    const viewData = view.buildTreeView(this.rawTree, this.collapsed);
+    this.setData({ root: viewData.root, sections: viewData.sections });
   },
 
   onOpen(event) {

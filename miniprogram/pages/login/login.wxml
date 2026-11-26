@@ -1,25 +1,36 @@
 <view class="login">
   <view class="login-top">
-    <view class="login-mark"></view>
+    <view class="login-lockup">
+      <view class="login-mark"></view>
+      <text class="login-wordmark">CommitToDo</text>
+    </view>
     <view class="login-title">把每次完成，</view>
     <view class="login-title">留在<text class="login-highlight">分支</text>上。</view>
-    <text class="login-body">登录后查看你的树：今天要做什么、每条分支走到哪、今年走了多远。</text>
+    <text class="login-body">勾选待办，完成记录就会落在对应分支。</text>
 
     <view class="login-illustration">
-      <view class="login-line">
-        <view class="login-note">C</view>
-        <text>完成一条待办</text>
+      <view class="illus-top">
+        <view class="illus-note-wrap">
+          <view class="illus-note">✓</view>
+          <text class="illus-caption">完成待办</text>
+        </view>
+        <view class="illus-link"></view>
+        <view class="illus-receipt">
+          <view class="illus-receipt-check">✓</view>
+          <text class="illus-receipt-text">已提交</text>
+        </view>
       </view>
-      <view class="login-line" style="margin-top: 14px">
-        <view class="login-arrow"></view>
-      </view>
-      <view class="login-branch" style="margin-top: 14px">
-        <view class="dot dot-round" style="background: #A84427"></view>
-        <text>工作</text>
-        <view class="dot dot-round" style="background: #286BA3; margin-left: 14px"></view>
-        <text>主业</text>
-        <view class="dot dot-round" style="background: #906511; margin-left: 14px"></view>
-        <text>身体</text>
+
+      <view class="illus-graph">
+        <view class="illus-parent"></view>
+        <view class="illus-split"></view>
+        <view class="illus-slant illus-slant-up"></view>
+        <view class="illus-slant illus-slant-down"></view>
+        <view class="illus-lane illus-lane-up"></view>
+        <view class="illus-lane illus-lane-down"></view>
+        <view class="illus-node illus-node-prev"></view>
+        <view class="illus-node illus-node-focus"></view>
+        <view class="illus-node illus-node-sky"></view>
       </view>
     </view>
   </view>

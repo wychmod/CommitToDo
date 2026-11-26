@@ -10,8 +10,16 @@
   />
 
   <block wx:else>
-    <text class="page-date">按日期从上到下</text>
-    <text class="page-title">历程</text>
+    <view class="page-head">
+      <view class="page-head-main">
+        <text class="page-date">按日期从上到下</text>
+        <text class="page-title">历程</text>
+      </view>
+      <view class="head-link tap" bindtap="onOpenYear">
+        <text class="head-link-label">年轮</text>
+        <view class="chevron"></view>
+      </view>
+    </view>
     <text class="page-subtitle">{{rangeLabel}} · {{rows.length}} 个节点</text>
 
     <view wx:if="{{offline}}" class="banner">
@@ -34,14 +42,6 @@
       </picker>
     </view>
 
-    <view class="link-row tap" bindtap="onOpenYear">
-      <text>年轮</text>
-      <view class="row-side">
-        <text class="muted">年度回顾</text>
-        <view class="chevron"></view>
-      </view>
-    </view>
-
     <view wx:if="{{empty}}" class="card" style="margin-top: 12px">
       <state-view
         state="empty"
@@ -55,7 +55,8 @@
         <view class="hist-legend">
           <view class="legend-item"><view class="legend-mark"></view><text>提交</text></view>
           <view class="legend-item"><view class="legend-mark legend-diamond"></view><text>里程碑</text></view>
-          <view class="legend-item"><view class="legend-mark legend-ring"></view><text>分出 / 合回</text></view>
+          <view class="legend-item"><view class="legend-mark legend-ring"></view><text>分出</text></view>
+          <view class="legend-item"><view class="legend-mark legend-ring"></view><text>合回</text></view>
           <view class="legend-item"><view class="legend-mark legend-dash"></view><text>停滞</text></view>
         </view>
 

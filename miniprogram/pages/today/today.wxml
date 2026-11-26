@@ -12,7 +12,7 @@
   <block wx:else>
     <text class="page-date">{{dateLabel}}</text>
     <text class="page-title">今天</text>
-    <text class="page-subtitle">{{dueCount}} 条有截止日期 · 另有 {{noDueCount}} 条无截止日期</text>
+    <text class="page-subtitle">{{dueCount}} 条有截止日期 · 另有 {{noDueCount}} 条无截止</text>
 
     <view wx:if="{{offline}}" class="banner">
       <text class="banner-text">网络不可用，显示上次内容</text>
@@ -31,13 +31,15 @@
       <view wx:for="{{groups}}" wx:key="key" wx:for-item="group" class="group">
         <view class="card">
           <view
-            class="group-head {{group.key === 'overdue' ? 'group-head-overdue' : ''}}"
+            class="group-head {{group.key === 'overdue' ? 'group-head-overdue' : ''}} {{group.key === 'today' ? 'group-head-today' : ''}}"
             data-key="{{group.key}}"
             bindtap="onToggleGroup"
           >
-            <text class="group-title">{{group.title}}</text>
+            <view class="group-pill">
+              <text class="group-title">{{group.title}}</text>
+              <text class="group-count">{{group.tasks.length}}</text>
+            </view>
             <view class="row-side">
-              <text>{{group.tasks.length}}</text>
               <view class="chevron {{group.open ? 'chevron-down' : ''}}"></view>
             </view>
           </view>
@@ -59,7 +61,7 @@
                 </view>
               </view>
               <view class="row-side">
-                <text class="row-date">{{task.dueLabel}}</text>
+                <text class="row-date {{group.key === 'overdue' ? 'row-date-overdue' : ''}}">{{task.dueLabel}}</text>
                 <view class="chevron"></view>
               </view>
             </view>
@@ -73,7 +75,7 @@
           <text class="section-label">最近提交</text>
           <text class="section-count">只读</text>
         </view>
-        <view class="card">
+        <view class="card card-receipt">
           <view
             wx:for="{{recentCommits}}"
             wx:key="id"

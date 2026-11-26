@@ -10,7 +10,6 @@
   />
 
   <block wx:else>
-    <text class="page-date">整棵树 · 只读</text>
     <text class="page-title">分支树</text>
     <text class="page-subtitle">已使用 {{usage.used}} / {{usage.limit}} 条分支</text>
 
@@ -28,36 +27,73 @@
     </view>
 
     <block wx:else>
-      <view class="card tree" style="margin-top: 14px">
-        <view
-          wx:for="{{tree}}"
-          wx:key="id"
-          class="tree-row tap"
-          style="padding-left: {{10 + item.depth * 16}}px"
-          data-id="{{item.id}}"
-          bindtap="onOpen"
-        >
+      <view class="tree-panel">
+        <view class="tree-root tap" data-id="{{root.id}}" bindtap="onOpen">
+          <view class="tree-root-mark"></view>
+          <text class="tree-root-name">{{root.title}}</text>
           <view
-            wx:if="{{item.hasChildren}}"
-            class="tree-toggle {{item.open ? 'tree-toggle-open' : ''}}"
-            data-id="{{item.id}}"
+            wx:if="{{root.hasChildren}}"
+            class="tree-toggle {{root.open ? 'tree-toggle-open' : ''}}"
+            data-id="{{root.id}}"
             catchtap="onToggle"
           >
             <view class="chevron"></view>
           </view>
-          <view wx:else class="tree-spacer"></view>
-
-          <view class="dot" style="background: {{item.colorHex}}"></view>
-          <text class="tree-name">{{item.title}}</text>
-          <text wx:if="{{item.taskTotal > 0}}" class="tree-progress">{{item.taskDone}} / {{item.taskTotal}}</text>
-          <text wx:if="{{item.status !== 'active'}}" class="tag tag-neutral">{{item.statusLabel}}</text>
-          <view class="chevron"></view>
         </view>
+
+        <block wx:for="{{sections}}" wx:key="id" wx:for-item="section">
+          <view
+            class="tree-group tap"
+            style="background: {{section.colorBg}}"
+            data-id="{{section.id}}"
+            bindtap="onToggle"
+          >
+            <view class="tree-group-mark" style="background: {{section.colorHex}}"></view>
+            <text class="tree-group-name">{{section.title}}</text>
+            <view class="tree-toggle {{section.open ? 'tree-toggle-open' : ''}}">
+              <view class="chevron"></view>
+            </view>
+          </view>
+
+          <block wx:if="{{section.open}}">
+            <view
+              wx:for="{{section.rows}}"
+              wx:key="id"
+              class="tree-row tap"
+              data-id="{{item.id}}"
+              bindtap="onOpen"
+            >
+              <view
+                wx:if="{{item.hasChildren}}"
+                class="tree-toggle tree-toggle-inline {{item.open ? 'tree-toggle-open' : ''}}"
+                data-id="{{item.id}}"
+                catchtap="onToggle"
+              >
+                <view class="chevron"></view>
+              </view>
+              <view wx:else class="tree-toggle-space"></view>
+              <view
+                wx:for="{{item.rails}}"
+                wx:key="key"
+                wx:for-item="rail"
+                class="tree-rail tree-rail-{{rail.kind}}"
+              ></view>
+              <view class="dot" style="background: {{item.colorHex}}"></view>
+              <text class="tree-name">{{item.title}}</text>
+              <text wx:if="{{item.taskTotal > 0}}" class="tree-progress">{{item.taskDone}} / {{item.taskTotal}}</text>
+              <text wx:if="{{item.status !== 'active'}}" class="tag {{item.tagClass}}">{{item.statusLabel}}</text>
+              <view class="chevron"></view>
+            </view>
+          </block>
+        </block>
       </view>
 
       <view class="link-row tap" bindtap="onOpenArchive">
-        <text>归档区{{archivedCount > 0 ? ' · ' + archivedCount : ''}}</text>
-        <view class="chevron"></view>
+        <text>已归档分支</text>
+        <view class="row-side">
+          <text wx:if="{{archivedCount > 0}}" class="muted">{{archivedCount}}</text>
+          <view class="chevron"></view>
+        </view>
       </view>
     </block>
 
