@@ -11,6 +11,7 @@ import type { Branch, EventRecord, Task } from '@/data/types';
 import { t, type MessageKey } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
 import { Dialog } from '@/ui/dialog';
+import { DateField } from '@/ui/date-field';
 import { ConfirmDialog } from './confirm-dialog';
 import styles from './task-detail-panel.module.css';
 
@@ -199,26 +200,20 @@ function TaskDetailBody({ task, branches, events }: TaskDetailBodyProps) {
         </label>
 
         <div className={styles.row}>
-          <label className={styles.field}>
-            <span className={styles.label}>{t('taskDetail.field.due')}</span>
-            <input
-              type="date"
-              className={styles.input}
-              value={dueDate}
-              disabled={readonly || busy}
-              onChange={(event) => setDueDate(event.target.value)}
-            />
-          </label>
-          <label className={styles.field}>
-            <span className={styles.label}>{t('taskDetail.field.planned')}</span>
-            <input
-              type="date"
-              className={styles.input}
-              value={plannedDate}
-              disabled={readonly || busy}
-              onChange={(event) => setPlannedDate(event.target.value)}
-            />
-          </label>
+          <DateField
+            label={t('taskDetail.field.due')}
+            value={dueDate}
+            fallbackDate={todayDate}
+            disabled={readonly || busy}
+            onChange={setDueDate}
+          />
+          <DateField
+            label={t('taskDetail.field.planned')}
+            value={plannedDate}
+            fallbackDate={todayDate}
+            disabled={readonly || busy}
+            onChange={setPlannedDate}
+          />
         </div>
 
         <label className={styles.field}>

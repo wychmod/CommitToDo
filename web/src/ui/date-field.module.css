@@ -1,0 +1,82 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.label {
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.control {
+  display: grid;
+  grid-template-columns: var(--s8) minmax(0, 1fr) var(--s8);
+  align-items: stretch;
+  min-width: 0;
+  overflow: hidden;
+  border: var(--timeline-guide) solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.input {
+  min-width: 0;
+  width: 100%;
+  padding: var(--s2) var(--s1);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+}
+
+.stepper {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: var(--inset);
+  color: var(--muted);
+  font-size: var(--type-heading-small);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.stepper:first-child {
+  border-right: var(--timeline-guide) solid var(--line);
+}
+
+.stepper:last-child {
+  border-left: var(--timeline-guide) solid var(--line);
+}
+
+.stepper:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.stepper:disabled {
+  color: var(--disabled);
+  cursor: default;
+}
+
+.input:focus-visible,
+.stepper:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: var(--timeline-selected-ring) solid var(--focus);
+  outline-offset: calc(var(--s1) / 4);
+}
+
+.control:has(.input:disabled) {
+  background: var(--inset);
+}
+
+@media (max-width: 390px) {
+  .control {
+    grid-template-columns: var(--s9) minmax(0, 1fr) var(--s9);
+  }
+}

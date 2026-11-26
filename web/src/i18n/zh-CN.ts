@@ -5,6 +5,8 @@
  * 组件里只写 key，不写中文；新增语言时只加一个同结构的目录文件。
  */
 export const zhCN = {
+  'date.previousDay': '前一天',
+  'date.nextDay': '后一天',
   'app.name': 'CommitToDo',
   'app.localTag': '本机空间',
 

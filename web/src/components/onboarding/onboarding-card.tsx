@@ -9,6 +9,7 @@ import { createTask } from '@/data/create-task';
 import type { OnboardingDataView } from '@/data/hooks';
 import { loadSampleTree } from '@/data/sample-namespace';
 import { CheckIcon, HistoryIcon, ListIcon } from '@/ui/icons';
+import { DateField } from '@/ui/date-field';
 import { t, type MessageKey } from '@/i18n';
 import { useOnboardingStore } from '@/stores/onboarding.store';
 import styles from './onboarding-card.module.css';
@@ -264,17 +265,14 @@ export function OnboardingCard({ view, step }: { view: OnboardingDataView; step:
                   disabled={busy}
                 />
               </label>
-              <label className={styles.field}>
-                <span className={styles.label}>{t('onboarding.field.date')}</span>
-                <input
-                  type="date"
-                  className={styles.input}
-                  value={dueDate}
-                  min={localDate(systemClock.now())}
-                  onChange={(event) => setDueDate(event.target.value)}
-                  disabled={busy}
-                />
-              </label>
+              <DateField
+                label={t('onboarding.field.date')}
+                value={dueDate}
+                fallbackDate={localDate(systemClock.now())}
+                min={localDate(systemClock.now())}
+                onChange={setDueDate}
+                disabled={busy}
+              />
             </div>
           </div>
           <p className={styles.setupMessage}>

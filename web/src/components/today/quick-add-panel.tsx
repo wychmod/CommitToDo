@@ -10,6 +10,7 @@ import { createTask } from '@/data/create-task';
 import { t } from '@/i18n';
 import { useShellStore } from '@/stores/shell.store';
 import { Dialog } from '@/ui/dialog';
+import { DateField } from '@/ui/date-field';
 import { InfoIcon } from '@/ui/icons';
 import styles from './quick-add-panel.module.css';
 
@@ -240,18 +241,16 @@ export function QuickAddPanel() {
           ) : null}
 
           <div className={styles.row}>
-            <label className={styles.field}>
-              <span className={styles.label}>{t('quickAdd.field.due')}</span>
-              <input
-                type="date"
-                className={styles.input}
-                value={due}
-                onChange={(event) => {
-                  setDateTouched(true);
-                  setDue(event.target.value);
-                }}
-              />
-            </label>
+            <DateField
+              label={t('quickAdd.field.due')}
+              value={due}
+              fallbackDate={todayDate}
+              onChange={(value) => {
+                setDateTouched(true);
+                setDue(value);
+              }}
+              className={styles.dateField}
+            />
             <label className={styles.field}>
               <span className={styles.label}>{t('quickAdd.field.branch')}</span>
               <select
